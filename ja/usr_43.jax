@@ -1,0 +1,179 @@
+COMMENT: ファイル形式の使い方
+STATUS: finished 6.3.054
+TRANSLATOR: 清水俊彦(しみず) <mailto:t_smz@syd.odn.ne.jp>
+
+*usr_43.txt*	For Vim version 6.3.  Last change: 2002 Jul 14
+
+		     VIM USER MANUAL - by Bram Moolenaar
+
+			     ファイルタイプを使う
+
+
+あるタイプのファイル、例えばＣソースだとかシェルスクリプトなどを編集している
+時には、同じようなオプション設定やマップをよく使います。これを毎回手作業で設
+定するのはうんざりですね。この章ではこれをどうやって自動化するかの説明をしま
+しょう。
+
+|43.1|	ファイルタイプ用のプラグイン
+|43.2|	ファイルタイプの追加
+
+     Next chapter: |usr_44.txt|  独自のシンタックスハイライト
+ Previous chapter: |usr_42.txt|  新しいメニューの追加
+Table of contents: |usr_toc.txt|
+
+==============================================================================
+*43.1*	ファイルタイプ用のプラグイン			*filetype-plugin*
+
+ファイルタイププラグインを使い始める方法については既に|add-filetype-plugin|
+で説明しました。とはいえ、デフォルト設定は最低限の設定に絞り込んでいますか
+ら、おそらく満足はできないでしょう。Ｃのファイルなら'softtabstop'オプション
+を４にしたいでしょうし、３行コメントを挿入するようなマップも欲しいでしょう。
+これは実は次の２ステップだけでできるのです。
+
+							*your-runtime-dir*
+1. 自分用のruntimeディレクトリを作ります。Unixなら普通は"~/.vim"とします。
+   そのディレクトリの中に"ftplugin"ディレクトリを作ります。 >
+
+	mkdir ~/.vim
+	mkdir ~/.vim/ftplugin
+<
+   Unix以外のシステムでは、'runtimepath'オプションを見てvimが"ftplugin"ディ
+   レクトリを探す場所を確認してください。 >
+
+	set runtimepath
+
+<  普通は最初のディレクトリ名(最初のカンマ(,)の左)を使います。デフォルト値が好
+   みでなければ、|vimrc|ファイルで'runtimepath'オプションにディレクトリ名を後
+   ろに追加した方が良いかもしれません。
+
+2. 次の内容のファイル"~/.vim/ftplugin/c.vim"を作ります。 >
+
+	setlocal softtabstop=4
+	noremap <buffer> <LocalLeader>c o/**************<CR><CR>/<Esc>
+
+これでＣのファイルを編集してみましょう。まず'softtabstop'オプションが４に設
+定されているのがわかりますね。ですが、他の種類のファイルを開くとデフォルトの
+０にリセットされます。これは":setlocal"コマンドを使っているためです。これは
+そのバッファのみに対して'softtabstop'オプションを設定します。他のファイルに
+切り換えた瞬間にそのバッファ用の値に再設定します。新しいバッファの場合はデ
+フォルト値か最後に設定した":set"コマンドの値となります。
+
+同じ様に"\c"マップも他のバッファを編集しようとした時になくなります。
+":map <buffer>"コマンドは現在のバッファにローカルなマップを作ります。この動
+きは":map!"や":vmap"などでも同じです。マッピング中の|<LocalLeader>|は
+"maplocalleader"の値に置換します。
+
+ファイルタイププラグインの例はこのディレクトリで探すことができます。 >
+
+	$VIMRUNTIME/ftplugin/
+
+ファイルタイププラグインを作成する方法の詳細は|write-plugin|をご覧ください。
+
+==============================================================================
+*43.2*	ファイルタイプの追加
+
+vimが認識してくれないタイプのファイルを使っている場合に認識させる方法を述べ
+ます。まず自分用のランタイムディレクトリを用意します。これについては上述の
+|your-rumtime-dir|をご覧ください。
+
+次にそのファイルタイプ用の自動コマンドが入っている"filetype.vim"というファイ
+ルを作ります。(自動コマンドについては|40.3|で説明しています)
+例を示します。 >
+
+	augroup filetypedetect
+	au BufNewFile,BufRead *.xyz	setf xyz
+	augroup END
+
+ここでは".xyz"で終わっているファイルを全て"xyz"ファイルタイプと認識させます。
+":augroup"コマンドでこの自動コマンドを"filetypedetect"グループに置きます。こ
+れは":filetype off"を実行した時にファイルタイプ検出用の自動コマンドを全て削
+除することを認めます。"self"マンドは'filetype'オプションが設定済でない限り、
+その引数を設定します。これは'filetype'が２重に設定されないようにしているとい
+うことです。
+
+ファイル名に合致するパターンにはいくつもの違ったパターンを使えます。ディレク
+トリ名を含んでいても構いません。|autocmd-patterns|をご覧ください。例えば、
+"/usr/share/scripts/"にあるファイルが全部"ruby"のファイルであることはわかっ
+ているが、ファイル名の拡張子が予測できない場合、上のサンプルに以下の記述を追
+加します。 >
+
+	augroup filetypedetect
+	au BufNewFile,BufRead *.xyz			setf xyz
+	au BufNewFile,BufRead /usr/share/scripts/*	setf ruby
+	augroup END
+
+ただ、これだと"/usr/share/scripts/README.txt"を編集しようとした時は、これは
+rubyのファイルではありません。"*"で終わるようなパターンでは、大量のファイル
+に一致してしまう危険があります。これを避けるには、'runtimepath'の最後に指定
+したディレクトリに"filetype.vim"を置きます。例えばUnixでは、このように指定が
+できます。 >
+	~/.vim/after/filetype.vim
+次にテキストファイルの検出を"~/.vim/filetype.vim"で行います。 >
+
+	augroup filetypedetect
+	au BufNewFile,BufRead *.txt			setf text
+	augroup END
+
+これは'runtimepath'の最初で見つけます。そして最後に見つかったファイル、
+"~/.vim/after/filetype.vim"の中で使います。 >
+
+	augroup filetypedetect
+	au BufNewFile,BufRead /usr/share/scripts/*	setf ruby
+	augroup END
+
+これだと、'runtimepath'の各ディレクトリにある"filetype.vim"ファイルをどのよ
+うに探すのでしょう？まず、~/.vim/filetype.vimを見つけます。*.txtファイルを探
+す自動コマンドがここで定義してあります。次にvimは"filetype.vim"を$VIMRUNTIME
+(これは'runtimepath'の中程にあります)から見つけます。最後に
+"~/.vim/after/filetype.vim"が見つかり、/usr/share/scriptsにあるrubyファイル
+を検出する自動コマンドを追加します。
+/usr/share/scripts/README.txtを編集する時は、定義された順で自動コマンドを
+チェックします。"*.txt"のパターンが合致しますから、つまり"setf text"を実行し
+ファイルタイプは"text"になります。rubyのパターンもうまく合致しますから、
+"setf ruby" を実行します。ただし、'filetype'は既に"text"に設定されているため
+ここでは何も起こりません。
+ファイル"/usr/share/scripts/foobar"を編集する時にも同じ自動コマンドで確認を
+行います。この場合は"ruby"に合致しますので"self ruby"を実行し、'filetype'は
+rubyに設定されます。
+
+
+内容による判断
+--------------
+
+ファイル名からはファイル種別を判断できなくても、内容で判断できる場合がありま
+す。例えば、多くのスクリプト言語ではこのような行が最初にあります。 
+
+	#!/bin/xyz ~
+
+このスクリプトを認識するためにあなたのランタイムディレクトリ("filetype.vim"
+と同じディレクトリ)に"scripts.vim"を作りましょう。この中身はこのようになりま
+す。 >
+
+	if did_filetype()
+	  finish
+	endif
+	if getline(1) =~ '^#!.*[/\\]xyz\>'
+	  setf xyz
+	endif
+
+最初にdid_filetype()を使って、既にファイル名からファイルタイプを検出済の場合
+にはファイル内容によるチェックを実行しないようにします。これは不必要な"self"
+を実行するために無意味な時間を費やさないようにするためです。
+"scripts.vim"というファイルはデフォルトで"filetype.vim"ファイルの自動コマン
+ドで読み込みます。ですから、チェックの手順はこのようになります。
+
+	1. 'runtimepath'中の$VIMRUNTIMEの前にある"filetype.vim"
+	2. "$VIMRUNTIME/filetype.vim"の最初の部分
+	3. 'runtimepath'中の全ての"scripts.vim"ファイル群
+	4. "$VIMRUNTIME/filetype.vim"の残りの部分
+	5. 'runtimepath'中の$VIMRUNTIMEの後にある"filetype.vim"
+
+もしこれで満足できないのであれば、全てのファイルとスクリプトを読み込むような
+自動コマンドを追加するか、ファイルの内容をチェックするような関数を実行させて
+ください。
+
+==============================================================================
+
+Next chapter: |usr_44.txt|  シンタックス定義の自作
+
+Copyright: see |manual-copyright|  vim:tw=78:ts=8:ft=help:norl:
