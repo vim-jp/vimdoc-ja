@@ -1,0 +1,299 @@
+COMMENT: Pythonインターフェイス
+STATUS: finished 6.3.054
+TRANSLATOR: 北条耀
+TRANSLATOR: nakadaira <hopper2@nanameue.jp>
+
+*if_pyth.txt* For Vim version 6.3.  Last change: 2004 Feb 28
+
+
+		  VIM REFERENCE MANUAL    by Paul Moore
+
+
+VimのPythonインターフェイス				*python* *Python*
+
+1. コマンド			|python-commands|
+2. vimモジュール		|python-vim|
+3. バッファオブジェクト		|python-buffer|
+4. レンジオブジェクト		|python-range|
+5. ウィンドウオブジェクト	|python-window|
+
+{Vi はこれらのコマンド群を持たない}
+
+パイソンインターフェイスは、Vimが|+python|特性と共にコンパイルされたときのみ
+機能する。
+
+==============================================================================
+1. コマンド						*python-commands*
+
+							*:python* *:py*
+:[range]py[thon] {stmt}
+			パイソンのステートメント{stmt}を実行。
+
+:[range]py[thon] << {endmarker}
+{script}
+{endmarker}
+			パイソンのスクリプト{script}を実行する。
+			Note: このコマンドはPython用の機能を含めてコンパイルさ
+			れていないときは機能しない。エラーを抑制するには
+			|script-here|を参照してください。
+
+{endmarker}の前に空白を置かないでください。"<<"の後に{endmarker}省略した時は
+|:append|や|:insert|のように'.'が使われます。
+この形の|:python|コマンドはVimスクリプトにPythonコードを埋め込むのに特に便利で
+す。
+
+例: >
+	function! IcecreamInitialize()
+	python << EOF
+	class StrawberryIcecreame:
+		def __call__(self):
+			print 'EAT ME'
+	EOF
+	endfunction
+<
+Note: Python is very sensitive to the indenting.  Also make sure the "class"
+line and "EOF" do not have any indent.
+
+							*:pyfile* *:pyf*
+:[range]pyf[ile] {file}
+			{file}内のパイソンスクリプトを実行。引数はその まま一
+			つのファイル名として使われる。{Vi にはない}
+
+これら２つのコマンドは、本質的には同じことを行う - つまり、パイソンのコードを、
+与えられた"現在の範囲"|python-range|に対して実行する。
+
+:pythonの場合には、実行されるコードはコマンドラインで与えられたものです。
+:pyfileの場合には、実行されるコードは与えられたファイルの中身である。
+
+Pythonのコマンドは|sandbox|の中では使えません。
+
+引数を渡すためには明示的に sys.argv[] を使って設定してください。例: >
+
+	:python import sys
+	:python sys.argv = ["foo", "bar"]
+	:pyfile myscript.py
+
+いくつかの例を挙げる					*python-examples*  >
+
+	:python from vim import *
+	:python from string import upper
+	:python current.line = upper(current.line)
+	:python print "Hello"
+	:python str = current.buffer[42]
+
+(変更 - importsなど - は、パイソンインタープリタと同様に、次のコマンドに引き
+継がれる。)
+
+==============================================================================
+2. vimモジュール					*python-vim*
+
+パイソンコードは、vimモジュールを通して、vimに自由にアクセスすることができる
+(ただひとつの例外を除いて - 以下の|python-output|を参照)。vimモジュールは２つ
+のメソッド、３つの定数、そして１つのエラーオブジェクトを実装している。これを使
+うにはvimモジュールをimportする必要がある。 >
+	:python import vim
+
+概要 >
+	print "Hello"			# メッセージを表示
+	vim.command(cmd)		# exコマンドを実行
+	w = vim.windows[n]		# ウィンドウ"n"を得る
+	cw = vim.current.window		# 現在のウィンドウを得る
+	b = vim.buffers[n]		# バッファ"n"を得る
+	cb = vim.current.buffer		# 現在のバッファを得る
+	w.height = lines		# ウィンドウの高さを設定する
+	w.cursor = (row, col)		# ウィンドウのカーソル位置を設定する
+	pos = w.cursor			# (row, col)の組を得る
+	name = b.name			# バッファのファイル名を得る
+	line = b[n]			# バッファから１行を得る
+	lines = b[n:m]			# バッファから一連の行を得る
+	num = len(b)			# 行数を得る
+	b[n] = str			# バッファ内の１行を設定する
+	b[n:m] = [str1, str2, str3]	# １度に数行を設定する
+	del b[n]			# １行を削除する
+	del b[n:m]			# 数行を削除する
+
+
+"vim"モジュールのメソッド
+
+vim.command(str)					*python-command*
+	vim(exモード)のコマンドstrを実行する。戻り値はない。
+	例: >
+		vim.command("set tw=72")
+		vim.command("%s/aaa/bbb/g")
+<	ノーマルモードのコマンドを実行するには、次の定義が使われる: >
+		def normal(str):
+			vim.command("normal "+str)
+		# '...'は、２重引用符を含む文字列の境界に使われることに注意。
+		normal('"a2dd"aP')
+<							*E659*
+	":python"コマンドはPython 2.2かそれより古いものでは再帰的に使えない。
+	Python 2.3 かそれより新しものを使ってください。 >
+		:python vim.command("python print 'Hello again Python'")
+
+vim.eval(str)						*python-eval*
+	vim内の式評価を使って、式を評価する(|expression|を参照)。戻り値は、
+	式評価の結果の文字列。
+	例: >
+		text_width = vim.eval("'tw'")
+		str = vim.eval("12+12")		# 結果は文字列であることに注意！
+						# 数に変換するには、
+						# string.atoi()を使うこと。
+
+"vim"モジュールのエラーオブジェクト
+
+vim.error						*python-error*
+	vimのエラーに遭遇したとき、パイソンは型vim.errorの例外を発生させる。
+	例: >
+		try:
+			vim.command("put a")
+		except vim.error:
+			# レジスタaが空
+
+定数
+	これらは、実際には定数ではないことを注意しておく - これらは割り当て直
+	すことができる。しかし、それは馬鹿げている、その変数が参照しているvim
+	オブジェクトへのアクセスができなくなるからだ。
+
+vim.buffers						*python-buffers*
+	一連のvimバッファへのアクセスを提供するシーケンスオブジェクト。
+	次に示す操作がサポートされている: >
+		b = vim.buffers[i]	# インデックス化する (読取り専用)
+		b in vim.buffers	# メンバかどうか調べる
+		n = len(vim.buffers)	# 要素の個数
+		for b in vim.buffers:	# シーケンシャルアクセス
+
+vim.windows						*python-windows*
+	一連のvimウィンドウへのアクセスを提供するシーケンスオブジェクト。
+	このオブジェクトは次の操作をサポートしています: >
+		w = vim.windows[i]	# インデックス化する (読取り専用)
+		w in vim.windows	# メンバかどうか調べる
+		n = len(vim.windows)	# 要素の個数
+		for w in vim.windows:	# シーケンシャルアクセス
+
+vim.current						*python-current*
+	vim内で使える様々な"現在の"オブジェクトへの、(特定の属性を通した)
+	アクセスを提供するオブジェクト: >
+		vim.current.line	現在の行 (RW)			String
+		vim.current.buffer	現在のバッファ (RO)		Buffer
+		vim.current.window	現在のウィンドウ (RO)		Window
+		vim.current.range	現在の行の範囲 (RO)		Range
+<
+	最後のものに関しては、若干の説明が必要だろう。:python、:pyfileコマン
+	ドで、範囲が指定された場合、この行の範囲は、"現在の範囲"として扱われ
+	る。範囲はバッファに少し似ているが、全てのアクセスは行のサブセットに
+	制限される。詳細は|python-range|を参照せよ。
+
+
+パイソンからの出力					*python-output*
+	パイソンコードからの全ての出力は、Vimのメッセージエリアに表示される。
+	標準出力はインフォメーションメッセージとして、エラー出力はエラーメッ
+	セージとして表示される。
+
+	実装のレベルでいうと、これはsys.stdout(printステートメントによる出力
+	も含む)に向けられる全ての出力が、インフォメーションメッセージとして
+	vimに表示され、sys.stderr(エラートレースバックを含む)に向けられる全
+	ての出力が、エラーメッセージとしてvimに表示されるということである。
+
+							*python-input*
+	入力(sys.stdinを通した入力、input()、raw_input()を含む)はサポートされ
+	ず、プログラムをクラッシュさせる可能性がある。これはたぶんフィックス
+	されるべき問題である。
+
+==============================================================================
+3. バッファオブジェクト					*python-buffer*
+
+バッファオブジェクトは、vimのバッファを表現する。これらはいくつかの方法で得ら
+れる:
+	- vim.current.bufferを介して (|python-current|)
+	- vim.buffersのインデックス化から (|python-buffers|)
+	- ウィンドウの"buffer"属性から (|python-window|)
+
+バッファオブジェクトは、ひとつの読取り専用属性 - name - そのバッファの完全な
+ファイル名を持つ。これらは３つのメソッドを持っています(append、mark、range。以
+下参照)。
+
+バッファオブジェクトは、シークエンスオブジェクトとして扱うこともできる。この
+状況では、バッファオブジェクトは文字列のリスト(そう、それはとても変わりやす
+い)のように振舞う、ただし、各要素はバッファの行なのである。有用なシークエン
+ス操作の全て、つまり、インデックス化、インデックスの割当て、部分分けと部分の
+割当てが期待通りに機能する。バッファのインデックス化(部分分け)の結果が、文字
+列(文字列のリスト)であることを注意しておく。これはひとつの例外的な結果をもた
+らす - b[:]はbとは異なるのである。特に、"b[:] = None"はバッファの全てを削除
+するが、"b = None"は変数bを更新するだけで、バッファには何の影響も与えない。
+
+バッファのインデックスは、パイソンでは普通はゼロから始まる。これは、１から始
+まるvimの行番号と異なる。これは、特にvimの行番号を使うmarks(以下を参照)を扱
+う際に問題となる。
+
+バッファオブジェクトのメソッドは:
+	b.append(str)	バッファに行を追加
+	b.append(list)	バッファに一連の行を追加
+			appendメソッドに文字列のリストを与えるオプションは、
+			パイソン組込みのリストオブジェクトの等価なメソッド
+			とは違うことに注意せよ
+	b.mark(name)	名前付きマークの位置を示す(row,col)の組を返す
+			(これは[]"<> marksでも得られる)
+	b.range(s,e)	与えられたバッファのs行目からe行目(s行とe行も含む
+			|inclusive|)を示すレンジオブジェクト(|python-range|を
+			参照)を返す
+
+例 (bは現在のバッファに割り当てられている) >
+	print b.name		# バッファのファイル名を出力
+	b[0] = "hello!!!"	# 先頭の行を置換
+	b[:] = None		# 全てのバッファを削除
+	del b[:]		# 全てのバッファを削除 (上と同じ)
+	b[0:0] = "add a line"	# 先頭に行を追加
+	del b[2]		# 行を削除 (３番目)
+	b.append("bottom")	# 最後に行を追加
+	n = len(b)		# 行数
+	(row,col) = b.mark('a') # 名前付きマーク
+	r = b.range(1,5)	# バッファの部分範囲
+
+==============================================================================
+4. レンジオブジェクト					*python-range*
+
+レンジオブジェクトは、vimバッファのある部分を表現する。これらはいくつかの方
+法で得られる:
+	- vim.current.rangeを介して (|python-current|)
+	- バッファのrange()メソッドから (|python-buffer|)
+
+レンジオブジェクトの操作は、バッファオブジェクトのそれとほとんど同じである。
+しかし、全ての操作は範囲内の行に制限される(もちろん、行の範囲は部分の割当て、
+行の削除、あるいはrange.append()メソッドによって変更できる)。
+
+レンジオブジェクトの属性:
+	r.start		選択範囲でのバッファ内の最初の行。
+	r.end		選択範囲でのバッファ内の最後の行。
+
+レンジオブジェクトのメソッド:
+	r.append(str)	その範囲に行を追加する
+	r.append(list)	その範囲にリストで与えられた複数行を追加する。
+			これはパイソンのリストオブジェクトに対する操作とは異な
+			ることに注意してください。
+
+
+バッファと違い、レンジは"name"属性を持たず、また、mark()、range()メソッドも
+持たない。そのかわり、レンジは範囲の最後に行を付け加えるappend()メソッドを持
+つ。
+
+==============================================================================
+5. ウィンドウオブジェクト				*python-window*
+
+ウィンドウオブジェクトは、vimのウィンドウを表現する。これらはいくつかの方法
+で得られる:
+	- vim.current.windowを介して (|python-current|)
+	- vim.windowsのインデックス化から (|python-windows|)
+
+ウィンドウオブジェクトは、それらの属性を通してのみ操作できる。これらはメソッド
+を持たず、シークエンスも他のインターフェイスもない。
+
+ウィンドウの属性:
+	buffer (読取り専用)	そのウィンドウに表示されているバッファ
+	cursor (読み書き)	そのウィンドウの現在のカーソルの位置
+				これは(row,col)の組で表される
+	height (読み書き)	ウィンドウの高さ、行の数で
+	width (読み書き)	ウインドウの幅、列の数で
+heightはスクリーンがが水平方向に分割されているときのみ書き込み可能です。
+widthはスクリーンが垂直方向に分割されているときのみ書き込み可能です。
+==============================================================================
+ vim:tw=78:ts=8:ft=help:norl:

@@ -1,0 +1,166 @@
+COMMENT: マルチバイト文字(旧:multibyte.txt)
+STATUS: finished 5.6
+TRANSLATOR: 西岡拓洋
+TRANSLATOR: 北条耀
+
+*multibyte.txt*    For Vim version 5.6.  Last change: 1999 Sep 19
+
+
+		  VIM REFERENCE MANUAL	  by Bram Moolenaar
+
+
+マルチバイトサポート				*multibyte* *multi-byte*
+
+このファイルは、Vim で1つの文字が1バイトを超える文字が含まれるファイルを編集す
+ることに関する情報を少しだけ記述してあります。
+
+|+multi_byte| と |'fileencoding'| もご覧下さい。
+
+1.  XIM と X フォントセットのサポート	|xim|
+2.  UTF-8 を XFree86 xterm で使う	|UTF8-xterm|
+
+==============================================================================
+1. XIM (X Input Method) と  X フォントセットのサポート	*xim* *x-input-method* 
+							*xfontset* *x-fontset*
+
+-. メモ
+   GUI バージョンの Vim を使ってマルチバイト文字を使うことができます。この機能
+   は |+multi_byte| を使っています。
+
+-. あなたの言語をサポートしている X インプットサーバーが動いている必要がありま
+   す。X インプットサーバーがなくともあなたの言語で書かれたファイルを読むことは
+   できます。
+
+-. 必要ならば次の3行を $HOME/.Xdefauts に追加してください。
+
+	*international: True
+	*.inputMethod: your_input_server_name
+	*.preeditType: your_input_method
+
+   次の2行もしくは3行は $HOME/.Xdefaults に書かれている必要があります:
+   マルチバイト言語を使う場合は 'guifontset' も設定する必要があります。
+
+	Vim.font: english_font,your_language_font
+	Vim*fontSet: english_font,your_language_font
+	Vim*fontList: your_language_font:
+
+
+   X11R6 を使っている場合は *international は必要ないかもしれません。
+   X11R6 を使っている場合は *.inputMethod と *.preeditType はオプショナルです。
+
+   your_input_method は OnTheSpot、OverTheSpot、OffTheSpot、Root のどれかです。
+		       (いまのところ OnTheSpot はサポートされていません)
+   Vim.font はテキスト部分に関するものです。
+   Vim*fontSet はメニュー部分に関するものです。
+   Vim*fontList はメニュー部分(Motif)に関するものです(Athena バージョンでは必要
+   ありません)。
+
+   マルチバイトを利用するには 'guifontset' をセットする必要があります。例:
+
+	:set guifontset=english_font,your_language_font
+
+   また、あなたが利用しているロケール(locale)での文字コードセットを表示できる
+   のであれば、フォントセットを XLFD として指定することもできます。例:
+
+>	:set guifontset=-misc-fixed-medium-r-normal-*
+
+   注意) 'guifontset' を指定しないと IM を使うことはできません。ですので、ラテ
+         ン系の方でも IM を利用しようと思っている方は、'guifontset' を指定する
+	 必要があります。
+
+   そして 'guifont' を設定するべきではありません。もし設定されている場合は Vim
+   は 'guifontset' を無視します。つまり VIM はフォントセットのサポートなしで動
+   作することになり、英語しか見えなくなります。そしてあなたの言語は文字化けして
+   表示されることになります。
+
+   'fontset' 機能が有効にされた後、VIM は 'font' を使うことを許さなくなります。
+   例えば、もし次のように .gvimrc に書いているならば
+      :set guifontset=eng_font,your_font
+   シンタックスの指定では次のようにする必要があります
+      :hi Comment guifg=Cyan font=another_eng_font,another_your_font
+   もし単にこうした場合は
+      :hi Comment font=another_eng_font
+   たくさんのエラーメッセージが出ることになります。注意してください。
+
+-. 必要ならば XMODIFIERS 環境変数を設定してください。
+
+	sh:  export XMODIFIERS="@im=your_input_server_name"
+	csh: setenv XMODIFIERS "@im=your_input_server_name"
+
+   input_server_name は XIM サーバーの名前です。
+
+-. LANG 環境変数をあなたの言語に設定する必要があります。
+   設定を外したり C にセットしたりはしないでください。
+	sh:  export LANG=ko
+	csh: setenv LANG ko
+
+-. .vimrc に次の行を加えてください
+	set fileencoding=korea
+   'korea' を japan や taiwan といった他の名前に変えることができます。
+
+-. バグ & これからやるべきこと
+   *. your_language_font の幅は english_font の2倍の広さである必要があり
+      ます。これはバグとは考えたくないです。GVIM は固定幅のフォントを使う
+      必要があるからです。
+      例)  Vim.font: -*-fixed-*--14-*-*-*-*-70-*,-*-*-*-*--14-*-*-*-*-140-*
+   *. もしインプットメソッドの設定が失敗した場合は、下の方にもう1つのステ
+      ータス行は現れないはずです。また、Root スタイルで使っている場合も
+      そうです。
+   *. 私のところでは時々 XIM サーバーの中でなんらかのボタンを押すと gvim
+      がハングします。
+   *. ビジュアルモードでマウスを使って選択していると時折文字の半分しか選
+      択されているように見えない場合があります。
+   *. それからまだ知られていない多くの副作用とバグがあります!
+
+-. コンパイル
+	./configure --with-x --enable-multibyte --enable-fontset --enable-xim
+	make
+	run_your_X_input_server_if_not_currently_running
+	./vim -g
+
+   注) もし Linux を使っている場合は CFLAGS に '-DX_LOCALE' をつける必要が
+   あります。うまく言った場合は自分の言語で幸せに GVim を使ってください。
+
+私が出会った中で最高のエディター Vim を作ってくれた Bram さんに感謝します。
+hanIM という X インプットサーバーを作ってくれた YJSeo さんに感謝します。
+
+その他のコメントやパッチや提案はこちらまで:
+
+				      Chi-Deok Hwang <cdhwang@sr.hei.co.kr>
+				      Sung-Hyun Nam <namsh@lgic.co.kr>
+				      K.Nagano <nagano@atese.advantest.co.jp>
+
+==============================================================================
+2. UTF-8 を XFree86 xterm で使う			*UTF8-xterm*
+
+これは Thomas Dickey によって提供される XFree86 xterm で、どのようにして
+UTF-8 エンコードされた文字を利用するかについての簡単な説明です(文: Markus
+Kuhn)。
+
+注意: Vim の UTF-8 テキストの編集、閲覧はまだうまく機能していません！
+
+UTF-8 をサポートしている最新のバージョンの xterm を入手してください:
+
+	http://www.clark.net/pub/dickey/xterm/xterm.tar.gz
+
+"./configure --enable-wide-chars ; make" としてコンパイルしてください。
+
+また ISO 10646-1 バージョンの 6x13 フォントを入手してください:
+
+	http://www.cl.cam.ac.uk/~mgk25/download/ucs-fonts.tar.gz
+
+それから README ファイルの記述に従ってフォントをインストールしてください。
+
+そして xterm を起動します。
+
+>  xterm -u8 -fn -misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-iso10646-1
+
+そうすると UTF-8 ターミナル・エミュレーターが動作するでしょう。
+ucs-fonts.tar.gz に含まれている次の両方のデモ・ファイルを試して:
+
+>  cat utf-8-demo.txt
+>  vim utf-8-demo.txt
+
+xterm で UTF-8 が問題なく動作しているかどうか確認してください。
+
+ vim:tw=78:ts=8:ft=help:norl:
