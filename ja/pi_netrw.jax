@@ -1,0 +1,547 @@
+COMMENT: プラグイン:ネットワーク越しの編集
+STATUS: finish 6.3.054
+TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
+TRANSLATOR: nakadaira <hopper2@nanameue.jp>
+
+*pi_netrw.txt*  For Vim version 6.3.  Last change: Apr 21, 2004
+
+
+	   VIMリファレンスマニュアル    by Charles E. Campbell, Jr.
+
+*dav*		*http*		*network*	*rcp*		*scp*
+*fetch*		*netrw*		*Nread*		*rsync*		*sftp*
+*ftp*		*netrw.vim*	*Nwrite*	*netrw-file*
+
+==============================================================================
+0. コンテンツ						*netrw-contents*
+
+1. Netrwリファレンス....................................|netrw-ref|
+2. ネットワークファイル転送.............................|netrw-xfer|
+3. 有効化...............................................|netrw-activate|
+4. 暗黙のファイル転送...................................|netrw-transparent|
+5. Exコマンド...........................................|netrw-ex|
+6. 変数とオプション.....................................|netrw-var|
+7. デバッグ.............................................|netrw-debug|
+8. 新機能...............................................|netrw-new|
+9. クレジット...........................................|netrw-credits|
+
+ここで説明されるのは|standard-plugin|(訳注: 標準プラグイン)の技術を使って実現
+されていることである。このプラグインは次のような設定がされているときだけ有効で
+ある。
+
+	set nocp		　　　　" 'compatible' が設定されていない
+	filetype plugin on		" プラグインが有効である
+
+# このプラグインは'compatible'が設定されていない時にだけ利用可能である。
+
+.vimrcで変数"loaded_netrw"を設定することでプラグインが読み込まれないようにでき
+る: >
+	:let loaded_netrw = 1
+
+{Vi does not have any of this}
+
+==============================================================================
+1. Netrwリファレンス						*netrw-ref*
+
+    オプション
+	let g:netrw_ftp =0 ftpを使う(デフォルト)	     (uid password)
+			=1 ftpの別方式を使う		(user uid password)
+	  ftpで問題があれば、<.vimrc>でこの変数の値を変更して違う方法を試し
+	  てください。
+
+	let g:netrw_ignorenetrc= 1
+	  <.netrc>ファイルがうまく機能しないときや、それを無視したいときにこ
+	  の変数を定義してください。この変数が定義されているだけで<.netrc>は
+	  無視される。(訳注: 値に意味はない)
+
+	外部アプリケーションの制御
+
+	 プロトコル  変数	         デフォルト
+	 ----------  ----                ----------
+
+	   dav:      g:netrw_dav_cmd   = "cadaver"
+	   fetch:    g:netrw_fetch_cmd = "fetch -o"
+	   ftp:      g:netrw_ftp_cmd   = "ftp"
+	   http:     g:netrw_http_cmd  = "fetch -o" 代替(可能なら)
+	   http:     g:netrw_http_cmd  = "wget -q--O" デフォルト
+	   rcp:      g:netrw_rcp_cmd   = "rcp"
+	   rsync:    g:netrw_rsync_cmd = "rsync -a"
+	   scp:      g:netrw_scp_cmd   = "scp -q"
+	   sftp:     g:netrw_sftp_cmd  = "sftp"
+
+    読み込み
+	:Nread ?					ヘルプ
+	:Nread "machine:file"				rcpを使う
+	:Nread "machine file"				ftpを使う <.netrc>有効
+	:Nread "machine id password file"		ftpを使う
+	:Nread "dav://machine[:port]/file"		cadaverを使う
+	:Nread "fetch://[user@]machine/file"		fetchを使う
+	:Nread "ftp://[user@]machine[[:#]port]/file"	ftpを使う <.netrc>オート
+	:Nread "http://[user@]machine/file"		http(wget)を使う
+	:Nread "rcp://[user@]machine/file"		rcpを使う
+	:Nread "rsync://[user@]machine[:port]/file"	rsyncを使う
+	:Nread "scp://[user@]machine[[:#]port]/file"	scpを使う
+	:Nread "sftp://[user@]machine/file"		sftpを使う
+
+    書き込み
+	:Nwrite ?					ヘルプ
+	:Nwrite "machine:file"				rcpを使う
+	:Nwrite "machine file"				ftpを使う <.netrc>有効
+	:Nwrite "machine id password file"		ftpを使う
+	:Nwrite "dav://machine[:port]/file"		cadaverを使う
+	:Nwrite "ftp://[user@]machine[[:#]port]/file"	ftpを使う <.netrc>オート
+	:Nwrite "rcp://[user@]machine/file"		rcpを使う
+	:Nwrite "rsync://[user@]machine[:port]/file"	rsyncを使う
+	:Nwrite "scp://[user@]machine[[:#]port]/file"	scpを使う
+	:Nwrite "sftp://[user@]machine/file"		sftpを使う
+	http: サポート無し!
+
+    ユーザーとパスワードの変更
+	ftpを使うとユーザーIDとパスワードを聞かれる。これはg:netrw_uidと
+	g:netrw_passwdに記憶され、次のftp使用時に使われる。他のユーザーIDや
+	パスワードを使いたいときはNetUserPass()を呼び出してください。
+
+	:NetUserPass [uid [password]]		-- 必要事項を聞かれる
+	:call NetUserPass()			-- IDとパスワードを聞かれる
+	:call NetUserPass("uid")		-- パスワードを聞かれる
+	:call NetUserPass("uid","password")	-- IDとパスワードをセットする
+
+    変数
+	b:netrw_lastfile ネット上の読み書きした最後のファイル。バッファごと
+			  に記憶される。		(:Nw のため)
+	s:netrw_line	  Nw/NetWriteの間、現在の行番号を記憶する
+	s:netrw_col	  Nw/NetWriteの間、現在のカラム番号を記憶する
+			  s:netrw_lineとs:netrw_colはカーソルの位置を元に戻
+			  すのに使われる。
+	g:netrw_ftp	  この変数がないときはデフォルトが使われる
+			  =0 デフォルトのftpを使う	       (uid password)
+			  =1 代替のftpを使う		  (user uid password)
+	g:netrw_ftpmode   ="binary"				 (デフォルト)
+			  ="ascii"			         (望むなら)
+	g:netrw_uid	  (ftpの)ユーザーID。セッションごとに記憶される。
+	g:netrw_passwd	  (ftpの)パスワード。セッションごとに記憶される。
+	g:netrw_win95ftp  =0 win95/win98/winMEにおいてUNIXスタイルのftpを使う
+			  =1 通常どおりにftpを使う
+	g:netrw_cygwin	  =1 scpがcygwinのものであると想定する
+						 (ウィンドウズでデフォルト)
+			  =0 scpがウィンドウズスタイルのパスを受け取れると
+			    想定する		 (ウィンドウズ以外でデフォルト)
+	g:netrw_use_nt_rcp=0 WinNT,Win2000,WinXPのrcpを使わない。(デフォルト)
+			  =1 WinNT,...のrcpをバイナリモードで使う
+
+
+==============================================================================
+2. ネットワークファイル転送				*netrw-xfer*
+
+Vimの下でのネットワークファイル転送は、プラグイン技術を使ったVimスクリプト
+(<netrw.vim>)によって実装されている。現在、rcp, scp, ftpやftpと<.netrc>, fetch,
+dav/cadaver, rsync, sftp が読み書きとも適切に対応している。
+
+httpは現在のところwgetやfetchによる読み込み専用です。
+
+<netrw.vim> is a standard plugin which acts as glue between Vim and the
+various file transfer programs.  It uses autocommand events (BufReadCmd,
+FileReadCmd, BufWriteCmd) to intercept reads/writes with url-like filenames. >
+
+	ex. vim ftp://hostname/path/to/file
+<
+<netrw.vim>はVimと様々なファイル転送プログラムを結び付ける標準プラグインで
+す。オートコマンドのイベント(BufReadCmd, FileReadCmd, BufWriteCmd)を使いURL
+形式のファイル名に対する読み書きを横取りします。 >
+
+	例: vim ftp://hostname/path/to/file
+
+コロンの前の文字で使用するプロトコルを決定する。
+この例ではftpである。<netrw.vim>スクリプトは次に実際にファイルを転送するプロ
+グラム(ftp, scp, etc)や(主にftpで)そのコマンドを決める。ファイルは一時ファイ
+ル(Unix/Linuxでは、/tmp/...)を介して読み書きされ、<netrw.vim>スクリプトはそ
+れを片付ける。
+
+変数を設定することで各プロトコルを実装した外部アプリケーションを変更すること
+ができる(例えばscpはデフォルトで"scp -q"と設定されたg:netrw_scp_cmd変数を使
+う)。
+
+Ftpはたくさんの実装に恵まれた古いプロトコルである。不幸にもいくつかの実装は
+余計な事(ファイルの終わりにゴミを付けるなど)をする。それが気になるようなら
+NetReadFixup()関数を書いて、ftpを使った読み込みの後にそれをきれいにすること
+ができる。いくつかのUnixシステム(FreeBSDなど)は<netrw.vim>の用途にはftpより
+も便利で面倒のない"fetch"という、ftpプロトコルも使えるユーティリティを提供し
+ている。したがって、"fetch"が実行可能なら、ftp://...(やhttp://...)を読み込む
+のに使える。詳細は|netrw-var|を参照。
+
+rcpとscpとsftpとhttpについては、次のようにしてネットワークファイルを普通のファ
+イルのように取り扱える: >
+>
+	vim rcp://[user@]machine/path
+	vim scp://[user@]machine/path
+<
+ftpが.netrcをサポートしている場合は、.netrcにマシン名とユーザ名とパスワードが
+書かれていれば、同じ方法を使うことができる: >
+>
+	vim ftp://[user@]machine[[:#]portnumber]/path
+<
+そうでない場合ftpにはユーザ名とパスワードを入力する必要がある。入力中のパス
+ワード文字は隠蔽される; 実際に打ち込んだ文字に変わってアスタリスク'*'が表示さ
+れる。Netrwは最後の転送に使用したユーザIDとパスワードを保持するので、それに続
+く同じマシンへの転送(読み/書き)には再度入力する必要はない。
+
+								*netrw-urls*
+  +=================================+============================+============+
+  |  読み			    | 書き			 |  コマンド  |
+  +=================================+============================+============+
+  | DAV:			    |				 |	      |
+  |  dav://host/path		    |				 | cadaver    |
+  |  :Nread dav://host/path	    | :Nwrite dav://host/path	 | cadaver    |
+  +---------------------------------+----------------------------+------------+
+  | FETCH:			    |				 |	      |
+  |  fetch://[user@]host/path	    |				 |	      |
+  |  fetch://[user@]host:http/path  |  Not Available		 | fetch      |
+  |  :Nread fetch://[user@]host/path|				 |	      |
+  +---------------------------------+----------------------------+------------+
+  | FILE:			    |				 |	      |
+  |  file:///*			    | file:///*			 |	      |
+  |  file://localhost/*		    | file://localhost/*	 |	      |
+  +---------------------------------+----------------------------+------------+
+  | FTP:	  (*3)		    |		   (*3)		 |	      |
+  |  ftp://[user@]host/path	    | ftp://[user@]host/path	 | ftp	(*2)  |
+  |  :Nread ftp://host/path	    | :Nwrite ftp://host/path	 | ftp+.netrc |
+  |  :Nread host path		    | :Nwrite host path		 | ftp+.netrc |
+  |  :Nread host uid pass path	    | :Nwrite host uid pass path | ftp	      |
+  +---------------------------------+----------------------------+------------+
+  | HTTP: wget is executable: (*4)  |				 |	      |
+  |  http://[user@]host/path	    |	     Not Available	 | wget       |
+  +---------------------------------+----------------------------+------------+
+  | HTTP: fetch is executable (*4)  |				 |	      |
+  |  http://[user@]host/path	    |	     Not Available	 | fetch      |
+  +---------------------------------+----------------------------+------------+
+  | RCP:			    |				 |	      |
+  |  rcp://[user@]host/path	    | rcp://[user@]host/path	 | rcp	      |
+  +---------------------------------+----------------------------+------------+
+  | RSYNC:			    |				 |	      |
+  |  rsync://[user@]host/path	    | rsync://[user@]host/path	 | rsync      |
+  |  :Nread rsync://host/path	    | :Nwrite rsync://host/path  | rsync      |
+  |  :Nread rcp://host/path	    | :Nwrite rcp://host/path	 | rcp	      |
+  +---------------------------------+----------------------------+------------+
+  | SCP:			    |				 |	      |
+  |  scp://[user@]host/path	    | scp://[user@]host/path	 | scp	      |
+  |  :Nread scp://host/path	    | :Nwrite scp://host/path	 | scp	(*1)  |
+  +---------------------------------+----------------------------+------------+
+  | SFTP:			    |				 |	      |
+  |  sftp://[user@]host/path	    | sftp://[user@]host/path	 | sftp       |
+  |  :Nread sftp://host/path	    | :Nwrite sftp://host/path	 | sftp  (*1) |
+  +=================================+============================+============+
+
+	(*1) 絶対パスの指定には scp://machine//path を使う。
+
+	(*2) <.netrc>が存在するならば、ftpクライアントでは.netrcを使うことがで
+	     きるものと仮定する。そうでなければスクリプトはユーザIDとパスワー
+	     ドの入力を要求する。
+
+	(*3)ftpでは、標準のftpポートと違うポートが必要とされるときは、
+	"machine"ではなく"machine#port"か"machine:port"となるでしょう。
+
+	(*4) http:...の形式のとき、wgetが使えればwgetを使い、そうでないときは
+	fetchが使えるならfetchを使います。
+
+:Nreadと:Nwriteの両Exコマンドには複数のファイル名を指定することもできる:
+
+	:Nread rcp://machine/path1 rcp://machine/path2
+>
+
+NETRC設定ファイル					*netrw-netrc*
+
+<.netrc>ファイルの典型的な書式は下で示すものである。通常UNIXのftpは<.netrc>を
+サポートするが、Windowsのものはサポートしない。 >
+>
+	machine {full machine name} login {user-id} password "{password}"
+	default login {user-id} password "{password}"
+
+ftpのクライアントは<.netrc>の使い方を自分で取り扱わなければならないが、
+<.netrc>ファイルが存在するならば、ftp転送ではユーザIDとパスワードを聞かれるこ
+とは無くなる。
+
+	Note:
+	.netrcファイルにはパスワードが含まれていることから、そのファイルを他人
+	に覗かれないよう厳重に確認する必要がある!。多くのプログラムは.netrcが
+	他人に読める状態にあると、その使用を拒絶する。そのように読めない状態に
+	してもシステム管理者からは読めてしまうことは忘れてはいけない!。
+
+
+パスワード						*netrw-passwd*
+
+スクリプトはftpのパスワードの入力に、その文字列が見えないようにVimの組み込み関
+数|inputsecret()|を使用する。一度ユーザIDとパスワードを設定した後にそれを変更
+するには|netrw-uidpass|を参照。
+
+不幸にも、scp用のパスワードをnetrwに与える術はありません。ですのでscpでファイ
+ルを転送するときは毎回、パスワードを入力しなければならないでしょう。
+
+==============================================================================
+3. 有効化						*netrw-activate*
+
+ネットワークファイル転送は'nocompatible'さえ設定されていればデフォルトで利用可
+能である。ファイル<netrw.vim>がシステムのVimプラグインディレクトリに存在してい
+て、それがVimの起動時に自動的に読み込まれる。
+
+
+==============================================================================
+4. 暗黙のファイル転送					*netrw-transparent*
+
+暗黙のファイル転送(訳注: 透明ファイル転送の意訳)は、通常のファイルの読み書きコ
+マンドによって(|:autocmd| の |BufReadCmd| や|BufWriteCmd|イベントによって)行な
+われる。なのでネットワークマシン上にあるファイルも、まるでローカルマシンにある
+かのように取り扱うことができる。 >
+
+	vim ftp://[user@]machine/path
+	...
+	:wq
+
+
+==============================================================================
+5. Exコマンド						*netrw-ex*
+
+通常の読み書きコマンドによるネットワーク転送ががサポートされている。それ以外に
+も読み書き1組のコマンドが利用可能である。
+
+:[range]Nw	指定された行範囲の内容をb:netrw_lastfileで指定される現在のファ
+		イルへ書き出す。
+
+:[range]Nw {netfile} [{netfile}]...
+		指定された行範囲の内容を{netfile}に書き出す。
+
+:Nread
+		指定された行範囲の内容をb:netrw_lastfileで指定されるファイルか
+		ら、現在のバッファへ読み込む。
+
+:Nread {netfile} {netfile}...
+		Read the {netfile} after the current line.現在行の後ろに
+		{netfile}を読み込む
+
+							*netrw-uidpass*
+:call NetUserPass()
+		b:netrw_uidとb:netrw_passwdが存在しないならば、この関数はユー
+		ザにそれらを問い合わせる。
+
+:call NetUserPass("userid")
+		この呼出しはb:netrw_uidを設定し、パスワードが存在しない場合
+		は、それをユーザに問い合わせる。
+
+:call NetUserPass("userid","passwd")
+		この呼出しはb:netrw_uidとb:netrw_passwdを設定する。ユーザIDと
+		パスワードはftp転送に使用される。ユーザ名とパスワードに空文字
+		列 "" を指定すれば、それらを削除できる。
+
+
+==============================================================================
+6. 変数とオプション				*netrw-options* *netrw-var*
+
+スクリプト<netrw.vim>はその動作に影響する幾つかの変数を使用する。これらの変数
+は通常、ユーザーの<.vimrc>ファイルで設定される:
+
+	g:netrw_uid		ftpの現在のユーザIDを保持する。
+	g:netrw_passwd		ftpの現在のパスワードを保持する。
+	b:netrw_lastfile	最近のメソッド/マシン/パスを保持する。
+	b:netrw_line		(書込み時に)カーソルの行番号を保持する。
+	b:netrw_col		(書込み時に)カーソルの現在位置を保持する。
+	g:netrw_ftp		=0 デフォルトのftpを使う。	(uid password)
+				=1 代替のftpを使う。	   (user uid password)
+	g:netrw_ftpmode		="binary"			(デフォルト)
+				="ascii"
+	g:netrw_ignorenetrc	=1				(デフォルト)
+				  <.netrc>ファイルがあるが、それを使いたくない
+				  ときにこの変数を設定してください。これは
+				  <.netrc>を無視するのに使われるだけです。
+	g:netrw_win95ftp	=0 Win95/98/MEなどでUnixスタイルのftpを使いま
+				   す。
+				=1 デフォルトの方法を使います。
+	g:netrw_cygwin		=1 ウインドウズでcygwinのscpを使うと想定しま
+				   す。
+						(ウインドウズでデフォルト)
+				=0 ウインドウズでscpがウインドウズスタイルのパ
+				   スを受け付けると想定します。
+						(ウインドウズ以外でデフォルト)
+	g:netrw_use_nt_rcp	=0 WinNT/2K/XPのrcpを使いません。(デフォルト)
+				=1 WinNT/2K/XPのrcpをバイナリモードで使いま
+				   す。
+
+スクリプトは一時的な利用目的で内部的に以下の変数を作成する。
+
+	g:netrw_method		プロトコル rcp/ftp+.netrc/ftp を示す。
+	g:netrw_machine		入力から解析されたマシン名を保持する。
+	g:netrw_fname		アクセス中のファイル名を保持する。
+
+
+							*netrw-options*
+
+		    --------------------------------------
+		    プロトコルをコントロールするオプション
+		    --------------------------------------
+    オプション	      形式	  設定		  意味 ~
+    ---------	      --------	  --------------  --------------------------- >
+    netrw_ftp	      変数	  =doesn't exist  "user userid" を使う
+				  =0		  "user usreid" を使う
+				  =1		  "userid" を使う
+
+    NetReadFixup      関数	  =doesn't exist  何も変更しない
+				  =exists	  ftp経由で読み込んだファイル
+						  をユーザが用意した
+						  NetReadFixup()で処理すること
+						  を許す。
+    g:netrw_dav_cmd    変数	  ="cadaver"
+    g:netrw_fetch_cmd  変数	  ="fetch -o"
+    g:netrw_ftp_cmd    変数	  ="ftp"
+    g:netrw_http_cmd   変数	  ="fetch -o" else if fetch is executable
+    g:netrw_http_cmd   変数	  ="wget -O"  if      wget  is executable
+    g:netrw_rcp_cmd    変数	  ="rcp"
+    g:netrw_rsync_cmd  変数	  ="rsync -a"
+    g:netrw_scp_cmd    変数	  ="scp -q"
+    g:netrw_sftp_cmd   変数	  ="sftp"
+
+最初の2つのオプションはftpクライアントに何か問題があった時に役に立つ。ftpが問
+題を起こした時にこのオプションがどのように役に立つのかを最も良く理解するため
+に、netrwがどのようにftpを読み込んでいるのかちょっとした議論が続く。
+
+g:netrw_..._cmd変数はrcpやftpなどのプロトコルに関連した操作をする外部プログラ
+ムを指定します。
+
+Netrwは通常、一時ファイルに次のようなフォームを作成する:
+>
+  g:netrw_ftpがないか(!exists)1以外のとき    g:netrw_ftpが1のとき
+  ---------------------------------------    --------------------
+       open machine [port]		          open machine [port]
+       user userid password		          userid password
+       [g:netrw_ftpmode]		          password
+       get filename tempfile		          [g:netrw_ftpmode]
+					          get filename tempfile
+<
+Netrwはこれをフィルタを使って実行します。 >
+
+	:%! {g:netrw_ftp_cmd} -i [-n]
+<
+
+そして
+	g:netrw_ftp_cmdは普通は"ftp"です。
+	-i はftpに対話式でないことを知らせます。
+	-n netrcを使わないことを意味します。これはメソッド番号3で使われます。
+	   (ftp w/o <.netrc>)
+	   (訳注:下記のNetReadFixup()内でa:method==3という意味？)
+
+<.netrc>が存在する時にはユーザにIDとパスワードを問い合わせなくて済むように使用
+される。転送されたファイルは一時ファイルに記録される。ファイルはそれを必要とし
+たメインの編集セッションウィンドウに読み込まれ、それから消去される。
+
+
+もしもftpが"user"コマンドを受け付けないで、即ユーザIDを入力することを必要とす
+るならば、その時には"let netrw_ftp=1"をファイル<.vimrc>に記入してみてくださ
+い。
+
+								*netrw-fixup*
+ftpが理由はともかく望まない(AUTHメッセージのような)行を追加してしまうのならば、
+NetReadFixup()関数を書いても良い:
+>
+    function! NetReadFixup(method, line1, line2)
+      " a:line1: カレントファイルの新しい行の最初
+      " a:line2: カレントファイルの新しい行の最後
+      if     a:method == 1 "rcp
+      elseif a:method == 2 "ftpと<.netrc>
+      elseif a:method == 3 "ftpとmachine,uid,password,filename
+      elseif a:method == 4 "scp
+      elseif a:method == 5 "http/wget
+      elseif a:method == 6 "dav/cadaver
+      elseif a:method == 7 "rsync
+      elseif a:method == 8 "fetch
+      elseif a:method == 9 "sftp
+      else		   "complain(訳注:エラー？)
+      endif
+    endfunction
+<
+この関数NetReadFixup()は存在しさえすれば呼び出されるので、これにより読み込みの
+プロセスをカスタマイズすることができる。よりよい例として、<netrw.vim>は
+Windows95のftpを使うための関数を含んでいます。どういうわけかWindows95のftpは転
+送の最後に4行の空行を出力するので、自動的にそれを除去するのが望ましいです。こ
+こにそのためのコードを<netrw.vim>から転載します。
+>
+    if has("win95") && g:netrw_win95ftp
+     fu! NetReadFixup(method, line1, line2)
+      let fourblanklines= a:line2 - 3
+      silent fourblanklines.",".line2."g/^\s*/d"
+     endfunction
+    endif
+
+==============================================================================
+7. デバッグ						*netrw-debug*
+
+<netrw.vim>スクリプトは典型的には次の場所にあり:
+
+	/usr/local/share/vim/vim6x/plugin/netrw.vim
+
+起動時に自動的に読み込まれる(:set nocp時のみ)。
+
+	1. <Decho.vim>を入手。ここにある
+
+		http://mysite.verizon.net/astronaut/vim/index.html#vimlinks_scripts
+		の"Decho, a vimL debugging aid"
+	   もしくは
+		http://vim.sourceforge.net/scripts/script.php?script_id=120
+
+	   これをプラグインディレクトリに置く。
+
+	2. <netrw.vim>を次のようにして編集する:
+
+		:DechoOn
+
+	   (元に戻すには :DechoOff とする)
+
+	3. vimでファイルの転送をする。<netrw.vim>がネットワーク越しにファイ
+	   ルを読み書きする過程に関するメッセージが表示される。<netrw.vim>の
+	   メンテナにその情報を送ってください。
+
+		drchipNOSPAM at campbellfamily.biz - NOSPAM
+
+==============================================================================
+8. New Stuff					*netrw-new* *netrw-newstuff*
+
+       v43: * moved "Explanation" comments to <pi_netrw.txt> help file
+	      as "Network Reference" (|netrw-ref|)
+	    * <netrw.vim> now uses Dfunc() Decho() and Dret() for debugging
+	    * removed superfluous NetRestorePosn() calls
+       v42: * now does BufReadPre and BufReadPost events on file:///*
+	      and file://localhost/*
+       v41: * installed file:///* and file://localhost/* handling
+       v40: * prevents redraw when a protocol error occurs so that the
+	      user may see it
+       v39: * sftp support
+       v38: * Now uses NetRestorePosn() calls with Nread/Nwrite commands
+	    * Temporary files now removed via bwipe! instead of bwipe
+	      (thanks to Dave Roberts)
+       v37: * Claar's modifications which test if ftp is successful, otherwise
+	      give an error message
+	    * After a read, the alternate file was pointing to the temp file.
+	      The temp file buffer is now wiped out.
+	    * removed silent from transfer methods so user can see what's
+	      happening
+
+==============================================================================
+9. Credits						*netrw-credits*
+
+	Vim editor	by Bram Moolenaar (Thanks, Bram!)
+	dav		support by C Campbell
+	fetch		support by Bram Moolenaar and C Campbell
+	ftp		support by C Campbell <NdrOchip@ScampbellPfamily.AbizM> - NOSPAM
+	http		support by Bram Moolenaar <bram@moolenaar.net>
+	rcp
+	rsync		support by C Campbell (suggested by Erik Warendorph)
+	scp		support by raf <raf@comdyn.com.au>
+	sftp		support by C Campbell
+
+	inputsecret(), BufReadCmd, BufWriteCmd contributed by C Campbell
+
+	Jerome Auge		-- also using new buffer method with ftp+.netrc
+	Bram Moolenaar		-- obviously vim itself, :e and v:cmdarg use, fetch,...
+	Yasuhiro Matsumoto	-- pointing out undo+0r problem and a solution
+	Erik Warendorph		-- for several suggestions (g:netrw_..._cmd
+				   variables, rsync etc)
+	Doug Claar		-- modifications to test for success with ftp operation
+
+==============================================================================
+ vim:tw=78:ts=8:ft=help:norl:
