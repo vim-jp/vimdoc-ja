@@ -1,0 +1,920 @@
+COMMENT: 
+STATUS: finished 6.3.054
+TRANSLATOR: GIMPAI
+TRANSLATOR: 野田 開 <g340299@mail.ecc.u-tokyo.ac.jp>
+TRANSLATOR: nakadaira <hopper2@nanameue.jp>
+
+*autocmd.txt*   For Vim version 6.3.  Last change: 2004 Apr 20
+
+
+		  VIM REFERENCE MANUAL    by Bram Moolenaar
+
+
+自動コマンド						*autocommand*
+
+基本的な説明については、ユーザマニュアルの |40.3| 章を参照。
+
+1.  はじめに			|autocmd-intro|
+2.  autocommand の定義		|autocmd-define|
+3.  autocommand の削除		|autocmd-remove|
+4.  autocommand の列挙		|autocmd-list|
+5.  イベント			|autocmd-events|
+6.  パターン			|autocmd-patterns|
+7.  グループ			|autocmd-groups|
+8.  autocommand の実行		|autocmd-execute|
+9.  autocommand の使用		|autocmd-use|
+
+{Vi にはこういったコマンドは全くない。}
+{only: |+autocmd| の機能は、コンパイル時に有効にされていなければ使えない。}
+
+==============================================================================
+1. はじめに						*autocmd-intro*
+
+ファイルを読み込んだり書き込むときや、バッファやウィンドウに入ったり出た りし
+たとき、あるいはVimを終了させるときに、コマンドを自動的に実行するように指定で
+きる。 例えば "*.c" にマッチするファイルに対して、オプション 'cindent' をオン
+にする autocommand を作ることができる。また autocommand でさらに高度な機能を実
+装することができる。圧縮ファイルを編集するといったような機能だ (|gzip-example|
+を参照)。こういった autocommand はファイル .vimrc かファイル .exrc に書き込む。
+
+							*E203* *E204* *E143*
+注意: autocommand は大変強力であるので、思いも寄らない副作用をもたらすことがあ
+る。テキストを壊さないように注意しなければならない。
+- 捨ててもよいようなファイルのコピーに対して、最初にテストしておくのがよい。例
+  えば、ファイルの編集開始時にファイルを解凍する autocommand を使うときには、
+  書き込みするときに圧縮を行う autocommand が正しく働くか確かめること。
+- 実行中のエラー (例えばディスクが満杯になる) に対して、対処の準備をしておかな
+  ければならない。バッファへの変更に対しては大抵アンドゥができるが、他のファイ
+  ルへの変更は、自分で処理しなければならないかもしれない (例えば、解凍されたファ
+  イルを圧縮する、等)。
+- もしイベント BufRead* の autocommand によって圧縮ファイルを編集できるなら、
+  FileRead* でも同じ事ができるようにするべきである (こうすることで復旧可能にな
+  る場合がたまにある)。可能であれば、イベント File* や Buf* には同じ
+  autocommand を使うのはよい考えだ。
+
+==============================================================================
+2. autocommand の定義					*autocmd-define*
+
+Note: コマンド ":autocmd" には他のコマンドを続けることはできない。'|' はみなコ
+マンドの一部と認識されるからである。
+
+							*:au* *:autocmd*
+:au[tocmd] [group] {event} {pat} [nested] {cmd}
+			{pat} に一致するファイルで、{event} のときに自動的に実
+			行するコマンドのリストに、{cmd} を加える。{cmd} は常に
+			既存の autocommand の後に追加されるので、autocommand
+			は指定された順に実行される。 [nested] については
+			|autocmd-nested| を参照。
+
+Note ":autocmd" の引数の中の特別な文字 (例えば "%" や "<cword>" 等) は、
+autocommand が定義されたときに展開されるのではなく、イベントの発生が認識され、
+{cmd} が実行されるときに展開されることに注意せよ。唯一の例外は、"<sfile>" が
+autocommand が定義されたときに展開されることである。例: >
+
+	:au BufNewFile,BufRead *.html so <sfile>:h/html.vim
+
+ここで <sfile> は、この行を含むファイルの名前に展開される。
+
+ファイル .vimrc が2回読み込まれるとき、autocommand は二度現れる。これを避ける
+ため、このコマンドをファイル .vimrc の autocommand を定義する所の前に入れてお
+く必要がある。 >
+
+	:autocmd!     " 現在のグループに対する「全て」の autocommand を削除。
+
+もし全ての autocommand を消去したくなかったら、代わりに変数を使って
+autocommand を読み込むのがただ1度だけにすることができる。 >
+
+	:if !exists("autocommands_loaded")
+	:  let autocommands_loaded = 1
+	:  au ...
+	:endif
+
+引数  [group] が指定されないと、現在のグループが使われる (":augroup" で定義さ
+れたもの)。そうでなければ、Vimは [group] で定義されたグループを使う。
+Note [group] はあらかじめ定義されていなければならないことに注意。
+":au group ..." で新しいグループを定義することはできない。それには ":augroup"
+を使うこと。
+
+Autocommand をテストするとき、オプション 'verbose' が便利かもしれない。 >
+	:set verbose=9
+この設定により、Vimは autocommand が実行されるとそれらを表示するようになる。
+
+スクリプト内で autocommand を定義するときには、スクリプト内でのみ有効なローカ
+ル関数とローカルキーマップを利用できる。イベントが発生してコマンドが実行される
+とき、コマンドは自分の定義されたスクリプト内での設定に従って働く。これはコマン
+ドに |<SID>| が使われているときに問題になる。
+
+コマンドを実行するとき、あるコマンドからのメッセージは前のメッセージを上書きし
+てしまう。これはコマンドを手動で実行するときとは違う動作である。大抵、メッセー
+ジスクリーンはスクロールしないので、「続けるには」というプロンプトは現れない。
+また1個のコマンドが2つのメッセージを出すときには、何にせよメッセージは上書きさ
+れてしまう。
+
+==============================================================================
+3. autocommand の除去					*autocmd-remove*
+
+:au[tocmd]! [group] {event} {pat} [nested] {cmd}
+			{event} と {pat} に関連づけられた全ての autocommand を
+			除去し、コマンド {cmd} を加える。 [nested] については
+			|autocmd-nested| を参照。
+
+:au[tocmd]! [group] {event} {pat}
+			{event} と {pat} に関連づけられた全ての autocommand を
+			除去する。
+
+:au[tocmd]! [group] * {pat}
+			{pat} に関連づけられた、全てのイベントに関する
+			autocommand を全て除去する。
+
+:au[tocmd]! [group] {event}
+			{event} に関連づけられた「全ての」autocommand を除去す
+			る。
+
+:au[tocmd]! [group]	「全ての」autocommand を除去する。
+
+引数 [group] が指定されないと、現在のグループが使われる (":augroup" で定義され
+たもの)。そうでなければ、 [group] で定義されたグループが使われる。
+
+==============================================================================
+4. autocommand の列挙					*autocmd-list*
+
+:au[tocmd] [group] {event} {pat}
+			{event} と {pat} に関連づけられた全ての autocommand を
+			表示する。
+
+:au[tocmd] [group] * {pat}
+			{pat} に関連づけられた、全てのイベントに関する
+			autocommand を表示する。
+
+:au[tocmd] [group] {event}
+			{event} に関連づけられた全ての autocommand を表示する。
+
+:au[tocmd] [group]	全ての autocommand を表示する。
+
+引数 [group] を指定すると、 [group] に関する autocommand のみが列挙される。そ
+うでなければ、「全ての」グループに関する autocommand が表示される。Note ここで
+の引数による動作の違いは、autocommand を定義したり除去するときとは違うことに注
+意。
+
+==============================================================================
+5. イベント					*autocmd-events* *E215* *E216*
+
+					*autocommand-events* *{event}*
+Vimは以下のイベントを認識する。イベント名が大文字か小文字かは無視される (例え
+ば "BufRead" の代わりに "BUFread" や "bufread" が使える)。
+
+							*BufNewFile*
+BufNewFile			存在しないファイルの編集を始めたとき。スケルト
+				ンファイル (訳注: テンプレートファイルともいう)
+				に読み込むときに使える。
+						*BufReadPre* *E200* *E201*
+BufReadPre			新しいバッファの編集を始めたときの、ファイルを
+				バッファに読み込む前。読み込むファイルが存在し
+				ないときは使えない。
+						*BufRead* *BufReadPost*
+BufRead or BufReadPost		新しいバッファの編集を始めたときの、ファイルを
+				バッファに読み込んだ後で、モードラインを実行す
+				る前。モードラインを実行した後に何かするには
+				|BufWinEnter|を参照してください。これは ":r
+				file" には「動作しない」。ファイルが存在しない
+				ときも使えない。またファイルの復旧に成功したと
+				きにも使われる。
+							*BufReadCmd*
+BufReadCmd			新しいバッファの編集を始める前。ファイルをバッ
+				ファ内に読み込む役目を負う。 |Cmd-event|
+							*BufFilePre*
+BufFilePre			現在のバッファの名前をコマンド ":file" または
+				":saveas" で変更する前。
+							*BufFilePost*
+BufFilePost			現在のバッファの名前をコマンド ":file" または
+				":saveas" で変更した後。
+							*FileReadPre*
+FileReadPre			コマンド ":read" でファイルを読み込む前。
+							*FileReadPost*
+FileReadPost			コマンド ":read" でファイルを読み込んだ後。
+				Note 読み込んだテキストの先頭行と末尾行には、
+				マーク '[ と '] が設定されることに注意。これは、
+				読み込まれた行に対して操作を行うのに使われる。
+							*FileReadCmd*
+FileReadCmd			コマンド ":read" でファイルを読み込む前。ファ
+				イルを読み込む役目を負う。 |Cmd-event|
+							*FilterReadPre* *E135*
+FilterReadPre			フィルタコマンドからファイルを読み込む前。Vim
+				は、フィルタコマンドの出力である一時ファイルの
+				名前ではなく、現在のバッファの名前に対してパター
+				ンを調べる。
+							*FilterReadPost*
+FilterReadPost			フィルタコマンドからファイルを読み込んだ後。
+				Vimは FilterReadPre と同様に、現在のバッファの
+				名前に対してパターンを調べる。
+							*FileType*
+FileType			オプション 'filetype' が設定されたとき。
+				<afile> は 'filetype' が設定されたファイルの名
+				前として使える。<amatch> は 'filetype' の新し
+				い値として使える。
+				|filetypes| を参照。
+							*Syntax*
+Syntax				オプション 'syntax' が設定されたとき。
+				<afile> は 'syntax' が設定されたファイルの名前
+				として使える。<amatch> は 'syntax' の新しい値
+				として使える。
+				|:syn-on| を参照。
+							*StdinReadPre*
+StdinReadPre			標準入力からバッファへ読み込む前。Vimを開始し
+				たときに引数 "-" が指定された場合のみ使われる
+				(|--| 参照)。
+							*StdinReadPost*
+StdinReadPost			標準入力からバッファへ読み込んだ後で、モードラ
+				インを実行する前。Vimを開始したときに引数 "-"
+				が使われた場合のみ使われる (|--| 参照)。
+						*BufWrite* *BufWritePre*
+BufWrite or BufWritePre		バッファ全体をファイルに書き込む前。
+							*BufWritePost*
+BufWritePost			バッファ全体をファイルに書き込んだ後 (イベント
+				BufWritePre によるコマンドをアンドゥする役目を
+				果たす)。
+							*BufWriteCmd*
+BufWriteCmd			バッファ全体をファイルに書き込む前。ファイルへ
+				の書き込みの役目を負い、成功したときはオプショ
+				ン 'modified' をオフにする。バッファの内容を変
+				更すべきではない。 |Cmd-event|
+							*FileWritePre*
+FileWritePre			バッファ全体を書き込まない場合の、ファイルに書
+				き込む前。
+							*FileWritePost*
+FileWritePost			バッファ全体を書き込まない場合の、ファイルに書
+				き込んだ後。
+							*FileWriteCmd*
+FileWriteCmd			バッファ全体を書き込まない場合の、ファイルに書
+				き込む前。ファイルへの書き込みの役目を負う。バッ
+				ファを変更すべきではない。 |Cmd-event|
+							*FileAppendPre*
+FileAppendPre			ファイルに追加する前。
+							*FileAppendPost*
+FileAppendPost			ファイルに追加した後。
+							*FileAppendCmd*
+FileAppendCmd			ファイルに追加する前。ファイルへの追加の役目を
+				負う。 |Cmd-event|
+							*FilterWritePre*
+FilterWritePre			フィルタコマンド用のファイルを書き込んだり、差
+				分表示用のファイルを作る前。
+				Vimはフィルタコマンドの出力である一時ファイル
+				の名前ではなく、現在のバッファの名前に対してパ
+				ターンをチェックする。
+							*FilterWritePost*
+FilterWritePost			フィルタコマンド用のファイルを書き込んだり、差
+				分表示用のファイルを作った後。
+				Vimは FilterWritePre と同様、現在のバッファの
+				名前に対してパターンをチェックする。
+							*FileChangedShell*
+FileChangedShell		ファイルのタイムスタンプが、ファイルの編集が始
+				まってから変更されたことを発見したとき。
+				ファイルの属性が変更されたときにも使われる。
+				|timestamp|
+				大抵はシェルコマンドの実行後に発生する。またコ
+				マンド |:checktime| の実行後や、Vimが入力フォー
+				カスを一度失い、再び得たときにも発生する。
+				このイベントは変更されたファイルそれぞれに対し
+				て発生する。オプション 'autoread' がオンであり、
+				かつバッファが変更されていないときには使われな
+				い。もし FileChangedShell の autocommand が存
+				在しても、警告メッセージやプロンプトは現れない。
+				これは、単一のコマンドに影響を受ける、複数の関
+				連バッファを再読み込みするのに便利である。
+				NOTE: このイベントで autocommand が実行された
+				ときは、"%" で表されるカレントバッファと
+				"<afile>" で表される解放されるバッファとは異な
+				るかもしれないことに注意。
+				NOTE: この autocommand はカレントバッファを変
+				更したり、別のバッファにジャンプしたり、バッ
+				ファを消去してはいけない。 *E246*
+				NOTE: このイベントは、無限ループを避けるために
+				決してネストしてはいけない (入れ子にならない)。
+				つまり、FielChangedShellイベントの処理中は他の
+				FileChangedShellイベントは呼ばれない。
+							*FileChangedRO*
+FileChangedRO			読み込み専用ファイルに最初の変更を加える前。ソー
+				ス管理システム (訳注: CVSやRCS) からファイルを
+				チェックアウトするのに使われる。変更が
+				autocommand によるときには発生しない。
+				警告: このイベントが発生するのは変更を行い、そ
+				れがテキストに適用される直前である。
+				Autocommand でカーソルが動かされるときの動作は、
+				定義されていない。
+							*FocusGained*
+FocusGained			Vimが入力フォーカスを得たとき。GUI版と、入力
+				フォーカスを認識できるいくつかのコンソール版で
+				のみ有効。
+							*FocusLost*
+FocusLost			Vimが入力フォーカスを失ったとき。GUI版と、入力
+				フォーカスを認識できるいくつかのコンソール版で
+				のみ有効。
+							*FuncUndefined*
+FuncUndefined			ユーザ定義関数が使われたが、定義されていなかっ
+				たとき。必要なときのみ関数を定義するのに便利で
+				ある。<amatch> と <afile> の両方とも関数名に設
+				定される。
+							*CursorHold*
+CursorHold			'updatetime' の時間の間、ユーザがキーを押さな
+				かったとき。ユーザーが何かキーを押すまで、再び
+				発生することはない (例えば、もしあなたがコーヒー
+				を入れるためにVimの前を離れても、その間の
+				'updatetime' ミリ秒ごと発生することはない :-)。
+				タグをプレビューするためには、
+				|CursorHold-example| を参照。
+				このイベントはノーマルモードのときのみ呼ばれる。
+				Note: このイベントには対話的なコマンドは使えな
+				いことに注意。「続けるには」プロンプトは現れず、
+				スクリーンは必要に応じて直接更新される。
+				Note: 近いうちに、発生するまでの時間を設定する
+				別のオプションができるだろう。
+				ヒント: ステータスラインの更新を強制的に行うに
+				は、これを使うこと: >
+					:let &ro = &ro
+<				{Vi mのAmiga版、Unix版、Win32版、MSDOS版および
+				全てのGUI 版でのみ有効}
+							*BufEnter*
+BufEnter			バッファに入った後。ファイルタイプに関するオプ
+				ションの設定に便利である。バッファの編集を始め
+				るときにも、BufReadPost の autocommand の後に
+				実行される。
+							*BufLeave*
+BufLeave			他のバッファに移る前。カレントウィンドウを離れ
+				たり、閉じたりするときで、新しいカレントウィン
+				ドウが同じバッファを開いていないとき。":qa" や
+				"q" でVimを閉じるときには使われない。
+							*BufWinEnter*
+BufWinEnter			バッファがウィンドウ内に表示された後。これはバッ
+				ファが読み込まれたとき (モードラインの処理後)
+				か、隠れ (hidden) バッファがウィンドウ内に表示
+				されたとき (もう隠れバッファでなくなったとき)
+				か、既にあるウィンドウ内で表示中のバッファが別
+				のウィンドウにも表示されるようになったときであ
+				る。
+							*BufWinLeave*
+BufWinLeave			バッファがウィンドウから取り除かれる前。そのバッ
+				ファが別のウィンドウ内で表示中ならば発生しない。
+				Vimの終了時にも発生する。イベント BufUnload や
+				BufHidden よりも前に発生する。
+				NOTE: このイベントで autocommand が実行された
+				ときは、"%" で表されるカレントバッファと
+				"<afile>" で表される解放されるバッファとは異な
+				るかもしれないことに注意。
+							*BufUnload*
+BufUnload			バッファを解放する前。これは、バッファ内のテキ
+				ストが解放されるときである。BufWritePost の後
+				で、BufDelete の前かもしれない。Vimが終了しよ
+				うとしているとき、読み込まれた全てのバッファに
+				ついて発生する。
+				NOTE: このイベントで autocommand が実行された
+				ときは、"%" で表されるカレントバッファと
+				"<afile>" で表される解放されるバッファとは異な
+				るかもしれないことに注意。
+							*BufHidden*
+BufHidden			バッファが隠れ状態 (hidden) になった直後。つま
+				りそのバッファを表示するウィンドウがもう存在し
+				ないのに、バッファが解放されなかったり、削除さ
+				れないとき。":qa" や "q" でVimを終了するときに
+				は使われない。
+				NOTE: このイベントで autocommand が実行された
+				ときは、"%" で表されるカレントバッファと
+				"<afile>" で表される解放されるバッファとは異な
+				るかもしれないことに注意。
+							*BufNew*
+BufNew				新しいバッファを作った直後。バッファがリネーム
+				された直後にも発生する。バッファがバッファリス
+				トに追加されると、イベント BufAdd も発生する。
+				NOTE: このイベントで autocommand が実行された
+				ときは、"%" で表されるカレントバッファと
+				"<afile>" で表される解放されるバッファとは異な
+				るかもしれないことに注意。
+							*BufCreate* *BufAdd*
+BufAdd or BufCreate		バッファリストに追加されるバッファを作った直後
+				か、バッファをバッファリストに追加した直後。
+				バッファリスト内のバッファがリネームされた直後
+				にも発生する。
+				イベント BufCreate は歴史上の理由で存在してい
+				る。
+				NOTE: このイベントで autocommand が実行された
+				ときは、"%" で表されるカレントバッファと
+				"<afile>" で表される解放されるバッファとは異な
+				るかもしれないことに注意。
+							*BufDelete*
+BufDelete			バッファリストからバッファを削除する前。(バッ
+				ファが読み込まれているなら) BufUnload が最初に
+				呼び出されるだろう。
+				また、バッファリスト内のバッファがリネームされ
+				た直前にも使われる。
+				NOTE: このイベントで autocommand が実行された
+				ときは、"%" で表されるカレントバッファと
+				"<afile>" で表される解放されるバッファとは異な
+				るかもしれないことに注意。
+							*BufWipeout*
+BufWipeout			バッファを完全に削除する前。イベント BufUnload
+				と BufDelete が先に発生するかもしれない (バッ
+				ファが読み込まれていて、バッファリスト内に存在
+				するなら)。バッファがリネームされる直前にも発
+				生する (そのバッファがバッファリスト内になくと
+				も)。
+				NOTE: このイベントで autocommand が実行された
+				ときは、"%" で表されるカレントバッファと
+				"<afile>" で表される解放されるバッファとは異な
+				るかもしれないことに注意。
+							*WinEnter*
+WinEnter			別のウィンドウに入った後。Vimの開始直後、1個目
+				のウィンドウに入ったときは発生しない。ウィンド
+				ウの高さを設定するのに便利である。
+				そのウィンドウで他のバッファを開いていたときは、
+				イベント Winenter の後に BufEnter が発生する。
+				Note: ":split fname" を実行したとき、WinEnter
+				が発生するのは、ウィンドウ分割の後だがファイル
+				"fname" が読み込まれる前の時点である。
+							*WinLeave*
+WinLeave			ウィンドウを離れる前。次に入るウィンドウで他の
+				バッファを開いていたときは、イベント WinLeave
+				の前に BufLeave が発生する (ただし ":new" を使っ
+				たときはそうならない)。
+				":qa" や"q" でVimを終了するときには発生しない。
+							*CmdwinEnter*
+CmdwinEnter			Command-lineウィンドウに入った後。この特殊なウィ
+				ンドウに対してのみオプションを設定するのに便利
+				である。このイベントはイベント BufEnter や
+				WinEnter の「代わりに」発生する。
+				<afile> は、command-lineの種類を示す1文字に設
+				定される。 |cmdwin-char|
+							*CmdwinLeave*
+CmdwinLeave			Command-lineウィンドウから出る前。イベント
+				CmdwinEnter で行ったグローバル設定を消去するの
+				に便利である。このイベントは BufLeave や
+				WinLeave の「代わりに」発生する。
+				<afile> は、command-lineの種類を示す1文字に設
+				定される。 |cmdwin-char|
+							*GUIEnter*
+GUIEnter			GUI の開始に成功し、ウィンドウを開いた後。
+				gvim を使ったときは、VimEnter の前に発生する。
+				ファイル .gvimrc からウィンドウの配置場所を設
+				定するために使うことができる。 >
+	:autocmd GUIEnter * winpos 100 50
+<							*VimEnter*
+VimEnter			ファイル .vimrc の読み込みを含む、全てのスター
+				トアップ処理を行い、"-c cmd" の引数を実行し、
+				全てのウィンドウを構築し、それらにバッファを読
+				み込んだ後。
+							*VimLeavePre*
+VimLeavePre			Vim を終了する前で、ファイル .viminfo を書き込
+				む直前。これは終了時にたまたまカレントバッファ
+				になったバッファの名前とマッチしたときに、ただ
+				1度だけ実行される。 大抵、パターンには "*" を
+				使うと便利である。 >
+	:autocmd VimLeavePre * call CleanupStuff()
+<				異常終了の検出には |v:dying| を使うこと。
+							*VimLeave*
+VimLeave			Vim を終了する前で、ファイル .viminfo を書き込
+				んだ後。VimLeavePre のように、ただ1度だけ実行
+				される。
+				異常終了の検出には |v:dying| を使うこと。
+							*EncodingChanged*
+EncodingChanged			オプション 'encoding' が変更されたとき。例えば、
+				フォント等の設定に便利である。
+							*FileEncoding*
+FileEncoding			時代遅れである。まだ有効だがイベント
+				|EncodingChanged| と同等である。
+							*RemoteReply*
+RemoteReply			サーバとして働くVimからの応答を受け取ったとき
+				|server2client()|。
+				<amatch> は応答が送られてきたサーバの
+				{serverid} になり、<afile> は応答の実際の内容
+				になる。
+				Note これに autocommand を定義したときも、応答
+				を読み込むのには、読み込んだ応答を処理できるよ
+				うに関数 |remote_read()| を使うべきであること
+				に注意。
+							*TermChanged*
+TermChanged			オプション 'term' を変更した後。色やフォント等、
+				ターミナル依存の設定を更新するために構文定義ファ
+				イルを再読み込みするのに便利である。読み込まれ
+				たバッファ全てで発生する。
+							*TermResponse*
+TermResponse			|t_RV| に対する応答をターミナルから受け取った
+				とき。Vim変数 |v:termresponse| の値を使って、
+				ターミナルのヴァージョンに応じた処理ができる。
+							*UserGettingBored*
+UserGettingBored		ユーザが CTRL-C を打ち込んだとき。
+				ただの冗談！ :-)
+							*User*
+User				自動的に実行されることはない。コマンド
+				":doautocmd" によってのみ実行される
+				autocommand のために使用される。
+
+
+複数のイベントをコンマ(,)で区切ったリストにして指定することもできる。そのリス
+トにはスペースを含めてはいけません。そのコマンドは指定したリストにある全てのイ
+ベントに適用されます。
+
+「ファイル読み込み」には次の4種類のイベントが発生しうる。
+	BufNewFile			存在しないファイルの編集を開始する。
+	BufReadPre	BufReadPost	既存のファイルの編集を開始する。
+	FilterReadPre	FilterReadPost	フィルタの出力による一時ファイルを読み
+					込む。
+	FileReadPre	FileReadPost	その他のファイルを読み込む。
+Vimはファイルを読み込むときにこの4種類のうちどれか1つを利用する。"Pre"と"Post"
+のイベントは、ファイル読み込みの前後で両方とも起動される。
+
+Note イベント *ReadPre や、全てのイベント Filter に関する autocommand は、カレ
+ントバッファを変更してはならないことに注意 (これが起きると、エラーメッセージが
+表示される)。これは、間違ったバッファにファイルを読み込むのを防ぐためである。
+
+Note オプション 'modified' は、BufReadPost と BufNewFile の autocommand を実行
+した「後に」オフに設定されることに注意。しかし 'modified' が autocommand から
+オンに設定されたときはそうならない。
+
+'eventignore' は、いくつかあるいは全てのイベントを無視するために使える。
+
+==============================================================================
+6. パターン					*autocmd-patterns* *{pat}*
+
+ファイルパターン {pat} がファイル名とマッチするかどうかは、2通りの方法で調べら
+れる。
+1. パターンに '/' が含まれないとき: Vimはファイル名の後ろの部分からのみマッチ
+   を調べる (ファイル名の前につくディレクトリパスは除く)。
+2. パターンに '/' が含まれるとき: Vimは短いファイル名 (ユーザが打ち込んだもの)
+   と長いファイル名 (短いファイル名をフルパスに展開し、シンボリックリンクなら
+   その実体を探したもの) との両方から一致を調べる。
+
+例: >
+	:autocmd BufRead *.txt		set et
+全てのテキストファイルに対しオプション 'expandtab' をオンにする。 >
+
+	:autocmd BufRead /vim/src/*.c	set cindent
+ディレクトリ /vim/src 内のC言語ファイルに対しオプション 'cindent' をオンにす
+る。 >
+
+	:autocmd BufRead /tmp/*.c	set ts=5
+"/tmp/test.c" から "/home/nobody/vim/src/test.c" にリンクを張っていると、
+"/tmp/test.c" の編集を始めたとき、この autocommand は実行される。
+
+Note: パスの途中だけにマッチさせ、ルートディレクトリにマッチさせたくないとき
+は、最初の1文字目に '*' を使う。例: >
+	:autocmd BufRead */doc/*.txt	set tw=78
+この autocommand は、例えば "/tmp/doc/xx.txt" や "/usr/home/piet/doc/yy.txt"
+にマッチする。ここで、ディレクトリの深さは関係ない。
+
+
+パターンがマッチするファイル名は、ワイルドカードを展開した後のものである。その
+ため、次のようなコマンドが使える。 >
+	:e $ROOTDIR/main.$EXT
+まずコマンドの引数は、ファイル名が autocommand のパターンにマッチする前に、次
+のように展開される。 >
+	/usr/root/main.py
+イベント FileReadCmd 等を使うときにはこれに注意すること。<amatch> の値が、ユー
+ザの予期するものと違うかもしれない。
+
+
+パターンの中で環境変数を使うこともできる。 >
+	:autocmd BufRead $VIMRUNTIME/doc/*.txt  set expandtab
+環境変数 $HOME が定義されているなら、~ をホームディレクトリとして使うこともで
+きる。 >
+	:autocmd BufWritePost ~/.vimrc   so ~/.vimrc
+	:autocmd BufRead ~archive/*      set readonly
+環境変数は、autocommand が定義されるときに展開される。autocommand が実行される
+ときではない。これは command とは違っている!
+
+							*file-pattern*
+パターンの解釈方法は、ファイル名の解釈方法と大体同じである。
+	*	はあらゆる文字の列にマッチ
+	?	はあらゆる1文字にマッチ
+	\?	は '?' にマッチ
+	.	は '.' にマッチ
+	~	は '~' にマッチ
+	,	はパターンを分割する
+	/,	は ',' にマッチ
+	{ }	は |pattern| の \( \) と同様
+	,	('{' '}' の内側では) |pattern| の \| と同様
+	\	は |pattern| で使われるものと同様の特別な意味を持つ
+	[ch]	は 'c' または 'h' にマッチ
+	[^ch]	は 'c' と 'h' 以外の文字にマッチ
+
+'/' という文字は、全てのシステムでパスの区切り文字に使われることに注意すること
+(MS-DOSとOS/2でさえも)。これは、パターン内でバックスラッシュを使うことが難しい
+上に、別々のシステムでも autocommand が動作するようにするためである。
+
+
+パターンマッチの検索は、イベントの発生時に行われる。Autocommand のどれかでバッ
+ファ名を変更しても、それどころかバッファを削除しても、実行される autocommand
+は変わらない。例: >
+
+	au BufEnter *.foo  bdel
+	au BufEnter *.foo  set modified
+
+これはカレントバッファを削除し、代わりにカレントバッファになったバッファ内でオ
+プション 'modified' をオンにする。Vimは "*.foo" が新しいカレントバッファのバッ
+ファ名にマッチしなくとも気にしない。"*.foo" はイベントが発生した時点でのバッファ
+名にマッチする。
+
+==============================================================================
+7. グループ						*autocmd-groups*
+
+Autocommand はグループにまとめることができる。これは一連の autocommand を取り
+除いたり実行したりする際に便利である。例えば、構文強調表示のための全ての
+autocommand はグループ "highlight" に入っていて、GUIの開始時に
+":doautoall highlight BufRead" で実行できる。
+
+特定のグループが選択されないとき、既定のグループが使われる。既定のグループには
+名前がない。既定のグループから個別に autocommand を実行することはできない。そ
+れらを実行できるのは、全てのグループに対する autocommand を実行するときのみで
+ある。
+
+普通、autocommand を自動的に実行するときは、全てのグループに対する autocommand
+が使われる。グループが問題になってくるのは、":doautocmd" や ":doautoall" によっ
+て autocommand を実行するときと、autocommand を定義したり削除するときである。
+
+グループ名には空白を除く全ての文字が使える。"end" というグループ名は予約語になっ
+ている (大文字も)。
+
+グループ名では大文字と小文字を区別して扱う。イベントの名前とは違うことに注意し
+てください。
+
+							*:aug* *:augroup*
+:aug[roup] {name}		後に続くコマンド ":autocmd" のためのグループ名
+				を定義する。{name} を "end" や "END" にすると
+				既定のグループが選ばれる。
+
+						*:augroup-delete* *E367*
+:aug[roup]! {name}		Autocommand のグループ {name} を削除する。その
+				グループを使っている autocommand がまだあるな
+				ら、これは使わないこと！その点はチェックされな
+				い。
+
+特定のグループとして autocommand を定義するには、次の手順に従うこと。
+1. ":augroup {name}" によってグループを選択する。
+2. ":au!" によって古い autocommand を全て消去する。
+3. autocommand を定義する。
+4. ":augroup END" によって既定のグループに戻る。
+
+例: >
+	:augroup uncompress
+	:  au!
+	:  au BufEnter *.gz	%!gunzip
+	:augroup END
+
+これで autocommand を (例えばファイル .vimrc を再び読み込んだ後) 2回定義するこ
+とが防げる。
+
+==============================================================================
+8. autocommand の実行				*autocmd-execute*
+
+Autocommand は「自動的」でなくとも実行できる。これはあなたが autocommand を変
+更したときや、間違った autocommand が実行されたとき (つまりファイルパターンの
+マッチングが間違っていたとき) に便利である。
+
+NOTE オプション 'eventignore' はここにも適用されることに注意。ここに列挙された
+イベントでは、どんな autocommand も実行されない。
+
+					*:do* *:doau* *:doautocmd* *E217*
+:do[autocmd] [group] {event} [fname]
+			[fname] (省略するとカレントファイルの名前) にマッチす
+			る、{event} のための autocommand をカレントバッファに
+			適用する。カレントファイル名が正しいファイルパターンに
+			マッチしないときや設定を変えた後、またはあるイベントの
+			ために autocommand を実行するために使用できる。
+			これを autocommand の内部で実行することも可能である。
+			だから、ある拡張子用の autocommand を元にして別の拡張
+			子用のものを作ることができる。例: >
+				:au Bufenter *.cpp so ~/.vimrc_cpp
+				:au Bufenter *.cpp doau BufEnter x.c
+<			無限の循環に陥らないよう注意すること。また
+			|autocmd-nested| を参照すること。
+
+			引数 [group] が省かれると、全てのグループの
+			autocommand が実行される。 [group] が指定されると、そ
+			れにマッチするグループの autocommand のみが実行される。
+			NOTE 定義されていないグループ名を使うと、エラーメッセー
+			ジが表示される。
+
+						*:doautoa* *:doautoall*
+:doautoa[ll] [group] {event} [fname]
+			":doautocmd" と似ているが、読み込まれたバッファそれぞ
+			れに autocommand を適用する。{fname}はautocommandを選
+			択するのに使われます。コマンドを適用するバッファではあ
+			りません。(訳注: |:autocmd|の{pat}に使う?)
+			注意: このコマンドで、バッファを削除したり、バッファを
+			変えたり、バッファの内容を変えるような autocommand を
+			実行しないこと。結果は予期できない。このコマンドは、オ
+			プションを設定したり、構文強調表示を変えたりする
+			autocommand のためのものである。
+
+==============================================================================
+9. autocommand を使う					*autocmd-use*
+
+「ファイルの書き込み」には、4組のイベントが起こりうる。1回の書き込みコマンドで
+は、これらのうち1組しか使われない。
+
+BufWriteCmd	BufWritePre	BufWritePost	バッファ全体を書き込む
+		FilterWritePre	FilterWritePost	フィルタ用一時ファイルに書込む
+FileAppendCmd	FileAppendPre	FileAppendPost	ファイルに追加する
+FileWriteCmd	FileWritePre	FileWritePost	その他の書き込み
+
+"*Cmd" にマッチする autocommand があるときは、それが書き込み作業を行うものと想
+定される。書き込みはそれ以上行われず、他のイベントも発生しない。 |Cmd-event|
+
+Note イベント *WritePost による autocommand は、イベント *WritePre による
+autocommand の引き起こしたバッファに対する変化を、どのようなものでもアンドゥす
+べきであることに注意。さもないと、ファイルの書き込みがバッファを変更するという
+副作用を持ってしまう。
+
+あるバッファの中の行をファイルに書き込むとき、autocommand を実行する前にそのバッ
+ファが一時的にカレントバッファになる。Autocommand がカレントバッファを変更した
+り、元のカレントバッファを消去しない限り、カレントバッファは再び元に戻る。
+
+イベント *WritePre や *AppendPre による autocommand は、書き込み元のバッファを
+削除してはならない。
+
+マーク '[ と '] は特別な位置を記憶している。
+- イベント *ReadPre の前に、新しい行が挿入される所の上の行にマーク '[ が設定
+  される。
+- イベント *ReadPost の前に、読み込まれた最初の行にマーク '[ が、最後の行にマー
+  ク '] が設定される。
+- イベント *WritePre と *AppendPre による autocommand が実行される前に、書き込
+  まれる最初の行にマーク '[ が、最後の行にマーク '] が設定される。
+注意: バッファを変更するコマンドを使うと、'[ と '] の場所も変更される。
+
+ファイル名を必要とするコマンドでは、読み込まれるファイル名に "<afile>" を使う
+ことができる (カレントファイル名に "%" を使うこともできる) |:<afile>|。現在有
+効なバッファ番号には "<abuf>" を使うことができる。これは名前を持たないバッファ
+に対しても有効だが、バッファを持たないファイルには使えない (例えば、":r file"
+で読み込まれたファイル)。
+
+							*gzip-example*
+圧縮されたファイルを読み書きする例: >
+  :augroup gzip
+  :  autocmd!
+  :  autocmd BufReadPre,FileReadPre	*.gz set bin
+  :  autocmd BufReadPost,FileReadPost	*.gz '[,']!gunzip
+  :  autocmd BufReadPost,FileReadPost	*.gz set nobin
+  :  autocmd BufReadPost,FileReadPost	*.gz execute ":doautocmd BufReadPost " . expand("%:r")
+  :  autocmd BufWritePost,FileWritePost	*.gz !mv <afile> <afile>:r
+  :  autocmd BufWritePost,FileWritePost	*.gz !gzip <afile>:r
+>
+  :  autocmd FileAppendPre		*.gz !gunzip <afile>
+  :  autocmd FileAppendPre		*.gz !mv <afile>:r <afile>
+  :  autocmd FileAppendPost		*.gz !mv <afile> <afile>:r
+  :  autocmd FileAppendPost		*.gz !gzip <afile>:r
+  :augroup END
+
+グループ "gzip" は、":autocmd!" で既存の autocommand を全て削除できるようにす
+るために使われている。これはスクリプトファイルが2回読み込まれたときのためであ
+る。
+
+("<afile>:r" は拡張子のないファイル名である。|:_%:| を参照)
+
+イベント BufNewFile, BufRead/BufReadPost, BufWritePost, FileAppendPost,
+VimLeave によって実行された autocommand は、バッファの被修正フラグを切り替えな
+い。BufReadPost による autocommand で、圧縮されているバッファを解凍したときは、
+":q" でVimを終了することができる。BufWritePre による autocommand の起こした変
+更を戻すために BufWritePost で ":undo" を使ったときも、":q" を使うことができる
+("ZZ" も可)。バッファが変更されたことにしたいなら、":set modified" とすること。
+
+Autocommand からNormalモードのコマンドを実行したいときは、コマンド ":normal"
+を使うこと。使うときは注意！Normalモードのコマンドが完結していないと、ユーザが
+文字を打ち込まないといけない (例えば、":normal m" の後にはマーク名を打ち込まな
+いといけない)。
+
+バッファの内容を変更した後に、変更されていないことにしたいなら、オプション
+'modified' をオフにすること。こうすると ":q!" ではなく ":q" でもVimを終了でき
+る。
+
+						*autocmd-nested* *E218*
+既定では、autocommand はネストしない (入れ子にならない)。Autocommand 内で ":e"
+や ":w" を使っても、これらに対してはイベント BufRead や BufWrite による
+autocommand は実行されない。もしこれを実行してほしいなら、ネストしてほしいコマ
+ンド内でフラグ "nested" を使うこと。例: >
+	:autocmd FileChangedShell *.c nested e!
+再帰的ループを避けるために、ネストは10段階までに制限されている。
+
+Autocommand の中でコマンド ":au" を使うこともできる。これは自己修正的 (訳注:
+原文 "self-modifying") なコマンドになりうる! これは1回だけ実行すべき
+autocommand に便利である。
+
+現在のところ、autocommand を無効にする方法はない。ファイルを書き込むとき、その
+ファイルタイプに対して設定された autocommand を実行したくないならば、別のファ
+イル名で書き込み、シェルコマンドでリネームすること。場合によっては
+'eventignore'オプションが使える。
+
+Note (":read file" やフィルタコマンドで) 読み込んだファイルの最後の行に <EOL>
+がないとき、Vimはこのことを記憶する。その次の (":write file" やフィルタコマン
+ドでの) 書き込みで、先ほどの最後の行が再び最後の行として書き込まれ、かつオプショ
+ン 'binary' がオンになっていると、<EOL> は付け足されない。これにより、読み込ま
+れた行に対するフィルタコマンドで、読み込まれた通りに書き出すことができる。また、
+フィルタ処理された行に対する書き込みのコマンドで、フィルタが出力した通りに書き
+出すことができる。例えば、圧縮されたファイルを書き込むもう一つの例は以下のよう
+になる。 >
+
+  :autocmd FileWritePre *.gz   set bin|'[,']!gzip
+  :autocmd FileWritePost *.gz  undo|set nobin
+<
+							*autocommand-pattern*
+コンマで区切られた複数のパターンを指定することもできる。以下にいくつか例を挙げ
+る。 >
+
+  :autocmd BufRead   *		set tw=79 nocin ic infercase fo=2croq
+  :autocmd BufRead   .letter	set tw=72 fo=2tcrq
+  :autocmd BufEnter  .letter	set dict=/usr/lib/dict/words
+  :autocmd BufLeave  .letter	set dict=
+  :autocmd BufRead,BufNewFile   *.c,*.h	set tw=0 cin noic
+  :autocmd BufEnter  *.c,*.h	abbr FOR for (i = 0; i < 3; ++i)<CR>{<CR>}<Esc>O
+  :autocmd BufLeave  *.c,*.h	unabbr FOR
+
+Makefile (makefile, Makefile, imakefile, makefile.unix 等) にマッチさせるには
+こうする。 >
+
+  :autocmd BufEnter  ?akefile*	set include=^s\=include
+  :autocmd BufLeave  ?akefile*	set include&
+
+Cソースファイルを編集するとき、常に最初の関数から始めるにはこうする。 >
+
+  :autocmd BufRead   *.c,*.h	1;/^{
+
+上の "1;" がないと、検索が始まる場所はファイルの最初ではなく、ファイルの挿入さ
+れた場所になる。
+
+						*skeleton* *template*
+新しいファイルを作るときにスケルトン (テンプレート) ファイルを読み込むにはこう
+する。 >
+
+  autocmd BufNewFile  *.c	0r ~/vim/skeleton.c
+  autocmd BufNewFile  *.h	0r ~/vim/skeleton.h
+  autocmd BufNewFile  *.java	0r ~/vim/skeleton.java
+
+HTMLファイルを書き込むときに現在の日付と時刻を挿入したいならこうする (訳注:
+KoRoN氏作成のautodate.vimを使った方がよい) >
+
+  :autocmd BufWritePre,FileWritePre *.html   ks|call LastMod()|'s
+  :fun LastMod()
+  :  if line("$") > 20
+  :    let l = 20
+  :  else
+  :    let l = line("$")
+  :  endif
+  :  exe "1," . l . "g/Last modified: /s/Last modified: .*/Last modified: " .
+  :  \ strftime("%Y %b %d")
+  :endfun
+
+これを機能させるためには、ファイルの先頭から20行以内に"Last modified: <date
+time>" という行を入れる必要がある。Vimは <date time> (とその行内のそれ以後を)
+を現在の日付と時刻に置き換える。説明:
+	ks		現在の位置をマーク 's' に設定する
+	call LastMod()  関数 LastMod() を呼び出して実際の作業を行う
+	's		カーソルを元の位置に戻す
+関数 LastMod() はファイルの長さが20行以下であるかを調べ、キーワード
+"Last modified: " の含まれる行を探すためにコマンド ":g" を実行する。キーワード
+の含まれる行に対しては ":s" が実行され、既存の日付を現在のものに置き換える。
+":execute" は ":g" や ":s" で expression を使えるようにするためのものである。
+日付は関数 strftime() から得られる。 strftime() の引数を変更して、別の形の日付
+を得ることもできる。
+
+コマンドラインから autocommand を入力すると、(<Tab> や CTRL-D などで) イベント
+とコマンド名が適切に補完される。
+
+Vimはマッチする全ての autocommand をユーザの指定した順に実行する。ユーザが実行
+させる最初の autocommand にはファイルパターンに "*" を使い、全てのファイルに適
+用されるようにするとよい。これはつまり、あらゆる設定のための既定を好きなように
+定義することができ、もしマッチする autocommand が別にあれば、そちらの方が設定
+を上書きできるということである。しかしマッチする autocommand が他になければ、
+少なくともあなたの設定した既定は回復される (もし autocommand がマッチした別の
+ファイルから、マッチしなかったファイルに移っても)。 Note Unixのシェルと違い、
+"*" は"." で始まるファイルにもマッチすることに注意。
+
+						    *autocmd-searchpat*
+autocommand は現在の検索パターンを変更しない。Vimは autocommand の実行前に現在
+の検索パターンを保存し、autocommand が終了してから復元する。つまり autocommand
+はオプション 'hlsearch' で強調表示されている文字列に影響しないということである。
+Autocommand 内でも、例えばコマンド "n" 等で、検索パターンは普通に使用できる。
+もし autocommand の中で終了後に使う検索パターンを設定したいなら、 ":let @/ ="
+とすること。
+Autocommand の中で ":nohlsearch" を使って、検索語の強調表示を無効にすることは
+できない。Vimの開始時に検索語の強調表示を行わないためには、'viminfo' のフラグ
+'h' を使うこと。
+
+							*Cmd-event*
+イベント "*Cmd" のうちどれかを使うと、それによる autocommand が読み込みまたは
+書き込みを行うものと想定される。これは特殊なファイル、例えばリモートシステム上
+のファイルに作業をするときに使える。
+注意: これらのイベントを誤った方法で使うと、そのイベントが発生するファイルの読
+み書きが不可能になってしまう。自分の autocommand をしっかりテストすること。最
+良の方法は、普通のファイル名には決してマッチしないパターン (例えば "ftp://*")
+を使うことである。
+
+BufReadCmd に対して autocommand を定義すると、クラッシュしたセッションの復旧が
+難しくなる。元のファイルから復旧するとき、Vimはスワップファイル内に見つからな
+かった部分のみを読み込む。それは BufReadCmd の autocommand を使ったときは不可
+能なので、コマンド |:preserve| を使って元のファイルが復旧に必要ないようにする
+こと。そうするのはファイルが変更を受けたと判断したときのみでもよい。
+
+Vim変数 |v:cmdarg| は引数 "++enc=" と "++ff=" の、有効だったものを保持している。
+これらはファイルを読み書きするコマンドで使われるべきである。
+Vim変数 |v:cmdbang|はコマンドに"!"が使われたときに 1。そうでないときに 0 が設
+定される。
+
+例は標準プラグイン $VIMRUNTIME/plugin/netrw.vim を参照。
+
+ vim:tw=78:ts=8:ft=help:norl:

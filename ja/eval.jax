@@ -1,0 +1,1838 @@
+COMMENT: Vimスクリプト
+STATUS: finished 5.7
+TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
+
+*eval.txt*      For Vim version 5.7.  Last change: 2000 Jun 07
+
+
+		VIMリファレンスマニュアル    by Bram Moolenaar
+
+
+Expression evaluation					*expression* *expr*
+(訳注:「式評価」が直訳として正しいがちょっと納まりが悪い)
+
+注意:式評価はコンパイル時に無効化できる。もしそうなっているとこのドキュメント
+に書かれている事は有効ではない。|+eval|と後の最終章とを参照。
+
+1. 変数			|variables|
+2. 式の文法		|expression-syntax|
+3. 内部変数		|internal-variables|
+4. 組み込み関数		|functions|
+5. 関数定義		|user-functions|
+6. コマンド		|expression-commands|
+7. 例			|eval-examples|
+8. +eval機能が無効	|no-eval-feature|
+
+{これらのコマンドはViには存在しない}
+
+==============================================================================
+1. 変数							*variables*
+
+変数には2種類の型がある:
+
+数値		32ビット符合有整数
+文字列		終端がNUL文字である8ビットの符号無し文字
+
+これらは文脈に応じて相互に変換される。
+
+数値から文字列への変換は数字のASCII表現によって行なわれる。例:
+>	数値 123	-->	文字列 "123"
+>	数値 0		-->	文字列 "0"
+>	数値 -1		-->	文字列 "-1"
+
+文字列から数値への変換は最初の数字を用いて数値に変換する。16進表記"0xf9"や8進
+表記"017"も認識される。文字列が数字で始まらない場合結果は0となる。例:
+>	文字列 "456"	-->	数値 456
+>	文字列 "6bar"	-->	数値 6
+>	文字列 "foo"	-->	数値 0
+>	文字列 "0xf1"	-->	数値 241
+>	文字列 "0100"	-->	数値 64
+
+文字列を強制的に数値に変換するには0を足す:
+>	:echo "0100" + 0
+
+ブール(真理値)演算には数値が使われる。0は偽を意味し、非0は真を表す。
+
+Note 次のコマンドをみると
+	:if "foo"
+"foo"は0に変換され、それは偽を意味する。文字列が空ではないか調べるためには
+strlen()を使用して次のようにする。
+	:if strlen("foo")
+
+オプション'viminfo'にフラグ'!'が含まれていたなら、大文字で始まり小文字を含まな
+い名前のグローバル変数は、viminfoファイル|viminfo-file|に格納される。
+
+オプション'sessionoptions'が"global"を含むなら、少なくとも一文字ずつ大文字と小
+文字を含む名前のグローバル変数はsessionファイル|session-file|に格納される。
+
+変数名			何処に保存されるか ~
+my_var_6		されない
+My_Var_6		sessionファイル
+MY_VAR_6		viminfoファイル
+
+==============================================================================
+2. 式の文法						*expression-syntax*
+
+式文法一覧、優先順位の低いものから高い順に:
+
+|expr1|	expr2 || expr2 ..	論理和
+
+|expr2|	expr3 && expr3 ..	論理積
+
+|expr3|	expr4 == expr4		等しい
+	expr4 != expr4		等しくない
+	expr4 >	 expr4		より大きい
+	expr4 >= expr4		大きいか等しい
+	expr4 <	 expr4		より小さい
+	expr4 <= expr4		小さいか等しい
+	expr4 =~ expr4		正規表現にマッチする
+	expr4 !~ expr4		正規表現にマッチしない
+	expr4 ==? expr4		文字列として等しい(大文字/小文字区別無し)
+	expr4 ==# expr4		文字列として等しい(大文字/小文字区別有り)
+	etc.  As above, append ? for ignoring case, # for matching case
+
+|expr4|	expr5 +	 expr5 ..	足し算
+	expr5 -	 expr5 ..	引き算
+	expr5 .	 expr5 ..	文字列の連結
+
+|expr5|	expr6 *	 expr6 ..	掛け算
+	expr6 /	 expr6 ..	割り算
+	expr6 %	 expr6 ..	剰余(割った余り)
+
+|expr6|	! expr6			論理否定
+	- expr6			単項のマイナス(訳注:-1等)
+	expr7
+
+|expr7|	expr8[expr1]		文字列内でのインデックス
+
+|expr8|	number			数定数
+	"string"		文字列定数
+	'string'		リテラル文字列定数
+	&option			オプション変数
+	(expr1)			式の入れ子
+	variable		内部変数
+	$VAR			環境変数
+	@r			レジスタ'r'の値
+	function(expr1, ...)	関数呼出し
+
+".." はその演算が、その後に他の演算を続ける事が出来ることを示している。
+例:
+>	&nu || &list && &shell == "csh"
+
+一つのレベルにある全ての式は左から右に解釈される。
+
+
+expr1 and expr2						*expr1* *expr2*
+---------------
+
+						*expr-barbar* *expr-&&*
+演算子"||"と"&&"は左右に一つずつ引数を取る。引数は数値に変換される。結果は:
+
+	 入力				 出力		    ~
+    n1		n2		n1 || n2	n1 && n2    ~
+    零		零		零		零
+    零		非零		非零		零
+    非零	零		非零		零
+    非零	非零		非零		非零
+
+演算子は続けて書く事ができる。例:
+
+>	&nu || &list && &shell == "csh"
+
+Note "&&"は"||"よりも高い優先順位を持っている。これは次の事を意味する:
+
+>	&nu || (&list && &shell == "csh")
+
+結果が決定した時点で残りの式は省略され、解釈されない。これはC言語で行なわれる
+ことと似ている。例:
+
+>	let a = 1
+>	echo a || b
+
+これはaが非零で戻り値は絶対に非零であるから、変数bが宣言されていなくても有効で
+ある。次のも同様に:
+
+>	echo exists("b") && b == "yes"
+
+これもbが宣言されているいないに関わらず有効である。後半の項はbが定義されている
+時にだけ評価される。
+
+
+expr3							*expr3*
+-----
+
+	expr4 {cmp} expr4
+
+2つの表現expr4を比較し、結果が偽なら0を真なら1を返す。
+
+				*expr-==*  *expr-!=*  *expr->*   *expr->=*
+				*expr-<*   *expr-<=*  *expr-=~*  *expr-!~*
+				*expr-==#* *expr-!=#* *expr->#*  *expr->=#*
+				*expr-<#*  *expr-<=#* *expr-=~#* *expr-!~#*
+				*expr-==?* *expr-!=?* *expr->?*  *expr->=?*
+				*expr-<?*  *expr-<=?* *expr-=~?* *expr-!~?*
+		'ignorecase'次第   大小文字考慮    大小文字無視 ~
+等しい			==		==#		==?
+等しくない		!=		!=#		!=?
+より大きい		>		>#		>?
+より大きいか等しい	>=		>=#		>=?
+より小さい		<		<#		<?
+より小さいか等しい	<=		<=#		<=?
+正規表現マッチ		=~		=~#		=~?
+正規表現非マッチ	!~		!~#		!~?
+
+Examples:
+	"abc" ==# "Abc"	  0と評価される
+	"abc" ==? "Abc"	  1と評価される
+	"abc" == "Abc"	  'ignorecase'が設定されていれば1と、でなければ0と評価
+
+文字列と数値を比較した場合、文字列が数値に変換され、数値として比較される。
+
+文字列同士を比較した場合、strcmp()やstricmp()によって比較される。これは数値的
+に(バイトの値で)比較されるのであって、言語による文字種の違いである必要は無い。
+
+'#'を付けた演算子を使うか、省略形かつ'ignorecase'が設定されていない場合、比較
+はstrcmp()で行なわれる。
+
+'?'を付けた演算子を使うか、省略形かつ'ignorecase'が設定されている場合、比較は
+stricmp()で行なわれる。
+
+"=~"と"!~"演算子は右側の引数を正規表現のパターンとして左側の引数に対してマッチ
+を試みる。正規表現のパターンに関しては|pattern|を参照。このマッチは'magic'が設
+定され'cpoptions'が空であるように振舞い、実際の'magic'や'cpoptions'に何が設定
+されているには依存しない。これがスクリプトをポータブルにしてくれる。正規表現中
+のバックスラッシュが重複してしまうのを避けるには、シングルクォーテーションの文
+字列を使用する。詳細は|literal-string|
+
+
+expr4 and expr5						*expr4* *expr5*
+---------------
+	expr5 +	 expr5 ..	number addition		*expr-+*
+	expr5 -	 expr5 ..	number subtraction	*expr--*
+	expr5 .	 expr5 ..	string concatenation	*expr-.*
+
+	expr6 *	 expr6 ..	number multiplication	*expr-star*
+	expr6 /	 expr6 ..	number division		*expr-/*
+	expr6 %	 expr6 ..	number modulo		*expr-%*
+
+"."を除く全ての演算子は自動的に文字列を数値に変換する。
+
+"+"と"."の違いに注意:
+	"123" + "456" = 579
+	"123" . "456" = "123456"
+
+'/'の右辺(除数)が0の場合、結果は0xfffffffになる。
+'%'の右辺(法)が0の場合、結果は0になる。
+
+
+expr6							*expr6*
+-----
+	! expr6			logical NOT		*expr-!*
+	- expr6			unary minus		*expr-unary--*
+
+'!'演算子では非零は0に、0は1になる。
+'-'では数値の符号が反転される。
+
+文字列はまず数値に変換される。
+
+これら2つは繰り返したり混ぜたりできる。例:
+    !-1	    == 0
+    !!8	    == 1
+    --9	    == 9
+
+
+expr7							*expr7*
+-----
+	expr8[expr1]		index in String		*expr-[]*
+
+これの結果は文字列expr8のexpr1番目の単一のキャラクタからなる文字列である。
+expr8は文字列、expr1は数である。
+
+インデックスが0の場合、先頭のキャラクタが得られることに注意。これはC言語のよう
+に働く。注意:カラム番号は1から始まる。例えばカーソルの下の文字を得るためには、
+次のようにする必要がある:
+>   c = getline(line("."))[col(".") - 1]
+
+文字列の長さよりも大きなインデックスが指定された場合、結果は空文字列になる。
+
+							*expr8*
+数
+------
+	number			number constant		*expr-number*
+
+10進数、16進数(0xか0Xで始まる)、もしくは8進数(0で始まる)の数定数。
+
+
+文字列							*expr-string*
+------
+	"string"		string constant		*expr-quote*
+
+ダブルクォートが使われていることに注意。
+
+文字列定数には以下の特別文字が使用できる: 
+A string constant accepts these special characters:
+	\...	3桁の8進数字 (例 "\316")
+	\..	2桁の8進数字 (非数字が続かなければならない)
+	\.	1桁の8進数字 (非数字が続かなければならない)
+	\x..	2桁の16進数字 (例 "\x1f")
+	\x.	1桁の16進数字 (16進数字でないものが続かなければならない)
+	\X..	\x..に同じ
+	\X.	\x.に同じ
+	\b	バックスペース <BS>
+	\e	エスケープ <Esc>
+	\f	フォームフィード <FF>
+	\n	改行 <NL>
+	\r	改行(キャリッジリターン) <CR>
+	\t	タブ <Tab>
+	\\	円記号(バックスラッシュ)
+	\"	ダブルクォート
+	\<xxx>	"xxx"というなの特別キー。 例 "\<C-W>" は CTRL-W.
+
+Note "\000"と"\x00"は強制的に文字列の終端として扱われる。
+
+
+リテラル文字列						*literal-string*
+---------------
+	'string'		literal string constant		*expr-'*
+
+Note シングルクォートが使われていることに注意。
+
+この文字列は文字通りに扱われる。バックスラッシュは取り除かれないし、また特別な
+意味を持ったりもしない。リテラル文字列中にはシングルクォートを含む事ができな
+い。含む必要がある場合は普通の文字列(ダブルクォート)を使用すること。
+
+
+オプション						*expr-option*
+------
+	&option			option value
+
+ここにはあらゆるオプション名を使うことができる。|options|を参照。
+
+
+レジスタ						*expr-register*
+--------
+	@r			contents of register 'r'
+
+結果は、名前付けられたレジスタの内容が単一の文字列として与えられる。必要なとこ
+ろには改行文字が挿入されている。無名レジスタの内容を取得するためには@@を使う。
+'='レジスタはここには使えない。どのようなレジスタがあるのかは、|registers|を参
+照。
+
+
+入れ子							*expr-nesting*
+-------
+	(expr1)			nested expression(式の入れ子)
+
+
+環境変数						*expr-env*
+--------------------
+	$VAR			environment variable(環境変数)
+
+環境変数の文字列。定義されていない環境変数を指定した場合、結果は空文字列。
+							*expr-env-expand*
+Note $VARを直接使用した場合とexpand("$VAR")を使用した場合では、動作に違いがあ
+ることに注意。直接使用した場合には、現在のVimのセッション中で既知の値に展開さ
+れるだけである。expand()を使用した場合、まず最初にVimのセッション中で既知の値
+に展開される。それが失敗した場合、変数の展開にシェルが使用されることになる。こ
+れは遅くはなるが、シェルの知りうる総ての変数を展開することができる。例:
+>   echo $version
+>   echo expand("$version")
+最初の一つは恐らく何も帰ってこず、2つ目は$versionの値が帰ってくるだろう(貴方の
+シェルがサポートしていたとして)
+
+
+内部変数						*expr-variable*
+-----------------
+	variable		internal variable(内部変数)
+以下の|internal-variables|を参照。
+
+
+関数呼出						*expr-function*
+-------------
+	function(expr1, ...)	function call(関数呼出)
+以下の|functions|を参照。
+
+
+==============================================================================
+3. 内部変数						*internal-variables*
+
+内部変数の名前には文字と、数字とアンダーバー('_')を使うことができる。しかし数
+字で始めることはできない。
+
+内部変数は":let"コマンドで作成される|:let|。":unlet"コマンドで内部変数を破棄す
+ることができる|:unlet|。内部変数に使われてない名前か、既に破棄された内部変数を
+使うとエラーとなる。
+
+"b:"で始まる変数名は、カレントバッファに局所的な変数を意味する。このように一つ
+一つのバッファ毎に、変数"b:foo"を別々に使用することができる。この種の変数は
+バッファがアンロードされた時に破棄される。もしもそれを破棄したくない場合には、
+'hidden'オプションを設定することでバッファがアンロードされるのを避けることがで
+きる。
+
+"w:"で始まる変数名は、カレントウィンドウに局所的な変数を意味する。これはウィン
+ドウを閉じるときに破棄される。
+
+関数の中からグローバル変数へアクセスするには、"g:"を付けた名前を使用する。
+
+Vimの定義済変数:
+ 					*v:count* *count-variable*
+v:count		最後に実行されたノーマルモードコマンドに渡されたコマンドの実行
+		回数を返す。読出し専用。使用例:
+>	:map _x :<C-U>echo "the count is " . count<CR>
+		Note: <C-U>は、カウントの後に':'をタイプした時に示される、行範
+		囲指定を削除するために必要となる。
+		また"count"は、以前の版のVimとの互換性の為に動作する。
+
+					*v:count1* *count1-variable*
+v:count1	"v:count"と同じように、しかしカウントが指定されなかった時の省
+		略値として存在する。
+
+					*v:errmsg* *errmsg-variable*
+v:errmsg	最後に表示されたエラーメッセージ。この変数はセットすることが許
+		されている。例:
+>	:let errmsg = ""
+>	:next
+>	:if (errmsg != "")
+>	:  ...
+		また"errmsg"は、以前の版のVimとの互換性の為に動作する。
+
+					*v:warningmsg* *warningmsg-variable*
+v:warningmsg	最後に表示された警告メッセージ。この変数はセットすることが許さ
+		れている。
+
+					*v:statusmsg* *statusmsg-variable*
+v:statusmsg	最後に表示されたステータスメッセージ。この変数はセットすること
+		が許されている。
+
+			    		*v:shell_error* *shell_error-variable*
+v:shell_error	最後に実行したシェルコマンドの結果。シェルコマンドの実行時にな
+		にかエラーがあったならば、非零の値を取る。問題がなければ零にな
+		る。これはシェルがエラーコードをVimに通知する時のみ働く。コマ
+		ンドが実行されなかった時には、値として-1が良く使われる。読出し
+		専用。
+		例:
+>	:!mv foo bar
+>	:if v:shell_error
+>	:  echo 'could not rename "foo" to "bar"!'
+>	:endif
+		また"shell_error"は、以前の版のVimとの互換性の為に動作する。
+
+				*v:this_session* *this_session-variable*
+v:this_session
+		最後にロードされたか、セーブされたセッションファイルの完全な
+		ファイル名。|:mksession|を参照。この変数はセットすることが許さ
+		れている。それ以前にセーブされたセッションがなければ、この変数
+		は空となる。
+		また"this_session"は、以前の版のVimとの互換性の為に動作する。
+
+				*v:version* *version-variable*
+v:version	Vimのバージョン番号。メジャーバージョン番号は100倍され、マイ
+		ナーバージョン番号と足されている。Version 5.0は500。Version
+		5.1 (5.01)は501となる。読出し専用。
+		また"version"は、以前の版のVimとの互換性の為に動作する。
+
+==============================================================================
+4. 組み込み関数						*functions*
+
+(関数名の上でCTRL-]を使うことで、詳細な説明へ飛ぶことができる)
+
+使用法				結果	説明		~
+
+append( {lnum}, {string})	数値	{string}を{lnum}行目に付け加える
+argc()				数値	引数内のファイルの数
+argv( {nr})			文字列	引数の第{nr}番目
+browse( {save}, {title}, {initdir}, {default})
+				文字列	ファイル選択ダイアログを表示
+bufexists( {expr})		数値	バッファ{expr}が存在すればTRUE
+bufloaded( {expr})		数値	バッファ{expr}がロード済みならTRUE
+bufname( {expr})		文字列	バッファ{expr}の名前
+bufnr( {expr})			数値	バッファ{expr}の番号
+bufwinnr( {nr})			数値	バッファ{nr}のウィンドウ番号
+byte2line( {byte})		数値	{byte}番目のバイトの行番号
+char2nr( {expr})		数値	{expr}の先頭文字のASCIIコード
+col( {expr})			数値	カーソルかマークのカラム番号nr
+confirm( {msg}, {choices} [, {default} [, {type}]])
+				数値	ユーザへの選択肢と番号
+delete( {fname})		数値	ファイル{fname}を消す
+did_filetype()			数値	FileTypeのautocommandが実行されたか?
+escape( {string}, {chars})	文字列	{string}内の{chars}を'\'でエスケープ
+exists( {var})			数値	変数{var}が存在したらTRUE
+expand( {expr})			文字列	{expr}内の特別なキーワードを展開
+filereadable( {file})		数値	{file}が読みこみ可能ならTRUE
+fnamemodify( {fname}, {mods})	文字列	ファイル名を変更
+getcwd()			文字列	現在の作業ディレクトリ
+getftime( {fname})		数値	ファイルの最終更新時間
+getline( {lnum})		文字列	現在のバッファから行の内容を取得
+getwinposx()			数値	GUI vim windowのX座標
+getwinposy()			数値	GUI vim windowのY座標
+glob( {expr} [, {flag}])	文字列	{expr}内のfile wildcardを展開
+has( {feature})			数値	機能{feature}がサポートならばTRUE
+histadd( {history},{item})	文字列	ヒストリに追加
+histdel( {history} [, {item}])	文字列	ヒストリからitemを削除
+histget( {history} [, {index}])	文字列	ヒストリから{index}アイテムを取得
+histnr( {history})		数値	ヒストリの数
+hlexists( {name})		数値	highligth group {name}が存在したらTRUE
+hlID( {name})			数値	highlight group {name}のID
+hostname()			文字列	vimが動作しているマシンの名前
+input( {prompt})		文字列	ユーザからの入力を取得
+isdirectory( {directory})	数値	{directory}がディレクトリならばTRUE
+libcall( {lib}, {func}, {arg}	文字列	ライブラリ{lib}の関数{func}をコール
+line( {expr})			数値	行番号の取得
+line2byte( {lnum})		数値	行{lnum}のバイトカウント
+localtime()			数値	現在時刻
+maparg( {name}[, {mode}])	文字列	rhs of mapping {name} in mode {mode}
+mapcheck( {name}[, {mode}])	文字列	check for mappings matching {name}
+match( {expr}, {pat})		数値	{expr}内で{pat}のマッチした先頭位置
+matchend( {expr}, {pat})	数値	{expr}内で{pat}のマッチした末尾位置
+matchstr( {expr}, {pat})	文字列	{expr}で{pat}がマッチした文字列
+nr2char( {expr})		文字列	ASCIIコード{expr}で示されるキャラクタ
+rename({from}, {to})		数値	{file}から{to}へファイル名変更
+setline( {lnum}, {line})	数値	行{lnum}に{line}(文字列)をセット
+strftime( {format}[, {time}])	文字列	指定されたフォーマットでの時刻
+strlen( {expr})			数値	文字列{expr}の長さ
+strpart( {src}, {start}, {len})	文字列	{src}内{start}から長さ{len}の部分
+strtrans( {expr})		文字列	文字列を表示可能に変更
+substitute( {expr}, {pat}, {sub}, {flags})
+				文字列	{expr}の{pat}を{sub}に置換え
+synID( {line}, {col}, {trans})	数値	{line}と{col}のsyntax IDを取得
+synIDattr( {synID}, {what} [, {mode}])
+				文字列	syntax ID{synID}の属性{what}を取得
+synIDtrans( {synID})		数値	{synID}の翻訳されたsyntax ID
+system( {expr})			文字列	シェルコマンド{expr}の出力結果
+tempname()			文字列	テンポラリファイルの名前
+virtcol( {expr})		数値	カーソルのスクリーンカラム位置
+visualmode()			文字列	最後に使われたVisualモード
+winbufnr( {nr})			数値	ウィンドウ{nr}のバッファ番号
+winheight( {nr})		数値	ウィンドウ{nr}の高さ
+winnr()				数値	現在のウィンドウの番号
+
+append({lnum}, {string}					*append()*
+		現在のバッファの{lnum}行の後に、テキスト{string}を付加する。
+		バッファの先頭に行を追加する時は、{lnum}に0を使用する。失敗し
+		た場合、戻り値は1となる({lnum}が範囲外)。成功ならば0となる。
+
+							*argc()*
+argc()		結果は引数のリスト内の、ファイルの数。|arglist|を参照。
+
+							*argv()*
+argv({nr})	結果は引数リスト内の、{nr}番目のファイル。|arglist|を参照。
+		"argv(0)"は一番最初のファイルを示す。例:
+>	let i = 0
+>	while i < argc()
+>	  let f = substitute(argv(i), '\([. ]\)', '\\&', 'g')
+>	  exe 'amenu Arg.' . f . ' :e ' . f . '<CR>'
+>	  let i = i + 1
+>	endwhile
+
+							*browse()*
+browse({save}, {title}, {initdir}, {default})
+		ファイル選択ダイアログを起動。これは"has("browser")"が、非零を
+		返す時(幾つかのGUIバージョンに限定)にだけ働く。
+		入力フィールドの意味は:
+		    {save}	非零ならば書込み用ファイルの選択
+		    {title}	ダイアログのタイトル
+		    {initdir}	ダイアログの始まるディレクトリ
+		    {default}	ファイル名の省略値
+		ダイアログがキャンセルされるか、何かエラーがあるか、もしくはブ
+		ラウジングが不可能ならば、空文字列が戻ってくる。
+
+							*bufexists()*
+bufexists({expr})
+		結果は数値で、{expr}と呼ばれるバッファが存在すれば非零となる。
+		{expr}が文字列だった場合、バッファ名に正確にマッチしなければな
+		らない。{expr}が数値だった場合、比較にはバッファ番号が使用され
+		る。裏バッファ(#)があるかどうかをテストするには、bufexists(0)
+		を使用する。
+							*buffer_exists()*
+		以前の名前: buffer_exists().
+
+							*bufloaded()*
+bufloaded({expr})
+		戻り値は数値で、{expr}と呼ばれるバッファが存在しロード済み(
+		ウィンドウに表示されているか、隠されているかは問わない)ならば
+		結果は非零となる。引数{expr}はbufexists()と同じように扱われ
+		る。
+
+							*bufname()*
+bufname({expr})
+		戻り値はバッファの名前。バッファ名はコマンド":ls"で表示される
+		ものと同様。
+		{expr}が数値ならば、その番号のバッファ名が返される。0は現在の
+		ウィンドウの裏バッファを意味する。{expr}が文字列ならば、バッ
+		ファ名に対して正規表現マッチングを行なうパターンとなる。この
+		マッチングは常に、'magic'をセットし'cpoptions'を空にした状態で
+		行なわれる。複数マッチしてしまった場合には空文字列が返される。
+		""や"%"は現在のバッファを意味し、"#"は裏バッファを意味する。
+		{expr}が文字列のときに、それをバッファ番号として使いたいなら
+		ば、0を足すことによって強制的に数値にすることができる:
+>			echo bufname("3" + 0)
+		バッファが存在しないか名前を持っていない場合には、空文字列が返
+		される。
+>  bufname("#")			alternate buffer name
+>  bufname(3)			name of buffer 3
+>  bufname("%")			name of current buffer
+>  bufname("file2")		name of buffer where "file2" matches.
+							*buffer_name()*
+		以前の名前: buffer_name().
+
+							*bufnr()*
+bufnr({expr})
+		結果はバッファの番号。バッファ番号はコマンド":ls"で表示される
+		ものと同様。{expr}の使い方は前述のbufname()を参照。バッファが
+		存在しない場合-1が返される。bufnr("$")は最後のバッファを意味す
+		る:
+>  :let last_buffer = bufnr("$")
+		結果は存在しているバッファのうちで、もっとも大きなバッファ番号
+		となる。 Note そのバッファ番号より小さいバッファ番号を持つ(ハ
+		ズの)バッファが、必ずしも総て存在するとは限らない。なぜなら
+		":bdel"がバッファを消すことができるからだ。バッファが存在する
+		かテストするにはbufexists()を使う。
+		以前の名前: buffer_number().
+							*last_buffer_nr()*
+		bufnr("$")の以前の名前: last_buffer_nr().
+
+							*bufwinnr()*
+bufwinnr({expr})
+		結果は数値で、バッファ{expr}に関連付けられた最初のウィンドウの
+		番号。{expr}の使い方は前述のbufname()を参照。バッファ{expr}が
+		存在しないか、ウィンドウが無い場合には-1が返される。例:
+>  echo "A window containing buffer 1 is " . (bufwinnr(1))
+
+							*byte2line()*
+byte2line({byte})
+		現在のバッファの先頭から{byte}番目のキャラクタが、何行目に含ま
+		れるかを返す。これには現在のバッファの'fileformat'に依存した、
+		改行文字も含まれる。先頭の文字にはバイトカウント1が与えられ
+		る。
+		|line2byte()|と|go|と|:goto|も参照。
+		{|+byte_offset|機能を有効にしてコンパイルしなければ利用できな
+		い}
+
+							*char2nr()*
+char2nr({expr})
+		{expr}の最初の文字のASCIIコードを返す。例:
+>			char2nr(" ")		returns 32
+>			char2nr("ABC")		returns 65
+
+							*col()*
+col({expr})	
+		戻り値は数値で、{expr}で与えられるファイル上でのカラム番号。有
+		効な位置は:
+		    .	    現在の位置
+		    'x	    マークxの位置(マークが設定されていない場合0)
+		Note 現在のファイルのマークしか使えないことに注意。
+		例:
+>			col(".")		カーソルのカラム
+>			col("'t")		マークtのカラム
+>			col("'" . markname)	マークmarknameのカラム
+		先頭のカラムは1になる。返された0はエラーを示す。
+
+							*confirm()*
+confirm({msg}, {choices} [, {default} [, {type}]])
+		confirm()はユーザに選択させるためのダイアログを提供する。戻り
+		値は選択した番号になる。最初の選択肢が1である。
+		Note: confirm()は、ダイアログサポートを有効にしてコンパイルし
+		た時にだけ動作する。|+dialog_con|と|+dialog_gui|を参照。
+		ダイアログには{msg}に加えて{choices}の選択肢が表示される。
+		{msg}は文字列で'\n'を改行として使用できる。幾つかのシステムで
+		は、長すぎる行は自動的に折り返される。
+		{choices}は文字列で、個々の選択肢は'\n'によって区切られる。
+		例:
+>			confirm("Save changes?", "&Yes\n&No\n&Cancel")
+		'&'の後の文字は選択肢のショートカットキーになる。この場合
+		"Cancel"を選択するのに'c'をタイプすることができる。ショート
+		カットキーは最初の文字である必要は無い:
+>			confirm("file has been modified", "&Save\nSave &All")
+		コンソールでは、デフォルトのショートカットキーとして、各選択肢
+		の最初の文字が使われる。
+		オプションの引数{default}は<CR>キーを叩いた時に選択される選択
+		肢の番号を指定する。最初の選択肢をデフォルトにするならば1を使
+		用する。デフォルトを設定したくないのならば0を使用する。
+		{default}を省略した場合、0が使用される。
+		オプションの引数{type}はダイアログのタイプを与える。これは
+		Win32 GUI版でアイコンを指定するのに使う。"Error", "Question",
+		"Info", "Warning", "Generic"のうちどれか一つを指定する。以上の
+		うちの先頭の文字だけで指定できる。{type}が省略された場合、
+		"Generic"が使用される。
+		ユーザが<Esc>やCTRL-Cや、その他の割りこみキーでダイアログを中
+		断した場合、confirm()は0を返す。
+
+		例:
+>   :let choice = confirm("What do you want?", "&Apples\n&Oranges\n&Bananas", 2)
+>   :if choice == 0
+>   :	echo "make up your mind!"
+>   :elseif choice == 3
+>   :	echo "tasteful"
+>   :else
+>   :	echo "I prefer bananas myself."
+>   :endif
+		GUIのダイアログではボタンが使用される。ボタンの配置は
+		'guioptions'の'v'フラグに依存する。もしも'v'フラグが含まれてい
+		るのなら、ボタンは常に垂直に配置される。そうでなければ水平に配
+		置しようと試みられる。水平配置がうまくマッチしない場合は、垂直
+		配置が使われる。幾つかのシステムでは常に水平配置が使われる。
+
+							*delete()*
+delete({fname})	{fname}という名前のファイルを削除する。戻り値は数値で、削除に
+		成功したら0、失敗したら1が返る。
+
+							*did_filetype()*
+did_filetype()	autocommandが実行されFileTypeイベントが一度でも起こっていれ
+		ば、非零が返る。スクリプトのFileTypeイベントが、複数回呼び出さ
+		れるのを回避するのに使える。 |FileType|
+
+escape({string}, {chars})				*escape()*
+		{string}内に現れる{chars}のキャラクタをバックスラッシュでエス
+		ケープする。例:
+>			:echo escape('c:\program files\vim', ' \')
+		結果:
+>			c:\\program\ files\\vim
+
+							*exists()*
+exists({expr})	結果は数値で、変数{expr}が存在すれば1となり、そうでなければ0と
+		なる。引数{expr}は文字列で次のうちいずれかである。
+			&option-name	Vimオプション
+			$ENVNAME	環境変数(空文字列と比較することで、判
+					定が成される)
+			*funcname	組み込み関数(|functions|参照)かユーザ
+					が定義した関数(|user-functions|参照)
+			varname		内部変数(|internal-variables|)
+
+		例:
+>			exists("&shortname")
+>			exists("$HOSTNAME")
+>			exists("*strftime")
+>			exists("bufcount")
+		シンボルである&/$/*と名前の間には、空白文字があってはならな
+		い。 Note 引数は変数自信ではなくて、文字列でなければならないこ
+		とに注意。次の例は変数"bufcount"が存在するかのチェックにはなら
+		ない。この場合、存在するならば"bufcount"の中身で表わされる変数
+		の存在をチェックする:
+			exists(bufcount)
+
+							*expand()*
+expand({expr} [, {flag}])
+		ワイルドカードと{expr}内の特殊なキーワードを展開する。戻り値は
+		文字列。
+
+		複数の候補があった場合、それらは文字<NL>で区切られる。[注意:
+		バージョン5.0では空白文字が用いられ、スペースを含むファイル名
+		について問題を引き起こしていた]
+
+		展開が失敗した場合、結果は空文字列となる。また存在しないファイ
+		ル名というのは、結果の文字列には含まれない。
+
+		{expr}が'%'か'#'か'<'で始まる場合には、展開は|cmdline-special|
+		のように、変換子を受け付け、それらに関連付けられた変換が施され
+		る。ここに簡単な概略を示す:
+
+			%		現在のファイル名
+			#		裏バッファのファイル名
+			#n		n番の裏バッファのファイル名
+			<cfile>		カーソルのしたのファイル名
+			<afile>		autocmdのファイル名
+			<abuf>		autocmdのバッファ名
+			<sfile>		取り込み(source)中のファイル名
+			<cword>		カーソル下の単語(word)
+			<cWORD>		カーソル下の単語(WORD)
+		変換子:
+			:p		フルパス名を展開
+			:h		ヘッド(ディレクトリ)
+			:t		テイル(ファイル名だけ)
+			:r		拡張子が削除される
+			:e		拡張子だけ
+
+		例:
+>			:let &tags = expand("%:p:h") . "/tags"
+		'%'や'#'や'<'で始まる文字列を展開する時には、それに続くテキス
+		トは無視されることに注意。従ってこれは正しくない:
+>			:let doesntwork = expand("%:h.bak")
+		こうすると良い:
+>			:let doeswork = expand("%:h") . ".bak"
+		"<cfile>"やそれらを展開する時には、戻り値が完全な展開をされな
+		い参照名であることにも注意が必要。もしも"<cfile>"が"~/.cshrc"
+		であった場合、"~/"を展開してホームディレクトリにするために、も
+		う一度expand()を呼び出す必要がある:
+>			:echo expand(expand("<cfile>"))
+
+		変数と変換子の間には空白文字があってはならない。関数
+		|fnamemodify()|が通常のファイル名の変換には使用可能である。
+
+		'%'や'#'を名前が未定義の現在や裏バッファのファイルに適用した場
+		合、空文字列が使用される。"%:p"を名無しのバッファに使用した場
+		合、結果はカレントディレクトリに'/'が付加されたものになる。
+
+		'%'や'#'や'<'で始まらない{expr}は、コマンドラインのファイル名
+		と同じように展開される。オプションの{flag}が使用され、その値が
+		非ゼロでない時以外は'suffixes'と'wildignore'が使用される。
+
+		Expand()は、シェルの持っている変数や環境変数を展開することがで
+		きる。しかしシェルが起動されなければならないので、遅くなる。
+		|expr-env-expand|を参照。
+
+		存在するファイルを探すには|glob()|を参照。外部コマンドの「生
+		の」実行結果を扱うには|system()|を参照。
+
+							*filereadable()*
+filereadable({file})
+		結果は数値で、{file}というファイルが存在し、読みこむことが可能
+		ならばTRUEとなる。ファイル{file}が存在しないかディレクトリだっ
+		た場合には、結果はFALSEとなる。引数{file}は文字列として使えれ
+		ばどのような表現でもよい。
+							*file_readable()*
+		以前の名前: file_readable().
+
+							*fnamemodify()*
+fnamemodify({fname}, {mods})
+		ファイル名{fname}を{mods}にしたがって変更する。{mods}はコマン
+		ドラインで使われるのと同様な文字列である。詳細は
+		|filename-modifiers|を参照。
+		例:
+>			:echo fnamemodify("main.c", ":p:h")
+		結果:
+>			/home/mool/vim/vim/src/
+
+							*getcwd()*
+getcwd()	結果は文字列で、現在のディレクトリ名。
+
+							*getftime()*
+getftime({fname})
+		結果は{fname}で与えられたファイルの、最終更新時間を示す数値。
+		1970年1月1日からの経過時間(病)で、strftime()に渡すことができる
+		だろう。|localtime()|と|strftime()|も参照。
+		ファイル{fname}が見つからなかった場合には-1を返す。
+
+							*getline()*
+getline({lnum}) 結果は現在のバッファの{lnum}行目の内容(文字列)。例:
+>			getline(1)
+		{lnum}が数字ではない文字で始まる文字列であった場合、line()に
+		よってその文字列が数字に変換される。よって、カーソルのある行の
+		文字列を取得するには:
+>			getline(".")
+		{lnum}が1より小さいかバッファの行数よりも大きい数値の場合、空
+		文字列が返される。
+
+							*getwinposx()*
+getwinposx()	結果はGUIのVimウィンドウの左端の、デスクトップ上でのX座標値(数
+		値)。情報が存在しない(コンソールの)場合は-1となる。
+
+							*getwinposy()*
+getwinposy()	結果はGUIのVimウィンドウの上端の、デスクトップ上でのY座標値(数
+		値)。情報が存在しない(コンソールの)場合は-1となる。
+
+							*glob()*
+glob({expr})	Expand the file wildcards in {expr}.  The result is a String.
+		{expr}内のファイル名のワイルドカードを展開する。結果は文字列。
+		結果が複数存在する場合、各々が文字<NL>によって区切られる。
+		展開が失敗した場合、結果は空文字列。結果には、存在しないファイ
+		ル名は含まれない。
+
+		多くのシステムではbackticks(「`」という文字のこと)を、外部コマ
+		ンドの実行結果からファイル名を取得するために使用できる。例:
+>			:let tagfiles = glob("`find . -name tags -print`")
+>			:let &tags = substitute(tagfiles, "\n", ",", "g")
+		backticks内のプログラムの実行結果は、一行に一つずつの項目が含
+		まれてなければならない。項目内のスペースは許容される。
+		
+		特殊なVimの変数を展開するためには|expand()|を参照。外部コマン
+		ドの生の出力を得るためには|system()|を参照。
+
+							*has()*
+has({feature})	結果は機能{feature}がサポートされる場合1、されない場合0とな
+		る。引数{feature}は文字列。下記の|feature-list|を参照。
+
+							*histadd()*
+histadd({history}, {item})
+		文字列{item}を履歴{history}に追加する。履歴{history}は以下のう
+		ちどれか一つから選択:			*hist-names*
+			"cmd"	 or ":"	  コマンドライン履歴
+			"search" or "/"   検索パターン履歴
+			"expr"   or "="   タイプされた表現の履歴
+			"input"  or "@"	  input()の履歴
+		{item}が履歴内に既に存在する場合、それが最新の項目の位置へシフ
+		トされる。結果は数値:操作が成功した場合1、そうでなければ0
+
+		例:
+>			:call histadd("input", strftime("%Y %b %d"))
+>			:let date=input("Enter date: ")
+
+							*histdel()*
+histdel({history} [, {item}])
+		{history}の内容を削除する。例えば総てのエントリを消すこともで
+		きる。{history}の部分に可能な値は|hist-names|を参照。
+
+		パラメータ{item}が文字列として与えられた場合、これは正規表現と
+		して扱われる。その表現にマッチする総てのエントリがhistoryから
+		削除される(複数あっても)。
+		{item}が数値ならば、インデックスとして解釈される。インデックス
+		については|:history-indexing|を参照。関連するエントリ(訳注:The
+		respective entry)も、存在すれば削除される。
+
+		結果は数値: 削除に成功すれば1を、そうでなければ0が返る。
+
+		例:
+		式レジスタの履歴を削除する:
+>			:call histdel("expr")
+
+		検索履歴から、"*"で始まるエントリを総て削除する:
+>			:call histdel("/", '^\*')
+
+		次の3つは等価である:
+>			:call histdel("search", histnr("search"))
+>			:call histdel("search", -1)
+>			:call histdel("search", '^'.histget("search", -1).'$')
+
+		最後の検索パターンを削除し、一つ前のパターンを"n"コマンド(次の
+		マッチへ移動)と'hlsearch'の為に設定する:
+>			:call histdel("search", -1)
+>			:let @/ = histget("search", -1)
+
+
+							*histget()*
+histget({history} [, {index}])
+		結果は{history}の第{index}エントリーを表わす文字列。{history}
+		の部分に可能な値は|hist-names|を、{index}については
+		|:history-indexing|を参照。指定されたエントリが存在しない場合
+		は空文字列が返される。{index}が省略された場合には、履歴中の最
+		新のエントリが戻り値として使用される。
+
+		例:
+			2つ前に行なわれた検索をやり直す:
+>			:execute '/' . histget("search", -2)
+
+			|:history|によって出力される{num}番目のエントリを、再
+			度実行するための":H {num}"というコマンドを定義する。
+>			:command -nargs=1 H execute histget("cmd",0+<args>)
+
+							*histnr()*
+histnr({history})
+		結果は数値で{history}の現在のエントリー数。{history}の部分に可
+		能な値は|hist-names|を参照。エラーが起こった場合、-1が返され
+		る。
+
+		例:
+>			:let inp_index = histnr("expr")
+
+							*hlexists()*
+hlexists({name})
+		結果は数値で、{name}という名のハイライトグループが存在すれば、
+		非ゼロの値が返される。これはなんらかの方法でそのグループが既に
+		定義されている時にのみ起こる。これの為に実際に何らかのハイライ
+		ティングアイテムが設定されている必要はなく、単にシンタックスの
+		アイテムとしても使われるだろう。
+							*highlight_exists()*
+		以前の名前: highlight_exists().
+
+							*hlID()*
+hlID({name})	結果は数値で、{name}という名前のハイライトグループのID番号。そ
+		のハイライトグループが存在しない場合は0が返される。
+		これはハイライトグループについての情報を獲得するために使用され
+		る。例えば"Comment"グループの背景色を取得するにはこのようにす
+		る:
+>	:echo synIDattr(synIDtrans(hlID("Comment")), "bg")
+							*highlightID()*
+		以前の名前: highlightID()
+
+							*hostname()*
+hostname()
+		結果は文字列で、現在Vimが実行されているマシンの名前。名前が256
+		文字を超える場合、超えた部分は切り捨てられる。
+
+input({prompt})						*input()*
+		結果は文字列で、ユーザがコマンドラインに入力したものが返され
+		る。引数はプロンプト用文字列であり、プロンプトが必要なければ空
+		文字列でかまわない。新しい行から入力させるために'\n'をプロンプ
+		トに使用することができる。ハイライトセット|:echohl|はプロンプ
+		トにも適用される。入力はコマンドラインと同様に行え、幾つかの編
+		集コマンドやキーマップもそのまま使用できる。input()に入力され
+		た文字列には、他の履歴とは独立した履歴が与えられる。
+		NOTE: この関数はGUIモードしか持たないバージョン(例、Win32 GUI)
+		のVimでは、スタートアップファイルの中で使用することはできな
+		い。
+
+		例:
+>	:if input("Coffee or beer? ") == "beer"
+>	:  echo "Cheers!"
+>	:endif
+							*isdirectory()*
+isdirectory({directory})
+		結果は数値で、{directory}という名前のディレクトリが存在すれば
+		TRUEとなる。{directory}が存在しないか、存在したとしてもディレ
+		クトリではなかった場合には、FALSEが返される。文字列として解釈
+		できるのならば{directory}の表現はどのようなものであってもかま
+		わない。
+
+							*libcall()*
+libcall({libname}, {funcname}, {argument})
+		ランタイムライブラリ{libname}の関数{funcname}を、引数
+		{argument}として呼び出す。結果には、呼び出した関数から返された
+		文字列が返される。もしも引数が数値ならば、関数にはint型の引数
+		が1つ渡される。引数が文字列の場合には、関数にはヌル終端記号を
+		持つ文字列が引数として渡される。呼び出した関数がNULLを返した場
+		合には、Vimには空文字列""が戻される。
+
+		libcall()によってVimを最コンパイルすることなく'plug-in'と呼ば
+		れる独自の拡張を行なうことができる用になる。それは(直接)システ
+		ムの関数を呼ぶ、ということではない。システム関数を呼んだらVim
+		がクラッシュするかもしれない。
+
+		Win32では、あなたが書いた関数をDLLに置かなければならず、また通
+		常のC呼出し規約を使用しなければならない(WindowsのシステムDLLが
+		使うPascalではない)。関数は正確に1つのパラメータ、char型ポイン
+		タもしくはint型を取らなければならず、戻り値としてchar型ポイン
+		タかNULLを返さなければならない。返されるchar型ポインタは、関数
+		終了後も有効なポインタ(例えばDLL内の静的なデータ)を指さなけれ
+		ばならない。(malloc等で)割り当てられたメモリを保持していた場
+		合、それはリークしてしまう。DLL内のスタティックバッファを用い
+		る方法は動くかもしれないが、使用済みDLLがメモリから削除される
+		と同時に解放されてしまう。
+
+		警告: もしも関数が有効ではないポインタを返すと、Vimはクラッ
+		シュしてしまう。関数が数値を返してしまった場合、Vimはそれをポ
+		インタとして扱ってしまうので、やはりクラッシュが起こる。
+		Win32のシステムでは、{libname}はDLLのファイル名の拡張子".DLL"
+		を付けてはならない。通常の(パスの通った)場所にDLLがない場合に
+		は、フルパスで指定する必要がある。
+		{Win32バージョン限定の機能}
+
+							*line()*
+line({expr})	結果は数値で、{expr}で与えられた位置のファイル内での行番号。受
+		け付けられる位置指定は次の通り:
+		    .	    カーソルの位置
+		    $	    現在のバッファの最後の位置
+		    'x	    マークxの位置(マークが設定されていない場合、0が返
+			    る)
+		現在のファイルに対して設定されているマークだけが使用可能なこと
+		に注意。
+		例:
+>			line(".")		カーソルの行番号
+>			line("'t")		マークtの位置の行番号
+>			line("'" . marker)	マークmarkerの位置の行番号
+							*last-position-jump*
+		このautocommandはファイルを開いた時に、最後に開かれていた時の
+		行へ自動的にジャンプするものである。これは'"マークがセットされ
+		ている時にのみ有効である:
+>	:au BufReadPost * if line("'\"") | exe "normal '\"" | endif
+
+							*line2byte()*
+line2byte({lnum})
+		バッファの先頭から、{lnum}行目までのバイト数を返す。これには現
+		在のバッファのオプション'fileformat'に従った、end-of-line(行終
+		端)文字も含まれている。最初の行においては1が返る。
+		次のようにすることで最終行を含むバイトサイズを獲得することがで
+		きる:
+>			line2byte(line("$") + 1)
+		これはファイルの大きさプラス1になる。
+		{lnum}が無効であるか、|+byte_offset|機能がコンパイル時に無効に
+		されている場合、-1が返される。
+		|byte2line()|、|go|及び|:goto|も参照。
+
+							*localtime()*
+localtime()
+		現在の時刻、1970年1月1日からの経過秒数を返す。|strftime()|と
+		|getftime()|も参照。
+
+							*maparg()*
+maparg({name}[, {mode}])
+		モード{mode}におけるキーマップ{name}のrhsを返す。{name}という
+		キーマップが存在しない場合、空文字列が返される。{mode}には次の
+		文字が使用可能:
+			"n"	ノーマル
+			"v"	ビジュアル
+			"o"	モーション待ち (Operator-pending)
+			"i"	インサート
+			"c"	コマンドライン
+			""	ノーマル、ビジュアル、及びモーション待ち
+		{mode}が省略された場合、""が使用される。
+		{name}には":map"コマンドで使用可能な、特殊なキー名が指定でき
+		る。結果の文字列内の特殊文字は、":map"コマンドでリスト表示した
+		時のように変換される。
+
+							*mapcheck()*
+mapcheck({name}[, {mode}])
+		モード{mode}におけるキーマップ{name}が存在するかチェックする。
+		{name}に指定できる特殊文字は|maparg()|を参照。
+		{name}に対応するキーマップが存在しない時には、空文字列が返され
+		る。結果が一つならばマップされたrhsが返される。複数見つかった
+		場合には、それらのうちどれか一つのrhsが返される。
+		この関数はマッピングが曖昧にならないかチェックするために使うこ
+		とができる。例:
+>	if mapcheck("_vv") == ""
+>	   map _vv :set guifont=7x13<CR>
+>	endif
+		"_vv"というマッピングは"_v"とか"_vvv"といったマッピングと衝突
+		する可能性がある。
+
+							*match()*
+match({expr}, {pat})
+		結果は数値で、正規表現パターン{pat}が文字列{expr}の何処にマッ
+		チしたか、そのインデックスを示す。最初の文字にマッチした場合に
+		は0を返す。マッチしなかった場合には-1が返される。例:
+>			:echo match("testing", "ing")
+		結果は"4"。
+		受け付け可能なパターンは|pattern|を参照。
+		オプション'ignorecase'が指定されていると大文字小文字は無視され
+		る。'smartcase'は使われない。マッチングは常に'magic'がセットさ
+		れ、'cpoptions'が指定されない状態で行なわれる。
+
+							*matchend()*
+matchend({expr}, {pat})
+		match()と同じだが、返されるのはマッチした部分文字列の終了後の
+		インデックスである。例:
+>			:echo matchend("testing", "ing")
+		結果は"7"。
+
+							*matchstr()*
+matchstr({expr}, {pat})
+		match()と同じだが、返されるのはマッチした文字列。例:
+>			:echo matchstr("testing", "ing")
+		結果は"ing"。
+		マッチしなければ""が返される。
+
+							*nr2char()*
+nr2char({expr})
+		結果はアスキーコード{expr}を持つ1文字からなる文字列となる。例:
+>			nr2char(64)		"@"が返される
+>			nr2char(32)		" "が返される
+
+rename({from}, {to})					*rename()*
+		ファイルの名前を{from}から{to}へ変える。ファイルシステムを超え
+		てファイルを移動するのにも使用できる。結果は数値で、成功すれば
+		0、失敗すれば1になる。
+
+							*setline()*
+setline({lnum}, {line})
+		カレントバッファの{lnum}行目を{line}にする。成功した場合0が返
+		される。失敗した(大抵は{lnum}に無効な値を設定したことによる)場
+		合には1が返される。例:
+>			:call setline(5, strftime("%c"))
+
+							*strftime()*
+strftime({format} [, {time}])
+		結果は文字列で、{format}に従って日付や時間がフォーマットされた
+		ものになる。{time}が与えられた場合にはそれを使うが、省略された
+		場合には現在時刻を使用する。受け付け可能な文字列{format}は使用
+		するシステムに依存するので、ポータブルとは言えない。フォーマッ
+		トについてはCの関数strftime()のマニュアルを参照。結果は最大80
+		文字に制限される。|localtime()|と|getftime()|も参照。例:
+>		  :echo strftime("%c")		   Sun Apr 27 11:49:23 1997
+>		  :echo strftime("%Y %b %d %X")	   1997 Apr 27 11:53:25
+>		  :echo strftime("%y%m%d %T")	   970427 11:53:55
+>		  :echo strftime("%H:%M")	   11:55
+>		  :echo strftime("%c", getftime("file.c"))
+>						   file.cの更新時刻を表示
+
+							*strlen()*
+strlen({expr})	結果は数値で、文字列{expr}の長さ。
+
+							*strpart()*
+strpart({src}, {start}, {len})
+		結果は文字列で、{src}の{start}番目の文字から始まる、長さ{len}
+		の部分文字列。存在しない文字を含むように範囲を指定しても、エ
+		ラーにはならない。単に文字が省略されるだけである。
+>			strpart("abcdefg", 3, 2)    == "de"
+>			strpart("abcdefg", -2, 4)   == "ab"
+>			strpart("abcdefg", 5, 4)    == "fg"
+		注意: 文字列の最初の文字を指定するためには、{start}は0でなけれ
+		ばならない。カーソルのある位置から3文字を取得する例:
+>			strpart(getline(line(".")), col(".") - 1, 3)
+
+							*strtrans()*
+strtrans({expr})
+		結果は文字列で、{expr}内の表示不可能な文字を|'isprint'|で指定
+		される、表示可能な文字に変換したもの。ウィンドウに表示すること
+		ができるようになる。例:
+>			echo strtrans(@a)
+		これはレジスタの中の改行を、改行として表示する変わりに"^@"と表
+		示する。
+
+							*substitute()*
+substitute({expr}, {pat}, {sub}, {flags})
+		結果は文字列で、{expr}内で最初に{pat}にマッチした部分を{sub}に
+		置換えたコピーになる。これはコマンド":substitute"(一切のフラグ
+		無し)のように働く。しかしマッチングは常にオプション'magic'が設
+		定され、オプション'cpoptions'は空にして実行される(スクリプトを
+		ポータブルにするため)。加えて{sub}内の"~"は前回の{sub}に置換さ
+		れることはない。
+		{sub}内の幾つかのコードには|sub-replaced-special|の特殊な意味
+		があることに注意。例えば、何かの文字列をリテラルの"\n"に置換え
+		るためには、"\\\\n"か'\\n'を使う必要がある。
+		{pat}が{expr}の何処にもマッチしなければ、{expr}が何の変更も受
+		けずに返される。
+		{flags}が"g"であれば{expr}内の{pat}にマッチする総ての部分が置
+		換される。それを希望しない場合には{flags}は""にすべきである。
+		例:
+>			:let &path = substitute(&path, ",\\=[^,]*$", "", "")
+		これはオプション'path'の最後のコンポーネントを削除する。
+>			:echo substitute("testing", ".*", "\\U\\0", "")
+		結果は"TESTING"。
+
+							*synID()*
+synID({line}, {col}, {trans})
+		結果は数値で、現在のウィンドウ内での位置{line}と{col}の位置の
+		シンタックスID。
+		シンタックスIDは|synIDattr()|と|synIDtrans()|に渡すことで、テ
+		キストについてのシンタックス情報を取得するのに使用できる。最左
+		のカラムを指定するには{col}に1を、最初の行を指定するには{line}
+		に1を指定する。
+		{trans}が非ゼロならば、透過属性のアイテムは省略され、実際に表
+		示されているアイテムが評価対象になる。これは実際に有効になって
+		いるカラーを知りたい時に役に立つ。{trans}がゼロならば、透過属
+		性のアイテムが返される。これはどのシンタックスアイテムが有効に
+		なっているかを知りたい時に役に立つ(例:カッコの中とか)。
+		警告: この関数は非常に遅い。ファイルを順方向に走査する時にだけ
+		ベストなスピードが得られる。
+
+		例(カーソルの下のシンタックスアイテムの名前を表示する):
+>			:echo synIDattr(synID(line("."), col("."), 1), "name")
+
+							*synIDattr()*
+synIDattr({synID}, {what} [, {mode}])
+		結果は文字列で、{synID}の属性{what}の内容を示す。これはシン
+		タックスアイテムの情報を取得するのに使用できる。
+		{mode}には取得したいモードの属性に応じて、"gui"か"cterm"か
+		"term"が指定できる。{mode}が省略されるか、無効な値が指定された
+		場合、現在有効になっているハイライトモードが使用される(GUI、
+		cterm、termのどれか)
+		ハイライトグループにリンクされた属性を取得するにはsynIDtrans()
+		を使用する。
+		{what}		結果
+		"name"		シンタックスアイテムの名前
+		"fg"		前景色(GUI:カラー名、cterm:文字列としてのカ
+				ラー番号、term空文字列)
+		"bg"		背景色("fg"同様)
+		"fg#"		"fg"同様だが、"#RRGGBB"のフォーマットで
+		"bg#"		"bg"同様だが、"#RRGGBB"のフォーマットで
+		"bold"		太字なら"1"
+		"italic"	斜体なら"1"
+		"reverse"	反転なら"1"
+		"inverse"	反転(原文inverse)なら"1"(reverseと等価)
+		"underline"	下線付きなら"1"
+
+		GUIではなく、ctermモードが要求されていない場合、"fg#"は"fg"と
+		同じに、"bg#"は"bg"と同じになる。
+
+		例(カーソルの下のシンタックスアイテムの名前を表示する):
+>	:echo synIDattr(synIDtrans(synID(line("."), col("."), 1)), "fg")
+
+							*synIDtrans()*
+synIDtrans({synID})
+		結果は数値で、{synID}をシンタックスIDに変換したもの。キャラク
+		タをハイライト表示しているシンタックスグループのIDである。
+		":highlight link"によって与えられるハイライトのリンクはこれに
+		従っている。
+
+							*system()*
+system({expr})	シェルコマンド{expr}の実行結果を得る。注意: {expr}内の改行はコ
+		マンドを失敗させるだろう。対話的なコマンドを使用することはでき
+		ない。
+		結果は文字列。システムに依存しないような結果にするために、シェ
+		ルの出力にはマッキントッシュにおいては<CR>を<NL>に変換し、DOS
+		系のシステムにおいては<CR><NL>を<NL>に変換するフィルタを作用さ
+		せている。
+		コマンドの結果を取り込むためにオプション'shellredir'が使用され
+		る。オプション'shell'に応じて、標準出力を取りこむならば">"を、
+		標準出力に加えて標準エラー出力もとりこむならば">&"(csh系)、標
+		準エラー出力を取りこむならば"2>"(sh系)を使用する。
+		エラーコードは|v:shell_error|に格納される。
+
+						*tempname()* *temp-file-name*
+tempname()
+		結果は文字列で、存在しないファイルのファイル名を示す。これはテ
+		ンポラリファイルの名前として使用可能である。少なくとも連続26回
+		の呼出しまでは違う名前を生成することが保証される。例:
+>			let tmpfile = tempname()
+>			exe "redir > " . tmpfile
+
+							*visualmode()*
+visualmode()
+		結果は文字列で、最後に使われたVisualモードを教えてくれる。初期
+		状態では単に空文字列を返すだけだが、一度でもVisualモードが使わ
+		れた場合、その種類によって"v"か"V"か"<CTRL-V>"(CTRL-Vのキャラ
+		クタが1文字で)返される。これはそれぞれキャラクタ選択、行選択、
+		ブロック選択を意味している。
+		例:
+>			exe "normal " . visualmode()
+		これは最後に使われたのと同じVisualモードに入る。また、スクリプ
+		トの動作を、最後に使われたVisualモードに応じて変更したい場合に
+		も便利だろう。
+
+							*virtcol()*
+virtcol({expr})
+		結果は数値で、{expr}で与えられるファイルの位置の、スクリーン上
+		での列の位置を示す。返る値は、指定された位置にあるキャラクタの
+		末尾が、スクリーン座標(の列)でどこに存在するかである。<Tab>(タ
+		ブ文字)が指定した位置にあった場合には、戻り値はそのタブの最後
+		のカラム(列)位置になる。具体的に、'ts'が8に設定された状態でカ
+		ラム1に<Tab>があった場合、戻ってくる値は8になる。
+		可能な位置指定:
+		    .	    カーソルの位置
+		    'x	    マークxの位置(マークが設定されていない場合、0が返
+			    る)
+		現在のファイルに対して設定されているマークだけが使用可能なこと
+		に注意。
+		例:
+>  virtcol(".")	    "foo^Lbar"の"^L"の位置にカーソル、戻り値5
+>  virtcol("'t")    "    there"の'h'に'tを設定、戻り値6
+		最初の列は1となる。0はエラーとして返される。
+
+							*winbufnr()*
+winbufnr({nr})	結果は数値で、{nr}番目のウィンドウに関連付けられているバッファ
+		の番号。{nr}が0の場合、現在のウィンドウに関連付けられている
+		バッファの番号が返る。{nr}で存在しないウィンドウを指定した場合
+		には-1が返る。
+		例:
+>  echo "The file in the current window is " . bufname(winbufnr(0))
+
+							*winheight()*
+winheight({nr})
+		結果は数値で、{nr}で示されるウィンドウの高さ(行数)を示す。{nr}
+		が0ならば、現在のウィンドウの高さが返る。{nr}というウィンドウ
+		が存在しない場合、-1が返る。存在しているウィンドウは、絶対に0
+		かそれ以上の高さを持っている。
+		例:
+>  echo "The current window has " . winheight(0) . " lines."
+
+							*winnr()*
+winnr()		結果は現在のウィンドウを示す数値。最上位のウィンドウは1であ
+		る。
+
+							*feature-list*
+機能は大別して2つの系統に分けられる:
+1.  コンパイル時に|+feature-list|とした時にだけサポートされる機能。例:
+>		:if has("cindent")
+2.  ある状態の時にだけサポートされる機能。例:
+>		:if has("gui_running")
+
+all_builtin_terms	総ての組込みターミナルを有効にしてコンパイル
+amiga			AMIGAバージョン
+arp			ARPをサポート (Amiga)
+autocmd			autocommandsをサポート
+beos			BeOSバージョン
+browse			|:browse|をサポートし、browseが恐らく動作する
+builtin_terms		幾つかの組込みターミナルが有効
+byte_offset		'statusline'において'o'がサポートされる
+cindent			'cindent'をサポート
+clipboard		'clipboard'をサポート
+cmdline_compl		|cmdline-completion| コマンドライン補完をサポート
+cmdline_info		'showcmd'と'ruler'をサポート
+comments		|'comments'|をサポート
+cryptv			暗号化をサポート |encryption|
+cscope			|cscope|をサポート
+compatible		Vi互換度を非常に高めてコンパイルされている
+debug			デバッグバージョンである
+dialog_con		コンソールダイアログのサポート
+dialog_gui		GUIダイアログのサポート
+digraphs		digraphsをサポート
+dos32			32ビットDOSバージョン (DJGPP)
+dos16			16ビットDOSバージョン
+emacs_tags		Emacs式のタグファイルをサポート
+eval			式評価をサポート。もちろん常に真。
+ex_extra		拡張EXコマンドをサポート |+ex_extra|.
+extra_search		|'incsearch'|と|'hlsearch'|をサポート
+farsi			|farsi|をサポート
+file_in_path		|gf|と|<cfile>|をサポート
+find_in_path		includeファイル内の検索をサポート |+find_in_path|
+fname_case		ファイル名の大文字小文字が区別される(Amiga,MS-DOS,
+			そしてWindowsでは区別されないので偽)
+fork			system()の代わりにfork()/exec()を用いている
+gui			GUIが有効である
+gui_athena		AthenaのGUIが有効である
+gui_beos		BeOSのGUIが有効である
+gui_gtk			GTK+のGUIが有効である
+gui_mac			マッキントッシュのGUIが有効である
+gui_motif		MotifのGUIが有効である
+gui_win32		Win32のGUIが有効である
+gui_win32s		Win32sのGUIが有効である (Windows 3.1)
+gui_running		VimがGUIモードで起動している、もしくは間もなくする
+hangul_input		ハングル入力サポート
+insert_expand		インサートモード時にCTRL-Xの展開がサポートされる
+langmap			'langmap'サポート
+linebreak		'linebreak', 'breakat'そして'showbreak'をサポート
+lispindent		lisp式のインデントをサポート
+mac			マッキントッシュバージョン
+menu			|:menu|をサポート
+mksession		|:mksession|をサポート
+modify_fname		ファイル名変換子をサポート |filename-modifiers|
+mouse			マウスをサポート
+mouse_dec		DECのターミナルマウスをサポート
+mouse_gpm		gpmをサポート (Linuxのコンソールマウス)
+mouse_netterm		nettermのマウスをサポート
+mouse_xterm		xtermのマウスをサポート
+multi_byte		中国語・日本語・韓国語その他の言語をサポート
+multi_byte_ime		IMEによる入力をサポート
+ole			Win32にてOLEオートメーションをサポート
+os2			OS/2バージョン
+osfiletype		osfiletypesをサポート |+osfiletype|
+perl			Perlインターフェースをサポート
+python			Pythonインターフェースをサポート
+quickfix		|quickfix|をサポート
+rightleft		'rightleft'をサポート
+scrollbind		'scrollbind'をサポート
+showcmd			'showcmd'をサポート
+smartindent		'smartindent'をサポート
+sniff			SniFFインターフェースをサポート
+statusline		'statusline', 'rulerformat'そして'titlestring'と
+			'iconstring'の特殊フォーマットをサポート
+syntax			シンタックスハイライティングをサポート
+syntax_items		現在のバッファに有効なシンタックスが設定されている
+system			fork()/exec()の代わりにsystem()が使用されている
+tag_binary		タグファイル内のバイナリサーチ |tag-binary-search|
+tag_old_static		旧式の静的tagsをサポート |tag-old-static|
+tag_any_white		タグファイル内の空白文字をサポート
+			files |tag-any-white|.
+tcl			TCLインターフェースをサポート
+terminfo		termcapの代わりにterminfoをサポート
+textobjects		|text-objects|をサポート
+tgetent			tgetentをサポート。termcapかterminfoファイルが使用可能
+title			ウィンドウタイトルをサポート |'title'|.
+unix			UNIXバージョン
+user_commands		ユーザ定義コマンドをサポート
+viminfo			viminfoをサポート
+vim_starting            Vimの初期化プロセス中は真となる
+visualextra		拡張Visualモードをサポート |blockwise-operators|
+vms			VMSバージョン
+wildmenu		オプション'wildmenu'を指定してコンパイル
+wildignore		オプション'wildignore'を指定してコンパイル
+winaltkeys		オプション'winaltkeys'を指定してコンパイル
+win16			Win16バージョン(Windows 3.1)
+win32			Win32バージョン(Windows 95/NT)
+writebackup		オプション'writebackup'が起動時にonになる
+xim			XIMをサポート |xim|
+xfontset		X fontsetをサポート |xfontset|
+xterm_clipboard		xtermのクリップボードサポート
+xterm_save		xtermのスクリーンの保存復帰をサポート
+x11			X11をサポート
+
+==============================================================================
+5. 関数定義						*user-functions*
+
+新しい関数を定義することができる。これらは組込み関数と同様に呼び出すことができ
+る。
+
+関数名は組込み関数との混同を避ける為、大文字で始まらなければならない。他のスク
+リプトで同じ関数名を使用してしまうことを避ける為に、露骨に短い名前は避けるべき
+である。関数名を例えば"HTMLcolor()"のように、スクリプトの名前から始めるという
+のは良い習慣である。
+
+							*:fu* *:function*
+:fu[nction]		総ての関数と、その引数を表示する。
+
+:fu[nction] {name}	関数{name}を表示する。
+
+:fu[nction][!] {name}([arguments]) [range] [abort]
+			{name}という名前で新しい関数を定義する。関数名はアル
+			ファベットと数字と'_'からなり、アルファベットの大文字
+			で始まらなければならない。
+			引数は、与えられた名前によって定義される。関数のなかで
+			は"a:name"("a:"を引数に接頭)のようにして参照することが
+			できる。
+			引数はカンマで区切ることで、最大20まで与えることができ
+			る。最後の引数を"..."にすることで、可変長の引数を使用
+			できる。関数の中では"a:1"や"a:2"のようにして可変長の引
+			数にアクセスできる。"a:0"は可変長引数が幾つあるかを示
+			している(0であること、つまり引数がそれ以上ないこともあ
+			る)。
+			"..."が使われていない時は、引数の数は名前付きの引数の
+			個数を示す。"..."を使った時には引数の数は大きくなるだ
+			ろう。
+			関数を引数無しで定義することも可能である。その時でも()
+			は付けなければならない。
+			関数の本体は、宣言の次の行から始まり、対応する
+			|:endfunction|までになる。関数の中で別の関数を定義する
+			ことも可能である。
+			この名前で定義される関数が既に定義済みで[!]が使用され
+			なかった場合、エラーとなる。[!]が使用されていれば、そ
+			れまで存在していた関数は、速やかに新しいものへ置換えら
+			れる。
+			引数[range]を追加した場合、関数は「領域」を管理するこ
+			とができる。「領域」は"a:firstline"と"a:lastline"に
+			よって渡される。[range]がなかった場合、":call"が「領
+			域」を指定されて実行されると、1行1行について、カーソル
+			をその行の先頭に置いた状態で関数を呼び出すことになる。
+			|function-range-example|を参照。
+			引数[abort]を追加すると、関数の実行中にエラーに遭遇し
+			次第、即関数は中断される。
+			関数の実行によって、最後に使用されたサーチパターン、及
+			びredoコマンドの"."の内容は変更されない。
+
+							*:endf* *:endfunction*
+:endf[unction]		関数定義の終了。
+
+							*:delf* *:delfunction*
+:delf[unction] {name}	関数{name}を削除する。
+
+							*:retu* *:return*
+:retu[rn] [expr]	関数から戻る。"[expr]"が与えられた場合、それは評価され
+			関数の戻り値として呼出し側に渡される。"[expr]"が与えら
+			れない場合、数値0が呼出し側に渡される。
+			関数内に実行されない命令があるかどうかはチェックされな
+			いことに留意すること。つまり、たとえ":return"命令の後
+			に何か命令があったとしても、警告も何も与えられない。
+
+関数の中で変数を使うこともできる。これらは関数から戻ると消滅するローカル変数と
+して振舞う。グローバル変数にアクセスするためには"g:"を付ける必要がある。
+
+例:
+>  :function Table(title, ...)
+>  :  echohl Title
+>  :  echo a:title
+>  :  echohl None
+>  :  let idx = 1
+>  :  while idx <= a:0
+>  :    exe "echo a:" . idx
+>  :    let idx = idx + 1
+>  :  endwhile
+>  :  return idx
+>  :endfunction
+
+この関数は次のように呼ぶことが出きる:
+>  let lines = Table("Table", "line1", "line2")
+>  let lines = Table("Empty Table")
+
+一つ以上の値を返したい場合には、グローバル変数の名前を渡すようにする:
+>  :function Compute(n1, n2, divname)
+>  :  if a:n2 == 0
+>  :    return "fail"
+>  :  endif
+>  :  exe "let g:" . a:divname . " = ". a:n1 / a:n2
+>  :  return "ok"
+>  :endfunction
+
+この関数は次のように呼ぶことができる:
+>  :let success = Compute(13, 1324, "div")
+>  :if success == "ok"
+>  :  echo div
+>  :endif
+
+次の例は実行可能なコマンドを返すものである。これは関数呼出し内の局所変数と一緒
+にも働く。例:
+>  :function Foo()
+>  :  execute Bar()
+>  :  echo "line " . lnum . " column " . col
+>  :endfunction
+>
+>  :function Bar()
+>  :  return "let lnum = " . line(".") . " | let col = " . col(".")
+>  :endfunction
+
+"lnum"や"col"といった変数の名前もBar()への引数として渡すことが可能なので、呼出
+し側が指定することができる。
+
+							*:cal* *:call*
+:[range]cal[l] {name}([arguments])
+		関数を呼び出す。関数の名前と引数は|:function|によって指定され
+		るものである。引数は最大20まで使用可能。
+		「領域」を受け付ける関数に「領域」を指定しなかった場合、関数は
+		カーソルの現在位置について一度だけ呼び出される。
+		「領域」を受け付けない関数に「領域」を指定した場合、その領域の
+		一行ずつについて関数が呼び出される。その時カーソルは当該行の先
+		頭に設定される。カーソルは「領域」の最下行の左端になる(恐らく
+		最後の関数呼出しの結果、動いた先である)。引数は各呼出しについ
+		て繰り返し評価される。それは次の例で確かめることができる:
+						*function-range-example*
+>	:function Mynumber(arg)
+>	:  echo line(".") . " " . a:arg
+>	:endfunction
+>	:1,5call Mynumber(getline("."))
+
+		"a:firstline"と"a:lastline"はとにかく定義されるので、「領域」
+		の最初や最後で何か違った事をするのにも用いることができる。
+
+		「領域」自身を扱っている関数の例:
+
+>	:function Cont() range
+>	:  execute (a:firstline + 1) . "," . a:lastline . 's/^/\t\\ '
+>	:endfunction
+>	:4,8call Cont()
+
+		この関数は「領域」の最初の行を除いた総ての行の先頭に、継続のた
+		めの文字"\"を挿入する。
+
+
+関数の再帰的な使用はオプション|'maxfuncdepth'|によって制限することができる。
+
+==============================================================================
+6. Commands						*expression-commands*
+
+:let {var-name} = {expr1}				*:let*
+			内部変数{var-name}に式{expr1}の結果をセットする。変数
+			の型は{expr1}によって決定される。{var-name}という変数
+			がまだ存在しない場合、新たに作成される。
+
+:let ${env-name} = {expr1}			*:let-environment* *:let-$*
+			環境変数{env-name}に式{expr1}の結果をセットする。型は
+			常に文字列。
+
+:let @{reg-name} = {expr1}			*:let-register* *:let-@*
+			式{expr1}の結果をレジスタ{reg-name}に書きこむ。
+			{reg-name}は単一の文字でかつ、書きこむことのできるレジ
+			スタでなければならない(|registers|を参照)。"@@"は名前
+			無しレジスタとして使用でき、"@/"はサーチパターンとして
+			使用できる。
+			{expr1}の結果が<CR>か<NL>で終了していた場合、レジスタ
+			は行単位で設定され、そうでなければキャラクタ単位で設定
+			される。
+
+:let &{option-name} = {expr1}			*:let-option* *:let-star*
+			オプション{option-name}に式{expr1}の結果をセットする。
+			オプションの型が常に使用される。
+
+							*:unlet* *:unl*
+:unl[et][!] {var-name} ...
+			内部変数{var-name}を削除する。複数の場前を指定すること
+			もでき、それらは総て削除される。[!]を使えば、たとえ存
+			在しない変数を指定しても、エラーメッセージが表示される
+			ことはない。
+
+:if {expr1}						*:if* *:endif* *:en*
+:en[dif]		{expr1}が非ゼロと評価された場合に、対応する":else"か
+			":endif"までの命令を実行する。
+
+			バージョン4.5から5.0まで間のVimは、":if"と":endif"の間
+			の総てのExコマンドは無視する。この2つのコマンドは将来
+			の拡張性を、下位互換と同時に提供するためのものである。
+			ネスティング(入れ子)が可能である。":else"や":elseif"は
+			無視され、"else"部分は一切実行されないことに注意。
+
+			あなたはこれを、旧バージョンとの互換性を保ったまま使用
+			することができる:
+>				:if version >= 500
+>				:  version-5-specific-commands
+>				:endif
+
+							*:else* *:el*
+:el[se]			対応する":if"ブロックが実行されなかった場合には、これ
+			に対応する":else"か":endif"までのコマンドが実行され
+			る。
+
+							*:elseif* *:elsei*
+:elsei[f] {expr1}	":else" ":if"の省略形。":endif"を付け加える(入れ子にす
+			る)手間を省くことができる。
+
+:wh[ile] {expr1}			*:while* *:endwhile* *:wh* *:endw*
+:endw[hile]		{expr1}が非ゼロとして評価される間、":while"と
+			":endwhile"の間のコマンドを繰り返し実行する。
+			ループの内側でエラーが生じた場合、endwhileの直後から実
+			行が再開される。
+
+		注意: ":append"や":insert"コマンドは":while"ループの内側では正
+		しく動かない。
+
+							*:continue* *:con*
+:con[tinue]		":while"ループの内側で使用すると、残りの実行部分をキャ
+			ンセルし":while"に戻る。
+
+							*:break* *:brea*
+:brea[k]		":while"ループの内側で使用すると、残りの部分の実行を
+			キャンセルし、対応する":endwhile"以降から実行を再開す
+			る。
+
+							*:ec* *:echo*
+:ec[ho] {expr1} ..	スペースで区切られ<EOL>で終了する引数{expr1}を表示す
+			る。|:comment|も参照。
+			改行が必要な場合"\n"を使用する。カーソルを第1列(カラ
+			ム)に持って行くには"\r"を使用する。
+			コメント文を同じ行に続けることはできない。
+			例:
+>		:echo "the value of 'shell' is" &shell
+
+							*:echon*
+:echon {expr1} ..	改行を付けずに、{expr1}を表示する。|:comment|も参照。
+			コメント文を同じ行に続けることはできない。
+			例:
+>		:echon "the value of 'shell' is " &shell
+
+			Vimコマンドの":echo"と、外部のシェルコマンドである
+			":!echo"との違いに注意:
+>		:!echo %		--> filename
+			":!"の引数は展開される。|:_%|を参照。
+>		:!echo "%"		--> filename or "filename"
+			前の例のように働く。ダブルクォートが表示されるかどうか
+			は、使用している'shell'に依存する。
+>		:echo %			--> 何も表示されない
+			'%'は式として不当な文字である。
+>		:echo "%"		--> %
+			単に文字'%'を表示する。
+>		:echo expand("%")	--> filename
+			'%'を展開するために関数expand()を呼び出している。
+
+							*:echoh* *:echohl*
+:echoh[l] {name}	次の":echo[n]"コマンドから、ハイライトグループ{name}を
+			適用する。例:
+>		:echohl WarningMsg | echo "Don't panic!" | echohl None
+			使用した後にはグループを"None"に戻すことを忘れないよう
+			に。さもないとそれ以降のechoの表示総てがハイライトされ
+			てしまう。
+
+							*:exe* *:execute*
+:exe[cute] {expr1} ..	{expr1}の評価結果の文字列をExコマンドとして実行する。
+			スペースで区切られた複数の引数は連結される。
+			コメント文を同じ行に続けることはできない。
+			例:
+>		:execute "buffer " nextbuf
+>		:execute "normal " count . "w"
+
+			Executeは'|'を受けつけないコマンドに、次のコマンドを続
+			けて実行させるのにも使用できる。例:
+>		:execute '!ls' | echo "theend"
+			(訳注:普通の使い方では":!ls"の後には'|'を使って、Exコ
+			マンドを続けることはできない)
+
+			注意:executeに渡す文字列としては、"while"や"if"系のコ
+			マンドが始まったり終ったりするだけのようなものは不適格
+			である。よって次のような例は認められない:
+			Note: The executed string may be any command-line, but
+			you cannot start or end a "while" or "if" command.
+			Thus this is illegal:
+>		:execute 'while i > 5'
+>		:execute 'echo "test" | break'
+
+			文字列の中に完全な"while"や"if"コマンドが含まれること
+			が求められる:
+>		:execute 'while i < 5 | echo i | let i = i + 1 | endwhile'
+
+
+							*:comment*
+			":execute"や":echo"そして":echon"は、同一行に直接コメ
+			ントを続けることはできない。何故ならそれらのコマンドに
+			とって'"'は文字列の始まりに見えてしまうからである。し
+			かし'|'の後にコメントを書くことは可能である。例:
+>		:echo "foo" | "this is a comment
+
+==============================================================================
+7. 例							    *eval-examples*
+
+16進数で表示する ~
+
+>  " The function Nr2Hex() returns the Hex string of a number.
+>  func Nr2Hex(nr)
+>    let n = a:nr
+>    let r = ""
+>    while n
+>      let r = '0123456789ABCDEF'[n % 16] . r
+>      let n = n / 16
+>    endwhile
+>    return r
+>  endfunc
+>
+>  " The function String2Hex() converts each character in a string to a two
+>  " character Hex string.
+>  func String2Hex(str)
+>    let out = ''
+>    let ix = 0
+>    while ix < strlen(a:str)
+>      let out = out . Nr2Hex(char2nr(a:str[ix]))
+>      let ix = ix + 1
+>    endwhile
+>    return out
+>  endfunc
+
+使い方:
+>  echo Nr2Hex(32)
+結果: "20"
+>  echo String2Hex("32")
+結果: "3332"
+
+
+行をソート(並べ替え)する (by Robert Webb) ~
+
+これは行をソートするためのVimスクリプトである。Vimにおいて行を(Visualモードで)
+選択し":Sort"とタイプする。これは如何なる外部プログラムも起動しない。よってど
+のようなプラットホームであっても動作する。実は関数Sort()は、C言語のqsort()のよ
+うに引数として比較関数を受けつける。よって、データ毎に必要となるソート順に応じ
+た、異なった比較関数を与えることができる。
+
+> " Function for use with Sort(), to compare two strings.
+> func! Strcmp(str1, str2)
+>     if (a:str1 < a:str2)
+>	return -1
+>     elseif (a:str1 > a:str2)
+>	return 1
+>     else
+>	return 0
+>     endif
+> endfunction
+>
+> " Sort lines.  SortR() is called recursively.
+> func! SortR(start, end, cmp)
+>     if (a:start >= a:end)
+>	return
+>     endif
+>     let partition = a:start - 1
+>     let middle = partition
+>     let partStr = getline((a:start + a:end) / 2)
+>     let i = a:start
+>     while (i <= a:end)
+>	let str = getline(i)
+>	exec "let result = " . a:cmp . "(str, partStr)"
+>	if (result <= 0)
+>	    " Need to put it before the partition.  Swap lines i and partition.
+>	    let partition = partition + 1
+>	    if (result == 0)
+>		let middle = partition
+>	    endif
+>	    if (i != partition)
+>		let str2 = getline(partition)
+>		call setline(i, str2)
+>		call setline(partition, str)
+>	    endif
+>	endif
+>	let i = i + 1
+>     endwhile
+>
+>     " Now we have a pointer to the "middle" element, as far as partitioning
+>     " goes, which could be anywhere before the partition.  Make sure it is at
+>     " the end of the partition.
+>     if (middle != partition)
+>	let str = getline(middle)
+>	let str2 = getline(partition)
+>	call setline(middle, str2)
+>	call setline(partition, str)
+>     endif
+>     call SortR(a:start, partition - 1, a:cmp)
+>     call SortR(partition + 1, a:end, a:cmp)
+> endfunc
+>
+> " To Sort a range of lines, pass the range to Sort() along with the name of a
+> " function that will compare two lines.
+> func! Sort(cmp) range
+>     call SortR(a:firstline, a:lastline, a:cmp)
+> endfunc
+>
+> " :Sort takes a range of lines and sorts them.
+> command! -nargs=0 -range Sort <line1>,<line2>call Sort("Strcmp")
+
+							*sscanf*
+Vimにはsscanf()に相当する関数が無い。もしも行の一部を取り出す必要があるのなら
+ば、matchstr()やsubstitute()を使って行なうことができる。この例は"foobar.txt,
+123, 45"のような行から、どうやってファイル名と行番号とカラム番号を取り出すかを
+示している。
+>  " Set up the match bit
+>  let mx='\(\f\+\),\s*\(\d\+\),\s*\(\d\+\)'
+>  "get the part matching the whole expression
+>  let l = matchstr(line, mx)
+>  "get each item out of the match
+>  let file = substitute(l, mx, '\1', '')
+>  let lnum = substitute(l, mx, '\2', '')
+>  let col = substitute(l, mx, '\3', '')
+
+入力は変数"line"、結果は"file"と"lnum"と"col"に格納される(アイデアはMichael
+Geddesによる)。
+
+==============================================================================
+8. +eval機能が無効					*no-eval-feature*
+
+コンパイル時に|+eval|機能が無効とされている場合、総ての式評価(eval)コマンドは
+提供されない。その場合、Vimスクリプトが総ての種類のエラーを引き起こすことを避
+ける為、":if"と":endif"は解釈される。":if"とそれに対応する":endif"に挟まれた内
+容は無視される。":if"の後に続く引数も無視される。この":if"コマンドはネスティン
+グが可能である。しかし必ず行の先頭に書かれている必要がある。":else"コマンドは
+認識されない。
+
+|+eval|機能が存在しなかった場合、どのようにコマンドが実行を免れるかの例:
+>	if 1
+>	  echo "Expression evaluation is compiled in"
+>	endif
+
+ vim:tw=78:ts=8:ft=help:norl:
