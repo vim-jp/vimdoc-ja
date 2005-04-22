@@ -1,9 +1,10 @@
-COMMENT: 構文強調(テキストの色つけ)
-STATUS: suspend 6.1
+COMMENT: 構文強調(テキストの着色)
+STATUS: suspend 6.3.54
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
+TRANSLATOR: mm
 
-*syntax.txt*    For Vim version 6.1.  Last change: 2002 Mar 24
+*syntax.txt*	For Vim version 6.3.  Last change: 2004 Jun 04
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -25,22 +26,22 @@ Vimは全ての端末で構文強調をサポートしている。しかし多�
 |usr_06.txt| 構文強調の紹介。
 |usr_44.txt| 構文ファイルの記述方法の紹介。
 
-1.  クイックスタート		|:syn-qstart|
-2.  構文強調ファイル		|:syn-files|
-3.  構文ファイル読込の手順	|syntax-loading|
-4.  構文ファイルの覚書		|:syn-file-remarks|
-5.  Defining a syntax		|:syn-define|
-6.  :syntax arguments		|:syn-arguments|
-7.  Syntax patterns		|:syn-pattern|
-8.  Syntax clusters		|:syn-cluster|
-9.  Including syntax files	|:syn-include|
-10. Synchronizing		|:syn-sync|
-11. Listing syntax items	|:syntax|
-12. Highlight command		|:highlight|
-13. Linking groups		|:highlight-link|
-14. Cleaning up			|:syn-clear|
-15. Highlighting tags		|tag-highlight|
-16. Color xterms		|xterm-color|
+1.  クイックスタート			|:syn-qstart|
+2.  構文強調ファイル			|:syn-files|
+3.  構文ファイル読込の手順		|syntax-loading|
+4.  構文ファイルの覚書			|:syn-file-remarks|
+5.  構文を定義する			|:syn-define|
+6.  :syntaxの引数			|:syn-arguments|
+7.  syntaxのパターン			|:syn-pattern|
+8.  クラスタ				|:syn-cluster|
+9.  構文ファイルのインクルード		|:syn-include|
+10. 表示のシンクロナイズ		|:syn-sync|
+11. 構文アイテムのリストを表示する	|:syntax|
+12. 強調コマンド			|:highlight|
+13. グループのリンク			|:highlight-link|
+14. 構文の消去				|:syn-clear|
+15. タグの強調				|tag-highlight|
+16. カラーxterms			|xterm-color|
 
 {これらのコマンドはViには存在しない}
 
@@ -77,16 +78,16 @@ GUIを使用している場合は、次のコマンドで黒地に白文字を�
 カラー端末については|:hi-normal-cterm|を参照。
 独自色の構文強調を設定する方法については|syncolor|を参照。
 
-NOTE: MS-DOSとWindowsの構文ファイルは改行コードが<CR><NL>である。UNIXでは<NR>
+NOTE: MS-DOSとWindowsの構文ファイルは改行コードが<CR><NL>である。UNIXでは<NL>
 である。これは使用しているシステムに合ったタイプのファイルを使わなければならな
 いことを意味している。しかしながらMS-DOSとWindowsではオプション'fileformats'が
 空でなければ正しい形式が自動的に選択される。
 
-NOTE: 反転表示("gvim -fg white -bg black"、訳注:黒地に白文字)を使用する際は、.
-gvimrcが読込まれた後で、GUIウィンドウが開かれるまでオプション'background'のデ
-フォルト値が設定されない。そのせいで誤ったデフォルト強調手法が使用されてしま
-う。強調表示を有効化する前に'background'のデフォルト値を設定するには、.gvimrc
-にコマンド":gui"を含める: >
+NOTE: 反転表示("gvim -fg white -bg black")を使用する際は、.gvimrcが読込まれた
+後で、GUIウィンドウが開かれるまでオプション'background'のデフォルト値が設定さ
+れない。そのせいで誤ったデフォルト強調手法が使用されてしまう。強調表示を有効化
+する前に'background'のデフォルト値を設定するには、.gvimrcにコマンド":gui"を含
+める: >
 
    :gui		" ウィンドウを開き'background'にデフォルト値を設定する
    :syntax on	" 強調を有効化し、色を設定するのに'background'を使用する
@@ -106,10 +107,10 @@ NOTE: .gvimrcの中で":gui"を使用すると"gvim -f"によりフォアグラ�
 	\ endif <CR>
 [|<>|表記を入力する際は、文字通りそのままキー入力する]
 
-詳細 ~
-コマンド":syntax"はファイルを取り込む(訳注:source)ことで実装されている。その際
-取り込まれるファイルの中身を見ることで、このコマンドがどのように動作しているの
-か正確に知ることができる。
+詳細
+コマンド":syntax"はファイルを取り込むことで実装されている。その際取り込まれる
+ファイルの中身を見ることで、このコマンドがどのように動作しているのか正確に知る
+ことができる。
     コマンド		ファイル ~
     :syntax enable	$VIMRUNTIME/syntax/syntax.vim
     :syntax on		$VIMRUNTIME/syntax/syntax.vim
@@ -200,55 +201,60 @@ Vimにそのファイル形式を認識させたいならば、|new-filetype|を
 
 名前付けの慣習		
 							*group-name*
+強調や構文グループの名前はアスキー文字、数字、アンダースコアだけでつけなければ
+ならない。正規表現では: "[a-zA-Z0-9_]*"
+
 各ユーザが好みの色セットを使用できるように、多くの言語に共通する強調グループに
-は優先名が与えられている。推奨されているグループ名は以下のとおり:
+は優先名が与えられている。推奨されているグループ名は以下のとおり(構文強調がち
+ゃんと機能していれば、"Ignore"以外はそのグループに設定された色で表示されるだろ
+う):
 
-	*Comment	コメント
+	*Comment	o コメント
 
-	*Constant	定数
-	 String		文字列定数: "これは文字列です"
-	 Character	文字定数: 'c', '\n'
-	 Number		数値定数: 234, 0xff
-	 Boolean	ブール値の定数: TRUE, false
-	 Float		不動小数点数の定数: 2.3e10
+	*Constant	o 定数
+	 String		o 文字列定数: "これは文字列です"
+	 Character	o 文字定数: 'c', '\n'
+	 Number		o 数値定数: 234, 0xff
+	 Boolean	o ブール値の定数: TRUE, false
+	 Float		o 不動小数点数の定数: 2.3e10
 
-	*Identifier	変数名
-	 Function	関数名(クラスメソッドを含む)
+	*Identifier	o 変数名
+	 Function	o 関数名(クラスメソッドを含む)
 
-	*Statement	命令文
-	 Conditional	if, then, else, endif, switch, その他
-	 Repeat		for, do, while, その他
-	 Label		case, default, その他
-	 Operator	"sizeof", "+", "*", その他
-	 Keyword	その他のキーワード
-	 Exception	try, catch, throw
+	*Statement	o 命令文
+	 Conditional	o if, then, else, endif, switch, その他
+	 Repeat		o for, do, while, その他
+	 Label		o case, default, その他
+	 Operator	o "sizeof", "+", "*", その他
+	 Keyword	o その他のキーワード
+	 Exception	o try, catch, throw
 
-	*PreProc	一般的なプリプロセッサ命令
-	 Include	#include プリプロセッサ
-	 Define		#define プリプロセッサ
-	 Macro		Defineと同値
-	 PreCondit	プリプロセッサの #if, #else, #endif, その他
+	*PreProc	o 一般的なプリプロセッサ命令
+	 Include	o #include プリプロセッサ
+	 Define		o #define プリプロセッサ
+	 Macro		o Defineと同値
+	 PreCondit	o プリプロセッサの #if, #else, #endif, その他
 
-	*Type		int, long, char, その他
-	 StorageClass	static, register, volatile, その他
-	 Structure	struct, union, enum, その他
-	 Typedef	typedef宣言
+	*Type		o int, long, char, その他
+	 StorageClass	o static, register, volatile, その他
+	 Structure	o struct, union, enum, その他
+	 Typedef	o typedef宣言
 
-	*Special	特殊なシンボル
-	 SpecialChar	特殊な文字定数
-	 Tag		この上で CTRL-] を使うことができる
-	 Delimiter	注意が必要な文字
-	 SpecialComment	コメント内の特記事項
-	 Debug		デバッグ命令
+	*Special	o 特殊なシンボル
+	 SpecialChar	o 特殊な文字定数
+	 Tag		o この上で CTRL-] を使うことができる
+	 Delimiter	o 注意が必要な文字
+	 SpecialComment	o コメント内の特記事項
+	 Debug		o デバッグ命令
 
-	*Underlined	目立つ文章, HTMLリンク
+	*Underlined	o 目立つ文章, HTMLリンク
 
-	*Ignore		(見た目上)空白, 不可視
+	*Ignore		o (見た目上)空白, 不可視
 
-	*Error		エラーなど、なんらかの誤った構造
+	*Error		o エラーなど、なんらかの誤った構造
 
-	*Todo		特別な注意がひつようなもの; 大抵はTODO FIXME XXXなどの
-			キーワード
+	*Todo		o 特別な注意がひつようなもの; 大抵はTODO FIXME XXXなど
+			  のキーワード
 
 マーク(*)されている名前が優先グループ、その他はマイナーグループである。優先グ
 ループには、"syntax.vim"によりデフォルトの強調手法が定義されている。マイナーグ
@@ -278,7 +284,7 @@ Vimは初期化の時に、ランタイムファイルの在り処を自動的�
     +-	'runtimepath'から$VIMRUNTIME/syntax/synload.vimを読込む
     |	|
     |	+-  構文強調の色を設定する。
-    |	|   色テーマが定義されている場合は":colors {name}"で再度読込む。
+    |	|   カラースキームが定義されている場合は":colors {name}"で再度読込む。
     |	|   そうでない場合は":runtime! syntax/syncolor.vim"が使用される。
     |	|   ":syntax on"は既存の色設定を上書設定し、":syntax enable"はまだ設定
     |	|   されていないグループのみを設定する。
@@ -366,8 +372,20 @@ Vimはロードした構文の名前を変数"b:current_syntax"に記憶して�
 <
 	警告: この処理には時間がかかる!
 
-主力結果をファイルに保存すれば、あらゆるNetscapeのようなHTML Viewerでそれを観
+							*:TOhtml*
+またはユーザコマンド":TOhtml"を使ってもよい。これは標準プラグイン中で定義され
+ている。":TOhtml"は範囲指定やビジュアルモードにも対応している: >
+
+	:10,40TOhtml
+
+出力結果をファイルに保存すれば、あらゆるNetscapeのようなHTML Viewerでそれを観
 ることができる。Vimで表示されるのと寸分たがわぬ色が再現される。
+
+変換の範囲を指定するには、"html_start_line"と"html_end_line"をその範囲の最初と
+最後に設定すること。例えば、最後に選択された範囲だけを変換するには: >
+
+	:let html_start_line = line("'<")
+	:let html_end_line = line("'>")
 
 オプション'number'が設定されている場合には、各行にNumberで強調された行番号が付
 加される。"html_number_lines"に非0の値を設定すればHTMLの出力へ強制的に行番号を
@@ -382,6 +400,29 @@ Vimはロードした構文の名前を変数"b:current_syntax"に記憶して�
 にカスケードスタイルシートを使用したい場合には次の設定を使用する(結果的にかな
 り短いHTML 4に準拠したファイルが得られる): >
    :let html_use_css = 1
+
+デフォルトでは、テキストの周りに"<pre>"と"</pre>"がつけられる。これによって、
+ブラウザでも折り返しをせずに、Vimで表示される通りになる。一部が少々変わっても
+いいから折り返しをさせたいなら、次のようにする: >
+   :let html_no_pre = 1
+こうすると、各行末に<br>を使い、連続するスペースに"&nbsp;"を使うようになる。
+
+HTMLファイルの文字集合の指定には現在の'encoding'の値が使われる。ただしこれは
+'encoding'の値が同値なHTML文字集合名を持つ場合だけ機能する。これを上書きするに
+は、g:html_use_encodingを使用したい文字集合名にセットすればよい: >
+   :let html_use_encoding = "foobar"
+文字集合指定の行を省略するには、g:html_use_encodingを空文字列にする: >
+   :let html_use_encoding = ""
+自動的に判断する設定に戻したいなら、変数g:html_use_encodingを削除する: >
+   :unlet html_use_encoding
+<
+					    *convert-to-XML* *convert-to-XHTML*
+代わりにXHTML(XML準拠のHTML)を生成するスクリプトを使うこともできる。そうするに
+は変数"use_xhtml"をセットする: > :let use_xhtml = 1
+これを無効にするにはこの変数を削除する: >
+    :unlet use_xhtml
+生成されたXHTMLファイルはDocBook XMLドキュメントで使用できる。次を参照:
+	http://people.mech.kuleuven.ac.be/~pissaris/howto/src2db.html
 
 覚書き:
 - この機能はGUIをサポートしたバージョンでしか動作しない。(X11などの)GUIが実際
@@ -467,39 +508,49 @@ ANTの構文ファイルにはデフォルトでJavaScriptとPythonの構文強�
 スクリプト言語を永続的にインストールするには|mysyntaxfile-add|を参照。
 
 
+APACHE						*apache.vim* *apache-syntax*
+
+apacheの構文ファイルはHTTPサーババージョンのApache(デフォルトでは1.3.x)に基づ
+いた構文強調を提供する。他のバージョン用の構文強調を利用するには
+"apache_version"にApacheのバージョンを文字列としてセットする。例: >
+
+	:let apache_version = "2.0"
+<
+
 		*asm.vim* *asmh8300.vim* *nasm.vim* *masm.vim* *asm68k*
-アセンブラ言語	*asm-syntax* *asmh8300-syntax* *nasm-syntax* *masm-syntax*
+アセンブリ言語	*asm-syntax* *asmh8300-syntax* *nasm-syntax* *masm-syntax*
 		*asm68k-syntax*
 
-"*.i"にマッチする名前のファイルはProgress(訳注:ファイル形式)かアセンブラであ
-る。自動検出が動作しない場合や、Progressを編集しないことが判っている場合には、
-起動設定ファイルvimrcに次のコマンドを書くことができる: >
+"*.i"にマッチする名前のファイルのタイプはProgressかアセンブリである。自動検出
+が動作しない場合や、Progressを編集しないことが判っている場合には、起動設定ファ
+イルvimrcに次のコマンドを書くことができる: >
    :let filetype_i = "asm"
-"asm"には使用するアセンブラ言語の種類を指定する。
+"asm"には使用するアセンブリ言語の種類を指定する。
 
-ファイル名の同じ拡張子を使用しているアセンブラ言語には沢山の種類がある。従って
-ユーザは自分が使用する種類を選択するか、もしくはアセンブラファイルそのものに
+ファイル名の同じ拡張子を使用しているアセンブリ言語には沢山の種類がある。従って
+ユーザは自分が使用する種類を選択するか、もしくはアセンブリファイルそのものに
 Vimがそれと判断できるような行を追加しなければならない。現在は以下の構文ファイ
 ルが利用可能:
 	asm		GNUアセンブラ(デフォルト)
 	asm68k		モトローラ680x0アセンブラ
 	asmh8300	日立H-8300用GNUアセンブラ
 	ia64		インテルItanium 64
-	masm		マイクロソフトアセンブラ(たぶん80x86用)
-	nasm		ネットワイドアセンブラ(訳注:nasmのほうが認知度が高い?)
+	fasm		Flat アセンブラ (http://flatassembler.net)
+	masm		マイクロソフトアセンブラ(たぶん80x86汎用)
+	nasm		ネットワイドアセンブラ
 	tasm		ターボアセンブラ(80x86,Pentium,MMXの命令コードを含む)
 	pic		PICアセンブラ(現在はPIC16F84用)
 
-アセンブラファイルに次のような行を書き加えるのが一番柔軟である: >
+アセンブリファイルに次のような行を書き加えるのが一番柔軟である: >
 	:asmsyntax=nasm
-"nasm"は実際に使用するアセンブラ構文の名前に置き換える。このような記述はファイ
+"nasm"は実際に使用するアセンブリ構文の名前に置き換える。このような記述はファイ
 ルの先頭5行以内に書いてなければならない。
 
 構文の種類はバッファ変数b:asmsyntaxを設定することで常にそちらが優先される: >
 	:let b:asmsyntax=nasm
 
 自動にしろ手動にしろb:asmsyntaxが設定されていないときには、グローバル変数
-asmsyntaxが使用される。これによりデフォルトのアセンブラ言語を設定することがで
+asmsyntaxが使用される。これによりデフォルトのアセンブリ言語を設定することがで
 きる: >
 	:let asmsyntax=nasm
 
@@ -546,10 +597,8 @@ C							*c.vim* *c-syntax*
 
 Cには幾つかの補助的な強調方法がある。それらを有効化するには対応した変数に値を
 設定する。例: >
-A few things in C highlighting are optional.  To enable them assign any value
-to the respective variable.  Example: >
 	:let c_comment_strings=1
-To disable them use ":unlet".  Example: >
+これを無効化するには":unlet"を使う。例: >
 	:unlet c_comment_strings
 
 変数			強調内容 ~
@@ -557,13 +606,13 @@ c_gnu			GNU gcc固有の要素
 c_comment_strings	コメント内の文字列と数値
 c_space_errors		行末の空白文字とタブ文字前のスペース文字
 c_no_trail_space_error	 ... 但し行末の空白文字は除外
-c_no_tab_space_error	 ... 但しタブも自前のスペース文字は除外
+c_no_tab_space_error	 ... 但しタブ文字前のスペース文字は除外
 c_no_bracket_error	[]の中の{}をエラーとして表示しない
 c_no_ansi		ANSI標準の型と定数を強調しない
 c_ansi_typedefs		 ... 但し標準ANSI型は強調する
 c_ansi_constants	 ... 但し標準ANSI定数は強調する
 c_no_utf		文字列中の\uと\Uを強調しない
-c_syntax_for_h		ファイル*.hにC+ではなくCの構文を適用する
+c_syntax_for_h		ファイル*.hにC++ではなくCの構文を適用する
 c_no_if0		"#if 0"のブロックをコメントとして強調しない
 c_no_cformat		文字列中の"%"によるフォーマットを強調しない
 c_no_c99		C99の標準要素を強調しない
@@ -572,9 +621,9 @@ c_no_c99		C99の標準要素を強調しない
 消される場合には、内部変数"c_minlines"にもっと大きな値を設定すれば解消されるか
 もしれない: >
 	:let c_minlines = 100
-これにより構文判定の同期位置が表示開始行の100行手前に設定される。初期設定の値
-は50行(c_no_if0を使用した場合は15行)である。ただしこれには、大きな値を設定する
-と再描画が遅くなるという短所がある。
+これにより構文判定のシンクロナイズ位置が表示開始行の100行手前に設定される。初
+期設定の値は50行(c_no_if0を使用した場合は15行)である。ただしこれには、大きな値
+を設定すると再描画が遅くなるという短所がある。
 
 "#if 0" / "#endif"のブロックをコメントとして強調している場合には、"#if 0"が
 ウィンドウのトップから"c_minlines"以内にある時にしか正しく動作しないことに注意
@@ -597,6 +646,39 @@ ANSIの定数はグループ"cConstant"で強調される。これには"NULL", 
 文法上エラーではないはずの'{'と'}'がエラーとして強調されてしまう場合には、
 cErrInParen及びcErrInBracketの強調をリセットする。
 
+Cファイルで折り畳みをしたいなら、以下の行を'runtimepath'中の"after"ディレクト
+リ内のファイルに加えるとよい。Unixなら~/.vim/after/syntax/c.vimに加えるとよい
+だろう: >
+    syn region myFold start="{" end="}" transparent fold
+    syn sync fromstart
+    set foldmethod=syntax
+
+
+CHILL						*chill.vim* *chill-syntax*
+
+Chillの構文強調はCに似ている。設定に関しては|c.vim|を参照。それに加えて次のも
+のがある:
+
+chill_syntax_for_h	use Ch syntax for *.h files, instead of C or C++
+chill_space_errors	like c_space_errors
+chill_comment_string	like c_comment_strings
+chill_minlines		like c_minlines
+
+
+CHANGELOG				*changelog.vim* *changelog-syntax*
+ChangeLogでは行頭のスペースの強調できる。これをオフにしたいなら、次の行を
+.vimrcに加える: >
+	let g:changelog_spacing_errors = 0
+これは次にchangelogファイルを編集するときから有効になる。バッファごとに設定し
+たいなら"b:changelog_spacing_errors"が使える(構文ファイルを読み込む前に設定す
+ること)。
+
+例えばスペースをエラーとするかどうかなどの強調方法を変えることができる: >
+	:hi link ChangelogError Error
+強調をやめるには: >
+	:hi link ChangelogError NONE
+これは即座に有効になる。
+
 
 COBOL						*cobol.vim* *cobol-syntax*
 
@@ -616,6 +698,28 @@ ColdFusionには独自版のHTMLコメントが存在する。ColdFusionのコ�
 	:let html_wrong_comments=1
 
 ColdFusionの構文ファイルはHTML用構文ファイルに基づいている。
+
+
+CSH						*csh.vim* *csh-syntax*
+
+これは"csh"という名前のシェルに対応している。いくつかのシステムでは実際には
+tcshが使われていることに注意。
+
+ファイルがcshかtcshかを判定するのは難しいことがよく知られている。いくつかのシ
+ステムでは/bin/cshを/bin/tcshにシンボリックリンクしていることが、この判別をほ
+ぼ不可能にしている。Vimが間違った判定をする場合には変数"filetype_csh"を設定す
+ることが出来る。cshを使うには: >
+
+	:let filetype_csh = "csh"
+
+tcshを使うには: >
+
+	:let filetype_csh = "tcsh"
+
+拡張子がtcshであるか標準的なtcshファイル名(.tcshrc, tcsh.tcshrc, tcsh.login)を
+持つスクリプトはすべてtcshファイル形式とされる。他のtcsh/cshスクリプトは、
+"filetype_csh"変数が存在しない限り、すべてtcshとみなされる。変数"filetype_csh"
+が存在するならファイル形式はその値にセットされる。
 
 
 CYNLIB						*cynlib.vim* *cynlib-syntax*
@@ -639,10 +743,49 @@ cppファイルについても同様(この拡張子は通常Windowsだけで使
 
 CWEB						*cweb.vim* *cweb-syntax*
 
-"*.i"にマッチする名前のファイルはProgress(訳注:ファイル形式)かCWEBである。自動
-検出が動作しない場合や、Progressを編集しないことが判っている場合には、起動設定
-ファイルvimrcに次のコマンドを書くことができる: >
+"*.w"にマッチする名前のファイルのタイプはProgressかCWEBである。自動検出が動作
+しない場合や、Progressを編集しないことが判っている場合には、起動設定ファイル
+vimrcに次のコマンドを書くことができる: >
    :let filetype_w = "cweb"
+
+
+DESKTOP					   *desktop.vim* *desktop-syntax*
+
+この構文ファイルの本来の目的はfreedesktop.org標準:
+http://pdx.freedesktop.org/Standards/の.desktopと.directoryファイルを構文強調
+することである。しかし実際にはこの標準を完全に実装したものはほとんどない。なの
+でこれは全てのiniファイルを強調する。ただし次をvimrcファイルに書くことによって
+厳格に標準に準拠した強調をさせることもできる: >
+	:let enforce_freedesktop_standard = 1
+
+
+DIRCOLORS			       *dircolors.vim* *dircolors-syntax*
+
+dircolorsユーティリティ用の強調定義には、Slackware GNU/Linuxディストリビューシ
+ョン版のdircolorsに対応するためのオプションがある。このオプションはほとんどの
+バージョンでは無視されるいくつかのキーワードを付け加える。しかしSlackwareシス
+テムではdircolorsはこれらのキーワードを認め、処理に用いる。Slackwareキーワード
+を有効化するには次を起動設定ファイルに付け加えればよい: >
+	let dircolors_is_slackware = 1
+
+
+DOCBOOK					*docbk.vim* *docbk-syntax* *docbook*
+DOCBOOK	XML				*docbkxml.vim* *docbkxml-syntax*
+DOCBOOK	SGML				*docbksgml.vim* *docbksgml-syntax*
+
+DocBookファイルには2つの種類: SGMLとXMLがある。どちらのタイプを使用するのかを
+指定するには変数"b:docbk_type"をセットする。Vimがそのタイプを認識できた場合に
+はこれを自動的に行う。認識できなかった場合にはデフォルトはXMLになる。
+これを手動で設定するには: >
+	:let docbk_type = "sgml"
+または: >
+	:let docbk_type = "xml"
+これは構文ファイルを読み込む前に行う必要がある。しかし構文ファイルの読み込みは
+込み入っている。より単純な方法はファイル形式を"docbkxml"または"docbksgml"にセ
+ットすることである: >
+	:set filetype=docbksgml
+または: >
+	:set filetype=docbkxml
 
 
 DOSバッチファイル			*dosbatch.vim* *dosbatch-syntax*
@@ -702,11 +845,8 @@ eiffel_strictを設定すると"Current", "Void", "Result", "Precursor"そして
 れらが使用されれば警告を与えるようになる。
 
 eiffel_pedanticを設定すると、Eiffelのスタイルガイドラインを相当に厳格に強制す
-る。
-(キーワードの大小文字を決定する時代遅れの方法と同じくらい、大小文字の混在のよ
-うな…訳不明)
-(like arbitrary mixes of upper- and lowercase letters as well as outdated ways
-to capitalize keywords).
+る。(キーワードを大文字で書く時代遅れの方法と同様に、大小文字を任意にミックス
+したようなものが補足される)
 
 "Current", "Void", "Result"そして"Precursor"の小文字版を使用するには、大小文字
 を区別する強調方法を無効化する代わりに: >
@@ -733,7 +873,6 @@ ERLANG						*erlang.vim* *erlang-syntax*
 である。Erlangは大小文字を区別しデフォルトの拡張子は".erl"である。
 
 キーワード強調を無効化するには、これを.vimrcに書き足す: >
-If you want to disable keywords highlighting, put in your .vimrc: >
 	:let erlang_keywords = 1
 組み込み関数強調を無効化するには、これを.vimrcに書き足す: >
 	:let erlang_functions = 1
@@ -789,24 +928,32 @@ Fortran 9xのソースコードには固定形式と自由形式が有る。形�
 新規にFortranのファイルを作成する場合には、構文ファイルは固定形式であると仮定
 する。常に自由形式を使う場合には >
     :let fortran_free_source=1
-これを.vimrcでコマンド:syntaxを実行する前に行なう必要がある。
+これを.vimrcでコマンド:syntaxを実行する前に行なう必要がある。常に固定形式を使
+うには >
+    :let fortran_fixed_source=1
+これも.vimrcでコマンド:syntaxを実行する前に行う必要がある。
 
 ソースコードの形式がファイル拡張子によって決定できる場合には、ftpluginファイル
 の1つでfortran_free_sourceを設定すると便利になる。ftpluginファイルについての詳
 細は|ftplugin|を参照のこと。例えば、拡張子.f90を持つファイルについては全て自由
-形式として扱い、それ以外のもは固定形式とする場合には、次のコードをftpluginファ
-イルに記述すれば良い。 >
+形式として扱い、それ以外のものは固定形式とする場合には、次のコードをftpluginフ
+ァイルに記述すれば良い。 >
     let s:extfname = expand("%:e")
     if s:extfname ==? "f90"
 	let fortran_free_source=1
+	unlet! fortran_fixed_source
     else
+	let fortran_fixed_source=1
 	unlet! fortran_free_source
     endif
+これは.vimrcで"syntax on"より前に"filetype plugin indent on"が書かれていないと
+機能しないことに注意。
 
 既存のFortranファイルを編集する時には、変数fortran_free_sourceが設定されていれ
-ば構文ファイルは自由形式のソースであると仮定する。設定されていないときには、
-ファイルの先頭25行の行頭5カラムを調べて、その形式が固定なのか自由なのかを決定
-しようと試みる。自由形式コードの兆候が見られない場合には、ファイルは固定形式
+ば構文ファイルは自由形式のソースであると仮定し、変数fortran_fixed_sourceが設定
+されていれば固定形式のソースであると仮定する。どちらも設定されていないときには
+、ファイルの先頭25行の行頭5カラムを調べて、その形式が固定なのか自由なのかを決
+定しようと試みる。自由形式コードの兆候が見られない場合には、ファイルは固定形式
 コードとして取り扱われる。このアルゴリズムはほとんどのケースにおいて有効に機能
 する。しかしいつかのケース、例えば先頭25行以上が行コメントで占められているよう
 なファイルでは、構文ファイルが固定形式コードであると誤った判断をしてしまうだろ
@@ -823,9 +970,8 @@ Fortranファイル内のタブ文字 ~
 このように.vimrcで設定すれば良い。タブ文字を使う場合には残念ながら、構文ファイ
 ルによって不正な余白を検出することができなくなる。
 
-Fortranファイルの構文による強調 ~
-foldmethod=syntax(訳注:構文による折畳)を使用したいならば、まず変数fortran_fold
-を >
+Fortranファイルの構文による折畳み ~
+foldmethod=syntaxを使用したいならば、まず変数fortran_foldを >
     :let fortran_fold=1
 このようなコマンドで設定しなければならない。これにより構文ファイルはプログラム
 単位の領域、プログラム命令文で始まるメインプログラム、サブルーチン、関数、
@@ -846,7 +992,6 @@ foldmethod=syntaxを設定してある時に、Vimはファイルを折畳む。
 
 より正確なFortranの構文 ~
 変数fortran_more_preciseを >
-If you set the variable fortran_more_precise with a command such as >
     :let fortran_more_precise=1
 このようなコマンドで設定した場合には、構文強調がより正確になるが動作は遅くな
 る。とりわけ、do、goto、そして算術if命令文に使用される命令ラベルが、do、if、
@@ -859,12 +1004,11 @@ selectもしくはforall構造の終端で使用される名前として認識�
 f77の拡張機能を使うときには、それがg77(GNU Fortran)を含む多くのコンパイラがサ
 ポートしている一般的な、do/enddoループ、do/whileループ、自由形式ソースコード、
 拡張機能であるならば、恐らくデフォルトの強調で満足するだろう。しかしながら、拡
-張機能を使用せずに厳密なf77を使用する場合や、自由形式やMIL STD 1753(訳注:MIL
-STDはアメリカ軍の定める標準規格でその1753号の意味)の拡張を用いない場合には問題
-がある。そのような時に方言としてf77を指定することには、SUMのようなf9xの持つ関
-数として認識されてしまう名前が、ユーザ変数として認識され強調されないという利点
-がある。また廃れてしまったASSIGN命令文のような構造も修正用TODOとしては強調され
-なくなり、固定形式が仮定されるようになる。
+張機能を使用せずに厳密なf77を使用する場合や、自由形式やMIL STD 1753の拡張を用
+いない場合には問題がある。そのような時に方言としてf77を指定することには、SUMの
+ようなf9xの持つ関数として認識されてしまう名前が、ユーザ変数として認識され強調
+されないという利点がある。また廃れてしまったASSIGN命令文のような構造も修正用
+TODOとしては強調されなくなり、固定形式が仮定されるようになる。
 
 elf90やFを使う場合には適切な方言を設定する。それにより、これらの方言においては
 除外されるf90の機能はtodoとして強調され、これらの方言で必要とされる自由形式の
@@ -885,7 +1029,9 @@ fortran_dialectへ設定した場合にはそれは無視される。
 	let fortran_dialect="elf"
     else
 	unlet! fortran_dialect
-    endif
+    endif 
+これは.vimrcで"syntax on"より前に"filetype plugin indent on"が書かれていないと
+機能しないことに注意。
 
 拡張子が方言を一意に決定できない場合には、もっと良い制御方法が必要になる。各
 ファイルの先頭3行以内にコメントで"fortran_dialect=xx"という命令を書けば方言の
@@ -898,9 +1044,8 @@ fortran_dialectへ設定した場合にはそれは無視される。
 先される。
 
 制限事項 ~
-丸カッコチェックは閉じカッコが足りないことを捕捉できない。穿孔(訳注:パンチカー
-ド?)文字列は認識できない。幾つかのキーワードはFortran90の予約語ではないので誤
-って強調される。
+丸カッコチェックは、閉じカッコの不足については捕捉できない。ホレリス定数は認識
+されない。幾つかのキーワードはFortran90の予約語ではないので誤って強調される。
 
 Fortranに関するその他の情報は|fortran-indent|や|fortran-plugin|を参照。
 
@@ -949,6 +1094,51 @@ constains節に加えれば、正しく強調されるようになる。
 で強調される。
 
 
+GROFF						*groff.vim* *groff-syntax*
+
+groff構文ファイルは|nroff.vim|のラッパーであり、使用例と設定例についてはそこの
+下書かれている注意を参照。このラッパーの目的は、モードラインか個人用のファイル
+定義ファイル(|filetype.txt|参照)からファイル形式をセットすることにより、groff
+構文拡張を設定することである。
+
+
+HASKELL			     *haskell.vim* *lhaskell.vim* *haskell-syntax*
+
+Haskell構文ファイルはプレーンHaskellコードliterate Haskellコード両方をサポート
+している。後者はBirdスタイルとTeXスタイル両方に対応している。Haskell用の構文強
+調はCプリプロセッサ命令も強調できる。
+
+区切り文字も強調したいなら(明るい背景色を使っているなら便利)、次を.vimrcに書き
+足す: >
+	:let hs_highlight_delimiters = 1
+TrueとFalseを通常の識別子と区別してキーワードとして扱うにはこれを書き足す: >
+	:let hs_highlight_boolean = 1
+プリミティブ型の名前をキーワードして扱うには: >
+	:let hs_highlight_types = 1
+より比較的一般的な型の名前をキーワードとして扱うには: >
+	:let hs_highlight_more_types = 1
+デバッグ関数の名前を強調したいなら、これを.vimrcに書き足す: >
+	:let hs_highlight_debug = 1
+
+Haskell用の構文強調はCプリプロセッサ命令も強調し、#で始まるが命令として有効で
+ない行をエラーとして警告する。Haskellの演算子の構文は#で始まることもあるため、
+これらが干渉する。これらをエラーでなく演算子として強調したいなら、次を.vimrcに
+書く: >
+	:let hs_allow_hash_operator = 1
+
+literate Haskellコード用の構文強調はファイルがTeXマークアップを含んでいるかど
+うか、それに応じてTeX要素を強調するかどうかを自動的に推測しようとする。
+.vimrcに次のような行を書くと、これをグローバルに上書きすることができる >
+	:let lhs_markup = none
+と書くとまったく強調しなくする。または >
+	:let lhs_markup = tex
+と書くと常にTeXマークアップを強調するように強制する。より柔軟に、この変数のバ
+ッファローカル版を使うことも出来る。例. >
+	:let b:lhs_markup = tex
+と書くと特定のバッファにTeX強調させるようにする。これはそのバッファに構文強調
+を有効化するかファイルを読み込む前に設定しなければならない。
+
+
 HTML						*html.vim* *html-syntax*
 
 HTMLファイルのタグ用の構文ファイルは以下のように動作する。
@@ -981,89 +1171,90 @@ HTMLファイルのタグ用の構文ファイルは以下のように動作す�
     - htmlTitle for titles
     - htmlH1 - htmlH6 for headings
 
-To make this redefinition work you must redefine them all with the exception
-of the last two (htmlTitle and htmlH[1-6], which are optional) and define the
-following variable in your vimrc (this is due to the order in which the files
-are read during initialization) >
+この再定義が機能するためには最後の2つを除くすべてを再定義しなければならない。
+最後の2つ、htmlTitleとhtmlH[1-6]は任意である。そして次の変数をvimrcで設定しな
+ければならない(初期化の際に読み込まれるファイルの順序のせい)。 >
 	:let html_my_rendering=1
 
-If you'd like to see an example download mysyntax.vim at
-http://www.fleiner.com/vim/mysyntax.vim
+この例については以下からmysyntax.vimをダウンロードすること。
+http://www.fleiner.com/vim/download.html
 
-You can also disable this rendering by adding the following line to your
-vimrc file: >
+次の行をvimrcに加えればこの描画を無効にできる: >
 	:let html_no_rendering=1
 
-HTML comments are rather special (see an HTML reference document for the
-details), and the syntax coloring scheme will highlight all errors.
-However, if you prefer to use the wrong style (starts with <!-- and
-ends with --!>) you can define >
+HTMLコメントはむしろ特別で(詳細はHTMLリファレンスドキュメントを参照)、すべての
+エラーを強調する。しかしその間違ったスタイル(<!--で始まり--!>で終わる)を使いた
+いならこれを定義する >
 	:let html_wrong_comments=1
 
-JavaScript and Visual Basic embedded inside HTML documents are highlighted as
-'Special' with statements, comments, strings and so on colored as in standard
-programming languages. Note that only JavaScript and Visual Basic are currently
-supported, no other scripting language has been added yet.
+HTMLドキュメント中に埋め込まれたJavaScriptやVisual Basicについては、文は
+'Special'で強調され、コメントや文字列などは標準のプログラミング言語と同じよう
+に色づけされる。現在のところサポートされているのはJapaScriptとVisual Basicだけ
+であり、他のスクリプト言語はまだ加えられていない。
 
-Embedded and inlined cascading style sheets (CSS) are highlighted too.
+カスケードスタイルシート(CSS)の埋め込みとインラインも強調される。
 
-There are several html preprocessor languages out there. html.vim has been
-written such that it should be trivial to include it. To do so add the
-following two lines to the syntax coloring file for that language
-(the example comes from the asp.vim file):
+htmlプロセッサ言語は複数ある。html.vimはインクルードしやすいように簡素に書かれ
+ている。html.vimをインクルードするには以下の2行をその言語用の構文ファイルに書
+き足すこと(この例はasp.vimからとった): 
 
     runtime! syntax/html.vim
     syn cluster htmlPreproc add=asp
 
-Now you just need to make sure that you add all regions that contain
-the preprocessor language to the cluster htmlPreproc.
+そしてプリプロセッサ言語を含むすべての領域をクラスタhtmlPreprocに加えればよい。
 
 
 HTML/OS (by Aestiva)				*htmlos.vim* *htmlos-syntax*
 
-The coloring scheme for HTML/OS works as follows:
+HTML/OS用のカラースキームは以下のように機能する:
 
-Functions and variable names are the same color by default, because VIM
-doesn't specify different colors for Functions and Identifiers.  To change
-this (which is recommended if you want function names to be recognizable in a
-different color) you need to add the following line to either your ~/.vimrc: >
+デフォルトでは関数名と変数名は同じである。これは、Vimは関数と識別子に異なる色
+を指定しないためである。これを変えるには(関数名を違う色にしたいならこうすると
+よい)次の行を~/.vimrcに書き加える: >
   :hi Function term=underline cterm=bold ctermfg=LightGray
 
-Of course, the ctermfg can be a different color if you choose.
+もちろん好みに応じてctermfgは違う色にしてよい。
 
-Another issues that HTML/OS runs into is that there is no special filetype to
-signify that it is a file with HTML/OS coding.  You can change this by opening
-a file and turning on HTML/OS syntax by doing the following: >
+HTML/OSに関するもう1つの問題は、ファイルがHTML/OSコーディングであることを示す
+特別なファイル形式が存在しないことである。そのため、ファイルを開いた後に次のよ
+うにしてHTML/OS構文をオンにしなければならない: >
   :set syntax=htmlos
 
-Lastly, it should be noted that the opening and closing characters to begin a
-block of HTML/OS code can either be << or [[ and >> or ]], respectively.
+HTML/OSコードのブロックの開始と終了を示す文字は、それぞれ<<または[[,
+>>または]]のどちらであってもよい。
 
 
 IA64				*ia64.vim* *intel-itanium* *ia64-syntax*
 
-Highlighting for the Intel Itanium 64 assembly language.  See |asm.vim| for
-how to recognize this filetype.
-
-To have *.inc files be recognized as IA64, add this to your .vimrc file: >
+Intel Itanium 64アセンブリ言語用の強調。このファイル形式を認識させる方法につい
+ては|asm.vim|を参照。
+*.incファイルをIA64と認識させるには次を.vimrcに書き足す: >
 	:let g:filetype_inc = "ia64"
 
 
 INFORM						*inform.vim* *inform-syntax*
 
-Inform highlighting includes symbols provided by the Inform Library, as
-most programs make extensive use of it.  If do not wish Library symbols
-to be highlighted add this to your vim startup: >
+Inform構文強調はInform Libraryによって提供されるシンボルを含んでいる。ほとんど
+のプログラムがそれを利用しているためである。Libraryのシンボルを強調させたくな
+いなら、次をvim初期化ファイルに加える: >
 	:let inform_highlight_simple=1
 
-By default it is assumed that Inform programs are Z-machine targetted,
-and highlights Z-machine assembly language symbols appropriately.  If
-you intend your program to be targetted to a Glulx/Glk environment you
-need to add this to your startup sequence: >
+デフォルトではInformプログラムはZ-machineターゲットと仮定され、Z-machineアセン
+ブリ言語シンボルが適切に強調される。もしプログラムがGlulx/Glk環境をターゲット
+としたものなら、次を初期化ファイルに加える: >
 	:let inform_highlight_glulx=1
 
-This will highlight Glulx opcodes instead, and also adds glk() to the
-set of highlighted system functions.
+こうすると代わりにGlulxオペコードを強調し、glk()をシステム関数として強調する。
+
+Informコンパイラはある古いキーワードをエラーとみなす。それらのキーワードは通常
+エラーとして強調される。これをエラーとして強調するのをやめるには、次を初期化フ
+ァイルに加える: >
+	:let inform_suppress_obsolete=1
+
+デフォルトでは強調される言語機能はコンパイラのバージョン6.30とライブラリのバー
+ジョン6.11に従う。これより古いInform開発環境を使っているなら、次の行を初期化フ
+ァイルに加えるとよいかもしれない: >
+	:let inform_highlight_old=1
 
 
 JAVA						*java.vim* *java-syntax*
@@ -1081,10 +1272,10 @@ highlight them use: >
 	:let java_highlight_java_lang_ids=1
 
 You can also highlight identifiers of most standard java packages if you
-download the script at http://www.fleiner.com/vim/syntax/javaid.vim
+download the javaid.vim script at http://www.fleiner.com/vim/download.html.
 If you prefer to only highlight identifiers of a certain package, say java.io
 use the following: >
-	:let java_highligh_java_io=1
+	:let java_highlight_java_io=1
 Check the javaid.vim file for a list of all the packages that are supported.
 
 Function names are not highlighted, as the way to find functions depends on
@@ -1094,7 +1285,7 @@ functions:
 If you write function declarations that are always indented by either
 a tab, 8 spaces or 2 spaces you may want to set >
 	:let java_highlight_functions="indent"
-However, if you follow the java guidlines about how functions and classes are
+However, if you follow the Java guidelines about how functions and classes are
 supposed to be named (with respect to upper and lowercase), use >
 	:let java_highlight_functions="style"
 If both options do not work for you, but you would still want function
@@ -1115,7 +1306,7 @@ which are used for the statement itself, special characters used in debug
 strings, strings, boolean constants and types (this, super) respectively. I
 have opted to chose another background for those statements.
 
-In order to help you to write code that can be easely ported between
+In order to help you to write code that can be easily ported between
 java and C++, all C++ keywords are marked as error in a java program.
 However, if you use them regularly, you may want to define the following
 variable in your .vimrc file: >
@@ -1161,50 +1352,124 @@ number is that redrawing can become slow.
 
 LACE						*lace.vim* *lace-syntax*
 
-Lace (Language for Assembly of Classes in Eiffel) is case insensitive, but the
-style guide lines are not.  If you prefer case insensitive highlighting, just
-define the vim variable 'lace_case_insensitive' in your startup file: >
+Lace (Language for Assembly of Classes in Eiffel)は大文字・小文字を無視する。
+しかしスタイルガイドラインはそうでない。大文字・小文字を区別して強調させたいな
+ら、vim変数'lace_case_insensitive'を初期化ファイル中で定義すればよい: >
 	:let lace_case_insensitive=1
 
 
 LEX						*lex.vim* *lex-syntax*
 
-Lex uses brute-force synchronizing as the "^%%$" section delimiter
-gives no clue as to what section follows.  Consequently, the value for >
+"^%%$"セクションデリミタが、その後にどんなセクションが続くかの手がかりを与えな
+いため、Lexはブルートフォースなシンクロナイズを行う。それゆえ(巨大なlexファイ
+ルなどで)同期の問題が起こる場合には: >
 	:syn sync minlines=300
-may be changed by the user if s/he is experiencing synchronization
-difficulties (such as may happen with large lex files).
+の値を変更するとよいかもしれない。
 
 
 LITE						*lite.vim* *lite-syntax*
 
-There are two options for the lite syntax highlighting.
+lite構文強調には2つのオプションがある。
 
-If you like SQL syntax highligthing inside Strings, use this: >
+文字列中でSQL構文強調を行ってほしいならこうする: >
 
 	:let lite_sql_query = 1
 
-For syncing, minlines defaults to 100.  If you prefer another value, you can
-set "lite_minlines" to the value you desire.  Example: >
+シンクロナイズの最小行数はデフォルトで100になっている。他の値に変えたいなら
+"lite_minlines"をセットすればよい。例: >
 
 	:let lite_minlines = 200
 
 
+LPC						*lpc.vim* *lpc-syntax*
+
+LPCはシンプルでメモリ効率的な言語、Lars Pensj| Cの略である。LPCのファイル名は
+通常*.cである。これらのファイルをLPCと認識するとCプログラムのみを書くユーザの
+迷惑になる。LPC構文を使用したいなら、.vimrcでこの変数をセットすること: >
+
+	:let lpc_syntax_for_c = 1
+
+これでも適切に動作しないCまたはLPCのファイルに対してはモードラインを使うこと。
+LPCファイルには:
+
+	// vim:set ft=lpc:
+
+LPCと認識されてしまうCファイルには:
+
+	// vim:set ft=c:
+
+変数をセットしたくないなら全てのLPCファイルでモードラインを使うこと。
+
+LPCには複数の実装がある。我々はもっとも広く使われているものをサポートしたいと
+思っている。デフォルトのLPC文法はMudOSシリーズ用である。MudOS v22以前を使って
+いるなら、次をセットすることによりsensible モディファイヤをオフにし、v22以降の
+新しいefunを無効にするとよい。MudOSの最新版を使っているときはこの変数をセット
+しないこと: >
+
+	:let lpc_pre_v22 = 1
+
+LPCのLpMud 3.2シリーズには: >
+
+	:let lpc_compat_32 = 1
+
+LPCのLPC4シリーズには: >
+
+	:let lpc_use_lpc4_syntax = 1
+
+LPCのuLPCシリーズには:
+uLPCはPike用に開発されている。なのでPike構文を代わりに使い、ソースファイルの名
+前を.pikeとすること。
+
+
+LUA						*lua.vim* *lua-syntax*
+
+この構文ファイルはLua 4.0とLua 5.0(デフォルト)用に使える。Lua 4.0でプログラミ
+ングしているなら、こうする: >
+
+	:let lua_version = 4
+
+変数lua_versionが存在しない場合には5にセットされる。
+
+
+MAIL								*mail.vim*
+
+Vimはemailの標準的な要素(ヘッダ、シグネチャ、引用文、URL / emailアドレス)の全
+てを強調する。標準的な慣習に従い、シグネチャは、"--"とそれに続く任意個の空白、そ
+して改行のみからなる行で始まる。
+
+Vimは']', '}', '|', '>'で始まる行または'>'が続く単語を引用文とみなす。
+引用文中のヘッダとシグネチャについては、テキストが'>'(1個のスペースが続いても
+よい)で引用された場合のみ強調する。
+
+デフォルトではmail.vimは先頭表示行の100行前までの構文をシンクロナイズさせる。
+遅いマシンを使っていて、一般的に短いヘッダのemailを扱っているなら、これをより
+小さい値に変えることが出来る: >
+
+    :let mail_minlines = 30
+
+
+MAKE						*make.vim* *make-syntax*
+
+Makefileでは通常エラーを見つけやすくするためにコマンドが強調される。しかし、こ
+れは色が多すぎるかもしれない。この機能をオフにするにはこうする: >
+
+	:let make_no_commands = 1
+
+
 MAPLE						*maple.vim* *maple-syntax*
 
-Maple V, by Waterloo Maple Inc, supports symbolic algebra.  The language
-supports many packages of functions which are selectively loaded by the user.
-The standard set of packages' functions as supplied in Maple V release 4 may be
-highlighted at the user's discretion.  Users may place in their .vimrc file: >
+Waterloo Maple IncによるMaple Vは記号代数をサポートしている。その言語はユーザ
+によって選択的にロードされる関数のパッケージをたくさんサポートしている。Maple
+V release 4で供給される標準的なパッケージセットの関数がユーザの判断によって強
+調される。ユーザは.vimrcに以下を書くと、全てのパッケージ関数が強調される: >
 
 	:let mvpkg_all= 1
 
-to get all package functions highlighted, or users may select any subset by
-choosing a variable/package from the table below and setting that variable to
-1, also in their .vimrc file (prior to sourcing
-$VIMRUNTIME/syntax/syntax.vim).
+あるいは以下の表から任意のサブセット変数／パッケージを選んで.vimrcファイル中で
+その変数を1にセットしてもよい($VIMRUNTIME/syntax/syntax.vimを読み込む前に行う
+必要がある)。
 
-	Table of Maple V Package Function Selectors >
+	Maple V パッケージ関数選択肢の表 >
   mv_DEtools	 mv_genfunc	mv_networks	mv_process
   mv_Galois	 mv_geometry	mv_numapprox	mv_simplex
   mv_GaussInt	 mv_grobner	mv_numtheory	mv_stats
@@ -1217,338 +1482,390 @@ $VIMRUNTIME/syntax/syntax.vim).
 
 MOO						*moo.vim* *moo-syntax*
 
-If you use C-style comments inside expressions and find it mangles your
-highlighting, you may want to use extended (slow!) matches for C-style
-comments: >
+式の中でCスタイルのコメントを使っていて、それが強調を乱している場合は、Cスタイ
+ル用の拡張マッチ(これは遅い!)を使うことが出来る: >
 
 	:let moo_extended_cstyle_comments = 1
 
-To disable highlighting of pronoun substitution patterns inside strings: >
+文字列中の代名詞置換パターンの強調を無効化したいなら: >
 
 	:let moo_no_pronoun_sub = 1
 
-To disable highlighting of the regular expression operator '%|', and matching
-'%(' and '%)' inside strings: >
+正規表現演算子'%l'の強調と文字列中の'%('と'%)'のマッチを無効化したいなら: >
 
 	:let moo_no_regexp = 1
 
-Unmatched double quotes can be recognized and highlighted as errors: >
+対応していないダブルクォートを認識してエラーとして強調することが出来る: >
 
 	:let moo_unmatched_quotes = 1
 
-To highlight builtin properties (.name, .location, .programmer etc.): >
+組み込みプロパティ(.name, .location, .programmerなど)を強調するには :>
 
 	:let moo_builtin_properties = 1
 
-Unknown builtin functions can be recognized and highlighted as errors. If you
-use this option, add your own extensions to the mooKnownBuiltinFunction group.
-To enable this option: >
+未知の組み込み関数を認識してエラーとして強調することが出来る。このオプションを
+使うなら、mooKnownBuiltinFunctionグループに自分自身の拡張を加えること。このオ
+プションを有効化するには: >
 
 	:let moo_unknown_builtin_functions = 1
 
-An example of adding sprintf() to the list of known builtin functions: >
+既知の組み込み関数のリストにsprintf()を加える例: >
 
 	:syn keyword mooKnownBuiltinFunction sprintf contained
 
 
 MSQL						*msql.vim* *msql-syntax*
 
-There are two options for the msql syntax highlighting.
+msql構文強調には2つのオプションがある。
 
-If you like SQL syntax highligthing inside Strings, use this: >
+文字列中でSQL構文強調をさせたいならこうする: >
 
 	:let msql_sql_query = 1
 
-For syncing, minlines defaults to 100.  If you prefer another value, you can
-set "msql_minlines" to the value you desire.  Example: >
+シンクロナイズは、minlinesはデフォルトで100になっている。他の値にしたいなら
+"msql_minlines"の望む値にすればよい。例: >
 
 	:let msql_minlines = 200
 
 
 NCF						*ncf.vim* *ncf-syntax*
 
-There is one option for NCF syntax highlighting.
+NCF構文強調には1つのオプションがある。
 
-If you want to have unrecognized (by ncf.vim) statements highlighted as
-errors, use this: >
+ncf.vimによって認識されない文をエラーとして強調させたいならこうする: >
 
 	:let ncf_highlight_unknowns = 1
 
-If you don't want to highlight these errors, leave it unset.
+これらをエラーとして強調させたくないなら、この変数をセットしないでおく。
 
 
 NROFF						*nroff.vim* *nroff-syntax*
 
-To mark trailing spaces as an error, use this: >
+nroff構文ファイルはそのままでAT&T n/troffに対応している。構文ファイルに含まれ
+ているGNU groff拡張機能を使うには、それを有効化する必要がある。
 
-	:let nroff_space_errors = 1
+例えば、LinuxとBSDディストリビューションは、デフォルトではテキスト処理パッケー
+ジとしてgroffを使う。groff用の拡張構文強調機能を有効化するには、次のオプション
+を初期化ファイルに加える: >
+
+  :let b:nroff_is_groff = 1
+
+groffは、Solarisでまだ使われているかもしれない古いAT&T n/troffとは異なる。
+groffのマクロとリクエスト名は2文字以上の長さであってもよく、言語プリミティブに
+拡張がされている。例えば、AT&T troffではリクエスト\(yrを使い、2桁の数で年にア
+クセスする。groffでは互換性のために同じリクエストを使うことも出来るし、または
+groffネイティブの構文,\[yr]を使うことも出来る。さらに、\[year]として4桁の年を
+直接使うことも出来る。マクロリクエストは2文字以上の長さであってもよい。例えば
+、GNU mmはverbatim環境を作るのに".VERBON"と".VERBOFF"というリクエストを受けつ
+ける。
+
+g/troffによって得られる最良の整形された出力を得るには、スペースと句読点に関す
+るいくつかの単純なルールに従うべきである。
+
+1. 行の末尾に空のスペースを置かないこと
+
+2. 文末のピリオド、エクスクラメーションマークなどの後にはちょうど1個のスペース
+   を置くこと。
+
+3. 後述の理由により、全てのピリオドの後に改行(carriage return)を置くとよい。
+
+これらの妙なtipsの理由は、g/n/troffが改行に、これらのルールに従わないとすぐに
+混乱してしまうアルゴリズムを使っているためである。
+
+
+troffはTeXと違い、段落ごとでなく行ごとにテキストを書き込む。さらに、glueや
+stretchの概念を持たず、入力に水平、垂直の空白があると全てそのまま出力される。
+
+それゆえ、最終的なドキュメントで意図する以上の空白を文と文の間にはさまないよう
+に注意すること。この理由のため、全ての句読点記号の後すぐに改行を入れるという習
+慣がある。最終的に処理された出力が「一様な」テキストになってほしければ、入力の
+テキストで正しくスペースを置いておく必要がある。行末の空白と句読点の後の2個以
+上の空白をエラーとして強調したいならこうする: >
+
+  :let nroff_space_errors = 1
+
+正しい活字組みと干渉するかもしれないが、余分な空白や他のエラーを検出するもう1
+つの方法は、設定ファイル中で構文グループ"nroffDefinition"と"nroffDefSpecial"に
+目立つ強調定義を定義することである。例: >
+
+  hi def nroffDefinition term=italic cterm=italic gui=reverse
+  hi def nroffDefSpecial term=italic,bold cterm=italic,bold
+			 \ gui=reverse,bold
+
+ソースファイル中のプリプロセッサのエントリをセクションマーカーと同じくらい容易
+に表示させたいなら、.vimrc中で次のオプションを有効化する: >
+
+	let b:preprocs_as_sections = 1
+
+同様に、構文ファイルはmsパッケージ中の拡張段落マクロ(.XP)用の余分な段落マーカー
+も含んでいる。
+
+最後に、構文ファイル|groff.vim|が存在する。これはデフォルトでfile basisとグロ
+ーバルの両方でgroff構文強調することができる。
+
+
+OCAML						*ocaml.vim* *ocaml-syntax*
+
+OCaml構文ファイルは以下の拡張子を持つファイルに対応している: .ml, .mli, .mll
+.mly。以下の変数をセットすると、標準的OCaml構文からcamlp4プリプロセッサでサポ
+ートされている修正構文に切り替えることが出来る: >
+
+	:let ocaml_revised = 1
+
+以下の変数をセットすると"end"をエラーとして強調するのをやめることが出来る。こ
+れはVimがシンクロナイズできないほど長い構造を含むソースのとき便利である: >
+
+	:let ocaml_noend_error = 1
 
 
 PAPP						*papp.vim* *papp-syntax*
 
-The PApp syntax file handles .papp files and, to a lesser extend, .pxml
-and .pxsl files which are all a mixture of perl/xml/html/other using xml
-as the top-level file format. By default everything inside phtml or pxml
-sections is treated as a string with embedded preprocessor commands. If
-you set the variable: >
+PApp構文ファイルは.pappファイルと、その小さな拡張、トップレベルのファイルフォ
+ーマットとしてxmlを用いたperl/xml/html/その他の混合である.pxml, .pxslファイル
+を扱う。デフォルトでは、phtmlやpxmlセクションの内側の全ては埋め込みプリプロセ
+ッサコマンドつきの文字列として扱われる。次の変数を初期化ファイルで設定すると
+phtmlセクションの内側のhtmlコードを構文強調しようとする: >
 
 	:let papp_include_html=1
 
-in your startup file it will try to syntax-hilight html code inside phtml
-sections, but this is relatively slow and much too colourful to be able to
-edit sensibly ;)
+しかしこれは比較的遅く、実用的に編集するにはカラフルすぎる。
 
-The newest version of the papp.vim syntax file can usually be found at
-http://papp.plan9.de.
+構文ファイルpapp.vimの最新版は、通常以下で得られる。
+http://papp.plan9.de
 
 
 PASCAL						*pascal.vim* *pascal-syntax*
 
-Files matching "*.p" could be Progress or Pascal.  If the automatic detection
-doesn't work for you, or you don't edit Progress at all, use this in your
-startup vimrc: >
+"*.p"にマッチするファイルのタイプはProgressかPascalである。自動判別が機能しな
+いなら、またはProgressファイルを一切編集しないとわかっているなら、これをvimrc
+ファイルに書くといい: >
 
    :let filetype_p = "pascal"
 
-The Pascal syntax file has been extended to take into account some extensions
-provided by Turbo Pascal, Free Pascal Compiler and GNU Pascal Compiler.
-Delphi keywords are also supported. By default, Turbo Pascal 7.0 features are
-enabled.  If you prefer to stick with the standard Pascal keywords, add the
-following line to your startup file: >
+Pascal構文ファイルはTurbo Pascal, Free Pascal CompilerとGNU Pascal Compiler
+で提供される拡張に対応するための拡張が施されてきた。Delphiのキーワードもサポー
+トされている。デフォルトではTurbo Pascal 7.0の機能が有効化されている。標準的な
+Pascalのキーワードだけを使いたいなら、次の行を初期化ファイルに加えること: >
 
    :let pascal_traditional=1
 
-To switch on Delphi specific constructions (such as one-line comments,
-keywords, etc): >
+Delphi固有の構文(1行コメント、キーワード等)を有効化したいなら: >
 
    :let pascal_delphi=1
 
 
-The option pascal_symbol_operator controls whether symbol operators such as +,
-*, .., etc. are displayed using the Operator color or not.  To colorize symbol
-operators, add the following line to your startup file: >
+オプションpascal_symbol_operatorは+, *などのような演算子記号がOperatorの色を使
+って表示されるかどうかをコントロールする。演算子記号を色づけするなら、次の行を
+初期化ファイルに加えること: >
 
    :let pascal_symbol_operator=1
 
-Some functions are highlighted by default.  To switch it off: >
+いくつかの関数はデフォルトで強調される。これをオフにするには: >
 
    :let pascal_no_functions=1
 
-Furthermore, there are specific variable for some compiler.  Besides
-pascal_delphi, there are pascal_gpc and pascal_fpc.  Default extensions try to
-match Turbo Pascal. >
+さらに、いくつかのコンパイラ用に個別の変数がある。pascal_delphi,
+pascal_gpc, pascal_fpcがある。デフォルトの拡張はTurbo Pascalに合うようになって
+いる。 >
 
    :let pascal_gpc=1
 
-or >
+または >
 
    :let pascal_fpc=1
 
-To ensure that strings are defined on a single line, you can define the
-pascal_one_line_string variable. >
+文字列が1行で定義されるものとするなら、変数pascal_one_line_string variableを定
+義するとよい。 >
 
    :let pascal_one_line_string=1
 
-If you dislike <Tab> chars, you can set the pascal_no_tabs variable.  Tabs
-will be highlighted as Error. >
+タブ文字が好きでないなら、変数pascal_no_tabsをセットするとよい。するとタブがエ
+ラーとして強調される。 >
 
    :let pascal_no_tabs=1
 
 
-
 PERL						*perl.vim* *perl-syntax*
 
-There are a number of possible options to the perl syntax highlighting.
+perl用の構文強調にはたくさんのオプションがある。
 
-If you use POD files or POD segments, you might: >
+PODファイルやPODセグメントを使っているなら、こうするとよいかもしれない: >
 
-	:let perl_include_POD = 1
+	:let perl_include_pod = 1
 
-To handle package references in variable and function names differently from
-the rest of the name (like 'PkgName::' in '$PkgName::VarName'): >
+変数名と関数名中のパッケージ参照('$PkgName::VarName'中の'PkgName::'のような)を
+他の名前と区別したいなら: >
 
 	:let perl_want_scope_in_variables = 1
 
-If you want complex things like '@{${"foo"}}' to be parsed: >
+'@{${"foo"}}'のように複雑なものをパースさせたいなら: >
 
 	:let perl_extended_vars = 1
 
-The coloring strings can be changed. By default strings and qq friends will be
-highlighted like the first line. If you set the variable
-perl_string_as_statement, it will be highlighted as in the second line.
+文字列の色づけは変更できる。デフォルトでは文字列とqq friendsは第1行と同じよう
+に強調される。変数perl_string_as_statementをセットすると第2行のように強調され
+る。
 
    "hello world!"; qq|hello world|;
-   ^^^^^^^^^^^^^^NN^^^^^^^^^^^^^^^N       (unlet perl_string_as_statement)
-   S^^^^^^^^^^^^SNNSSS^^^^^^^^^^^^N       (let perl_string_as_statement)
+   ^^^^^^^^^^^^^^NN^^^^^^^^^^^^^^^N	  (unlet perl_string_as_statement)
+   S^^^^^^^^^^^^SNNSSS^^^^^^^^^^^SN	  (let perl_string_as_statement)
 
 (^ = perlString, S = perlStatement, N = None at all)
 
-The syncing has 3 options. The first two switch off some triggering of
-synchronization and should only be needed in case it fails to work properly.
-If while scrolling all of a sudden the whole screen changes color completely
-then you should try and switch off one of those. Let me know if you can figure
-out the line that causes the mistake.
+シンクロナイズには3つのオプションがある。最初の2つは、シンクロナイズのトリガー
+の一部をオフにするもので、強調が適切に機能しないときのみ必要になる。スクロール
+中に突然スクリーン全体の色がすっかり変わってしまったらこれらのうち1つをオフに
+してみること。その誤りを引き起こした行を特定できるなら、それを知らせてくださ
+い。
 
-One triggers on "^\s*sub\s*" and the other on "^[$@%]" more or less. >
+1つのトリガーは"^\s*sub\s*"に関するもので、もう1つはほぼ"^[$@%]"に関するもので
+ある。 >
 
 	:let perl_no_sync_on_sub
 	:let perl_no_sync_on_global_var
 
-Below you can set the maximum distance VIM should look for starting points for
-its attempts in syntax highlighting. >
+以下のようにして、どこから構文強調を始めるかの最大距離を設定できる: >
 
 	:let perl_sync_dist = 100
 
-For the "<<xxx" construct (here Documents), Vim can check for any value of
-"xxx".  So currently Vim can highlight here Documents properly.
-(訳注:原文では「取り扱えない」となっていますが、6.x現在では取り扱えるようにな
-りました。)
-
-If you want to use folding with perl, set perl_fold: >
+perlで折りたたみを使いたいならperl_foldをセットすること: >
 
        :let perl_fold = 1
 
 
 PHP3 and PHP4		*php.vim* *php3.vim* *php-syntax* *php3-syntax*
 
-[note: previously this was called "php3", but since it now also supports php4
-it has been renamed to "php"]
+[注意: これは以前は"php3"と呼ばれていた。しかし現在はphp4もサポートしているの
+で"php"と名前が変更された]
 
-There are the following options for the php syntax highlighting.
+php用の構文強調には以下のオプションがある。
 
-If you like SQL syntax hightlighting inside Strings: >
+文字列中でSQL構文強調を行いたいなら: >
 
   let php_sql_query = 1
 
-For highlighting the Baselib methods: >
+Baselibメソッドの強調を行いたいなら: >
 
   let php_baselib = 1
 
-Enable HTML syntax highlighting inside strings: >
+文字列中でHTML構文強調を行いたいなら: >
 
   let php_htmlInStrings = 1
 
-Using the old colorstyle: >
+古いカラースタイルを使いたいなら: >
 
   let php_oldStyle = 1
 
-Enable highlighting ASP-style short tags: >
+ASPスタイルのショートタグを有効化したいなら: >
 
   let php_asp_tags = 1
 
-Disable short tags: >
+ショートタグを無効化したいなら: >
 
   let php_noShortTags = 1
 
-For highlighting parent error ] or ): >
+] や ) の対応エラーを強調したいなら: >
 
   let php_parent_error_close = 1
 
-For skipping an php end tag, if there exists an open ( or [ without a closing
-one: >
+対応する閉じ括弧がない開き括弧( や [が存在する場合、php終了タグをスキップさせ
+たいなら: >
 
   let php_parent_error_open = 1
 
-Enable folding for classes and functions: >
+クラスや関数の折り畳みを有効化するには: >
 
   let php_folding = 1
 
-Selecting syncing method: >
+シンクロナイズ方法を選ぶには: >
 
   let php_sync_method = x
 
-x = -1 to sync by search (default),
-x > 0 to sync at least x lines backwards,
-x = 0 to sync from start.
+x = -1 で検索によるシンクロナイズ(デフォルト)
+x > 0 少なくともx行上までシンクロナイズ
+x = 0 最初からシンクロナイズ
 
 
 PPWIZARD					*ppwiz.vim* *ppwiz-syntax*
 
-PPWizard is a preprocessor for HTML and OS/2 INF files
+PPWizardはHTMLとOS/2 INFファイル用のプリプロセッサである。
 
-This syntax file has the options:
+構文ファイルは以下のオプションを持つ:
 
-- ppwiz_highlight_defs : determines highlighting mode for PPWizard's
-  definitions. Possible values are
+- ppwiz_highlight_defs : PPWizardの定義についての強調モードを決める。とりうる
+  値は
 
-  ppwiz_highlight_defs = 1 : PPWizard #define statements retain the
-    colors of their contents (e. g. PPWizard macros and variables)
+  ppwiz_highlight_defs = 1 : #define 文においてその内容の色を保つ(例. PPWizard
+  マクロと変数)
 
-  ppwiz_highlight_defs = 2 : preprocessor #define and #evaluate
-    statements are shown in a single color with the exception of line
-    continuation symbols
+  ppwiz_highlight_defs = 2 : 行継続記号を除き、#defineと#evaluate文が単一の色
+  で表示される。
 
-  The default setting for ppwiz_highlight_defs is 1.
+  ppwiz_highlight_defsのデフォルトは1である。
 
-- ppwiz_with_html : If the value is 1 (the default), highlight literal
-  HTML code; if 0, treat HTML code like ordinary text.
+- ppwiz_with_html : この値が1(デフォルト)なら、HTMLコードを強調する。0なら
+  HTMLコードを通常のテキストのように扱う。
 
 
 PHTML						*phtml.vim* *phtml-syntax*
 
-There are two options for the phtml syntax highlighting.
+phtml用の構文強調には2つのオプションがある。
 
-If you like SQL syntax highligthing inside Strings, use this: >
+文字列中でSQL構文強調をさせたいならこうする: >
 
 	:let phtml_sql_query = 1
 
-For syncing, minlines defaults to 100.  If you prefer another value, you can
-set "phtml_minlines" to the value you desire.  Example: >
+シンクロナイズについては、minlinesのデフォルトは100になっている。他の値にした
+いなら"phtml_minlines"を望む値にセットすればよい。例: >
 
 	:let phtml_minlines = 200
 
 
 POSTSCRIPT					*postscr.vim* *postscr-syntax*
 
-There are several options when it comes to highlighting PostScript.
+PostScript用の構文強調にはいくつかのオプションがある。
 
-First which version of the PostScript language to highlight.  There are
-currently three defined language versions, or levels.  Level 1 is the original
-and base version, and includes all extensions prior to the release of level 2.
-Level 2 is the most common version around, and includes its own set of
-extensions prior to the release of level 3.  Level 3 is currently the highest
-level supported.  You select which level of the PostScript language you want
-highlighted by defining the postscr_level variable as follows: >
+第一はどのバージョンのPostScript言語を強調するかである。現在のところ、3つの言
+語バージョンあるいはレベルが定義されている。レベル1はオリジナルの基本バージョ
+ンで、レベル2のリリース以前のすべての拡張を含んでいる。レベル2はもっとも一般的
+なバージョンで、レベル3リリース以前のすべての拡張を含んでいる。レベル3は現在の
+ところサポートされている中でもっともレベルが高い。次のように変数postscr_level
+を定義することによって、PostScript言語のどのレベルを強調するか選ぶことができる
+: >
 
 	:let postscr_level=2
 
-If this variable is not defined it defaults to 2 (level 2) since this is
-the most prevalent version currently.
+この変数が定義されていないときはデフォルトの2(レベル2)になる。これが現在のとこ
+ろもっとも普及しているためである。
 
-Note, not all PS interpreters will support all language features for a
-particular language level.  In particular the %!PS-Adobe-3.0 at the start of
-PS files does NOT mean the PostScript present is level 3 PostScript!
+すべてのPSインタープリタがその言語レベルのすべての言語機能をサポートしているわ
+けではないことに注意。とくに、PSファイルの先頭の%!PS-Adobe-3.0は現在の
+PostScriptがレベル3であることを示すわけではない!
 
-If you are working with Display PostScript, you can include highlighting of
-Display PS language features by defining the postscr_display variable as
-follows: >
+以下のように変数postscr_displayを定義すればDisplay PostScriptの言語機能も強調
+させることができる: >
 
 	:let postscr_display=1
 
-If you are working with Ghostscript, you can include highlighting of
-Ghostscript specific language features by defining the variable
-postscr_ghostscript as follows: >
+以下のように変数postscr_ghostscriptを定義すればGhostscript固有の言語機能も強調
+させることができる: >
 
 	:let postscr_ghostscript=1
 
-PostScript is a large language, with many predefined elements.  While it
-useful to have all these elements highlighted, on slower machines this can
-cause Vim to slow down.  In an attempt to be machine friendly font names and
-character encodings are not highlighted by default.  Unless you are working
-explicitly with either of these this should be ok.  If you want them to be
-highlighted you should set one or both of the following variables: >
+PostScriptはたくさんの定義済み要素を持つ巨大な言語である。これらの要素すべてを
+強調するのは便利であるが、そうすると遅いマシンではVimの動作が遅くなってしまう
+。マシンフレンドリーにするために、デフォルトではフォント名と文字エンコーディン
+グは強調されない、これらを強調させたいなら、以下の変数のどちらかまたは両方をセ
+ットすること: >
 
 	:let postscr_fonts=1
 	:let postscr_encodings=1
 
-There is a stylistic option to the highlighting of and, or, and not.  In
-PostScript the function of these operators depends on the types of their
-operands - if the operands are booleans then they are the logical operators,
-if they are integers then they are binary operators.  As binary and logical
-operators can be highlighted differently they have to be highlighted one way
-or the other.  By default they are treated as logical operators.  They can be
-highlighted as binary operators by defining the variable
-postscr_andornot_binary as follows: >
+スタイル上のオプションが存在する。PostScriptではこれらの演算子の機能はそれらの
+オペランドの型に依存する。オペランドが両方ブール型ならそれらは論理演算子となり
+、それらが両方整数型なら2項演算子となる。2項演算子と論理演算子を区別して強調す
+ることができるので、それらはどちらにしても強調されなければならない。変数
+postscr_andornot_binaryを定義すると、それらは2項演算子として強調される: >
 
 	:let postscr_andornot_binary=1
 <
@@ -1556,490 +1873,587 @@ postscr_andornot_binary as follows: >
 			*ptcap.vim*
 PRINTCAP + TERMCAP	*ptcap-syntax* *termcap-syntax* *printcap-syntax*
 
-This syntax file applies to the printcap and termcap databases.
+この構文ファイルはprintcapとtermcapデータベースに適用される。
 
-In order for Vim to recognize printcap/termcap files that do not match
-the patterns *printcap*, or *termcap*, you must put additional patterns
-appropriate to your system in your |myfiletypefile| file.  For these
-patterns, you must set the variable "b:ptcap_type" to either "print" or
-"term", and then the 'filetype' option to ptcap.
+パターン*printcap*や*termcap*にマッチしないprintcap/termcapファイルを認識する
+ためには、ファイル|myfiletypefile|において、あなたのシステムに合ったパターンを
+追加しなければならない。これらのパターンには、変数"b:ptcap_type"を"print"か
+"term"のどちらかにセットしなければならない。するとオプション'filetype'の値が
+ptcapになる。
 
-For example, to make Vim identify all files in /etc/termcaps/ as termcap
-files, add the following: >
+例えば、/etc/termcaps/以下の全てのファイルをtermcapファイルと識別させるように
+するには次を書き加える: >
 
    :au BufNewFile,BufRead /etc/termcaps/* let b:ptcap_type = "term" |
 				       \ set filetype=ptcap
 
-If you notice highlighting errors while scrolling backwards, which
-are fixed when redrawing with CTRL-L, try setting the "ptcap_minlines"
-internal variable to a larger number:
+上にスクロールしているときに強調間違いが出て、それがCTRL-Lで再描画すると直るよ
+うなら、変数"ptcap_minlines"の値を大きくしてみるとよい: >
 
-  let ptcap_minlines = 50
+   :let ptcap_minlines = 50
 
-(The default is 20 lines.)
+(デフォルトは20行)
 
 
 PROGRESS				*progress.vim* *progress-syntax*
 
-Files matching "*.w" could be Progress or cweb.  If the automatic detection
-doesn't work for you, or you don't edit cweb at all, use this in your
-startup vimrc: >
+"*.w"にマッチするファイルのタイプはProgressかCWEBである。自動判別がうまく機能
+しないなら、またはcwebファイルを一切編集しないとわかっているなら、次をvimrcに
+加えるとよい: >
    :let filetype_w = "progress"
-The same happens for "*.i", which could be assembly, and "*.p", which could be
-Pascal.  Use this if you don't use assembly and Pascal: >
+同じことが"*.i"(アセンブリでもありうる)と"*.p"(Pascalでもありうる)にもいえる。
+アセンブリとPascalを使わないとわかっているならこれを使うこと: >
    :let filetype_i = "progress"
    :let filetype_p = "progress"
 
 
+
 PYTHON						*python.vim* *python-syntax*
 
-There are four options to control Python syntax highlighting.
+Python構文強調をコントロールするオプションは4つある。
 
-For highlighted numbers: >
+数字の強調: >
 	:let python_highlight_numbers = 1
 
-For highlighted builtin functions: >
+組み込み関数の強調: >
 	:let python_highlight_builtins = 1
 
-For highlighted standard exceptions: >
+標準例外の強調: >
 	:let python_highlight_exceptions = 1
 
-If you want all possible Python highlighting (the same as setting the
-preceding three options): >
+行末の空白と、スペースとタブの混在を強調: >
+	:let python_highlight_space_errors = 1
+
+全ての強調を有効化したければ(これは上の3つのオプションをセットするのと同じ): >
 	:let python_highlight_all = 1
+
+
+QUAKE						*quake.vim* *quake-syntax*
+
+Quake構文定義はQuakeエンジンのどれかに基づくほとんど全てのFPS(First Person
+Shooter)用に対応するはずである。しかし3つのゲーム(Quake, Quake 2, Quake 3
+Arena)間でコマンド名が少々異なる。そのため、どのコマンドが有効化を指定できるよ
+うに構文定義は3つのグローバル変数の存在をチェックする。3つの変数には次のような
+効果がある:
+
+Quakeでのみ利用可能なコマンドを強調するように設定: >
+	:let quake_is_quake1 = 1
+
+Quake 2でのみ利用可能なコマンドを強調するように設定: >
+	:let quake_is_quake2 = 1
+
+Quake 3 Arenaでのみ利用可能なコマンドを強調するように設定: >
+	:let quake_is_quake3 = 1
+
+これら3つのコマンドを自由に組み合わせることが出来る。しかしゲームで利用できな
+いコマンドも強調してしまうかもしれない。
+
+
+READLINE				*readline.vim* *readline-syntax*
+
+readlineライブラリは主としてBASHシェルで使われ、BASHはかなりの数のコマンドとオ
+プションを追加している。これらの項目を同様に強調するには次を|vimrc|に加えるか
+、readline構文ファイルを読み込む前にこれをタイプすればよい: >
+	let readline_has_bash = 1
+
+こうするとBASH(バージョン2.05a以降。一部それ以前)が追加するコマンドも強調する
+ようになる。
 
 
 REXX						*rexx.vim* *rexx-syntax*
 
-If you notice highlighting errors while scrolling backwards, which are fixed
-when redrawing with CTRL-L, try setting the "rexx_minlines" internal variable
-to a larger number: >
+上にスクロールしているときに強調間違いが出て、それがCTRL-Lで再描画すると直るよ
+うなら、変数"rexx_minlines"の値を大きくしてみるとよい: >
 	:let rexx_minlines = 50
-This will make the syntax synchronization start 50 lines before the first
-displayed line.  The default value is 10.  The disadvantage of using a larger
-number is that redrawing can become slow.
+こうすると構文シンクロナイズが画面最上行の50行前から始まるようになる。値を大き
+くすることの欠点は、再描画が遅くなることである。
 
 
 RUBY						*ruby.vim* *ruby-syntax*
 
-There are a few options to the Ruby syntax highlighting.
+Ruby構文強調にはいくつかのオプションがある。
 
-By default, the "end" keyword is colorized according to the opening statement
-of the block it closes. While useful, this feature can be expensive: if you
-experience slow redrawing (or you are on a terminal with poor color support)
-you may want to turn it off by defining the "ruby_no_expensive" variable: >
+デフォルトではキーワード"end"はそれに対応するブロック開始文にしたがって色づけ
+される。この機能は便利だが、コストがかかる: 再描画が遅くなったら(または色機能
+の貧弱なターミナルを使っているなら)変数"ruby_no_expensive"を定義することによっ
+てこの機能をオフにできる: >
 	:let ruby_no_expensive = 1
-In this case the same color will be used for all control keywords.
+この場合すべての制御キーワードに同じ色が使われる。
 
-If you do want this feature enabled, but notice highlighting errors while
-scrolling backwards, which are fixed when redrawing with CTRL-L, try setting
-the "ruby_minlines" variable to a value larger than 50: >
+この機能を有効化したいが、
+上にスクロールしているときに強調間違いが出て、それがCTRL-Lで再描画すると直るよ
+うなら、変数"ruby_minlines"を50以上の値にセットしてみるとよい: >
 	:let ruby_minlines = 100
-Ideally, this value should be a number of lines large enough to embrace your
-largest class or module.
+理想的にはこの値はファイル中の最も大きいクラスやモジュールの長さよりも大きくし
+ておくとよい。
 
-Finally, if you do not like to see too many color items around, you can define
-"ruby_no_identifiers": >
+最後に、色をつける単語をもっと少なくしたいなら"ruby_no_identifiers"を定義する
+ことが出来る: >
 	:let ruby_no_identifiers = 1
-This will prevent highlighting of special identifiers like "ConstantName",
-"$global_var", "@instace_var", "| iterator |", and ":symbol".
+こうすると"ConstantName", "$global_var", "@instance_var", "| iterator |",
+":symbol".のような特別な識別子の強調をやめる。
 
 
 SDL						*sdl.vim* *sdl-syntax*
 
-The SDL highlighting probably misses a few keywords, but SDL has so many
-of them it's almost impossibly to cope.
+SDL用の強調にはいくつかのキーワードが抜けているかもしれない。しかしSDLにはたく
+さんのキーワードがあるので、すべてに対応することはほとんど不可能である。
 
-The new standard, SDL-2000, specifies that all identifiers are
-case-sensitive (which was not so before), and that all keywords can be
-used either completely lowercase or completely uppercase. To have the
-highlighting reflect this, you can set the following variable: >
+新しい標準SDL-2000ではすべての識別子の大文字・小文字が区別される(以前はそうで
+はなかった)。また、すべてのキーワードが全部大文字または全部小文字であってもよ
+い。構文強調にこれを反映させるには次の変数をセットすればよい: >
 	:let sdl_2000=1
 
-This also sets many new keywords. If you want to disable the old
-keywords, which is probably a good idea, use: >
+これはたくさんの新しいキーワードもセットする。古いキーワードを無効にするには(
+これはよい考えである)こうする: >
 	:let SDL_no_96=1
 
-
-The indentation is probably also incomplete, but right now I am very
-satisfied with it for my own projects.
-
-The last thing is a little PO-editing helper. It adds a couple of menu
-entries. Though it doesn't do much, I find it extremely helpful for
-translating PO files. I just won't use Emacs, you know.
-(訳注:これは不明。別の形式(PO)についての記述だと思われる)
+インデントもおそらく不完全であるが、今のところ私はこれでとても満足している。
 
 
 SED						*sed.vim* *sed-syntax*
 
-To make tabs stand out from regular blanks (accomplished by using Todo
-highlighting on the tabs), define "highlight_sedtabs" by putting >
+タブをTodoと同じようにハイライトさせ、通常の空白から目立つようにさせるには
+次の行をvimrcに書き、"highlight_sedtabs"を定義する >
 
 	:let highlight_sedtabs = 1
 
-in the vimrc file.  (This special highlighting only applies for tabs
-inside search patterns, replacement texts, addresses or text included
-by an Append/Change/Insert command.)  If you enable this option, it is
-also a good idea to set the tab width to one character; by doing that,
-you can easily count the number of tabs in a string.
+(この特別な強調は検索パターン中、置換テキスト、アドレス、Append/Change/Insert
+コマンドに含まれるテキスト内のタブにだけ適用される)。このオプションを有効化す
+るなら、タブ幅を1文字にするとよい; そうすると文字列中のタブの数を数えやすくな
+る。
 
-Bugs:
+バグ:
 
-  The transform command (y) is treated exactly like the substitute
-  command.  This means that, as far as this syntax file is concerned,
-  transform accepts the same flags as substitute, which is wrong.
-  (Transform accepts no flags.)  I tolerate this bug because the
-  involved commands need very complex treatment (95 patterns, one for
-  each plausible pattern delimiter).
+  変換コマンド(y)は置換コマンドとまったく同様に扱われる。つまり、この構文ファ
+  イルにおいては、変換は置換と同じフラグを受け取ると判断される。これは間違いで
+  ある(変換は一切フラグを受け取らない)。これに関係したコマンドは非常に複雑な処
+  理を要求するため(95パターン、もっともらしいパターンデリミタごとに1つ)、私は
+  このバグを容認している。
 
 
 SGML						*sgml.vim* *sgml-syntax*
 
-The coloring scheme for tags in the SGML file works as follows.
+SGMLファイル中のタグを強調する方法は以下のように動作する。
 
-The <> of opening tags are colored differently than the </> of a closing tag.
-This is on purpose! For opening tags the 'Function' color is used, while for
-closing tags the 'Type' color is used (See syntax.vim to check how those are
-defined for you)
+開きタグ<>と閉じタグ</>は異なる色がつけられる。これは意図されたものである。開
+きタグには'Function'の色が使われ、閉じタグには'Type'の色が使われる(これらがど
+う定義されているかを確かめたいならsyntax.vimを見ること)。
 
-Known tag names are colored the same way as statements in C.  Unknown tag
-names are not colored which makes it easy to spot errors.
+登録されているタグ名はCの文と同じ方法で色づけされる。エラーを見つけやすくする
+ため、登録されていないタグ名は色づけされない。
 
-Note that the same is true for argument (or attribute) names. Known attribute
-names are colored differently than unknown ones.
+引数名(や属性名)も同様である。登録されている属性名は登録されていない属性名と異
+なる色がつけられる。
 
-Some SGML tags are used to change the rendering of text. The following tags
-are recognized by the sgml.vim syntax coloring file and change the way normal
-text is shown: <varname> <emphasis> <command> <function> <literal>
-<replaceable> <ulink> and <link>.
+いくつかのSGMLタグはテキストの外見を変更するのに使われる。以下のタグは構文ファ
+イルsgml.vimによって認識され、通常のテキストの表示法を変更する:
+ <varname> <emphasis> <command> <function> <literal> <replaceable> <ulink>
+ <link>。
 
-If you want to change how such text is rendered, you must redefine the
-following syntax groups:
-
+そのテキストの表示法を変えたいなら以下の構文グループを再定義しなければならない
+: 
     - sgmlBold
     - sgmlBoldItalic
     - sgmlUnderline
     - sgmlItalic
     - sgmlLink for links
 
-To make this redefinition work you must redefine them all and define the
-following variable in your vimrc (this is due to the order in which the files
-are read during initialization) >
+この再定義を機能させるにはこれらすべてを再定義し、以下の変数をvimrc中で定義し
+なければならない(初期化の際にファイルが読み込まれる順序のため) >
    let sgml_my_rendering=1
 
-You can also disable this rendering by adding the following line to your
-vimrc file: >
+この表示法を無効にしたければ次の行をvimrcに加える: >
    let sgml_no_rendering=1
 
-(Adapted from the html.vim help text by Claudio Fleiner <claudio@fleiner.com>)
+(Claudio Fleiner <claudio@fleiner.com>によるhtml.vimのヘルプテキストから一部借
+用した)
 
 
 SH						*sh.vim* *sh-syntax*
 
-This covers the "normal" Unix (Borne) sh, bash and the korn shell.
+これは「普通の」Unix (Bourne) sh、bashそしてKornシェルをカバーしている。
 
-Vim attempts to determine which shell type is in use by specifying that
-various filenames are of specific types:
+Vimは様々なファイル名がどのタイプであるかを指定することによって、どのシェルが
+使われているかを決定しようとする: >
 
-	ksh : .kshrc* *.ksh
-	bash: .bashrc* bashrc bash.bashrc .bash_profile* *.bash
+    ksh : .kshrc* *.ksh
+    bash: .bashrc* bashrc bash.bashrc .bash_profile* *.bash
+<
+これらのうちどれにも当てはまらなければ、ファイルの第一行によって判断される(例.
+/bin/sh /bin/ksh /bin/bash)。第一行でシェルを指定されていれば、そのシェルが使
+用される。しかしいくつかのファイル(例. .profile)はシェルファイルであることはわ
+かっていても、どのタイプか明らかではない。さらに、多くのシステムでshは
+"bash"(linux)や"ksh"(posix)へのシンボリックリンクになっている。
 
-If neither of these cases pertain, then the first line of the file is examined
-(ex. /bin/sh  /bin/ksh  /bin/bash).  If the first line specifies a shelltype,
-then that shelltype is used.  However some files (ex. .profile) are known to
-be shell files but the type is not apparent.  One may specify buffer specific
-variables prior to sourcing the <sh.vim> syntax file (b:is_kornshell,
-b:is_bash, or b:is_sh) so that the associated shell type will be used.  One
-may also specify a global default by instantiating one of the following
-three variables:
+以下の3つの変数のどれかを.vimrcで定義することにより、デフォルトを設定すること
+が出来る:
 
-	ksh : is_kornshell
-	bash: is_bash
-	sh  : is_sh
+    ksh: >
+	let is_kornshell = 1
+<   bash: >
+	let is_bash	 = 1
+<   sh: >
+	let is_sh	 = 1
 
-One may also specify that what looks like the "sh" shell is actually
-to be interpreted as a bash shell by setting 'bash_is_sh'.  It is
-best to set any of these global variables in your '.vimrc' file.
+.vimrcで以下のように設定すると >
+	let g:sh_fold_enabled= 1
 
-To choose between the two ways to treat single-quotes inside a pair of
-double-quotes, I have introduced a Vim variable "highlight_balanced_quotes".
-By default (ie by not declaring this variable) single quotes can be used
-inside double quotes, and are not highlighted.  If you prefer balanced single
-quotes as I do you just make the statement in your .vimrc file: >
-	:let highlight_balanced_quotes = 1
+様々な構文要素(ヒアドキュメントと関数の中身)がsyntaxメソッドによって折り畳み可
+能になる(|:syn-fold|)。
 
-Similarly I have introduced another vim variable "highlight_function_name" to
-be used to enable/disable highlighting of the function-name in function
-declarations.  The default is not to highlight the function name.  If you want
-to highlight function names, include this in your .vimrc file: >
-	:let highlight_function_name = 1
+上にスクロールしているときに強調間違いが出て、それがCTRL-Lで再描画すると直るよ
+うなら、変数"sh_minlines"の値を大きくしてみるとよい。例: >
 
-If you notice highlighting errors while scrolling backwards, which are fixed
-when redrawing with CTRL-L, try setting the "sh_minlines" internal variable
-to a larger number: >
-	:let sh_minlines = 200
-This will make the syntax synchronization start 200 lines before the first
-displayed line.  The default value is 100.  The disadvantage of using a larger
-number is that redrawing can become slow.
+	let sh_minlines = 500
 
-If you don't have much to synchronize on, displaying can be very slow.  To
-reduce this, the "sh_maxlines" internal variable can be set: >
-	:let sh_maxlines = 100
-The default is to use the double of "sh_minlines".  Set it to a smaller number
-to speed up displaying.  The disadvantage is that highlight errors may appear.
+こうすると構文シンクロナイズが画面最上行の500行前から始まるようになる。デフォ
+ルトの値は200である。大きい値を使うことの欠点は、動作が遅くなるかもしれないこ
+とである。
+
+シンクロナイズさせるものがあまりないときは表示がとても遅くなるかもしれない。こ
+れを減らすために、変数"sh_maxlines"をセットすることができる。例: >
+
+	let sh_maxlines = 100
+<
+デフォルトはsh_minlinesの2倍の値が使われる。表示を高速化するにはこれをもっと小
+さい値にすること。欠点は強調間違いが出るかもしれないことである。
 
 
 SPEEDUP (AspenTech plant simulator)		*spup.vim* *spup-syntax*
 
-The Speedup syntax file has some options:
+Speedup構文ファイルにはいくつかのオプションがある:
 
-- strict_subsections : If this variable is defined, only keywords for
-  sections and subsections will be highlighted as statements but not
-  other keywords (like WITHIN in the OPERATION section).
+- strict_subsections : この変数が定義されていると、セクションとサブセクション
+  用のキーワードだけが文として強調され、他のキーワードにはされなくなる
+  (OPERATIONセクションのWITHINと同様)。
 
-- highlight_types : Definition of this variable causes stream types
-  like temperature or pressure to be highlighted as Type, not as a
-  plain Identifier. Included are the types that are usually found in
-  the DECLARE section; if you defined own types, you have to include
-  them in the syntax file.
+- highlight_types : この変数が定義されていると、温度や圧力のようなストリーム
+  型が単純な識別子でなくTypeとして強調される。Includedは通常DECLAREセクション
+  中に現れる型である;ユーザが自分用の型を定義しているならそれらを構文ファイル
+  に含めなければならない。
 
-- oneline_comments : this value ranges from 1 to 3 and determines the
-  highlighting of # style comments.
+- oneline_comments : この値は1から3までの間になり、#スタイルのコメントの強調を
+  決定する。
 
-  oneline_comments = 1 : allow normal Speedup code after an even
-  number of #s.
+  oneline_comments = 1 : 偶数個の#の後にも通常のSpeedupコードが現れることを許す
 
-  oneline_comments = 2 : show code starting with the second # as
-  error. This is the default setting.
+  oneline_comments = 2 : 2番目の#で始まるコードをエラーとして表示する。これが
+  デフォルトの設定である。
 
-  oneline_comments = 3 : show the whole line as error if it contains
-  more than one #.
+  oneline_comments = 3 : 1個以上の#を含む行全体をエラーとして強調する。
 
-Since especially OPERATION sections tend to become very large due to
-PRESETting variables, syncing may be critical. If your computer is
-fast enough, you can increase minlines and/or maxlines near the end of
-the syntax file.
+変数をPRESETするため、OPERATIONセクションはとても大きくなりがちであり、それゆ
+えシンクロナイズがぎりぎりになりかもしれない。あなたのコンピュータが十分はない
+なら構文ファイルの最後近くminlinesとmaxlinesの値を大きくするとよいかもしれな
+い。
+
+
+TCSH						*tcsh.vim* *tcsh-syntax*
+
+これは"tcsh"という名前のシェルをカバーしている。これはcshのスーパーセットであ
+る。ファイル形式がどのように判定されるかは|csh.vim|を参照。
+
+tcshはシェル変数"backslash_quote"をセットしていない限り文字列中に\"が現れるこ
+とを許さない。Vimにバックスラッシュクォート構文が存在しないと判断させたいな
+ら、次の行を.vimrcに加えること: >
+
+	:let tcsh_backslash_quote = 0
+
+は上にスクロールしているときに強調間違いが出て、それがCTRL-Lで再描画すると直る
+ようなら、変数"tcsh_minlines"の値を大きくしてみるとよい: >
+
+	:let tcsh_minlines = 100
+
+こうすると構文シンクロナイズが画面最上行の100行前から始まるようになる。大きな
+値にすることの欠点は、再描画が遅くなることである。
 
 
 TEX						*tex.vim* *tex-syntax*
 
-The tex highlighting supports TeX, LaTeX, and some AmsTeX.  The
-highlighting supports three primary zones: normal, texZone, and texMathZone.
-Although a considerable effort has been made to have these zones terminate
-properly, zones delineated by $..$ and $$..$$ cannot be synchronized as
-there's no difference between start and end patterns.  Consequently, a
-special "TeX comment" has been provided >
-	%stopzone
-which will forcibly terminate the highlighting of either a texZone or a
-texMathZone.
+追い込みコメント/Math? ~
 
-If you have a slow computer, you may wish to reduce the values for >
+tex用の構文強調はTeX, LaTeX, AmsTeXをサポートしている。normal, texZone,
+texMathZoneの3つの主な区間がサポートされている。これらの区域を適切に区切るよう
+かなりの努力がされたが、$..$と$$..$$で線引きされる区間は開始・終了のパターンと
+まったく同じにシンクロナイズさせることは出来ない。その結果、特別な"TeX
+comment"が提供されている >
+	%stopzone
+このコメントがあるとここで強制的にtexZoneまたはtexMathZoneの強調を終わらせる。
+
+構文強調が遅い? ~
+
+遅いコンピュータを使っているなら、これらの値を減らすとよいかもしれない >
 	:syn sync maxlines=200
 	:syn sync minlines=50
-(especially the latter).  If your computer is fast, you may wish to
-increase them.  This primarily affects synchronizing (ie. just what group,
-if any, is the text at the top of the screen supposed to be in?).
+(特に後者を)。速いコンピュータを使っているならこれらの値を増やしてもよい。これ
+らは第一にシンクロナイズ(つまり、画面最上行のテキストがどのグループに入るか)に
+影響を与える。
 
-The <tex.vim> supports lexical error checking of various sorts.  Thus,
-although the error checking is ofttimes very useful, it can indicate
-errors where none actually are.  If this proves to be a problem for you,
-you may put in your <.vimrc> the following statement: >
+過度なエラー強調? ~
+
+<tex.vim>は様々な種類のレキシカルエラーチェックをサポートしている。すなわち、
+エラーチェックは暇なときにはとても便利だが、実際にはエラーでない箇所もエラーと
+示すかもしれない。それが嫌なら、次の行を<.vimrc>に置くとよい: >
 	let tex_no_error=1
-and all error checking by <tex.vim> will be suppressed.
+すると<tex.vim>によるすべてのエラーチェックが停止される。
+
+新しいMathグループが必要? ~
+
+新しいmathグループをLaTeXに含めたいなら、以下のコードがそうする例である: >
+
+    syn cluster texMathZones add=texMathZoneLOCAL
+    syn region texMathZoneLOCAL start="\\begin\s*{\s*LOCALMATH\s*}"
+       \ end="\\end\s*{\s*LOCALMATH\s*}" keepend
+       \ contains=@texMathZoneGroup
+    if !exists("tex_no_math")
+     syn sync match texSyncMathZoneLOCAL grouphere texMathZoneLOCAL
+       \ "\\begin\s*{\s*LOCALMATH\*\s*}"
+     syn sync match texSyncMathZoneLOCAL groupthere NONE
+       \ "\\end\s*{\s*LOCALMATH\*\s*}"
+    endif
+    hi link texMathZoneLOCAL texMath
+<
+LOCALMATHをあなたが決めた新しいmathグループに書き換える必要がある。そしてこれ
+を.vim/after/syntax/tex.vimに加えること。
+
+新しいスタイルを始める? ~
+
+*.texファイルで"\makeatletter"を使う人がいるかもしれないので、コマンド中で"@"
+が使えるようになっている。しかし*.texファイルは次の拡張子: sty cls clo dtx ltx
+を持たないので@をエラーと判断して強調する。これを解決するにはこうする: >
+
+	:let b:tex_stylish = 1
+	:set ft=tex
+
+"let g:tex_stylish=1"を<.vimrc>に書くと<syntax/tex.vim>は常にこのような@の使用
+法を受け入れるようになる。
 
 
 TF						*tf.vim* *tf-syntax*
 
-There is one option for the tf syntax highlighting.
+tfの構文強調には1つのオプションがある。
 
-For syncing, minlines defaults to 100.  If you prefer another value, you can
-set "tf_minlines" to the value you desire.  Example: >
+シンクロナイズについて、minlinesのデフォルトは100になっている。他の値にしたい
+なら、"tf_minlines"を望む値にセットすればよい。例: >
 
 	:let tf_minlines = your choice
 
 
-XF86CONFIG                              *xf86conf.vim* *xf86conf-syntax*
+VIM						*vim.vim* *vim-syntax*
 
-The syntax of XF86Config file differs in XFree86 v3.x and v4.x.  Both
-variants are supported.  Automatic detection is used, but is far from perfect.
-You may need to specify the version manually.  Set the variable
-xf86conf_xfree86_version to 3 or 4 according to your XFree86 version in
-your .vimrc.  Example: >
-        :let xf86conf_xfree86_version=3
-When using a mix of versions, set the b:xf86conf_xfree86_version variable.
+より正確な構文強調と画面更新速度にはトレードオフがある。正確さを向上させるには
+、変数g:vim_minlinesの値を大きくすればよい。変数g:vim_maxlinesは画面更新速度を
+改善するのに使える(これについては|:syn-sync|を参照)。
 
-Note that spaces and underscores in option names are not supported.  Use
-"SyncOnGreen" instead of "__s yn con gr_e_e_n" if you want the option name
-highlighted.
+	g:vim_minlines : シンクロナイズの最小行数をセットするのに使う
+	g:vim_maxlines : シンクロナイズの最大行数をセットするのに使う 
+
+g:vimembedscriptオプションは外部スクリプト言語(現在のところperl, python, ruby,
+tcl)のサポートを犠牲にする代わりに、vimスクリプト用の構文強調の読み込みをいく
+らか速くすることができる。
+
+	g:vimembedscript == 1 (デフォルト)	 <vim.vim>埋め込みスクリプト言
+	g:vimembedscript が存在しない		 語: perl, python, ruby, tclの
+						 強調を有効化する。
+
+	g:vimembedscript == 0			 埋め込みスクリプト言語用の構
+						 文強調を読み込まない。
+
+
+XF86CONFIG				*xf86conf.vim* *xf86conf-syntax*
+
+XF86Configファイルの構文はXFree86 v3.xとv4.xで異なっている。両方のバージョンが
+サポートされている。自動的に判定がされるが、完全からはほど遠い。手動でバージョ
+ンを設定する必要があるかもしれない。使用しているXFree86に応じて、.vimrc中で変
+数xf86conf_xfree86_versionを3または4にセットすること。例: >
+	:let xf86conf_xfree86_version=3
+複数のバージョンが混在しているときには
+変数b:xf86conf_xfree86_versionをセットすること。
+
+オプション名中のスペースとアンダースコアはサポートされていない。オプション名を
+ハイライトさせたいなら"__s yn con gr_e_e_n"でなく"SyncOnGreen"と書くこと。
 
 
 XML						*xml.vim* *xml-syntax*
 
-Xml namespaces are highlighted by default. This can be inhibited by
-setting a global variable: >
+Xml名前空間がデフォルトで強調される。次のグローバル変数をセットするとそれが無
+効化される: >
 
 	:let g:xml_namespace_transparent=1
 <
 							*xml-folding*
-The xml syntax file provides syntax |folding| (see |:syn-fold|) between
-start and end tags. This can be turned on by >
+xml構文ファイルを使うと、開始タグと終了タグの間を折りたたむ|folding|ことができ
+る(|:syn-fold|を参照)。これをオンにするには >
 
+	:let g:xml_syntax_folding = 1
 	:set foldmethod=syntax
+
+とする。
+構文による折り畳みは、構文強調を著しく遅くする可能性がある。特に巨大なファイル
+ではそうである。
 
 
 X Pixmaps (XPM)					*xpm.vim* *xpm-syntax*
 
-xpm.vim creates its syntax items dynamically based upon the contents of the
-XPM file.  Thus if you make changes e.g. in the color specification strings,
-you have to source it again e.g. with ":set syn=xpm".
+xpm.vimは編集中のXPMファイルの内容から、動的に構文要素を生成する。そのため、色
+設定文字列などを変更したときは":set syn=xpm"などとしてxpm.vimを読み直さなけれ
+ばならない。
 
-To copy a pixel with one of the colors, yank a "pixel" with "yl" and insert it
-somewhere else with "P".
+色つきのピクセルをコピーするには"yl"で"pixel"をヤンクし、どこかで"P"としてそれ
+を挿入する。
 
-Do you want to draw with the mouse?  Try the following: >
+マウスで図を描きたければ次のようにしてみるとよい: >
    :function! GetPixel()
    :   let c = getline(line("."))[col(".") - 1]
    :   echo c
    :   exe "noremap <LeftMouse> <LeftMouse>r".c
-   :   exe "noremap <LeftDrag>  <LeftMouse>r".c
+   :   exe "noremap <LeftDrag>	<LeftMouse>r".c
    :endfunction
    :noremap <RightMouse> <LeftMouse>:call GetPixel()<CR>
    :set guicursor=n:hor20	   " to see the color beneath the cursor
-This turns the right button into a pipette and the left button into a pen.
-It will work with XPM files that have one character per pixel only and you
-must not click outside of the pixel strings, but feel free to improve it.
+これを行うと、右ボタンがピペットになり、左ボタンがペンになる。これは1ピクセル
+につき1文字だけとなっているXPMファイルでうまく機能する。ピクセル文字列の外をク
+リックしてはならない。これを自由に改良してください。
 
-It will look much better with a font in a quadratic cell size, e.g. for X: >
+セルサイズが正方形のフォントを使うと見栄えがよくなる。Xの例: >
 	:set guifont=-*-clean-medium-r-*-*-8-*-*-*-*-80-*
 
+
 ==============================================================================
-5. Defining a syntax					*:syn-define* *E410*
+5. 構文を定義する					*:syn-define* *E410*
 
-Vim understands three types of syntax items:
+構文要素には3つのタイプがある。
 
-1. Keyword.
-   It can only contain keyword characters, according to the 'iskeyword'
-   option.  It cannot contain other syntax items.  It will only match with a
-   complete word (there are no keyword characters before or after the match).
-   The keyword "if" would match in "if(a=b)", but not in "ifdef x", because
-   "(" is not a keyword character and "d" is.
+1. キーワード
+   これはオプション'iskeyword'で定義されるキーワード文字だけからなる。他の構文
+   要素を含むことはできない。完全な単語(マッチの前後にキーワード文字が存在しな
+   い)にのみマッチする。キーワード"if"は"if(a=b)"にはマッチするが、"ifdef x"に
+   はマッチしない。"("はキーワード文字でなく、"d"はキーワード文字だから。
 
-2. Match.
-   This is a match with a single regexp pattern.
+2. マッチ
+   単一の正規表現パターンにマッチする。
 
-3. Region.
-   This starts at a match of the "start" regexp pattern and ends with a match
-   with the "end" regexp pattern.  Any other text can appear in between.  A
-   "skip" regexp pattern can be used to avoid matching the "end" pattern.
+3. リージョン
+   正規表現パターン"start"のマッチ位置から始まり、正規表現パターン"end"のマッ
+   チで終わる。その間にどんなテキストがあってもよい。正規表現パターン"skip"を
+   使うとパターン"end"にマッチするのを避けることができる。
 
-Several syntax ITEMs can be put into one syntax GROUP.  For a syntax group
-you can give highlighting attributes.  For example, you could have an item
-to define a "/* .. */" comment and another one that defines a "// .." comment,
-and put them both in the "Comment" group.  You can then specify that a
-"Comment" will be in bold font and have a blue color.  You are free to make
-one highlight group for one syntax item, or put all items into one group.
-This depends on how you want to specify your highlighting attributes.  Putting
-each item in its own group results in having to specify the highlighting
-for a lot of groups.
+複数の構文要素を1つの構文グループに入れることができる。構文グループには強調属
+性を与えることができる。例えば、"/* .. */"のコメントを定義する要素と"// .."の
+コメントを定義する要素を作り、それらを"Comment"グループに入れることができる。
+そして"Comment"が青のボールドフォントになるように指定することができる。1つの構
+文要素に対し1つの構文グループを作ったり、すべての要素を1つのグループに入れても
+よい。それは強調属性をどう指定したいかによる。各要素をそれ自身のグループに入れ
+るとたくさんのグループに対して強調法を指定しなければならなくなる。
 
-Note that a syntax group and a highlight group are similar.  For a highlight
-group you will have given highlight attributes.  These attributes will be used
-for the syntax group with the same name.
+構文グループと強調グループは似ていることに注意。強調グループに対しては強調属性
+を与えることになる。それらの属性は同名の構文グループに対して使われる。
 
-In case more than one item matches at the same position, the one that was
-defined LAST wins.  Thus you can override previously defined syntax items by
-using an item that matches the same text.  But a keyword always goes before a
-match or region.  And a keyword with matching case always goes before a
-keyword with ignoring case.
+同じ箇所に対して1個以上の要素がマッチする場合には、最後に定義されたものが使わ
+れる。よって同じテキストにマッチする要素を使って、以前に定義された構文要素を上
+書きすることができる。大文字・小文字の違いも含めてマッチするキーワードがあれば
+そうでないものより優先される。
 
 
-DEFINING CASE						*:syn-case* *E390*
+優先順位						*:syn-priority*
+
+複数の構文要素がマッチするときはこれらのルールが適用される:
+
+1. 複数のマッチまたはリージョン要素が同じ場所で始まるときは、後に定義されたも
+   のが優先される。
+2. マッチとリージョンよりキーワードが優先される。
+3. より前の位置から始まる要素が優先される。
+
+
+大文字・小文字の区別					*:syn-case* *E390*
 
 :sy[ntax] case [match|ignore]
-	This defines if the following ":syntax" commands will work with
-	matching case, when using "match", or with ignoring case, when using
-	"ignore".  Note that any items before this are not affected, and all
-	items until the next ":syntax case" command are affected.
+	これ以降の":syntax"コマンドが大文字・小文字を区別するかどうかを定義す
+	る。"match"を使うと区別し、"ignore"を使うと区別しなくなる。これ以前の
+	要素には影響せず、次の":syntax case"コマンドまでのすべての要素に影響
+	する。
 
 
-DEFINING KEYWORDS					*:syn-keyword*
+キーワードの定義 					*:syn-keyword*
 
 :sy[ntax] keyword {group-name} [{options}] {keyword} .. [{options}]
 
-	This defines a number of keywords.
+	キーワードを定義する。
 
-	{group-name}	Is a syntax group name such as "Comment".
-	[{options}]	See |:syn-arguments| below.
-	{keyword} ..	Is a list of keywords which are part of this group.
+	{group-name}	"Comment"のような構文グループ名。
+	[{options}]	後述の|:syn-arguments|を参照。
+	{keyword} ..	このグループに含めるキーワードのリスト。
 
-	Example: >
+	例: >
   :syntax keyword   Type   int long char
 <
-	The {options} can be given anywhere in the line.  They will apply to
-	all keywords given, also for options that come after a keyword.
-	These examples do exactly the same: >
+	{options}は行のどこに置いてもよい。それらは与えられたキーワード全てに
+	適用される。オプションがキーワードの後にあっても同じ。以下の例はまった
+	く同じことをする: >
   :syntax keyword   Type   contained int long char
   :syntax keyword   Type   int long contained char
   :syntax keyword   Type   int long char contained
 <
-	When you have a keyword with an optional tail, like Ex commands in
-	Vim, you can put the optional characters inside [], to define all the
-	variations at once: >
-  :syntax keyword   VimCommand   ab[breviate] n[ext]
+	VimのExコマンドのようにキーワードに短縮形があるとき、省略可能な部分を
+	[]のでくくることによって受け入れるキーワードをいっぺんに定義することが
+	できる: >
+  :syntax keyword   vimCommand	 ab[breviate] n[ext]
 <
-	Don't forget that a keyword can only be recognized if all the
-	characters are included in the 'iskeyword' option.  If one character
-	isn't, the keyword will never be recognized.
-	Multi-byte characters can also be used.  These do not have to be in
-	'iskeyword'.
+	キーワードは文字全てがオプション'iskeyword'に含まれていないと認識され
+	ないことに注意。1文字でも含まれていないと、そのキーワードは認識されな
+	い。
+	マルチバイト文字を使うこともできる。それらは'iskeyword'に含まれている
+	必要はない。
 
-	A keyword always has higher priority than a match or region, the
-	keyword is used if more than one item matches.  Keywords do not nest
-	and a keyword can't contain anything else.
+	キーワードは常にマッチやリージョンより優先される。キーワードは一要素以
+	上マッチしたとき使われる。キーワードは入れ子にならなく、それ以外のもの
+	を含むこともできない。
 
-	Note that when you have a keyword that is the same as an option (even
-	one that isn't allowed here), you can not use it.  Use a match
-	instead.
+	オプションと同じキーワードについては、それがその位置で利用できないもの
+	であったとしても、定義することはできない。マッチで代用すること。
 
-	The maximum length of a keyword is 80 characters.
+	キーワードの長さは最大80文字である。
 
-	The same keyword can be defined multiple times, when its containment
-	differs.  For example, you can define the keyword once not contained
-	and use one highlight group, and once contained, and use a different
-	highlight group. Example: >
+	containmentが異なれば、同じキーワードを複数回定義することができる。例
+	えば、まずキーワードをcontainedでなく定義して1つの強調グループを設定
+	し、次にcontainedとして定義して別の強調グループを設定することができ
+	る。例: >
   :syn keyword vimCommand tag
   :syn keyword vimSetting contained tag
-<	When finding "tag" outside of any syntax item, the "vimCommand"
-	highlight group is used.  When finding "tag" in a syntax item that
-	contains "vimSetting", the "vimSetting" group is used.
+<	構文要素の外側に"tag"があったときは強調グループ"vimCommand"が適用され
+	る。"vimSetting"を含む構文要素の中に"tag"があったときは"vimSetting"グ
+	ループが適用される。
 
 
-DEFINING MATCHES					*:syn-match*
+マッチの定義    					*:syn-match*
 
 :sy[ntax] match {group-name} [{options}] [excludenl] {pattern} [{options}]
 
-	This defines one match.
+	これはマッチを定義する。
 
-	{group-name}		A syntax group name such as "Comment".
-	[{options}]		See |:syn-arguments| below.
-	[excludenl]		Don't make a pattern with the end-of-line "$"
-				extend a containing match or region.  Must be
-				given before the pattern. |:syn-excludenl|
-	{pattern}		The search pattern that defines the match.
-				See |:syn-pattern| below.
-				Note that the pattern may match more than one
-				line, which makes the match depend on where
-				Vim starts searching for the pattern.  You
-				need to make sure syncing takes care of this.
+	{group-name}		"Comment"のような構文グループ名。
+	[{options}]		以下の|:syn-arguments|を参照。
+	[excludenl]		行末の"$"を含んでいるパターンに対して、行末以
+				降までマッチやリージョンを拡張しないようにす
+				る。パターンの前に置かなければならない。
+				|:syn-excludenl|
+	{pattern}		マッチを定義する検索パターン。|:syn-pattern|を
+				後述の参照。
+				パターンは複数行にもマッチする。よって検
+				索を開始する場所によってマッチが変わってくる可
+				能性がある。シンクロナイズが関係してくることに
+				注意。
 
-	Example (match a character constant): >
+	例 (文字定数にマッチする): >
   :syntax match Character /'.'/hs=s+1,he=e-1
-<
+< 
 
-DEFINING REGIONS	*:syn-region* *:syn-start* *:syn-skip* *:syn-end*
+リージョンの定義	*:syn-region* *:syn-start* *:syn-skip* *:syn-end*
 							*E398* *E399*
+
 :sy[ntax] region {group-name} [{options}]
-		[matchgroup={group_name}]
+		[matchgroup={group-name}]
 		[keepend]
 		[extend]
 		[excludenl]
@@ -2047,151 +2461,143 @@ DEFINING REGIONS	*:syn-region* *:syn-start* *:syn-skip* *:syn-end*
 		[skip={skip_pattern}]
 		end={end_pattern} ..
 		[{options}]
+	
+	これはリージョンを定義する。複数行にわたってもよい。
 
-	This defines one region.  It may span several lines.
+	{group-name}		"Comment"のような構文グループ名。
+	[{options}]		後述の|:syn-arguments|を参照。
+	[matchgroup={group-name}]  以下の開始パターンと終了パターンのマッチに
+				のみ使われる構文グループ。マッチの開始パターン
+				と終了パターンには使われない。開始パターンと終
+				了パターン用に異なるグループを使わないようにリ
+				セットするにはNONEを使う。
+				|:syn-matchgroup|を参照。
+	keepend			内包されたマッチが終了パターンを越えないように
+				する。
+				|:syn-keepend|を参照。
+	extend			このリージョンを含むアイテムの"keepend"を上書
+				きする。|:syn-extend|を参照。
+	excludenl		行末の"$"を含んでいるパターンに対して、行末以
+				降までマッチやアイテムを拡張しないようにする。
+				終了パターンに対してのみ使い道がある。適用する
+				パターンの前に置かねばならない。
+				|:syn-excludenl|
+	start={start_pattern}	リージョンの開始を定義する検索パターン。後述の
+				|:syn-pattern|を参照。
+	skip={skip_pattern}	その中ではリージョンの終了を探さないテキストを
+				定義する検索パターン。|:syn-pattern|を参照。
+	end={end_pattern}	リージョンの終了を定義する検索パターン。
+				後述の|:syn-pattern|を参照。
 
-	{group-name}		A syntax group name such as "Comment".
-	[{options}]		See |:syn-arguments| below.
-	[matchgroup={group-name}]  The syntax group to use for the following
-				start or end pattern matches only.  Not used
-				for the text in between the matched start and
-				end patterns.  Use NONE to reset to not using
-				a different group for the start or end match.
-				See |:syn-matchgroup|.
-	keepend			Don't allow contained matches to go past a
-				match with the end pattern.  See
-				|:syn-keepend|.
-	extend			Override a "keepend" for an item this region
-				is contained in. See |:syn-extend|.
-	excludenl		Don't make a pattern with the end-of-line "$"
-				extend a containing match or item.  Only
-				useful for end patterns.  Must be given before
-				the patterns it applies to. |:syn-excludenl|
-	start={start_pattern}	The search pattern that defines the start of
-				the region.  See |:syn-pattern| below.
-	skip={skip_pattern}	The search pattern that defines text inside
-				the region where not to look for the end
-				pattern.  See |:syn-pattern| below.
-	end={end_pattern}	The search pattern that defines the end of
-				the region.  See |:syn-pattern| below.
-
-	Example: >
+	例: >
   :syntax region String   start=+"+  skip=+\\"+  end=+"+
 <
-	The start/skip/end patterns and the options can be given in any order.
-	There can be zero or one skip pattern.  There must be one or more
-	start and end patterns.  This means that you can omit the skip
-	pattern, but you must give at least one start and one end pattern.  It
-	is allowed to have white space before and after the equal sign
-	(although it mostly looks better without white space).
+	start/skip/endパターンとオプションはどんな順序で置かれてもよい。skip
+	パターンは0個か1個許される。startとendパターンは1個以上なければならな
+	い。つまりskipパターンは省略できるが、少なくとも1つのstartとendパター
+	ンを書かなければならない。等号記号の前後にはホワイトスペースがあっても
+	よい(たいていはホワイトスペースがないほうが見やすいが)。
 
-	When more than one start pattern is given, a match with one of these
-	is sufficient.  This means there is an OR relation between the start
-	patterns.  The last one that matches is used.  The same is true for
-	the end patterns.
+	2個以上のstartパターンが与えられたときは、それらの1つがマッチすれば十
+	分である。つまりstartパターンらの間にはOR関係があることになる。最後に
+	マッチしたものが使われる。endパターンについても同じである。
 
-	The search for the end pattern starts right after the start pattern.
-	Offsets are not used for this.  This implies that the match for the
-	end pattern will never overlap with the start pattern.
+	endパターンの検索はstartパターンの直後から行われる。これはendパターン
+	のマッチとstartパターンは決して重ならないことを意味する。
 
-	The skip and end pattern can match across line breaks, but since the
-	search for the pattern can start in any line it often does not do what
-	you want.  The skip pattern doesn't avoid a match of an end pattern in
-	the next line.  Use single-line patterns to avoid trouble.
+	skipとendパターンは改行をまたいでマッチしてもよい。しかしパターンの検
+	索はどの行からも始まりうるので、望みどおりにならないこともある。
+	skipパターンは次の行のendパターンのマッチを回避しない。問題を避けるには
+	単一行のパターンを使うこと。
 
-	Note: The decision to start a region is only based on a matching start
-	pattern.  There is no check for a matching end pattern.  This does NOT
-	work: >
+	注意: リージョンの開始は、startパターンのマッチによってのみ決まる。
+	endパターンの照合のチェックはされない。次のは機能しない: >
 		:syn region First  start="("  end=":"
 		:syn region Second start="("  end=";"
-<	The Second always matches before the First (last defined pattern has
-	higher priority).  The Second region then continues until the next
-	';', no matter if there is a ':' before it.  Using a match does work: >
+<	2番目のは常にFirstより前にマッチする(最後に定義されたパターンが優先され
+	る)。こうすると、その前に':'があるかどうかに関わらず、2番目のリージョ
+	ンが次の';'まで続く。マッチを使うとうまくいく: >
 		:syn match First  "(\_.\{-}:"
 		:syn match Second "(\_.\{-};"
-<	This pattern matches any character or line break with "\_." and
-	repeats that with "\{-}" (repeat as few as possible).
+<	このパターンは"\_."によって任意の文字と改行にマッチし、"\{-}"によって
+	繰り返しにマッチする(最小限の個数の繰り返し)。
 
 							*:syn-keepend*
-	By default, a contained match can obscure a match for the end pattern.
-	This is useful for nesting.  For example, a region that starts with
-	"{" and ends with "}", can contain another region.  An encountered "}"
-	will then end the contained region, but not the outer region:
-	    {		starts outer "{}" region
-		{	starts contained "{}" region
-		}	ends contained "{}" region
-	    }		ends outer "{} region
-	If you don't want this, the "keepend" argument will make the matching
-	of an end pattern of the outer region also end any contained item.
-	This makes it impossible to nest the same region, but allows for
-	contained items to highlight parts of the end pattern, without causing
-	that to skip the match with the end pattern.  Example: >
-  :syn match  VimComment +"[^"]\+$+
-  :syn region VimCommand start="set" end="$" contains=VimComment keepend
-<	The "keepend" makes the VimCommand always end at the end of the line,
-	even though the contained VimComment includes a match with the <EOL>.
+	デフォルトでは内包されたマッチはendパターンのマッチを隠す。これはネス
+	ト用に便利である。例えば、"{"で始まり"}"で終わるリージョンがもう1つの
+	リージョンを含むことができる。"}"に出会うと内包されたリージョンが終わ
+	り、外側のリージョンは終了しない:
+	    {		外側の"{}"リージョンの開始
+		{	内包された"{}"リージョンの開始
+		}	内包された"{}"リージョンの終了
+	    }		外側の"{}"リージョンの終了
+	この挙動が望みでないなら、引数"keepend"をつければ、外側のリージョンの
+	endパターンのマッチによって内包されたアイテムも終了させることができる
+	。そうすると同一リージョンのネストが不可能になるが、内包されたアイテム
+	でendパターンをスキップさせることなく、endパターンの一部を強調すること
+	ができる。例: >
+  :syn match  vimComment +"[^"]\+$+
+  :syn region vimCommand start="set" end="$" contains=vimComment keepend
+<	"keepend"によってvimCommandが常に行末で終わるようにしている。たとえ内
+	包されたvimCommentが<EOL>とのマッチを含んでいてもそのようになる。
 
-	When "keepend" is not used, a match with an end pattern is retried
-	after each contained match.  When "keepend" is included, the first
-	encountered match with an end pattern is used, truncating any
-	contained matches.
+	"keepend"が使われないときは、内包されたマッチの後でendパターンのマッチ
+	が検索される。"keepend"が含まれているときは最初にendパターンにマッチし
+	たところで終了し、内包されたマッチもすべてそこで終了になる。
+
 							*:syn-extend*
-	The "keepend" behavior can be changed by using the "extend" argument.
-	When an item with "extend" is contained in an item that uses
-	"keepend", the "keepend" is ignored and the containing region will be
-	extended.
-	This can be used to have some contained items extend a region while
-	others don't.  Example: >
+	引数"extend"を使うと"keepend"の挙動が変わる。"keepend"付きのアイテム中
+	に"extend"付きのアイテムが内包されていると、"keepend"が無視され、外側
+	のリージョンが拡張される。これによっていくつかのアイテムに対して例外的
+	にリージョンを拡張させるようにできる。例: >
 
    :syn region htmlRef start=+<a>+ end=+</a>+ keepend contains=htmlItem,htmlScript
    :syn match htmlItem +<[^>]*>+ contained
    :syn region htmlScript start=+<script+ end=+</script[^>]*>+ contained extend
 
-<	Here the htmlItem item does not make the htmlRef item continue
-	further, it is only used to highlight the <> items.  The htmlScript
-	item does extend the htmlRef item.
+<
+	この例では、htmlItemの位置でhtmlRefが終了する。htmlItemは<>要素を強調
+	するためだけに使われる。htmlScriptアイテムはhtmlRefアイテムを拡張する。
 
-	Another example: >
+	もう1つの例: >
    :syn region xmlFold start="<a>" end="</a>" fold transparent keepend extend
-<	This defines a region with "keepend", so that its end cannot be
-	changed by contained items, like when the "</a>" is matched to
-	highlight it differently.  But when the xmlFold region is nested (it
-	includes itself), the "extend" applies, so that the "</a>" of a nested
-	region only ends that region, and not the one it is contained in.
+<	"</a>"を別の色で強調したいときなどのために、"keepend"つきでリージョン
+	を定義し、内包するアイテムによって終端が変更されないようにしている。
+	ただしxmlFoldがネストしたとき(それ自身を含んだとき)、"extend"が適用さ
+	れ、内側の"</a>"はそのリージョン自身だけを終了させ、それを含んでいるリ
+	ージョンは終了しない。
 
 							*:syn-excludenl*
-	When a pattern for a match or end pattern of a region includes a '$'
-	to match the end-of-line, it will make a region item that it is
-	contained in continue on the next line.  For example, a match with
-	"\\$" (backslash at the end of the line) can make a region continue
-	that would normally stop at the end of the line.  This is the default
-	behavior.  If this is not wanted, there are two ways to avoid it:
-	1. Use "keepend" for the containing item.  This will keep all
-	   contained matches from extending the match or region.  It can be
-	   used when all contained items must not extend the containing item.
-	2. Use "excludenl" in the contained item.  This will keep that match
-	   from extending the containing match or region.  It can be used if
-	   only some contained items must not extend the containing item.
-	   "excludenl" must be given before the pattern it applies to.
+	マッチ用のパターンやリージョンの終了パターンが行末にマッチさせるために
+	'$'を含んでいると、それを含むリージョンアイテムが次の行まで継続するよ
+	うになる。例えば、"\\$"(行末のバックスラッシュ)とのマッチを使うと、通
+	常は行末で終了するはずのリージョンを継続させることができる。これはデフ
+	ォルトの挙動である。これが望みどおりでないなら、これをされる2つの方法
+	がある:
+	1. 外側のアイテムに"keepend"を使う。こうすると含んでいるアイテム全てに
+	   対して拡張しないようにする。含んでいるアイテム全てが外側のアイテム
+	   を拡張してはならないときに使える。
+	2. 内側のアイテムに"excludenl"を使う。こうするとそのマッチに対して、そ
+	   れを含んでいるマッチやリージョンを拡張しないようにする。これはいく
+	   つかのアイテムだけが外側のアイテムを拡張してはならないときに使える。
+	   "excludenl"はそれを適用するパターンの前に置かねばならない。
 
 							*:syn-matchgroup*
-	"matchgroup" can be used to highlight the start and/or end pattern
-	differently than the body of the region.  Example: >
-  :syntax region String matchgroup=Quote start=+"+  skip=+\\"+  end=+"+
-<	This will highlight the quotes with the "Quote" group, and the text in
-	between with the "String" group.
-	The "matchgroup" is used for all start and end patterns that follow,
-	until the next "matchgroup".  Use "matchgroup=NONE" to go back to not
-	using a matchgroup.
+	"matchgroup"は、リージョンの本体とその開始・終了パターンに対して異なる
+	強調をしたいときに使える。例: >
+  :syntax region String matchgroup=Quote start=+"+  skip=+\\"+	end=+"+
+<	こうすると引用符を"Quote"グループで強調し、その間にあるテキストを
+	"String"グループで強調することができる。
+	"matchgroup"はそれが従うすべての開始・終了パターンに対して使われる。
+	matchgroupを使わないように戻すには"matchgroup=NONE"を使う。
 
-	In a start or end pattern that is highlighted with "matchgroup" the
-	contained items of the region are not used.  This can be used to avoid
-	that a contained item matches in the start or end pattern match.  When
-	using "transparent", this does not apply to a start or end pattern
-	match that is highlighted with "matchgroup".
+	開始・終了パターンが"matchgroup"で強調されるとき、そのリージョンに含ま
+	れているアイテムは無視される。これによって含まれているアイテムが開始・
+	終了パターンにマッチするのを避けることができる。"transparent"を使って
+	いる場合、これは"matchgroup"で強調される開始・終了パターンのマッチ部分
+	には適用されない。
 
-	Here is an example, which highlights three levels of parentheses in
-	different colors: >
+	次の例は、3段階の括弧を異なる色で強調する例である: >
    :sy region par1 matchgroup=par1 start=/(/ end=/)/ contains=par2
    :sy region par2 matchgroup=par2 start=/(/ end=/)/ contains=par3 contained
    :sy region par3 matchgroup=par3 start=/(/ end=/)/ contains=par1 contained
@@ -2200,21 +2606,21 @@ DEFINING REGIONS	*:syn-region* *:syn-start* *:syn-skip* *:syn-end*
    :hi par3 ctermfg=darkgreen guifg=darkgreen
 
 ==============================================================================
-6. :syntax arguments					*:syn-arguments*
+6. :syntaxの引数					*:syn-arguments*
 
-The :syntax commands that define syntax items take a number of arguments.
-The common ones are explained here.  The arguments may be given in any order
-and may be mixed with patterns.
+構文アイテムを定義する:syntaxコマンドはたくさんの引数をとる。
+ここでは共通のものを説明する。引数はどんな順序でもよく、パターンと混ざっていて
+もよい。
 
-Not all commands accept all arguments.  This table shows which arguments
-can not be used for all commands:
+全てのコマンドが全ての引数を受けいれるわけではない。次の表はどの引数がどのコマ
+ンドに対して利用可能かを示している:
 							*E395* *E396*
-		    contains  oneline	fold  display  extend~
+		    contains  oneline	fold  display  extend ~
 :syntax keyword		 -	 -	 -	 -	 -
 :syntax match		yes	 -	yes	yes	yes
 :syntax region		yes	yes	yes	yes	yes
 
-These arguments can be used for all three commands:
+以下の引数は3つのコマンド全てに対して使える:
 	contained
 	containedin
 	nextgroup
@@ -2226,880 +2632,827 @@ These arguments can be used for all three commands:
 
 contained						*:syn-contained*
 
-When the "contained" argument is given, this item will not be recognized at
-the top level, but only when it is mentioned in the "contains" field of
-another match.  Example: >
+引数"contained"が与えられると、そのアイテムはトップレベルでは認識されず、他の
+マッチの"contains"フィールドで指定されたときのみ認識される。例: >
    :syntax keyword Todo    TODO    contained
    :syntax match   Comment "//.*"  contains=Todo
 
 
 display							*:syn-display*
 
-If the "display" argument is given, this item will be skipped when the
-detected highlighting will not be displayed.  This will speed up highlighting,
-by skipping this item when only finding the syntax state for the text that is
-to be dislayed.
+引数"display"が与えられると、そのアイテムは検出された強調が表示されない時には
+スキップされる。こうすることでアイテムがスキップされ、表示されるべきテキストの
+構文状態だけが検索対象となり、強調がスピードアップされる。
 
-Generally, you can use "display" for match and region items that meet these
-conditions:
-- The item does not continue past the end of a line.  Example for C: A region
-  for a "/*" comment can't contain "display", because it continues on the next
-  line.
-- The item does not contain items that continue past the end of the line or
-  make it continue on the next line.
-- The item does not change the size of any item it is contained in.  Example
-  for C: A match with "\\$" in a preprocessor match can't have "display",
-  because it may make that preprocessor match shorter.
-- The item does not allow other items to match that didn't match otherwise,
-  and that item may extend the match too far.  Example for C: A match for a
-  "//" comment can't use "display", because a "/*" inside that comment would
-  match then and start a comment which extends past the end of the line.
+通常は、以下の条件に合うときマッチとリージョンに"display"を使うとよい:
+- アイテムが行末を越えて継続しない。Cの例: "/*"コメント用のリージョンは
+  "display"を含んではならない。なぜなら次の行に継続するからである。
+- アイテムが、行を越えて継続したり、そのコンテナを次行まで継続させる効果を持つ
+  子アイテムを含んでいない。
+- それを含むどんなアイテムのサイズも変更しない。Cの例: プリプロセッサマッチ中
+  の"\\$"とのマッチは"display"を含んではならない。なぜならこれによってプリプロ
+  セッサマッチが短くなるかもしれないからである。
+- 他のアイテムがマッチすることを許さず、そうでなければマッチせず、加えてマッチ
+  自体が非常に長くなるようなアイテム。
+  Cの例: "//"コメント用のマッチは"display"を使ってはならない。なぜならそのコメ
+  ントの内側の"/*"がマッチするかも知れず、そうなると行末をまたぐコメントが始ま
+  るからである。
 
-Examples, for the C language, where "display" can be used:
-- match with a number
-- match with a label
+例としてC言語では次のとき"display"が使える:
+- 数字とのマッチ
+- ラベルとのマッチ
 
 
 transparent						*:syn-transparent*
 
-If the "transparent" argument is given, this item will not be highlighted
-itself, but will take the highlighting of the item it is contained in.  This
-is useful for syntax items that don't need any highlighting but are used
-only to skip over a part of the text.
+引数"transparent"が与えられると、そのアイテムはそれ自身では強調されず、それを
+含むアイテムの強調を受け取る。これは強調はせず、テキストの一部をスキップするた
+めだけに使われる構文アイテムに対して有効である。
 
-The "contains=" argument is also inherited from the item it is contained in,
-unless a "contains" argument is given for the transparent item itself.  To
-avoid that unwanted items are contained, use "contains=NONE".  Example, which
-highlights words in strings, but makes an exception for "vim": >
+transparentなアイテム自身に引数"contains"が与えられていない場合、引数
+"contains="も同様にそれを含むアイテムを受け継ぐ。望まないアイテムが含まれるの
+を避けるには"contains=NONE"とすること。文字列中の単語を強調するが、"vim"だけは
+例外とする例: >
 	:syn match myString /'[^']*'/ contains=myWord,myVim
 	:syn match myWord   /\<[a-z]*\>/ contained
 	:syn match myVim    /\<vim\>/ transparent contained contains=NONE
 	:hi link myString String
 	:hi link myWord   Comment
-Since the "myVim" match comes after "myWord" it is the preferred match (last
-match in the same position overrules an earlier one).  The "transparent"
-argument makes the "myVim" match use the same highlighting as "myString".  But
-it does not contain anything.  If the "contains=NONE" argument would be left
-out, then "myVim" would use the contains argument from myString and allow
-"myWord" to be contained, which will be highlighted as a Constant.  This
-happens because a contained match doesn't match inside itself in the same
-position, thus the "myVim" match doesn't overrule the "myWord" match here.
+マッチ"myVim"が"myWord"の後に来ているので、そちらが優先される(同じ場所中では最
+後のマッチがそれ以前のものを上書きする)。引数"transparent"により、"myVim"のマ
+ッチは"myString"と同じ強調が使われるようになる。しかしそれは何も含まない。もし
+引数"contains=NONE"が除かれると、"myVim"はmyStringから引数containsを受け継ぎ、
+"myWord"が含まれるのを許すようになり、それがConstantとして強調される。これは、
+内包されたマッチは同じ位置でそれ自身の内側でマッチしないためこうなる。つまり、
+ここではマッチ"myVim"は"マッチmyWord"を上書きしない。
 
-When you look at the colored text, it is like looking at layers of contained
-items.  The contained item is on top of the item it is contained in, thus you
-see the contained item.  When a contained item is transparent, you can look
-through, thus you see the item it is contained in.  In a picture:
+色づけされたテキストは、内包されたアイテムの層のように見える。内包されたアイテ
+ムはそれを含むアイテムの上にあり、よって内包されたアイテムを見ることができる。
+内包されたアイテムがtransparentなとき、それを透過して見ることができ、よってそ
+れを含んでいるアイテムが見える。図にすると:
 
-		look from here
+		ここから見る
 
 	    |	|   |	|   |	|
 	    V	V   V	V   V	V
 
-	       xxxx	  yyy		more contained items
-	    ....................	contained item (transparent)
-	=============================	first item
+	       xxxx	  yyy		さらに内包されたアイテム達
+	    ....................	内包されたアイテム (transparent)
+	=============================	最初のアイテム
 
-The 'x', 'y' and '=' represent a highlighted syntax item.  The '.' represent a
-transparent group.
+'x', 'y', '='は強調された構文アイテムを表す。'.'はtransparentなグループを表し
+ている。
 
-What you see is:
+このとき次のように見える:
 
 	=======xxxx=======yyy========
 
-Thus you look through the transparent "....".
+つまりtransparentな"...."は透過して見える。
 
 
 oneline							*:syn-oneline*
 
-The "oneline" argument indicates that the region does not cross a line
-boundary.  It must match completely in the current line.  However, when the
-region has a contained item that does cross a line boundary, it continues on
-the next line anyway.  A contained item can be used to recognize a line
-continuation pattern.
+引数"oneline"をつけると、そのリージョンは行をまたがないという意味になる。つま
+り現在行内で完全にマッチしなければならない。しかし、そのリージョンが行をまたぐ
+アイテムを内包しているときは次の行に継続する。内包されたアイテムによって行継続
+パターンが認識される。しかしその場合でも"end"パターンは最初の行内でマッチしな
+ければならない。そうでないとリージョンは開始すらしない。
 
-When the start pattern includes a "\n" to match an end-of-line, the end
-pattern must found in the same line as where the start pattern ends.  The end
-pattern may also include an end-of-line.  Thus the "oneline" argument
-means that the end of the start pattern and the start of the end pattern must
-be within one line.  This can't be changed by a skip pattern that matches a
-line break.
-
+startパターンが行末にマッチする"\n"を含んでいるときは、startパターンの終了位置
+と同じ行にendパターンがなければならない。endパターンも行末を含むことができる。
+つまり引数"oneline"は、startパターンの終了位置とendパターンの開始位置が同一行
+にあることを意味する。改行にマッチするskipパターンを使ってもこの規則を変えるこ
+とはできない。
 
 fold							*:syn-fold*
 
-The "fold" argument makes the fold level increased by one for this item.
-Example: >
+引数"fold"はこのアイテムに対して折り畳みレベルを1増加させる。例: >
    :syn region myFold start="{" end="}" transparent fold
    :syn sync fromstart
    :set foldmethod=syntax
-This will make each {} block form one fold.
+これは{}ブロックごとに1つの折り畳みを作らせる。
 
-The fold will start on the line where the item starts, and end where the item
-ends.  If the start and end are within the same line, there is no fold.
-The 'foldnestmax' option limits the nesting of syntax folds.
-{not available when Vim was compiled without |+folding| feature}
+折り畳みはそのアイテムの開始位置から始まり、アイテムの終了位置で終わる。開始位
+置と終了位置が同一行にある場合、折り畳みは作られない。
+オプション'foldnestmax'によって構文折り畳みのネストを制限できる。
+{|+folding|機能なしでコンパイルされた場合は利用できない}
 
 
 			*:syn-contains* *E405* *E406* *E407* *E408* *E409*
 contains={groupname},..
 
-The "contains" argument is followed by a list of syntax group names.  These
-groups will be allowed to begin inside the item (they may extend past the
-containing group's end).  This allows for recursive nesting of matches and
-regions.  If there is no "contains" argument, no groups will be contained in
-this item.  The group names do not need to be defined before they can be used
-here.
+引数"contains"の後には構文グループ名のリストを続ける。これによって指定されたグ
+ループがそのアイテムの内側で始まることを許可する(内包するグループによって外側
+のアイテムの範囲が拡張されることもある)。マッチとリージョンの再帰的なネストが
+あってもよい。引数"contains"が与えられない場合、このアイテムはどんなグループも
+内包しない。グループ名をここより前で定義する必要はない。
 
 contains=ALL
-		If the only item in the contains list is "ALL", then all
-		groups will be accepted inside the item.
+		containsリストが"ALL"だけのとき、全てのグループがこのアイテム
+		の内側で許可される。
 
 contains=ALLBUT,{group-name},..
-		If the first item in the contains list is "ALLBUT", then all
-		groups will be accepted inside the item, except the ones that
-		are listed.  Example: >
+
+		containsリストの最初の要素が"ALLBUT"のとき、ここでリストされて
+		いるグループを除く全てのグループがこのアイテムの内側で許可され
+		る。例: >
   :syntax region Block start="{" end="}" ... contains=ALLBUT,Function
 
 contains=TOP
-		If the first item in the contains list is "TOP", then all
-		groups will be accepted that don't have the "contained"
-		argument.
+		containsリストの最初の要素が"TOP"のとき、引数"contained"を持た
+		ないグループ全てが許可される。
 contains=TOP,{group-name},..
-		Like "TOP", but excluding the groups that are listed.
+		"TOP"と同様だが、リストされたグループは除かれる。
 
 contains=CONTAINED
-		If the first item in the contains list is "CONTAINED", then
-		all groups will be accepted that have the "contained"
-		argument.
+		containsリストの最初の要素が"CONTAINED"のとき、引数
+		"contained"を持つグループ全てが許可される。
 contains=CONTAINED,{group-name},..
-		Like "CONTAINED", but excluding the groups that are
-		listed.
+		"CONTAINED"と同様だが、リストされたグループは除かれる。
+		
 
-
-The {group-name} in the "contains" list can be a pattern.  All group names
-that match the pattern will be included (or excluded, if "ALLBUT" is used).
-The pattern cannot contain white space or a ','.  Example: >
+"contains"リスト内の{group-name}はパターンであってもよい。そのパターンにマッチ
+するグループ名全てが含まれる("ALLBUT"が使われたときはそれが除かれる)。パターン
+はホワイトスペースや','を含んではならない。例: >
    ... contains=Comment.*,Keyw[0-3]
-The matching will be done at moment the syntax command is executed.  Groups
-that are defined later will not be matched.  Also, if the current syntax
-command defines a new group, it is not matched.  Be careful: When putting
-syntax commands in a file you can't rely on groups NOT being defined, because
-the file may have been sourced before, and ":syn clear" doesn't remove the
-group names.
+パターンの照合はそのsyntaxコマンドが実行されたときに行われる。それ以降に定義さ
+れたグループは照合されない。また、現在のsyntaxコマンドが新しいグループを定義し
+ている場合、そのグループは照合されない。ファイル内にsyntaxコマンドを書く場合、
+定義されていないグループを当てにすることはできないことに注意。これは、そのファ
+イルは以前に読み込まれているかもしれず、":syn clear"はグループ名を削除しないた
+めである。
 
-The contained groups will also match in the start and end patterns of a
-region.  If this is not wanted, the "matchgroup" argument can be used
-|:syn-matchgroup|.  The "ms=" and "me=" offsets can be used to change the
-region where contained items do match.  Note that this may also limit the
-area that is highlighted
+内包されたグループはリージョンのstartとendパターン内にもマッチする。これが望み
+の挙動でないなら、引数"matchgroup"を使うとよい|:syn-matchgroup|。オフセット
+"ms="と"me="によって内包されたアイテムがマッチする領域を変更することができる。
+これは強調される範囲も制限することに注意。
 
 
 containedin={groupname}...				*:syn-containedin*
 
-The "containedin" argument is followed by a list of syntax group names.  The
-item will be allowed to begin inside these groups.  This works as if the
-containing item has a "contains=" argument that includes this item.
+引数"containedin"の後には構文グループ名のリストを続ける。するとこのアイテムが
+それらのグループの内側で始まることが許可される。これは外側のアイテムが引数
+"contains="でこのアイテムを指定したのと同じように動作する。
 
-The {groupname}... can be used just like for "contains", as explained above.
+{group-name}...の指定の仕方は前述の"contains"と同様である。
 
-This is useful when adding a syntax item afterwards.  An item can be told to
-be included inside an already existing item, without changing the definition
-of that item.  For example, to highlight a word in a C comment after loading
-the C syntax: >
+これは構文アイテムを後から追加するときに便利である。既に定義されているアイテム
+の定義を変更することなく、その内側にアイテムを含めることができる。例えば、Cの
+構文を読み込んだ後で、Cコメント中の単語を強調したいときは: >
 	:syn keyword myword HELP containedin=cComment contained
-Note that "contained" is also used, to avoid that the item matches at the top
-level.
+このアイテムがトップレベルではマッチしないように"contained"を使っている。
 
-Matches for "containedin" are added to the other places where the item can
-appear.  A "contains" argument may also be added as usual.  Don't forget that
-keywords never contain another item, thus adding them to "containedin" won't
-work.
+"containedin"の照合は、このアイテムが現れる場所に追加される。引数"contains"も
+通常通り追加される。注意: キーワードは他のアイテムを含むことができないため、
+"containedin"の先にキーワードを指定することは無意味である。
 
 
 nextgroup={groupname},..				*:syn-nextgroup*
 
-The "nextgroup" argument is followed by a list of syntax group names,
-separated by commas (just like with "contains", so you can also use patterns).
+引数"nextgroup"の後には構文グループ名のリストをカンマ区切りで続ける
+("contains"と同様。パターンを使うこともできる)。
 
-If the "nextgroup" argument is given, the mentioned syntax groups will be
-tried for a match, after the match or region ends.  If none of the groups have
-a match, highlighting continues normally.  If there is a match, this group
-will be used, even when it is not mentioned in the "contains" field of the
-current group.  This is like giving the mentioned group priority over all
-other groups.  Example: >
+引数"nextgroup"が与えられると、マッチやリージョンの終了位置の後ろで、指定され
+た構文グループにマッチする部分が探される。どのグループもマッチしなければ、強調
+は通常通り続けられる。マッチが見つかった場合はそのグループが使われる。現在のグ
+ループの引数"contains"でそのグループが指定されていなくてもそうなる。つまり、こ
+れは指定されたグループの優先度を最大にするイことと同じである。例: >
    :syntax match  ccFoobar  "Foo.\{-}Bar"  contains=ccFoo
    :syntax match  ccFoo     "Foo"	    contained nextgroup=ccFiller
    :syntax region ccFiller  start="."  matchgroup=ccBar  end="Bar"  contained
 
-This will highlight "Foo" and "Bar" differently, and only when there is a
-"Bar" after "Foo".  In the text line below, "f" shows where ccFoo is used for
-highlighting, and "bbb" where ccBar is used. >
+これは"Foo"の後に"Bar"が現れたときのみ、"Foo"と"Bar"に異なる強調をする。以下の
+テキストにおいて、"f"と書いたところはccFooで強調され、"bbb"と書いたところは
+ccBarで強調される。 >
 
    Foo asdfasd Bar asdf Foo asdf Bar asdf
-   fff	       bbb      fff      bbb
+   fff	       bbb	fff	 bbb
 
-Note the use of ".\{-}" to skip as little as possible until the next Bar.
-when ".*" would be used, the "asdf" in between "Bar" and "Foo" would be
-highlighted according to the "ccFoobar" group, because the ccFooBar match
-would include the first "Foo" and the last "Bar" in the line (see |pattern|).
+".\{-}"を使い、次のBarまでのスキップが最小になるようにしている。もし".*"を使う
+と、最初の"Foo"と最後の"Bar"がccFooBarのマッチ部分に含まれるため、"Bar"と"Foo"
+の間の"asdf"が"ccFoobar"グループとして強調されることになる(|pattern|を参照)。
 
 
 skipwhite						*:syn-skipwhite*
 skipnl							*:syn-skipnl*
 skipempty						*:syn-skipempty*
 
-These arguments are only used in combination with "nextgroup".  They can be
-used to allow the next group to match after skipping some text:
-	skipwhite	skip over space and Tab characters
-	skipnl		skip over the end of a line
-	skipempty	skip over empty lines (implies a "skipnl")
+これらの引数は"nextgroup"と組み合わせたときのみ意味を持つ。これらを使うと、次
+のグループがあるテキストをスキップした後でマッチするのを許可する:
+	skipwhite	スペースとタブ文字をスキップする
+	skipnl		行末をスキップする
+	skipempty	空行をスキップする(自動的に"skipnl"も含むことになる)
 
-When "skipwhite" is present, the white space is only skipped if there is no
-next group that matches the white space.
+"skilwhite"が与えられると、どの次のグループもホワイトスペースにマッチしないな
+らば、ホワイトスペースがスキップされる。
 
-When "skipnl" is present, the match with nextgroup may be found in the next
-line.  This only happens when the current item ends at the end of the current
-line!  When "skipnl" is not present, the nextgroup will only be found after
-the current item in the same line.
+"skipnl"が与えらると、nextgroupの照合が次の行からも探される。これは現在のアイ
+テムが現在行の行末で終わったときのみ有効であることに注意。"skipnl"が指定されな
+い場合、nextgroupは同一行のそのアイテム以降から照合される。
 
-When skipping text while looking for a next group, the matches for other
-groups are ignored.  Only when no next group matches, other items are tried
-for a match again.  This means that matching a next group and skipping white
-space and <EOL>s has a higher priority than other items.
+次のグループまでスキップされたテキストの中では他のグループの照合は無視される。
+次のグループの照合が見つからなかったとき、再び他のグループの照合が検索される。
+つまり、次のグループの照合と、ホワイトスペースと<EOL>のスキップは他のアイテム
+より優先される。
 
-Example: >
-  :syn match ifstart "if.*"     nextgroup=ifline skipwhite skipempty
-  :syn match ifline  "endif"    contained
+例: >
+  :syn match ifstart "\<if.*"	  nextgroup=ifline skipwhite skipempty
   :syn match ifline  "[^ \t].*" nextgroup=ifline skipwhite skipempty contained
-Note that the last match, which matches any non-white text, is put last,
-otherwise the "endif" of the indent would never match, because the "[^ \t].*"
-would match first.
-Note that this example doesn't work for nested "if"s.  You need to add
-"contains" arguments to make that work (omitted for simplicity of the
-example).
+  :syn match ifline  "endif"	contained
+マッチ"[^ \t].*"はホワイトスペース以外の全てのテキストにマッチする。よって
+"endif"にもマッチする。そのためマッチ"endif"を最後に置き、優先順位を与えている
+。
+この例はネストした"if"には機能しないことに注意。ネストに対応されるには引数
+"contains"を指定する必要がある(この例では簡単のため省略した)。
 
 ==============================================================================
-7. Syntax patterns				*:syn-pattern* *E401* *E402*
+7. syntaxのパターン				*:syn-pattern* *E401* *E402*
 
-In the syntax commands, a pattern must be surrounded by two identical
-characters.  This is like it works for the ":s" command.  The most common to
-use is the double quote.  But if the pattern contains a double quote, you can
-use another character that is not used in the pattern.  Examples: >
+syntaxコマンドでは、パターンの前後を同じ文字で囲まなければならない。これは
+":s"コマンドと同様である。もっともよく使われるのはダブルクォートである。しかし
+パターンがダブルクォートを含んでいる場合は、そのパターンが含んでいない他の文字
+を使ったほうがよい。例: >
   :syntax region Comment  start="/\*"  end="\*/"
-  :syntax region String   start=+"+    end=+"+   skip=+\\"+
+  :syntax region String   start=+"+    end=+"+	 skip=+\\"+
 
-See |pattern| for the explanation of what a pattern is.  Syntax patterns are
-always interpreted like the 'magic' options is set, no matter what the actual
-value of 'magic' is.  And the patterns are interpreted like the 'l' flag is
-not included in 'cpoptions'.  This was done to make syntax files portable and
-independent of 'compatible' and 'magic' settings.
+パターンの説明については|pattern|を参照。構文パターンは常に'magic'オプションが
+セットされているのと同じように解釈される(実際の'magic'オプションの値とは無関係)
+。また、'cpoptions'に'l' フラグが含まれていない場合と同じように解釈される。こ
+れは構文ファイルの可搬性を高め、'compatible'と'magic'の設定と無関係にするため
+である。
 
-Try to avoid patterns that can match an empty string, such as "[a-z]*".
-This slows down the highlighting a lot, because it matches everywhere.
+"[a-z]*"など空文字列にマッチするパターンは避けること。これは全ての位置にマッチ
+するため、強調がとても遅くなる。
 
 						*:syn-pattern-offset*
-The pattern can be followed by a character offset.  This can be used to
-change the highlighted part, and to change the text area included in the
-match or region (which only matters when trying to match other items).  Both
-are relative to the matched pattern.  The character offset for a skip
-pattern can be used to tell where to continue looking for an end pattern.
+パターンに文字数のオフセットを指定することができる。これによって強調される部分
+を変更したり、マッチやリージョンに含まれるテキスト領域(これは他のアイテムを照
+合するときにだけ関係する)を変更することができる。どちらもマッチしたパターンに
+相対的である。skipパターンに対して文字数のオフセットを指定すると、endパターン
+の検索が始まる位置を決めることができる。
 
-The offset takes the form of "{what}={offset}"
-The {what} can be one of seven strings:
+オフセットは"{what}={offset}"の形で指定する。
+{what}は次の7個の文字列のどれかである:
 
-ms	Match Start	offset for the start of the matched text
-me	Match End	offset for the end of the matched text
-hs	Highlight Start	offset for where the highlighting starts
-he	Highlight End	offset for where the highlighting ends
-rs	Region Start	offset for where the body of a region starts
-re	Region End	offset for where the body of a region ends
-lc	Leading Context	offset past "leading context" of pattern
+ms	Match Start	マッチしたテキストの開始位置のオフセット
+me	Match End	マッチしたテキストの終了位置のオフセット
+hs	Highlight Start	強調が始まる位置のオフセット
+he	Highlight End	強調が終わる位置のオフセット
+rs	Region Start	リージョンの本体が始まる位置のオフセット
+re	Region End	リージョンが終わる位置のオフセット
+lc	Leading Context	パターンの"leading context"を過ぎた後のオフセット
 
-The {offset} can be:
+{offset}は次のうちのどれか:
 
-s	start of the matched pattern
-s+{nr}	start of the matched pattern plus {nr} chars to the right
-s-{nr}	start of the matched pattern plus {nr} chars to the left
-e	end of the matched pattern
-e+{nr}	end of the matched pattern plus {nr} chars to the right
-e-{nr}	end of the matched pattern plus {nr} chars to the left
-{nr}	(for "lc" only): start matching {nr} chars to the left
+s	パターンのマッチ部分の先頭
+s+{nr}	パターンのマッチ部分の先頭から右へ{nr}文字目
+s-{nr}	パターンのマッチ部分の先頭から左へ{nr}文字目
+e	パターンのマッチ部分の末尾
+e+{nr}	パターンのマッチ部分の末尾から右へ{nr}文字目
+e-{nr}	パターンのマッチ部分の末尾から左へ{nr}文字目
+{nr}	("lc"専用): ら左へ{nr}文字目
 
-Examples: "ms=s+1", "hs=e-2", "lc=3".
+例: "ms=s+1", "hs=e-2", "lc=3".
 
-Although all offsets are accepted after any pattern, they are not always
-meaningful.  This table shows which offsets are actually used:
+どのパターンの後にどのオフセットを指定してもよいが、それが意味を持たない場合も
+ある。次の表はどのオフセットが実際に使われるかを示している:
 
-		    ms   me   hs   he   rs   re	  lc ~
-match item	    yes  yes  yes  yes  -    -    yes
-region item start   yes  -    yes  -    yes  -    yes
-region item skip    -    yes  -    -    -    -    yes
-region item end     -    yes  -    yes  -    yes  yes
+		    ms	 me   hs   he	rs   re	  lc ~
+match item	    yes  yes  yes  yes	-    -	  yes
+region item start   yes  -    yes  -	yes  -	  yes
+region item skip    -	 yes  -    -	-    -	  yes
+region item end     -	 yes  -    yes	-    yes  yes
 
-Offsets can be concatenated, with a ',' in between.  Example: >
+複数のオフセットの間に','を入れて連結することができる。例: >
   :syn match String  /"[^"]*"/hs=s+1,he=e-1
-<
+< 
     some "string" text
-	  ^^^^^^		highlighted
+	  ^^^^^^		ここが強調される
 
-Notes:
-- There must be no white space between the pattern and the character
-  offset(s).
-- The highlighted area will never be outside of the matched text.
-- A negative offset for an end pattern may not always work, because the end
-  pattern may be detected when the highlighting should already have stopped.
-- The start of a match cannot be in a line other than where the pattern
-  matched.  This doesn't work: "a\nb"ms=e.  You can make the highlighting
-  start in another line, this does work: "a\nb"hs=e.
+注意:
+- パターンとオフセットの間にホワイトスペースを挟んではならない。
+- 強調される領域がマッチしたテキストの外側にはみ出してはならない。
+- endパターンに対する負のオフセットは機能しない場合がある。これは強調が既に終
+  わっているべきとき、endパターンは検出されない可能性があるからである。
+- マッチの開始位置が、パターンがマッチした位置と別の行になってはならない。つま
+  り"a\nb"ms=eというのは正常に機能しない。強調の開始位置は別の行にあってもかま
+  わない。"a\nb"hs=eというのは正常に機能する。
 
-Example (match a comment but don't highlight the /* and */): >
+例(コメントにマッチするが /* と */ は強調しない): >
   :syntax region Comment start="/\*"hs=e+1 end="\*/"he=s-1
 <
 	/* this is a comment */
-	  ^^^^^^^^^^^^^^^^^^^     highlighted
+	  ^^^^^^^^^^^^^^^^^^^	  ここが強調される
 
-A more complicated Example: >
+より複雑な例: >
   :syn region Exa matchgroup=Foo start="foo"hs=s+2,rs=e+2 matchgroup=Bar end="bar"me=e-1,he=e-1,re=s-1
 <
 	 abcfoostringbarabc
-	    mmmmmmmmmmm	    match
-	      ssrrrreee	    highlight start/region/end ("Foo", "Exa" and "Bar")
+	    mmmmmmmmmmm	    マッチ部分
+	      ssrrrreee	    start/region/endとして強調される部分 ("Foo", "Exa", "Bar")
 
 Leading context			*:syn-lc* *:syn-leading* *:syn-context*
 
-Note: This is an obsolete feature, only included for backwards compatibility
-with previous Vim versions.  It's now recommended to use the |/\@<=| construct
-in the pattern.
+注意:これは古い機能であり、以前のバージョンとの後方互換性のためだけに残されて
+いる。現在はパターン中の|/\@<=|コンストラクトを使うことが推奨されている。
 
-The "lc" offset specifies leading context -- a part of the pattern that must
-be present, but is not considered part of the match.  An offset of "lc=n" will
-cause Vim to step back n columns before attempting the pattern match, allowing
-characters which have already been matched in previous patterns to also be
-used as leading context for this match.  This can be used, for instance, to
-specify that an "escaping" character must not precede the match: >
+"lc"オフセットはリーディングコンテキストを指定する。これはパターンの一部になけ
+ればならないが、マッチ部分の一部とは見なされないものである。"lc=n"のオフセット
+を使うとパターンの照合を試みる前にn桁戻るようになる。リーディングコンテキスト
+内に他のパターンにマッチしている文字が現れてもよい。これはマッチの前方にあって
+はならない「エスケープ」文字を指定する場合などに使える: >
 
   :syn match ZNoBackslash "[^\\]z"ms=s+1
   :syn match WNoBackslash "[^\\]w"lc=1
   :syn match Underline "_\+"
 <
 	  ___zzzz ___wwww
-	  ^^^     ^^^	  matches Underline
-	      ^ ^	  matches ZNoBackslash
-		     ^^^^ matches WNoBackslash
+	  ^^^	  ^^^	  Underlineにマッチする
+	      ^ ^	  ZNoBackslashにマッチする
+		     ^^^^ WNoBackslashにマッチする
 
-The "ms" offset is automatically set to the same value as the "lc" offset,
-unless you set "ms" explicitly.
+"ms"を指定しないと自動的に"lc"と同じ値にセットされる。
 
 
 Multi-line patterns					*:syn-multi-line*
 
-The patterns can include "\n" to match an end-of-line.  Mostly this works as
-expected, but there are a few exceptions.
+パターンが"\n"を含むと改行にマッチするようになる。たいていの場合これは期待通り
+に動作するが、少しだけ例外がある。
 
-When using a start pattern with an offset, the start of the match is not
-allowed to start in a following line.  The highlighting can start in a
-following line though.
+startパターンにオフセットをつけるとき、マッチ部分の開始位置が次の行の先頭であ
+ってはならない。強調は次の行で始まってもよい。
 
-The skip pattern can include the "\n", but the search for an end pattern will
-continue in the first character of the next line, also when that character is
-matched by the skip pattern.  This is because redrawing may start in any line
-halfway a region and there is no check if the skip pattern started in a
-previous line.  For example, if the skip pattern is "a\nb" and an end pattern
-is "b", the end pattern does match in the second line of this: >
+skipパターンも"\n"を含んでよい。ただし次の行の最初の文字がskipパターンにマッチ
+していても、そこからendパターンの検索が続けられる。これは、再描画は領域内のど
+の行でも始まることができ、skipパターンが前の行から始まったかどうかはチェックさ
+れないからである。例えば、skipパターンが"a\nb"で、endパターンが"b"のとき、次の
+テキストの2行目でendパターンがマッチする。 >
 	 x x a
 	 b x x
-Generally this means that the skip pattern should not match any characters
-after the "\n".
+つまり、skipパターンは"\n"以降の文字にはマッチしないことになる。
 
 
-External matches					*:syn-ext-match*
+外部マッチ					*:syn-ext-match*
 
-These extra regular expression items are available in region patterns:
+リージョンパターンにおいては特別にこれらの正規表現が使える:
 
 						*/\z(* */\z(\)* *E50* *E52*
-    \z(\)	Marks the sub-expression as "external", meaning that it is can
-		be accessed from another pattern match.  Currently only usable
-		in defining a syntax region start pattern.
+    \z(\)	一部を「external」としてマークする。これをつけると他のパターン
+		からアクセスできるようになる。現在はリージョンのstartパターン
+		内でのみ使用可能。
 
-    \z1  ...  \z9				*/\z1* */\z2* *\z9* *E66* *E67*
-		Matches the same string that was matched by the corresponding
-		sub-expression in a previous start pattern match.
+					*/\z1* */\z2* */\z3* */\z4* */\z5*
+    \z1  ...  \z9			*/\z6* */\z7* */\z8* */\z9* *E66* *E67*
+		startパターンにマッチしたテキスト中からマークしておいた部分を
+		参照する。
 
-Sometimes the start and end patterns of a region need to share a common
-sub-expression.  A common example is the "here" document in Perl and many Unix
-shells.  This effect can be achieved with the "\z" special regular expression
-items, which marks a sub-expression as "external", in the sense that it can be
-referenced from outside the pattern in which it is defined.  The here-document
-example, for instance, can be done like this: >
+リージョンのstartとendパターンで正規表現の一部を共有したい場合がある。
+一般的な例としてはPerlやUnixシェルのヒアドキュメントがある。これは特別な正規表
+現アイテム"\z"を使えば達成できる。これは正規表現の一部を"external"としてマーク
+しておく。するとその部分を他のパターンから参照できるようになる。例えば、ヒアド
+キュメントはこうすればよい: >
   :syn region hereDoc start="<<\z(\I\i*\)" end="^\z1$"
 
-As can be seen here, the \z actually does double duty.  In the start pattern,
-it marks the "\(\I\i*\)" sub-expression as external; in the end pattern, it
-changes the \1 back-reference into an external reference referring to the
-first external sub-expression in the start pattern.  External references can
-also be used in skip patterns: >
+このように、\zは2つの役割を果たす。startパターンにおいては正規表現の一部
+"\(\I\i*\)"をexternalとしてマークする。endパターンでは\1によってstartパターン
+中の最初のマークされた部分への外部参照とする。外部参照はskipパターン中でも使え
+る: >
   :syn region foo start="start \(\I\i*\)" skip="not end \z1" end="end \z1"
 
-Note that normal and external sub-expressions are completely orthogonal and
-indexed separately; for instance, if the pattern "\z(..\)\(..\)" is applied
-to the string "aabb", then \1 will refer to "bb" and \z1 will refer to "aa".
-Note also that external sub-expressions cannot be accessed as back-references
-within the same pattern like normal sub-expressions.  If you want to use one
-sub-expression as both a normal and an external sub-expression, you can nest
-the two, as in "\(\z(...\)\)".
+通常のマークとexternalなマークはまったく独立であり、別々に番号が振られる。例え
+ば、文字列"aabb"に対してパターン"\z(..\)\(..\)"を適用すると、\1は"bb"を参照し
+、\z1は"aa"を参照するようになる。externalなマークをした部分は、通常のマークと
+違って、同一パターン内で後方参照することはできない。ある部分に対して通常のマー
+ク、externalなマーク両方をつけたい場合は、"\(\z(...\)\)"のようにネストさせるこ
+とができる。
 
-Note that only matches within a single line can be used.  Multi-line matches
-cannot be referred to.
+一行内でマッチした部分しか参照できないことに注意。複数行にわたってマッチした部
+分は参照できない。
 
 ==============================================================================
-8. Syntax clusters					*:syn-cluster* *E400*
+8. クラスタ						*:syn-cluster* *E400*
 
 :sy[ntax] cluster {cluster-name} [contains={group-name}..]
 				 [add={group-name}..]
 				 [remove={group-name}..]
 
-This command allows you to cluster a list of syntax groups together under a
-single name.
+このコマンドを使うと、構文グループのリストを1つの名前のもとにまとめることがで
+きる。このまとまりのことをクラスタと呼ぶ。
 
 	contains={group-name}..
-		The cluster is set to the specified list of groups.
+		クラスタに含まれるグループを指定する。
 	add={group-name}..
-		The specified groups are added to the cluster.
+		指定したグループをクラスタに加える。
 	remove={group-name}..
-		The specified groups are removed from the cluster.
+		指定したグループをクラスタからとり除く。
 
-A cluster so defined may be referred to in a contains=.., nextgroup=.., add=..
-or remove=.. list with a "@" prefix.  You can also use this notation to
-implicitly declare a cluster before specifying its contents.
+定義されたクラスタはcontains=..やnextgroup=..、add=..、remove=..などで使うこと
+ができる。そのとき場合は"@"をつける。また、この記法によってクラスタの中身を定
+義する前にそのクラスタ名を使用することができる。
 
 Example: >
    :syntax match Thing "# [^#]\+ #" contains=@ThingMembers
    :syntax cluster ThingMembers contains=ThingMember1,ThingMember2
 
-As the previous example suggests, modifications to a cluster are effectively
-retroactive; the membership of the cluster is checked at the last minute, so
-to speak: >
+この例からわかるように、クラスタに対する変更はさかのぼって効果がある。クラスタ
+の中身は直前になってチェックされる。言ってみれば: >
    :syntax keyword A aaa
+   :syntax keyword B bbb
    :syntax cluster AandB contains=A
    :syntax match Stuff "( aaa bbb )" contains=@AandB
-   :syntax cluster AandB add=B    " now both keywords are matched in Stuff
+   :syntax cluster AandB add=B	  " これによって2つのキーワードがStuff内でマ
+				    ッチするようになる
 
-This also has implications for nested clusters: >
+これはクラスタのネスト度にも関係がある: >
    :syntax keyword A aaa
    :syntax keyword B bbb
    :syntax cluster SmallGroup contains=B
    :syntax cluster BigGroup contains=A,@SmallGroup
    :syntax match Stuff "( aaa bbb )" contains=@BigGroup
-   :syntax cluster BigGroup remove=B    " no effect, since B isn't in BigGroup
-   :syntax cluster SmallGroup remove=B  " now bbb isn't matched within Stuff
+   :syntax cluster BigGroup remove=B	" BはBigGroup内にないので無意味
+   :syntax cluster SmallGroup remove=B	" Stuff内でbbbがマッチしなくなる
 
 ==============================================================================
-9. Including syntax files				*:syn-include* *E397*
+9. 構文ファイルのインクルード			*:syn-include* *E397*
 
-It is often useful for one language's syntax file to include a syntax file for
-a related language.  Depending on the exact relationship, this can be done in
-two different ways:
+構文ファイルの中で、それに関連した構文ファイルをインクルードしたい場合がある。
+そうするには、構文ファイルの関係によって2種類の方法がある:
 
-	- If top-level syntax items in the included syntax file are to be
-	  allowed at the top level in the including syntax, you can simply use
-	  the |:runtime| command: >
+	- インクルードされるファイル内のトップレベルのアイテムをそのままトップ
+	  レベルとしたいなら、単に|:runtime|コマンドを使えばよい: >
 
   " In cpp.vim:
   :runtime! syntax/c.vim
   :unlet b:current_syntax
 
-<	- If top-level syntax items in the included syntax file are to be
-	  contained within a region in the including syntax, you can use the
-	  ":syntax include" command:
+<	- インクルードされるファイル内のトップレベルのアイテムをリージョンに内
+	  包させたいなら、":syntax include"コマンドを使うとよい: >
 
 :sy[ntax] include [@{grouplist-name}] {file-name}
 
-	  All syntax items declared in the included file will have the
-	  "contained" flag added.  In addition, if a group list is specified,
-	  all top-level syntax items in the included file will be added to
-	  that list. >
+	  インクルードされるファイル中で宣言された構文アイテム全てに
+	  "contained"フラグがつけられる。さらにグループのリストを指定すると、
+	  インクルードされるファイル中のトップレベルの構文アイテム全てに対して
+	  そのリストがつけられる。 >
 
    " In perl.vim:
    :syntax include @Pod <sfile>:p:h/pod.vim
    :syntax region perlPOD start="^=head" end="^=cut" contains=@Pod
 <
-	  When {file-name} is an absolute path (starts with "/", "c:", "$VAR"
-	  or "<sfile>") that file is sourced.  When it is a relative path
-	  (e.g., "syntax/pod.vim") the file is searched for in 'runtimepath'.
-	  All matching files are loaded.  Using a relative path is
-	  recommended, because it allows a user to replace the included file
-	  with his own version, without replacing the file that does the ":syn
-	  include".
+	  {file-name}が絶対パスである場合("/", "c:", "$VAR", "<sfile>"のどれか
+	  で始まる場合)そのファイルが読み込まれる(sourceされる)。相対パスの場
+	  合(例:"syntax/pod.vim")、そのファイルが'runtimepath'中から探される。
+	  マッチしたファイル全てが読み込まれる。相対パスを使用することが推奨さ
+	  れる。そうすればユーザが":syn include"を書き換えることなく、インクル
+	  ードされるファイルを改変して別の場所におけるからである。
 
 ==============================================================================
-10. Synchronizing				*:syn-sync* *E403* *E404*
+10. 表示のシンクロナイズ 			*:syn-sync* *E403* *E404*
 
-Vim wants to be able to start redrawing in any position in the document.  To
-make this possible it needs to know the syntax state at the position where
-redrawing starts.
+ドキュメント中のどの位置からでも再描画を開始できると望ましい。これを実現するに
+は、再描画を開始する位置における構文の状態を知る必要がある。
 
 :sy[ntax] sync [ccomment [group-name] | minlines={N} | ...]
 
-There are four ways to synchronize:
-1. Always parse from the start of the file.
+シンクロナイズには4つのやり方がある:
+1. 常にファイルの最初からパースする。
    |:syn-sync-first|
-2. Based on C-style comments.  Vim understands how C-comments work and can
-   figure out if the current line starts inside or outside a comment.
+2. Cスタイルのコメントに基づく。VimはCコメントの挙動を理解し、現在行がコメント
+   の内側から始まっているか外側から始まっているかを判定することができる。
    |:syn-sync-second|
-3. Jumping back a certain number of lines and start parsing there.
+3. 一定行さかのぼり、そこからパースを開始する。
    |:syn-sync-third|
-4. Searching backwards in the text for a pattern to sync on.
+4. テキストをさかのぼり、シンクロナイズを始める目印の正規表現を検索する。
    |:syn-sync-fourth|
 
 				*:syn-sync-maxlines* *:syn-sync-minlines*
-For the last three methods, the line range where the parsing can start is
-limited by "minlines" and "maxlines".
+最後の3つの方法に関して、さかのぼる行数は"minlines"と"maxlines"で制限される。
 
-If the "minlines={N}" argument is given, the parsing always starts at least
-that many lines backwards.  This can be used if the parsing may take a few
-lines before it's correct, or when it's not possible to use syncing.
+引数"minlines={N}"が指定されると、常に少なくともその行数さかのぼってパースが開
+始される。パースする行数が少なすぎて正しく強調できないかもしれないとき、または
+シンクロナイズを使うのが不可能であるとき、この引数を使うとよい。
 
-If the "maxlines={N}" argument is given, the number of lines that are searched
-for a comment or syncing pattern is restricted to N lines backwards (after
-adding "minlines".  This is useful if you have few things to sync on and a
-slow machine.  Example: >
+引数"maxlines={N}"が指定されると、コメントや正規表現を検索するためにさかのぼる
+行数が最大N行になる。これは遅いマシンを使っていて、シンクロナイズする行数が少
+ないとわかっているときに便利である。例: >
    :syntax sync ccomment maxlines=500
-<
+< 
 						*:syn-sync-linebreaks*
-When using a pattern that matches multiple lines, a change in one line may
-cause a pattern to no longer match in a previous line.  This means has to
-start above where the change was made.  How many lines can be specified with
-the "linebreaks" argument.  For example, when a pattern may include one line
-break use this: >
+複数行にマッチする正規表現を使っているとき、ある行に変更を施すと、前の行でマッ
+チしていた正規表現がマッチしなくなってしまうことがある。つまり、変更が施された
+場所より上からシンクロナイズを始めなければならないことを意味する。引数
+"linebreaks"には行数を指定する。例えば、正規表現が改行を1個含んでいる場合はこ
+のようにする: >
    :syntax sync linebreaks=1
-The result is that redrawing always starts at least one line before where a
-change was made.  The default value for "linebreaks" is zero.  Usually the
-value for "minlines" is bigger than "linebreaks".
+こうすると、常に変更が施された行の少なくとも1行前から再描画が開始される。
+"linebreaks"のデフォルト値は0。通常"minlines"の値は"linebreaks"の値より大きい。
 
-
-First syncing method:			*:syn-sync-first*
+第一の方法:          			*:syn-sync-first*
 >
    :syntax sync fromstart
 
-The file will be parsed from the start.  This makes syntax highlighting
-accurate, but can be slow for long files.  Vim caches previously parsed text,
-so that it's only slow when parsing the text for the first time.  However,
-when making changes some part of the next needs to be parsed again (worst
-case: to the end of the file).
+ファイルの最初からパースする。これを使うと構文強調が正確になるが、長いファイル
+に対しては遅くなる。Vimは以前にパースされたテキストをキャッシュしておく。その
+ため、遅くなるのはファイルを最初にパースするときだけである。しかし、変更を施す
+と、それ以降の一部をパースし直さなければならなくなる(最悪の場合はファイルの最
+後まで)。
 
-Using "fromstart" is equivalent to using "minlines" with a very large number.
+"fromstart"を使うことは"minlines"を非常に大きな値にすることと同じ効果を持つ。
 
 
-Second syncing method:			*:syn-sync-second* *:syn-sync-ccomment*
+第二の方法:           			*:syn-sync-second* *:syn-sync-ccomment*
 
-For the second method, only the "ccomment" argument needs to be given.
-Example: >
+第二の方法を使うには、単に引数"ccomment"をつければよい。
+例: >
    :syntax sync ccomment
 
-When Vim finds that the line where displaying starts is inside a C-style
-comment, the last region syntax item with the group-name "Comment" will be
-used.  This requires that there is a region with the group-name "Comment"!
-An alternate group name can be specified, for example: >
+画面最上行がCスタイルコメントの内側にあると判断される場合、グループ名が
+"Comment"のリージョン構文アイテムが使われる。この方法を使うには"Comment"という
+グループ名のリージョンがなければならないことに注意。他のグループ名を指定するこ
+ともできる。例: >
    :syntax sync ccomment javaComment
-This means that the last item specified with "syn region javaComment" will be
-used for the detected C comment region.  This only works properly if that
-region does have a start pattern "\/*" and an end pattern "*\/".
+こうすると、検出されたCコメントのリージョンに対して"syn region javaComment"で
+指定されたアイテムのうち最後のものが使われる。ここで指定するリージョンのstart
+パターンが"\/*"、endパターンが"*\/"となっていないと適切に機能しない。
 
-The "maxlines" argument can be used to restrict the search to a number of
-lines.  The "minlines" argument can be used to at least start a number of
-lines back (e.g., for when there is some construct that only takes a few
-lines, but it hard to sync on).
+引数"maxlines"を使うと検索の行数を制限できる。引数"minlines"を使うと少なくとも
+その行数だけさかのぼって開始させることができる(例:2,3行だけを受け取るコンスト
+ラクトがある場合。ただしその場合シンクロナイズするのが困難)
 
-Note: Syncing on a C comment doesn't work properly when strings are used
-that cross a line and contain a "*/".  Since letting strings cross a line
-is a bad programming habit (many compilers give a warning message), and the
-chance of a "*/" appearing inside a comment is very small, this restriction
-is hardly ever noticed.
+注意: "*/"を含む文字列で行をまたぐものがあると、Cコメントによるシンクロナイズ
+は適切に機能しない。行をまたいで文字列を書くのは悪いプログラミング習慣である
+(多くのコンパイラが警告を出す)。また、コメント中に"*/"が現れる機会はまれなので
+、この制限は注意するほどのものではない。
 
 
-Third syncing method:				*:syn-sync-third*
+第三の方法:          				*:syn-sync-third*
 
-For the third method, only the "minlines={N}" argument needs to be given.
-Vim will subtract {N} from the line number and start parsing there.  This
-means {N} extra lines need to be parsed, which makes this method a bit slower.
-Example: >
+第三の方法を使うには引数"minlines={N}"を加えればよい。この方法を指定すると
+、{N}行前からパースを開始する。これは{N}行余分にパースされることを意味する。そ
+のためこの方法は少し遅くなる。
+例: >
    :syntax sync minlines=50
 
-"lines" is equivalent to "minlines" (used by older versions).
+"lines"は"minlines"と同じ意味である(古いバージョンで使われている)。
 
 
-Fourth syncing method:				*:syn-sync-fourth*
+第四の方法:					*:syn-sync-fourth*
 
-The idea is to synchronize on the end of a few specific regions, called a
-sync pattern.  Only regions can cross lines, so when we find the end of some
-region, we might be able to know in which syntax item we are.  The search
-starts in the line just above the one where redrawing starts.  From there
-the search continues backwards in the file.
+シンクロナイズパターンと呼ばれる特定のリージョンの末尾でシンクロナイズするもの
+である。行をまたげるのはリージョンだけなので、リージョンの末尾に出会ったら、ど
+の構文アイテムの中にいるのかを知ることができる。再描画が始まる行のすぐ上から検
+索が始まり、ファイルの後方に向かって検索する。
 
-This works just like the non-syncing syntax items.  You can use contained
-matches, nextgroup, etc.  But there are a few differences:
-- Keywords cannot be used.
-- The syntax items with the "sync" keyword form a completely separated group
-  of syntax items.  You can't mix syncing groups and non-syncing groups.
-- The matching works backwards in the buffer (line by line), instead of
-  forwards.
-- A line continuation pattern can be given.  It is used to decide which group
-  of lines need to be searched like they were one line.  This means that the
-  search for a match with the specified items starts in the first of the
-  consecutive that contain the continuation pattern.
-- When using "nextgroup" or "contains", this only works within one line (or
-  group of continued lines).
-- When using a region, it must start and end in the same line (or group of
-  continued lines).  Otherwise the end is assumed to be at the end of the
-  line (or group of continued lines).
-- When a match with a sync pattern is found, the rest of the line (or group of
-  continued lines) is searched for another match.  The last match is used.
-  This is used when a line can contain both the start end the end of a region
-  (e.g., in a C-comment like /* this */, the last "*/" is used).
+これはシンクロナイズしない構文アイテムとちょうど同じように機能する。内包された
+マッチ、nextgroupなどを使うことができる。ただし少しだけ違いがある。
+- キーワードを使うことはできない。
+- "sync"キーワード付きの構文アイテムは、完全に別の構文アイテムのグループを形成
+  する。シンクロナイズするグループとしないグループを混ぜることはできない。
+- 照合はバッファ内で1行ごとに逆向きに行われる(前向きではない)。
+- 行継続パターンをつけることができる。これを使うと、あたかも1行であるかのよう
+  に検索する一連の行を指定することができる。これは、指定したアイテムとの照合が
+  継続パターンを含む一連の行の最初から始まることを意味する。
+- "nextgroup"や"contains"は1行(または継続された一連の行)内でだけ有効。
+- リージョンは同一行(または継続された一連の行)内で開始・終了しなければならない
+  。そうでないと行末(または継続された一連の行)内で終わるものとされる。
+- シンクロナイズパターンとのマッチが見つかると、その行(または継続された一連の
+  行)の残りから再びマッチが探される。最後のマッチが使われる。
+  これはリージョンの開始と終了が同一行内にあるとき使われる
+  (例: /* this */のようなCコメントでは、最後の"*/"が使われる)。
 
-There are two ways how a match with a sync pattern can be used:
-1. Parsing for highlighting starts where redrawing starts (and where the
-   search for the sync pattern started).  The syntax group that is expected
-   to be valid there must be specified.  This works well when the regions
-   that cross lines cannot contain other regions.
-2. Parsing for highlighting continues just after the match.  The syntax group
-   that is expected to be present just after the match must be specified.
-   This can be used when the previous method doesn't work well.  It's much
-   slower, because more text needs to be parsed.
-Both types of sync patterns can be used at the same time.
+シンクロナイズパターンとのマッチは2通りの使い方がある。
+1. 再描画を始める場所(シンクロナイズパターンの検索が始まる場所でもある)から強
+   調のためのパースを始める。そこで有効であると期待される構文グループを指定し
+   なければならない。行をまたぐリージョンが他のリージョンを含んではならない場
+   合にこれはうまく機能する。
+2. 強調のためのパースはマッチの直後から継続される。マッチの直後に現れると期待
+   される構文グループを指定しなければならない。
+   これは前の方法がうまくいかないときに使われる。これは、より多くのテキストを
+   パースする必要があるため、とても遅い。
+両方のタイプを同時に使うこともできる。
 
-Besides the sync patterns, other matches and regions can be specified, to
-avoid finding unwanted matches.
+シンクロナイズパターンだけでなく、他のマッチとリージョンを指定して望まないマッ
+チが見つかるのを避けることができる。
 
-[The reason that the sync patterns are given separately, is that mostly the
-search for the sync point can be much simpler than figuring out the
-highlighting.  The reduced number of patterns means it will go (much)
-faster.]
+[シンクロナイズパターンが別々に与えられる理由は、シンクロナイズポイントの検索
+はたいていの場合、強調するところを判別するよりずっと単純だからである。パターン
+の数が減るとそれだけ速くなる。]
 
 					    *syn-sync-grouphere* *E393* *E394*
     :syntax sync match {sync-group-name} grouphere {group-name} "pattern" ..
-
-	Define a match that is used for syncing.  {group-name} is the
-	name of a syntax group that follows just after the match.  Parsing
-	of the text for highlighting starts just after the match.  A region
-	must exist for this {group-name}.  The first one defined will be used.
-	"NONE" can be used for when there is no syntax group after the match.
+    
+	シンクロナイズ用に使うマッチを定義する。{group-name}はマッチのすぐ後に
+	続く構文グループの名前である。強調のためのテキストのパースはマッチの直
+	後から始まる。この{group-name}がついたリージョンが存在しなければならな
+	い。最初に定義されたリージョンが使われる。マッチの後に構文グループが続
+	かない場合は"NONE"を使う。
 
 						*syn-sync-groupthere*
     :syntax sync match {sync-group-name} groupthere {group-name} "pattern" ..
 
-	Like "grouphere", but {group-name} is the name of a syntax group that
-	is to be used at the start of the line where searching for the sync
-	point started.  The text between the match and the start of the sync
-	pattern searching is assumed not to change the syntax highlighting.
-	For example, in C you could search backwards for "/*" and "*/".  If
-	"/*" is found first, you know that you are inside a comment, so the
-	"groupthere" is "cComment".  If "*/" is found first, you know that you
-	are not in a comment, so the "groupthere" is "NONE".  (in practice
-	it's a bit more complicated, because the "/*" and "*/" could appear
-	inside a string.  That's left as an exercise to the reader...).
+	"grouphere"と同様。ただし{group-name}はシンクロナイズポイントの検索が
+	始まる行の行頭で使われる構文グループの名前である。マッチとシンクロナイ
+	ズパターンの検索が始まる位置との間のテキストは構文強調を変えてはならな
+	い。例えばCにおいて"/*"と"*/"を後方検索することができる。"/*"が先に見
+	つかったら、今はコメントの内側にいるとわかる。なので"groupthere"は
+	"cComment"となる。"*/"が先に見つかったら今はコメントの中ではないとわか
+	る。なので"groupthere"は"NONE"となる。(実際は、文字列の中に"/*"と"*/"
+	があるかもしれないので、もう少し込み入っている。これは読者の練習問題と
+	しておく...)。
 
     :syntax sync match ..
     :syntax sync region ..
 
-	Without a "groupthere" argument.  Define a region or match that is
-	skipped while searching for a sync point.
+	引数"groupthere"なしの場合。シンクロナイズポイントの検索の際にスキップ
+	されるリージョンやマッチを定義する。
 
     :syntax sync linecont {pattern}
 
-	When {pattern} matches in a line, it is considered to continue in
-	the next line.  This means that the search for a sync point will
-	consider the lines to be concatenated.
+	{pattern}とのマッチが次の行にも継続されるとみなされる。つまりシンクロ
+	ナイズポイントの検索の際、行は連結されているものと見なされる。
 
-If the "maxlines={N}" argument is given too, the number of lines that are
-searched for a match is restricted to N.  This is useful if you have very
-few things to sync on and a slow machine.  Example: >
+引数"maxlines={N}"が同時に与えられると、マッチを検索する行がN行に制限される。
+これは遅いマシンを使っていて、シンクロナイズするものが少ないとわかっているとき
+に便利。例: >
    :syntax sync maxlines=100
 
-You can clear all sync settings with: >
+全てのシンクロナイズの設定をクリアするには: >
    :syntax sync clear
 
-You can clear specific sync patterns with: >
-   :syntax sync clear {sync-group-name} ..
+あるシンクロナイズパターンをクリアするには: >
+   :syntax sync clear {sync-group-name} ..  
 
 ==============================================================================
-11. Listing syntax items		*:syntax* *:sy* *:syn* *:syn-list*
+11. 構文アイテムのリストを表示する	*:syntax* *:sy* *:syn* *:syn-list*
 
-This commands lists all the syntax items: >
+このコマンドは全ての構文アイテムのリストを表示する: >
 
     :sy[ntax] [list]
 
-To show the syntax items for one syntax group: >
+ある構文グループに属する構文アイテムを表示するには: >
 
     :sy[ntax] list {group-name}
 
-To list the syntax groups in one cluster:			*E392*  >
-
+あるクラスタに属する構文グループを表示するには:			*E392*
+>
     :sy[ntax] list @{cluster-name}
 
-See above for other arguments for the ":syntax" command.
+":syntax"コマンドに対する他の引数については上を参照。
 
-Note that the ":syntax" command can be abbreviated to ":sy", although ":syn"
-is mostly used, because it looks better.
+":syntax"コマンドは":sy"とも略記できる。しかし":syn"の方が見栄えがよいため、普
+通はこちらが使われる。
 
 ==============================================================================
-12. Highlight command			*:highlight* *:hi* *E28* *E411* *E415*
+12. 強調コマンド			*:highlight* *:hi* *E28* *E411* *E415*
 
-There are three types of highlight groups:
-- The ones used for specific languages.  For these the name starts with the
-  name of the language.  Many of these don't have any attributes, but are
-  linked to a group of the second type.
-- The ones used for all syntax languages.
-- The ones used for the 'highlight' option.
+強調グループには3つのタイプがある:
+- 特定の言語に使われるもの。名前がその言語の名前で始まる。このタイプのほとんど
+  は属性を持たず、2番目のタイプのグループにリンクされる。
+- 全ての構文言語に対して使われるもの。
+- 'highlight'オプションに使われるもの。
 							*hitest.vim*
-You can see all the groups currently active with this command: >
+現在有効な全てのグループを知るにはこのコマンドを使う: >
     :so $VIMRUNTIME/syntax/hitest.vim
-This will open a new window containing all highlight group names, displayed
-in their own color.
+このコマンドは新しいウィンドウを開き、そこに全ての強調グループ名を、それ自身の
+色を使って表示する。
 
 						*:colo* *:colorscheme* *E185*
-:colo[rscheme] {name}	Load color scheme {name}.  This searches 'runtimepath'
-			for the file "colors/{name}.vim.  The first one that
-			is found is loaded.
-			To see the name of the currently active color scheme: >
-				:echo colors_name
+:colo[rscheme] {name}	カラースキーム{name}を読み込む。これは'runtimepath'中
+			から"colors/{name}.vim"というファイルを検索する。最初
+			に見つかったものが読み込まれる。
+			現在使われているカラースキームの名前を見るには: >
+				:echo g:colors_name
+<			再帰的な読み込みはされない。つまりカラースキームスクリ
+			プト中で":colorscheme"を使うことはできない。
 
-:hi[ghlight]		List all the current highlight groups that have
-			attributes set.
+:hi[ghlight]		属性がセットされた強調グループを全て表示する。
 
 :hi[ghlight] {group-name}
-			List one highlight group.
+			1つの強調グループを表示する。
 
-:hi[ghlight] clear	Reset all highlighting to the defaults.  Removes all
-			highlighting for groups added by the user!
-			Uses the current value of 'background' to decide which
-			default colors to use.
+:hi[ghlight] clear	全ての強調をデフォルトに戻す。ユーザによって加えられた
+			グループに対する強調が全て消去される。
+			現在の'background'の値によってデフォルトの色が決まる。
 
 :hi[ghlight] clear {group-name}
 :hi[ghlight] {group-name} NONE
-			Disable the highlighting for one highlight group.  It
-			is _not_ set back to the default colors.
+			1つの強調グループに対する強調を無効にする。デフォルト
+			の色に戻すのではない。
 
 :hi[ghlight] [default] {group-name} {key}={arg} ..
-			Add a highlight group, or change the highlighting for
-			an existing group.
-			See |highlight-args| for the {key}={arg} arguments.
-			See |:highlight-default| for the optional [default]
-			argument.
+			強調グループを追加する、または既存のグループに対する強
+			調を変更する。
+			引数{key}={arg}については|highlight-args|を参照。
+			オプショナルな引数[default]については
+			|:highlight-default|を参照。
 
-Normally a highlight group is added once, in the *.vim file.  This sets
-the default values for the highlighting.  After that, you can use additional
-highlight commands to change the arguments that you want to set to
-non-default values.  The value "NONE" can be used to switch the value off or
-go back to the default value.
+通常、強調グループはスタートアップ時に一度だけ追加される。これは強調のデフォル
+ト値をセットする。その後、強調コマンドを使うことによってデフォルトでない値に変
+えることができる。値"NONE"を使うとその値をオフにしたりデフォルト値に戻したりで
+きる。
 
-Example.  The syntax.vim file contains this line: >
-   :hi Comment	term=bold ctermfg=Cyan guifg=#80a0ff
+色を変える簡単な方法は|:colorscheme|コマンドを使うことである。これは次のような
+":highlight"コマンドがいくつか書かれたファイルを読み込む: >
 
-You can change this by giving another ":highlight: command: >
    :hi Comment	gui=bold
 
-Note that all settings that are not included remain the same, only the
-specified field is used, and settings are merged with previous ones.  So, the
-result is like this single command has been used: >
+ファイルに含まれない設定は変更されないままである。指定されたフィールドだけが使
+われ、設定がそれ以前のものとマージされる。なのでその結果は次のコマンド1つが実
+行されるのと同じである: >
    :hi Comment	term=bold ctermfg=Cyan guifg=#80a0ff gui=bold
 <
 					*highlight-args* *E416* *E417* *E423*
-There are three types of terminals for highlighting:
-term	a normal terminal (vt100, xterm)
-cterm	a color terminal (MS-DOS console, color-xterm, these have the "Co"
-	termcap entry)
-gui	the GUI
+強調に関しては3種類のターミナルがある:
+term	通常のターミナル(vt100, xterm)
+cterm	カラーターミナル(MS-DOS console, color-xterm, これらは"Co"という
+	termcapエントリをもつ) 
+gui	GUI
 
-For each type the highlighting can be given.  This makes it possible to use
-the same syntax file on all terminals, and use the optimal highlighting.
+それぞれのタイプに対して強調を指定することができる。これによって同じ構文ファイ
+ルを全てのターミナルに対して使用することができ、最善の強調を利用できるようにな
+っている。
 
-1. highlight arguments for normal terminals
+1. highlightコマンドの引数(通常のターミナル用)
 
 term={attr-list}			*attr-list* *highlight-term* *E418*
-	attr-list is a comma separated list (without spaces) of the
-	following items (in any order):
+	attr-listはカンマ区切りのリスト(スペースは入れない)で、要素は以下の通
+	り(順序はどうでもよい):
 		bold
 		underline
 		reverse
-		inverse		same as reverse
+		inverse		reverseと同じ
 		italic
 		standout
-		NONE		no attributes used (used to reset it)
+		NONE		属性を使用しない(属性をリセットするために使う)
 
-	Note that "bold" can be used here and by using a bold font.  They
-	have the same effect.
+	ここで"bold"を指定してもよいし、太文字のフォントを使ってもよい。どちら
+	も同じことになる。
 
 start={term-list}				*highlight-start* *E422*
 stop={term-list}				*term-list* *highlight-stop*
-	These lists of terminal codes can be used to get
-	non-standard attributes on a terminal.
+	これらのターミナルコードのリストを使ってターミナルについての標準的でな
+	い属性を得ることができる。
 
-	The escape sequence specified with the "start" argument
-	is written before the characters in the highlighted
-	area.  It can be anything that you want to send to the
-	terminal to highlight this area.  The escape sequence
-	specified with the "stop" argument is written after the
-	highlighted area.  This should undo the "start" argument.
-	Otherwise the screen will look messed up.
+	引数"start"でエスケープシーケンスを指定すると、強調するテキストの前に
+	それが書き込まれる。そのテキストを強調する際にターミナルに送りたいもの
+	をなんでも指定できる。引数"stop"でエスケープシーケンスを指定すると、強
+	調されるテキストの後にそれが書き込まれる。"start"で行ったことを"stop"
+	で元に戻すべきである。そうしないとスクリーンがごちゃごちゃになってしま
+	うだろう。
 
-	The {term-list} can have two forms:
+	{term-list}は2つの形を持つ:
 
-	1. A string with escape sequences.
-	   This is any string of characters, except that it can't start with
-	   "t_" and blanks are not allowed.  The <> notation is recognized
-	   here, so you can use things like "<Esc>" and "<Space>".  Example:
+	1. エスケープシーケンス付きの文字列。
+	   これは"t_"で始まるものと空文字列を除く任意の文字列である。"<Esc>"や
+	   "<Space>"のような<>記法が認識される。例:
 		start=<Esc>[27h;<Esc>[<Space>r;
 
-	2. A list of terminal codes.
-	   Each terminal code has the form "t_xx", where "xx" is the name of
-	   the termcap entry.  The codes have to be separated with commas.
-	   White space is not allowed.  Example:
+	2. ターミナルコードのリスト。
+	   ターミナルコードは"t_xx"の形を持つ。"xx"はtermcapエントリ名である。
+	   ターミナルコードはカンマで区切る。ホワイトスペースは使えない。例:
 		start=t_C1,t_BL
-	   The terminal codes must exist for this to work.
+	   対応するターミナルコードが存在しなければならない。
 
-
-2. highlight arguments for color terminals
+2. highlightコマンドの引数(カラーターミナル用)
 
 cterm={attr-list}					*highlight-cterm*
-	See above for the description of {attr-list} |attr-list|.
-	The "cterm" argument is likely to be different from "term", when
-	colors are used.  For example, in a normal terminal comments could
-	be underlined, in a color terminal they can be made Blue.
-	Note: Many terminals (e.g., DOS console) can't mix these attributes
-	with coloring.  Use only one of "cterm=" OR "ctermfg=" OR "ctermbg=".
+	{attr-list}の説明は上を参照|attr-list|。
+	色を使う場合、引数"cterm"は"term"と異なる結果になる。例えば、通常のタ
+	ーミナルではコメントにアンダーラインを引き、カラーターミナルではコメン
+	トを青色で表示することができる。
+	注意:DOSコンソールなど多くのターミナルでは色づけの際にこれらの属性を混
+	在させることはできない。"cterm="か"ctermfg="が"ctermbg="のどれか1つだ
+	けを使うこと。
 
 ctermfg={color-nr}				*highlight-ctermfg* *E421*
 ctermbg={color-nr}				*highlight-ctermbg*
-	The {color-nr} argument is a color number.  Its range is zero to
-	(not including) the number given by the termcap entry "Co".
-	The actual color with this number depends on the type of terminal
-	and its settings.  Sometimes the color also depends on the settings of
-	"cterm".  For example, on some systems "cterm=bold ctermfg=3" gives
-	another color, on others you just get color 3.
+	引数{color-nr}で色番号を指定する。色番号の範囲は0からtermcapエントリ
+	"Co"で与えられる数(それ自身は含まない)までである。
+	この色番号で実際に表示される色はターミナルの種類とその設定に依存する。
+	"cterm"の設定によって色が変わる場合もある。例えば、あるシステムでは
+	"cterm=bold ctermfg=3"でそのまま3番の色を表示し、他のシステムでは異な
+	る色を表示することがある。
 
-	For an xterm this depends on your resources, and is a bit
-	unpredictable.  See your xterm documentation for the defaults.  The
-	colors for a color-xterm can be changed from the .Xdefaults file.
-	Unfortunately this means that it's not possible to get the same colors
-	for each user.  See |xterm-color| for info about color xterms.
+	xtermにおいてはこれはユーザのリソースに依存し、やや予測ができない。デ
+	フォルトについてはxtermのドキュメントを参照のこと。カラーxterm用の色は
+	.Xdefaultsファイルで変更することができる。このため、ユーザごとに表示さ
+	れる色が異なるかもしれない。カラーxtermについては|xterm-color|を参照。
 
-	The MSDOS standard colors are fixed (in a console window), so these
-	have been used for the names.  But the meaning of color names in X11
-	are fixed, so these color settings have been used, to make the
-	highlighting settings portable (complicated, isn't it?).  The
-	following names are recognized, with the color number used:
+	コンソールウィンドウ内のMSDOS標準色は固定されている。そのため、これら
+	の色を名前に使っている。一方、X11の色名の意味は固定されている。そこで
+	強調の設定に可搬性を持たせるため、X11の色設定が使われている(複雑である
+	が)。以下の名前が認識され、色番号とともに使われる:
 
+							*cterm-colors* 
 	    NR-16   NR-8    COLOR NAME ~
-							*cterm-colors*
 	    0	    0	    Black
 	    1	    4	    DarkBlue
-	    2       2	    DarkGreen
-	    3       6	    DarkCyan
-	    4       1	    DarkRed
-	    5       5	    DarkMagenta
-	    6       3	    Brown, DarkYellow
-	    7       7	    LightGray, LightGrey, Gray, Grey
+	    2	    2	    DarkGreen
+	    3	    6	    DarkCyan
+	    4	    1	    DarkRed
+	    5	    5	    DarkMagenta
+	    6	    3	    Brown, DarkYellow
+	    7	    7	    LightGray, LightGrey, Gray, Grey
 	    8	    0*	    DarkGray, DarkGrey
 	    9	    4*	    Blue, LightBlue
 	    10	    2*	    Green, LightGreen
@@ -3109,95 +3462,88 @@ ctermbg={color-nr}				*highlight-ctermbg*
 	    14	    3*	    Yellow, LightYellow
 	    15	    7*	    White
 
-	The number under "NR-16" is used for 16-color terminals ('t_Co'
-	greater than or equal to 16).  The number under "NR-8" is used for
-	8-color terminals ('t_Co' less than 16).  The '*' indicates that the
-	bold attribute is set for ctermfg.  In many 8-color terminals (e.g.,
-	"linux"), this causes the bright colors to appear.  This doesn't work
-	for background colors!  Without the '*' the bold attribute is removed.
-	If you want to set the bold attribute in a different way, put a
-	"cterm=" argument AFTER the "ctermfg=" or "ctermbg=" argument.  Or use
-	a number instead of a color name.
+	    "NR-16"の下の番号は16色ターミナル('t_Co'が16以上のもの)用である。
+	    "NR-8"の下の番号は8色ターミナル('t_Co'が16以下のもの)用である。
+	    '*'はctermfgにbold属性がセットされることを意味している。"linux"な
+	    ど多くの8色ターミナルでは明るい色になる。ただし背景色には適用され
+	    ない。'*'がないものはbold属性なしになる。他の方法でbold属性をつけ
+	    たいなら引数"cterm="を"ctermfg="や"ctermbg="の後に書くこと。または
+	    色名の代わりに番号を使うこと。
 
-	The case of the color names is ignored.
-	Note that for 16 color ansi style terminals (including xterms), the
-	numbers in the NR-8 column is used. Here '*' means 'add 8' so that Blue
-	is 12, DarkGray is 8 etc.
+	    色名の大文字・小文字は無視される。
+	    16色ansiスタイルターミナル(xtermを含む)ではNR-8の列の番号が使われ
+	    ることに注意。ここで'*'は'add 8'という意味になる。つまりBlueが12
+	    に、DarkGrayが8になる。
 
-	Note that for some color terminals these names may result in the wrong
-	colors!
+	    カラーターミナルによっては、色名を使うと間違った色で表示される場合
+	    もあることに注意。
 
 							*:hi-normal-cterm*
-	When setting the "ctermfg" or "ctermbg" colors for the Normal group,
-	these will become the colors used for the non-highlighted text.
-	Example: >
+	Normalグループに対して"ctermfg"や"ctermbg"を設定すると、これらは強調さ
+	れないテキストに対する色になる。
+	例: >
 		:highlight Normal ctermfg=grey ctermbg=darkblue
-<	When setting the "ctermbg" color for the Normal group, the
-	'background' option will be adjusted automatically.  This causes the
-	highlight groups that depend on 'background' to change!  This means
-	you should set the colors for Normal first, before setting other
-	colors.
-	When a colorscheme is being used, changing 'background' causes it to
-	be reloaded, which may reset all colors (including Normal).  First
-	delete the "colors_name" variable when you don't want this.
+<	Normalグループに対して"ctermbg"を設定すると、オプション'background'が
+	自動的に調整される。これによって'background'に依存する強調グループが変
+	更される。そのため、まずNormalに対する色を設定し、それから他の色を設定
+	するべきである。
+	カラースキーム使用時に'background'を変更するとカラースキームが再読み込
+	みされる。そしてNormalを含む全ての色がリセットされる。これが嫌なら最初
+	に変数"colors_name"を削除すること。
 
-	When you have set "ctermfg" or "ctermbg" for the Normal group, Vim
-	needs to reset the color when exiting.  This is done with the "op"
-	termcap entry |t_op|.  If this doesn't work correctly, try setting the
-	't_op' option in your .vimrc.
+	Normalグループに対して"ctermfg"や"ctermbg"を設定すると、Vim終了時にそ
+	の色をリセットする必要がある。これはtermcapエントリ"op"|t_op|を使って
+	なされる。これがうまくいかない場合は.vimrc中で't_op'を設定してみるこ
+	と。
 							*E419* *E420*
-	When Vim knows the normal foreground and background colors, "fg" and
-	"bg" can be used as color names.  This only works after setting the
-	colors for the Normal group and for the MS-DOS console.  Example, for
-	reverse video: >
+	Vimが通常の文字色と背景色を知っているなら"fg"と"bg"を色名として使え
+	る。これはNormalグループの色とMS-DOSコンソールの色を設定しないと使えな
+	い。例えば反転表示をするには: >
 	    :highlight Visual ctermfg=bg ctermbg=fg
-<	Note that the colors are used that are valid at the moment this
-	command are given.  If the Normal group colors are changed later, the
-	"fg" and "bg" colors will not be adjusted.
+<	このコマンドを実行した時点で有効な色が使われることに注意。この後で
+	Normalグループを変更しても"fg"と"bg"は調整されない。
 
 
-3. highlight arguments for the GUI
+3. highlightコマンドの引数(GUI用)
 
 gui={attr-list}						*highlight-gui*
-	These give the attributes to use in the GUI mode.
-	See |attr-list| for a description.
-	Note that "bold" can be used here and by using a bold font.  They
-	have the same effect.
-	Note that the attributes are ignored for the "Normal" group.
+	これらはGUIモードで使われる属性を設定する。
+	説明は|attr-list|を参照。
+	ここで"bold"を設定しても太字のフォントを使ってもよい。どちらも同じ効果
+	を持つ。
+	"Normal"グループに対する属性は無視される。
 
 font={font-name}					*highlight-font*
-	font-name is the name of a font, as it is used on the system Vim
-	runs on.  For X11 this is a complicated name, for example: >
+	font-nameはVimを実行しているシステム上で使われるフォント名である。X11
+	ではこれは複雑な名前になる。例えば: >
    font=-misc-fixed-bold-r-normal--14-130-75-75-c-70-iso8859-1
 <
-	The font-name "NONE" can be used to revert to the default font.
-	When setting the font for the "Normal" group, this becomes the default
-	font (until the 'guifont' option is changed; the last one set is
-	used).
-	The following only works with Motif and Athena, not with other GUIs:
-	When setting the font for the "Menu" group, the menus will be changed.
-	When setting the font for the "Tooltip" group, the tooltips will be
-	changed.
-	All fonts used, except for Menu and Tooltip, should be of the same
-	character size as the default font!  Otherwise redrawing problems will
-	occur.
+	フォント名"NONE"を使うとデフォルトのフォントに戻る。
+	"Normal"グループに対してフォントを設定すると、これがデフォルトフォント
+	になる(オプション'guifont'が変更されるまでは; 最後に設定したものが使わ
+	れる)。
+	以下のものはMotifとAthena上でのみ動作し、他のGUI上では利用できない:
+	"Menu"グループに対してフォントを設定すると、メニューが変更される。
+	"Tooltip"グループに対してフォントを設定するt、ツールチップが変更され
+	る。
+	Menu用とTooltip用を除く全てのフォントのサイズがデフォルトフォントのサ
+	イズと同じでなければならない。そうでないと再描画の際に問題が発生する。
 
 guifg={color-name}					*highlight-guifg*
 guibg={color-name}					*highlight-guibg*
-	These give the foreground (guifg) and background (guibg) color to
-	use in the GUI.  There are a few special names:
-		NONE		no color (transparent)
-		bg		use normal background color
-		background	use normal background color
-		fg		use normal foreground color
-		foreground	use normal foreground color
-	To use a color name with an embedded space or other special character,
-	put it in single quotes.  The single quote cannot be used then.
-	Example: >
+	guifgは文字色、guibgは背景色を指定する。いくつか特別な名前がある:
+		NONE		no color (透明)
+		bg		通常の背景色を使う
+		background	通常の背景色を使う
+		fg		通常の文字色を使う
+		foreground	通常の文字色を使う
+	埋め込みスペースや他の特別な文字に対して色名を使うには、色名をシングル
+	クォートでくくる。それゆえシングルクォートを使うことはできない。
+	例: >
 	    :hi comment guifg='salmon pink'
-<
+< 
 							*gui-colors*
-	Suggested color names (these are available on most systems):
+	推奨されている色名 (これらはほとんどのシステムで利用可能である)
 	    Red		LightRed	DarkRed
 	    Green	LightGreen	DarkGreen	SeaGreen
 	    Blue	LightBlue	DarkBlue	SlateBlue
@@ -3208,218 +3554,208 @@ guibg={color-name}					*highlight-guibg*
 	    Black	White
 	    Orange	Purple		Violet
 
-	In the Win32 GUI version, additional system colors are available.  See
-	|win32-colors|.
+	Win32 GUIバージョンでは他にもシステムカラーが利用できる。
+	|win32-colors|を参照。
 
-	You can also specify a color by its Red, Green and Blue values.
-	The format is "#rrggbb", where
-		"rr"	is the Red value
-		"bb"	is the Blue value
-		"gg"	is the Green value
-	All values are hexadecimal, range from "00" to "ff".  Examples: >
+	RGB値によって色を指定することもできる。
+	フォーマットは"#rrggbb"、ここで
+		"rr"	Red値
+		"bb"	Blue値
+		"gg"	Green値
+	これらの値は16進であり、範囲は"00"から"ff"。例: >
   :highlight Comment guifg=#11f0c3 guibg=#ff00ff
 <
 					*highlight-groups* *highlight-default*
-These are the default highlighting groups.  These groups are used by the
-'highlight' option default.  Note that the highlighting depends on the value
-of 'background'.  You can see the current settings with the ":highlight"
-command.
+以下はデフォルトの強調グループである。これらのグループはデフォルトでオプション
+'highlight'によって使われる。ただし強調は'background'の値に依存することに注
+意。":highlight"コマンドで現在の設定を知ることができる。
 							*hl-Cursor*
-Cursor		the character under the cursor
+Cursor		カーソル下の文字
 							*hl-CursorIM*
-CursorIM	like Cursor, but used when in IME mode |CursorIM|
+CursorIM	Cursorと同じだが、IMEモードにいるとき使われる|CursorIM|。
 							*hl-Directory*
-Directory	directory names (and other special names in listings)
+Directory	ディレクトリ名(とリストにある特別な名前)
 							*hl-DiffAdd*
-DiffAdd		diff mode: Added line |diff.txt|
+DiffAdd		diffモード: 追加された行 |diff.txt|
 							*hl-DiffChange*
-DiffChange	diff mode: Changed line |diff.txt|
+DiffChange	diff モード: 変更された行 |diff.txt|
 							*hl-DiffDelete*
-DiffDelete	diff mode: Deleted line |diff.txt|
+DiffDelete	diff モード: 削除された行 |diff.txt|
 							*hl-DiffText*
-DiffText	diff mode: Changed text within a changed line |diff.txt|
+DiffText	diff モード: 変更された行中の変更されたテキスト |diff.txt|
 							*hl-ErrorMsg*
-ErrorMsg	error messages on the command line
+ErrorMsg	コマンドラインに現れるエラーメッセージ
 							*hl-VertSplit*
-VertSplit	the column separating vertically split windows
+VertSplit	垂直分割したウィンドウの区切りとなる桁
 							*hl-Folded*
-Folded		line used for closed folds
+Folded		閉じた折り畳みの行
 							*hl-FoldColumn*
 FoldColumn	'foldcolumn'
+							*hl-SignColumn*
+SignColumn	目印|signs|が表示される行。
 							*hl-IncSearch*
-IncSearch	'incsearch' highlighting; also used for the text replaced with
-		":s///c"
+IncSearch	'incsearch'の強調; ":s///c"で置換されたテキストにも使われる。
 							*hl-LineNr*
-LineNr		line number for ":number" and ":#" commands, and when 'number'
-		option is set.
+LineNr		":number"と":#"コマンドの行番号。オプション'number'がセットさ
+		れているときはそれにも使われる。
 							*hl-ModeMsg*
-ModeMsg		'showmode' message (e.g., "-- INSERT --")
+ModeMsg		'showmode'のメッセージ (例. "-- INSERT --")
 							*hl-MoreMsg*
 MoreMsg		|more-prompt|
 							*hl-NonText*
-NonText		'~' and '@' at the end of the window, characters from
-		'showbreak' and other characters that do not really exist in
-		the text (e.g., ">" displayed when a double-wide character
-		doesn't fit at the end of the line).
+NonText		ウィンドウの端の'~'と'@'、'showbreak'で設定された文字など、実
+		際のテキストには存在しない文字(例. 倍幅文字が行末に収まらない
+		とき">"が表示される)。
 							*hl-Normal*
-Normal		normal text
+Normal		通常のテキスト
 							*hl-Question*
-Question	|hit-enter| prompt and yes/no questions
+Question	ヒットエンタープロンプト|hit-enter|とyes/noクエスチョン
 							*hl-Search*
-Search		last search pattern highlighting (see 'hlsearch')
+Search		最後に検索した語の強調('hlsearch')を参照。
+		quickfixウィンドウ内の現在行の強調や、それに類するものにも使わ
+		れる。
 							*hl-SpecialKey*
-SpecialKey	Meta and special keys listed with ":map", also for text used
-		to show unprintable characters in the text, 'listchars'.
-		Generally: text that is displayed differently from what it
-		really is.
+SpecialKey	":map"でリストされるメタキーと特別なキー。テキスト中の
+		unprintableな文字を表示するのにも使われる。
+		一般に: 実際とは異なる文字で表示されるテキスト
 							*hl-StatusLine*
-StatusLine	status line of current window
+StatusLine	カレントウィンドウのステータスライン
 							*hl-StatusLineNC*
-StatusLineNC	status lines of not-current windows
-		Note: if this is equal to "StatusLine" Vim will use "^^^" in
-		the status line of the current window.
+StatusLineNC	非カレントウィンドウのステータスライン。
+		Note: これが"StatusLine"に等しい場合、カレントウィンドウのステ
+		ータスラインに"^^^"が使われる。
 							*hl-Title*
-Title		titles for output from ":set all", ":autocmd" etc.
+Title		":set all"、":autocmd"などによる出力のタイトル。
 							*hl-Visual*
-Visual		Visual mode selection
+Visual		ビジュアルモード選択
 							*hl-VisualNOS*
-VisualNOS	Visual mode selection when vim is "Not Owning the Selection".
-		Only X11 Gui's |gui-x11| and |xterm-clipboard| supports this.
+VisualNOS	vimが"Not Owning the Selection"のときのビジュアルモード選択。
+		これをサポートしているのはX11GUI|gui-x11|と|xterm-clipboard|の
+		み。
 							*hl-WarningMsg*
-WarningMsg	warning messages
+WarningMsg	警告メッセージ
 							*hl-WildMenu*
-WildMenu	current match in 'wildmenu' completion
+WildMenu	'wildmenu'補完における現在の候補
 
 						*hl-User1* *hl-User1..9*
-The 'statusline' syntax allows the use of 9 different highlights in the
-statusline and ruler (via 'rulerformat'). The names are User1 to User9.
+'statusline'構文によってステータスラインとルーラー('rulerformat'によって)中で9
+個の強調が使えるようになっている。その名前はUser1からUser9である。
 
-For the GUI you can use these groups to set the colors for the menu,
-scrollbars and tooltips.  They don't have defaults.  This doesn't work for the
-Win32 GUI.  Only three highlight arguments have any effect here: font, guibg,
-and guifg.
+GUI使用時には、これらのグループを使ってメニューやスクロールバー、ツールチップ
+の色を設定することができる。これらにデフォルト値はない。これはWin32では利用で
+きない。ここではhighlightの引数のうちfont, guibg, guifgの3つだけが効果を持つ。
 
 							*hl-Menu*
-Menu		Current font, background and foreground colors of the menus.
-		Also used for the toolbar.
-		Applicable highlight arguments: font, guibg, guifg.
+Menu		メニューのフォント、文字、背景。ツールバーにも使われる。
+		使用可能なhighlightの引数: font, guibg, guifg.
 
-		NOTE: For Motif and Athena the font argument actually
-		specifies a fontset at all times, no matter if 'guifontset' is
-		empty, and as such it is tied to the current |:language| when
-		set.
+		NOTE: MotifとAthenaでは'guifontset'が空かどうかに関わらず、常
+		に引数fontで実際のフォントセットを指定する。そしてそれが現在の
+		|:language|に結び付けられる。
 
 							*hl-Scrollbar*
-Scrollbar	Current background and foreground of the main window's
-		scrollbars.
-		Applicable highlight arguments: guibg, guifg.
+Scrollbar	メインウィンドウのスクロールバーの文字と背景。
+		使用可能なhighlightの引数: guibg, guifg.
 
 							*hl-Tooltip*
-Tooltip		Current font, background and foreground of the tooltips.
-		Applicable highlight arguments: font, guibg, guifg.
-
-		NOTE: For Motif and Athena the font argument actually
-		specifies a fontset at all times, no matter if 'guifontset' is
-		empty, and as such it is tied to the current |:language| when
-		set.
+Tooltip		ツールチップのフォント、文字、背景。
+		使用可能なhighlightの引数: font, guibg, guifg.
+    
+		NOTE: MotifとAthenaでは'guifontset'が空かどうかに関わらず、常
+		に引数fontで実際のフォントセットを指定する。そしてそれが現在の
+		|:language|に結び付けられる。
 
 ==============================================================================
-13. Linking groups		*:hi-link* *:highlight-link* *E412* *E413*
+13. グループのリンク		*:hi-link* *:highlight-link* *E412* *E413*
 
-When you want to use the same highlighting for several syntax groups, you
-can do this more easily by linking the groups into one common highlight
-group, and give the color attributes only for that group.
+複数の構文グループに対して同じ強調をつけたいときは、それらのグループを共通の強
+調グループにリンクし、そのグループに対して色属性を与えると簡単である。
 
-To set a link:
+リンクを作るには:
 
     :hi[ghlight][!] [default] link {from-group} {to-group}
 
-To remove a link:
+リンクを削除するには:
 
     :hi[ghlight][!] [default] link {from-group} NONE
 
 Notes:							*E414*
-- If the {from-group} and/or {to-group} doesn't exist, it is created.  You
-  don't get an error message for a non-existing group.
-- As soon as you use a ":highlight" command for a linked group, the link is
-  removed.
-- If there are already highlight settings for the {from-group}, the link is
-  not made, unless the '!' is given.  For a ":highlight link" command in a
-  sourced file, you don't get an error message.  This can be used to skip
-  links for groups that already have settings.
+- {from-group}か{to-group}のどちらかが存在しない場合、リンクは作成されない。こ
+  の場合エラーメッセージは表示されない。
+- リンクされたグループに対して":highlight"を使うと、即座にリンクが削除される。
+- 既に{from-group}に強調設定がされている場合、'!'をつけないとリンクは作成され
+  ない。sourceされたファイル中の":highlight link"コマンドに関して、エラーメッ
+  セージは表示されない。そのため既に設定を持つグループに対するリンクがスキップ
+  される。
 
 					*:hi-default* *:highlight-default*
-The [default] argument is used for setting the default highlighting for a
-group.  If highlighting has already been specified for the group the command
-will be ignored.  Also when there is an existing link.
+引数[default]によってグループに対するデフォルトの強調を設定することができる。
+そのグループに対して既に強調が指定されている場合、このコマンドは無視される。既
+にリンクが存在する場合も同様。
 
-Using [default] is especially useful to overrule the highlighting of a
-specific syntax file.  For example, the C syntax file contains: >
+[default]は特定の構文ファイルの強調を上書きするのに特に便利である。例えばC構文
+ファイルは次の行を含んでいる: >
 	:highlight default link cComment Comment
-If you like Question highlighting for C comments, put this in your vimrc file: >
+Cコメントに対してQuestionの強調をつけたい場合、これをvimrcファイルに加える: >
 	:highlight link cComment Question
-Without the "default" in the C syntax file, the highlighting would be
-overruled when the syntax file is loaded.
+もしC構文ファイル中の"default"がないと、構文ファイルが読み込まれた時点で強調が
+上書きされてしまう。
 
 ==============================================================================
-14. Cleaning up						*:syn-clear* *E391*
+14. 構文の消去    					*:syn-clear* *E391*
 
-If you want to clear the syntax stuff for the current buffer, you can use this
-command: >
+カレントバッファに対する構文設定を消去したいときはこのコマンドを使う: >
   :syntax clear
 
-This command should be used when you want to switch off syntax highlighting,
-or when you want to switch to using another syntax.  It's normally not needed
-in a syntax file itself, because syntax is cleared by the autocommands that
-load the syntax file.
-The command also deletes the "b:current_syntax" variable, since no syntax is
-loaded after this command.
+このコマンドは、構文強調をオフにしたいときや他の構文を適用したいときに使う。通
+常、これを構文ファイル内で行う必要はない。なぜなら、構文ファイルを読み込む自動
+コマンドによって構文がクリアされる。
+また、このコマンドは変数"b:current_syntax"を削除する。このコマンドの実行後には
+すべての構文がなくなるからである。
 
-If you want to disable syntax highlighting for all buffers, you need to remove
-the autocommands that load the syntax files: >
+全てのバッファに対して構文強調を無効にしたいときは、構文ファイルを読み込む自動
+コマンドを削除する必要がある: >
   :syntax off
 
-What this command actually does, is executing the command >
+このコマンドが実際に行うことは次のコマンドを実行するのと同じである: >
   :source $VIMRUNTIME/syntax/nosyntax.vim
-See the "nosyntax.vim" file for details.  Note that for this to work
-$VIMRUNTIME must be valid.  See |$VIMRUNTIME|.
+詳細は"nosyntax.vim"を参照。これが正常に機能するためには$VIMRUNTIMEが正しく設
+定されている必要がある。|$VIMRUNTIME|を参照。
 
-To clean up specific syntax groups for the current buffer: >
+カレントバッファに対する特定の構文グループを消去するには: >
   :syntax clear {group-name} ..
-This removes all patterns and keywords for {group-name}.
+これは{group-name}に対する全てのパターンとキーワードを消去する。
 
-To clean up specific syntax group lists for the current buffer: >
+カレントバッファに対する特定の構文グループリストを消去するには: >
   :syntax clear @{grouplist-name} ..
-This sets {grouplist-name}'s contents to an empty list.
+これは{grouplist-name}の中身を空リストにセットする。
 
 						*:syntax-reset* *:syn-reset*
-If you have changed the colors and messed them up, use this command to get the
-defaults back: >
+色を変えたため、色がごちゃごちゃになってしまったときは、次のコマンドを使うとデ
+フォルトに戻る: >
 
   :syntax reset
 
-This doesn't change the colors for the 'highlight' option.
+これはオプション'highlight'に対する色は変更しない。
 
-Note that the syntax colors that you set in your vimrc file will also be reset
-back to their Vim default.
-Note that if you are using a color scheme, the colors defined by the color
-scheme for syntax highlighting will be lost.
+ユーザのvimrcファイル中で設定した構文色もVimのデフォルト値に戻ることに注意。
+カラースキームを使っている場合、カラースキームによって定義された色は失われるこ
+とに注意。
 
-What this actually does is: >
+このコマンドが実際に行うことは: >
 
 	let g:syntax_cmd = "reset"
 	runtime! syntax/syncolor.vim
 
-Note that this uses the 'runtimepath' option.
+ここでオプション'runtimepath'が使われていることに注意。
 
 							*syncolor*
-If you want to use different colors for syntax highlighting, you can add a Vim
-script file to set these colors.  Put this file in a directory in
-'runtimepath' which comes after $VIMRUNTIME, so that your settings overrule
-the default colors.  This way these colors will be used after the ":syntax
-reset" command.
+構文強調に別の色を使いたければ、その色を設定するVimスクリプトを作ればよい。そ
+のファイルを'runtimepath'中('runtimepath'は$VIMRUNTIMEを含む)のディレクトリに
+置くと、その設定がデフォルトの色設定を上書きする。こうして":syntax reset"コマ
+ンドを実行すると、それらの色が有効になる。
 
-For Unix you can use the file ~/.vim/after/syntax/syncolor.vim.  Example: >
+Unixでは~/.vim/after/syntax/syncolor.vimファイルを使うとよい。例: >
 
 	if &background == "light"
 	  highlight comment ctermfg=darkgreen guifg=darkgreen
@@ -3427,51 +3763,49 @@ For Unix you can use the file ~/.vim/after/syntax/syncolor.vim.  Example: >
 	  highlight comment ctermfg=green guifg=green
 	endif
 
-Note that when a color scheme is used, there might be some confusion whether
-your defined colors are to be used or the colors from the scheme.  This
-depends on the color scheme file.  See |:colorscheme|.
+カラースキームを使用すると、ユーザ定義の色が使われるのか、それともカラースキー
+ムで定義された色が使われるのかわからなくなる場合がある。これはカラースキーム
+ファイルに依存する。|:colorscheme|を参照。
 
 							*syntax_cmd*
-The "syntax_cmd" variable is set to one of these values when the
-syntax/syncolor.vim files are loaded:
-   "on"		":syntax on" command.  Highlight colors are overruled but
-		links are kept
-   "enable"	":syntax enable" command.  Only define colors for groups that
-		don't have highlighting yet.  Use ":syntax default".
-   "reset"	":syntax reset" command or loading a color scheme.  Define all
-		the colors.
-   "skip"	Dont' define colors.  Used to skip the default settings when a
-		syncolor.vim file earlier in 'runtimepath' has already set
-		them.
+syntax/syncolor.vimファイルが読み込まれると、変数"syntax_cmd"が次の3つの値のう
+ちどれかにセットされる:
+   "on"		":syntax on" コマンド。強調色が上書きされるがリンクはそのまま。
+   "enable"	":syntax enable" コマンド。まだ強調が定義されていないグループ
+	        に対して色を定義するだけ。":syntax default"を使うこと。
+   "reset"	":syntax reset" コマンドまたはカラースキームを読み込む。全ての
+	        色を定義する。
+   "skip"	色を定義しない。'runtimepath'中で前にあるsyncolor.vimファイル
+	        が既にデフォルト設定をセットしてあるとき、デフォルト設定をスキ
+		ップするために使われる。
 
 ==============================================================================
-15. Highlighting tags					*tag-highlight*
+15. タグの強調			 			*tag-highlight*
 
-If you want to highlight all the tags in your file, you can use the following
-mappings.
+ファイル中の全てのタグを強調したければ、次のマッピングを使うとよい。
 
-	<F11>	-- Generate tags.vim file, and highlight tags.
-	<F12>	-- Just highlight tags based on existing tags.vim file.
+	<F11>	-- tags.vimファイルを生成し、タグを強調する。
+	<F12>	-- 既存のtags.vimファイルをもとに強調する。
 >
   :map <F11>  :sp tags<CR>:%s/^\([^	:]*:\)\=\([^	]*\).*/syntax keyword Tag \2/<CR>:wq! tags.vim<CR>/^<CR><F12>
   :map <F12>  :so tags.vim<CR>
 
-WARNING: The longer the tags file, the slower this will be, and the more
-memory Vim will consume.
+WARNING: tagsファイルが長くなるほどこの操作は遅くなり、消費するメモリ量も多く
+なる。
 
-Only highlighting typedefs, unions and structs can be done too.  For this you
-must use Exuberant ctags (found at http://ctags.sf.net).
+typedef、union、structだけを強調することもできる。そのためにはExuberant ctags
+(http://ctags.sf.netで入手可能)を使わねばならない。
 
-Put these lines in your Makefile:
+以下をあなたのMakefileに加える:
 
-# Make a highlight file for types.  Requires Exuberant ctags and awk
+# 型用の強調ファイルを作成する。Exuberant ctagsとawkが必要
 types: types.vim
 types.vim: *.[ch]
 	ctags -i=gstuS -o- *.[ch] |\
 		awk 'BEGIN{printf("syntax keyword Type\t")}\
 			{printf("%s ", $$1)}END{print ""}' > $@
 
-And put these lines in your .vimrc: >
+そして以下を.vimrcに加える: >
 
    " load the types.vim highlighting file, if it exists
    autocmd BufRead,BufNewFile *.[ch] let fname = expand('<afile>:p:h') . '/types.vim'
@@ -3480,59 +3814,56 @@ And put these lines in your .vimrc: >
    autocmd BufRead,BufNewFile *.[ch] endif
 
 ==============================================================================
-16. Color xterms				*xterm-color* *color-xterm*
+16. カラーxterms				*xterm-color* *color-xterm*
 
-Most color xterms have only eight colors.  They should work with these
-lines in your .vimrc: >
-   :if has("terminfo")
-   :  set t_Co=8
-   :  set t_Sf=<Esc>[3%p1%dm
-   :  set t_Sb=<Esc>[4%p1%dm
-   :else
-   :  set t_Co=8
-   :  set t_Sf=<Esc>[3%dm
-   :  set t_Sb=<Esc>[4%dm
+ほとんどのカラーxtermは8色しか持たない。デフォルト設定で色がつかない場合は以下
+を.vimrcに加えると正常に色がつくはずである: >
+   :if &term =~ "xterm"
+   :  if has("terminfo")
+   :	set t_Co=8
+   :	set t_Sf=<Esc>[3%p1%dm
+   :	set t_Sb=<Esc>[4%p1%dm
+   :  else
+   :	set t_Co=8
+   :	set t_Sf=<Esc>[3%dm
+   :	set t_Sb=<Esc>[4%dm
+   :  endif
    :endif
 <	[<Esc> is a real escape, type CTRL-V <Esc>]
 
-You might want to put these lines in an ":if" that checks the name of your
-terminal, for example: >
-   :if &term =~ "xterm"
-<  put above lines here >
-   :endif
+最初の"if"を自分のターミナル名にマッチするように変更する必要があるかもしれない
+e.g. "xterm"でなく"dtterm"。
 
-Note: Do these settings BEFORE doing ":syntax on".  Otherwise the colors may
-be wrong.
+Note: これらの設定は":syntax on"の前に行うこと。そうでないと色がおかしくなって
+しまう。
 							*xiterm* *rxvt*
-The above settings have been mentioned to work for xiterm and rxvt too.
-But for using 16 colors in an rxvt these should work with terminfo: >
+上の設定はxitermとrxvtでも動作するように注意されている。しかしrxvtで16色を使う
+場合にはterminfoを設定しなければならない: >
 	:set t_AB=<Esc>[%?%p1%{8}%<%t25;%p1%{40}%+%e5;%p1%{32}%+%;%dm
 	:set t_AF=<Esc>[%?%p1%{8}%<%t22;%p1%{30}%+%e1;%p1%{22}%+%;%dm
-<
+
 							*colortest.vim*
-To test your color setup, a file has been included in the Vim distribution.
-To use it, execute these commands: >
+色設定をテストするためのファイルがVimディストリビューションに入っている。これ
+を使うには次のコマンドを実行する: >
    :e $VIMRUNTIME/syntax/colortest.vim
    :so %
 
-Some versions of xterm (and other terminals, like the linux console) can
-output lighter foreground colors, even though the number of colors is defined
-at 8.  Therefore Vim sets the "cterm=bold" attribute for light foreground
-colors, when 't_Co' is 8.
+xtermのあるバージョン(とlinuxコンソールのような他のターミナル)は、たとえ色数が
+8に定義されていても、より明るい文字色を出力することができる。そのため't_Co'が
+8のとき、Vimは明るい文字色に対して"cterm=bold"属性をセットする。
 
 							*xfree-xterm*
-To get 16 colors or more, get the newest xterm version (which should be
-included with Xfree86 3.3 and later).  You can also find the latest version
-at: >
-	http://www.clark.net/pub/dickey/xterm
-Here is a good way to configure it.  This uses 88 colors and enables the
-termcap-query feature, which allows Vim to ask the xterm how many colors it
-supports. >
+16色以上を使うにはxtermの最新バージョンを入手すること(Xfree86 3.3以降に含まれ
+ているはずである)。また、以下の場所でも最新バージョンが得られる: >
+	http://invisible-island.net/xterm/xterm.html
+次にそれをconfigureするよい方法を示す。これは88色を使い、termcap-query機能を有
+効化する。これによってVimがxtermに何色をサポートしているか問い合わせることがで
+きるようになる >
 	./configure --disable-bold-color --enable-88-color --enable-tcap-query
-If you only get 8 colors, check the xterm compilation settings.
-(Also see |UTF8-xterm| for using this xterm with UTF-8 character encoding).
+もし8色しか使えなかったらxtermのコンパイル設定を確認すること。
+(このxtermをUTF-8文字コーディングで使う場合には|UTF8-xterm|も参照)。
 
-This xterm should work with these lines in your .vimrc: >
+以下を.vimrcに加えるとこのxtermで動くはずである(16色用): >
    :if has("terminfo")
    :  set t_Co=16
    :  set t_AB=<Esc>[%?%p1%{8}%<%t%p1%{40}%+%e%p1%{92}%+%;%dm
@@ -3542,16 +3873,20 @@ This xterm should work with these lines in your .vimrc: >
    :  set t_Sf=<Esc>[3%dm
    :  set t_Sb=<Esc>[4%dm
    :endif
-<	[<Esc> is a real escape, type CTRL-V <Esc>]
+<	[<Esc> は実際のエスケープ, CTRL-V <Esc>とタイプする]
 
-Without |+terminfo|, Vim will recognize these settings, and automatically
-translate cterm colors of 8 and above to "<Esc>[9%dm" and "<Esc>[10%dm".
-Colors above 16 are also translated automatically.
+|+terminfo|なしではVimはこれらの設定を認識し、自動的にctermの8色と上の設定を
+"<Esc>[9%dm" と "<Esc>[10%dm"に変換する。16色以上も自動的に変換される。
 
-Or just set the TERM environment variable to "xterm-16color" and try if that
-works.
+以下の設定が256色用にうまくいくと報告されている: >
 
-You probably want to use these X resources (in your ~/.Xdefaults file):
+   :set t_AB=<Esc>[48;5;%dm
+   :set t_AF=<Esc>[38;5;%dm
+
+または単にTERM環境変数を"xterm-color"または"xterm-16color"にセットし、うまくい
+くか試してみるとよい。
+
+以下のX resourcesを(~/.Xdefaultsファイルで)使いたいかもしれない:
 	XTerm*color0:			#000000
 	XTerm*color1:			#c00000
 	XTerm*color2:			#008000
@@ -3570,26 +3905,24 @@ You probably want to use these X resources (in your ~/.Xdefaults file):
 	XTerm*color15:			#ffffff
 	Xterm*cursorColor:		Black
 
-[Note: The cursorColor is required to work around a bug, which changes the
-cursor color to the color of the last drawn text.  This has been fixed by a
-newer version of xterm, but not everybody is it using yet.]
+[Note: cursorColorにはバグがある。カーソルの色が最後に描画されたテキストの色に
+なってしまうというものである。これはxtermの新しいバージョンを使うと解決する
+が、まだ全ての人がそれを使っているわけではない。]
 
-To get these right away, reload the .Xdefaults file to the X Option database
-Manager (you only need to do this when you just changed the .Xdefaults file): >
+これらを即座に更新するには.XdefaultsファイルをXオプションデータベースマネー
+ジャに再読み込みさせる(.Xdefaultsを変更したときはこれを行う必要がある): >
   xrdb -merge ~/.Xdefaults
-<
-							*xterm-blink*
-To make the cursor blink in an xterm, see tools/blink.c.  Or use Thomas
-Dickey's xterm above patchlevel 107 (see above for where to get it), with
-these resources:
+					*xterm-blink* *xterm-blinking-cursor*
+xtermでカーソルを点滅させるにはtools/blink.cを見ること。またはThomas Dickeyの
+xtermのパッチレベル107以上を使い(入手場所は上を参照)、以下のリソースを設定す
+る。
 	XTerm*cursorBlink:	on
 	XTerm*cursorOnTime:	400
 	XTerm*cursorOffTime:	250
 	XTerm*cursorColor:	White
 
 							*hpterm-color*
-These settings work (more or less) for a hpterm, which only supports 8
-foreground colors: >
+次の設定はhptermで(大体)うまく機能する。文字色は8色だけサポートしている: >
    :if has("terminfo")
    :  set t_Co=8
    :  set t_Sf=<Esc>[&v%p1%dS
@@ -3599,24 +3932,24 @@ foreground colors: >
    :  set t_Sf=<Esc>[&v%dS
    :  set t_Sb=<Esc>[&v7S
    :endif
-<	[<Esc> is a real escape, type CTRL-V <Esc>]
+<	[<Esc> は実際のエスケープ, CTRL-V <Esc>とタイプする]
 
 						*Eterm* *enlightened-terminal*
-These settings have been reported to work for the Enlightened terminal
-emulator, or Eterm.  They might work for all xterm-like terminals that use the
-bold attribute to get bright colors.  Add an ":if" like above when needed. >
+次の設定がEnlightenedターミナルエミュレータまたはEtermで機能すると報告されてい
+る。また、明るい色を表示するのにbold属性を使うxtermライクターミナル全てで機能
+すると思われる。必要なら前述のように":if"をつけること。 >
        :set t_Co=16
        :set t_AF=^[[%?%p1%{8}%<%t3%p1%d%e%p1%{22}%+%d;1%;m
        :set t_AB=^[[%?%p1%{8}%<%t4%p1%d%e%p1%{32}%+%d;1%;m
 <
 						*TTpro-telnet*
-These settings should work for TTpro telnet.  Tera Term Pro is a freeware /
-open-source program for MS-Windows. >
+次の設定がTTpro telnet用にうまくいく。Tera Term ProはMS-Windows用のフリーウェ
+ア/オープンソースプログラムである。 >
 	set t_Co=16
 	set t_AB=^[[%?%p1%{8}%<%t%p1%{40}%+%e%p1%{32}%+5;%;%dm
 	set t_AF=^[[%?%p1%{8}%<%t%p1%{30}%+%e%p1%{22}%+1;%;%dm
-Also make sure TTpro's Setup / Window / Full Color is enabled, and make sure
-that Setup / Font / Enable Bold is NOT enabled.
-(info provided by John Love-Jensen <eljay@Adobe.COM>)
+また、TTproのSetup/Window/Full Colorが有効になっていることとSetup/Font/Enable
+Boldが有効になっていないことを確認すること。
+(この情報はJohn Love-Jensen <eljay@Adobe.COM>によって提供された)
 
  vim:tw=78:sw=4:ts=8:ft=help:norl:
