@@ -1,29 +1,34 @@
 COMMENT: Vimスクリプト
-STATUS: finished 5.7
+STATUS: suspended 6.3.054
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 
-*eval.txt*      For Vim version 5.7.  Last change: 2000 Jun 07
+*eval.txt*      For Vim version 6.3.  Last change: 2004 May 18
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
 
 
-Expression evaluation					*expression* *expr*
-(訳注:「式評価」が直訳として正しいがちょっと納まりが悪い)
+Vimスクリプト				*expression* *expr* *E15* *eval*
 
-注意:式評価はコンパイル時に無効化できる。もしそうなっているとこのドキュメント
-に書かれている事は有効ではない。|+eval|と後の最終章とを参照。
+Vimスクリプトの利用についてはユーザマニュアルの41章|user_41.txt|でも解説されて
+いる。
 
-1. 変数			|variables|
-2. 式の文法		|expression-syntax|
-3. 内部変数		|internal-variables|
-4. 組み込み関数		|functions|
-5. 関数定義		|user-functions|
-6. コマンド		|expression-commands|
-7. 例			|eval-examples|
-8. +eval機能が無効	|no-eval-feature|
+注意:Vimスクリプトはコンパイル時に無効化できる。もしそうなっているとこのドキュ
+メントに書かれている事は有効ではない。|+eval|と後の最終章とを参照。
 
-{これらのコマンドはViには存在しない}
+1.  変数		|variables|
+2.  式の文法		|expression-syntax|
+3.  内部変数		|internal-variables|
+4.  組み込み関数	|functions|
+5.  関数定義		|user-functions|
+6.  波括弧{}の名前	|curly-braces-names|
+7.  コマンド		|expression-commands|
+8.  例外のハンドリング	|exception-handling|
+9.  例			|eval-examples|
+10. +eval機能が無効	|no-eval-feature|
+11. サンドボックス	|eval-sandbox|
+
+{Vi にはこれらのコマンドは存在しない}
 
 ==============================================================================
 1. 変数							*variables*
@@ -35,135 +40,174 @@ Expression evaluation					*expression* *expr*
 
 これらは文脈に応じて相互に変換される。
 
-数値から文字列への変換は数字のASCII表現によって行なわれる。例:
->	数値 123	-->	文字列 "123"
->	数値 0		-->	文字列 "0"
->	数値 -1		-->	文字列 "-1"
+数値から文字列への変換は数字のASCII表現によって行なわれる。例: >
+	数値 123	-->	文字列 "123"
+	数値 0		-->	文字列 "0"
+	数値 -1		-->	文字列 "-1"
 
 文字列から数値への変換は最初の数字を用いて数値に変換する。16進表記"0xf9"や8進
-表記"017"も認識される。文字列が数字で始まらない場合結果は0となる。例:
->	文字列 "456"	-->	数値 456
->	文字列 "6bar"	-->	数値 6
->	文字列 "foo"	-->	数値 0
->	文字列 "0xf1"	-->	数値 241
->	文字列 "0100"	-->	数値 64
+表記"017"も認識される。文字列が数字で始まらない場合結果は0となる。例: >
+	文字列 "456"	-->	数値 456
+	文字列 "6bar"	-->	数値 6
+	文字列 "foo"	-->	数値 0
+	文字列 "0xf1"	-->	数値 241
+	文字列 "0100"	-->	数値 64
+	文字列 "-8"	-->	数値 -8
+	文字列 "+8"	-->	数値 0
 
-文字列を強制的に数値に変換するには0を足す:
->	:echo "0100" + 0
+文字列を強制的に数値に変換するには0を足す: >
+	:echo "0100" + 0
 
 ブール(真理値)演算には数値が使われる。0は偽を意味し、非0は真を表す。
 
-Note 次のコマンドをみると
+Note 次のコマンドをみると >
 	:if "foo"
 "foo"は0に変換され、それは偽を意味する。文字列が空ではないか調べるためには
-strlen()を使用して次のようにする。
+strlen()を使用して次のようにする。 >
 	:if strlen("foo")
 
-オプション'viminfo'にフラグ'!'が含まれていたなら、大文字で始まり小文字を含まな
-い名前のグローバル変数は、viminfoファイル|viminfo-file|に格納される。
+変数や式の結果の型を知りたいのならば、関数|type()|を使う。
 
-オプション'sessionoptions'が"global"を含むなら、少なくとも一文字ずつ大文字と小
-文字を含む名前のグローバル変数はsessionファイル|session-file|に格納される。
+オプション'viminfo'にフラグ'!'が含まれるならば、大文字で始まり小文字を含まない
+名前のグローバル変数は、viminfoファイル|viminfo-file|に格納される。
+
+オプション'sessionoptions'が"global"を含むなら、大文字で始まり少なくとも一文字
+以上の小文字を含む名前のグローバル変数は、sessionファイル|session-file|に格納
+される。
 
 変数名			何処に保存されるか ~
 my_var_6		されない
 My_Var_6		sessionファイル
 MY_VAR_6		viminfoファイル
 
+
+波括弧を使って変数名を構成できる。詳細は|curly-braces-names|を参照。
+
 ==============================================================================
 2. 式の文法						*expression-syntax*
 
 式文法一覧、優先順位の低いものから高い順に:
 
-|expr1|	expr2 || expr2 ..	論理和
+|expr1| expr2 ? expr1 : expr1	if-then-else 条件式
 
-|expr2|	expr3 && expr3 ..	論理積
+|expr2|	expr3 || expr3 ..	論理和
 
-|expr3|	expr4 == expr4		等しい
-	expr4 != expr4		等しくない
-	expr4 >	 expr4		より大きい
-	expr4 >= expr4		大きいか等しい
-	expr4 <	 expr4		より小さい
-	expr4 <= expr4		小さいか等しい
-	expr4 =~ expr4		正規表現にマッチする
-	expr4 !~ expr4		正規表現にマッチしない
-	expr4 ==? expr4		文字列として等しい(大文字/小文字区別無し)
-	expr4 ==# expr4		文字列として等しい(大文字/小文字区別有り)
-	etc.  As above, append ? for ignoring case, # for matching case
+|expr3|	expr4 && expr4 ..	論理積
 
-|expr4|	expr5 +	 expr5 ..	足し算
-	expr5 -	 expr5 ..	引き算
-	expr5 .	 expr5 ..	文字列の連結
+|expr4|	expr5 == expr5		等しい
+	expr5 != expr5		等しくない
+	expr5 >	 expr5		より大きい
+	expr5 >= expr5		大きいか等しい
+	expr5 <	 expr5		より小さい
+	expr5 <= expr5		小さいか等しい
+	expr5 =~ expr5		正規表現にマッチする
+	expr5 !~ expr5		正規表現にマッチしない
 
-|expr5|	expr6 *	 expr6 ..	掛け算
-	expr6 /	 expr6 ..	割り算
-	expr6 %	 expr6 ..	剰余(割った余り)
+	expr5 ==? expr5		文字列として等しい(大文字/小文字区別無し)
+	expr5 ==# expr5		文字列として等しい(大文字/小文字区別有り)
+	etc.			上記の各式は大小文字の区別を、?を付加すると行
+				わず、#を付加すると行う
 
-|expr6|	! expr6			論理否定
-	- expr6			単項のマイナス(訳注:-1等)
-	expr7
+|expr5|	expr6 +	 expr6 ..	足し算
+	expr6 -	 expr6 ..	引き算
+	expr6 .	 expr6 ..	文字列の連結
 
-|expr7|	expr8[expr1]		文字列内でのインデックス
+|expr6|	expr7 *	 expr7 ..	掛け算
+	expr7 /	 expr7 ..	割り算
+	expr7 %	 expr7 ..	剰余(割った余り)
 
-|expr8|	number			数定数
+|expr7|	! expr7			論理否定
+	- expr7			単項のマイナス(訳注:-1等)
+	+ expr7			単項のプラス
+	expr8
+
+|expr8|	expr9[expr1]		文字列内でのインデックス
+
+|expr9|	number			数定数
 	"string"		文字列定数
 	'string'		リテラル文字列定数
 	&option			オプション変数
 	(expr1)			式の入れ子
 	variable		内部変数
+	va{ria}ble		波括弧付きの内部変数
 	$VAR			環境変数
 	@r			レジスタ'r'の値
 	function(expr1, ...)	関数呼出し
+	func{ti}on(expr1, ...)	波括弧付きの内部変数
 
 ".." はその演算が、その後に他の演算を続ける事が出来ることを示している。
-例:
->	&nu || &list && &shell == "csh"
+例: >
+	&nu || &list && &shell == "csh"
 
 一つのレベルにある全ての式は左から右に解釈される。
 
 
-expr1 and expr2						*expr1* *expr2*
+expr1							*expr1* *E109*
+-----
+
+expr2 ? expr1 : expr1
+
+'?'より前の式は数値として評価される。その結果が非0であった場合、'?'と':'に挟ま
+れた式の値がこの式全体の値となり、逆に0であった場合は':'以降の式の値が全体の値
+となる。
+例: >
+	:echo lnum == 1 ? "先頭" : lnum
+
+始めの式が"expr2"であるから、そこに別の?:を含むことはできない。残り二つの式に
+ついては以下のように再帰的な?:の利用が許される。
+例: >
+	:echo lnum == 1 ? "top" : lnum == 1000 ? "last" : lnum
+
+読み易くするために、行継続|list-continuation|を利用することが推奨される: >
+	:echo lnum == 1
+	:\	? "top"
+	:\	: lnum == 1000
+	:\		? "last"
+	:\		: lnum
+
+
+expr2 and expr3						*expr2* *expr3*
 ---------------
 
 						*expr-barbar* *expr-&&*
 演算子"||"と"&&"は左右に一つずつ引数を取る。引数は数値に変換される。結果は:
 
-	 入力				 出力		    ~
-    n1		n2		n1 || n2	n1 && n2    ~
-    零		零		零		零
-    零		非零		非零		零
-    非零	零		非零		零
-    非零	非零		非零		非零
+	  入力				   出力		    ~
+n1		n2		n1 || n2	n1 && n2    ~
+零		零		零		零
+零		非零		非零		零
+非零		零		非零		零
+非零		非零		非零		非零
 
-演算子は続けて書く事ができる。例:
+演算子は続けて書く事ができる。例: >
 
->	&nu || &list && &shell == "csh"
+	&nu || &list && &shell == "csh"
 
-Note "&&"は"||"よりも高い優先順位を持っている。これは次の事を意味する:
+Note "&&"は"||"よりも高い優先順位を持っている。これは次の事を意味する: >
 
->	&nu || (&list && &shell == "csh")
+	&nu || (&list && &shell == "csh")
 
-結果が決定した時点で残りの式は省略され、解釈されない。これはC言語で行なわれる
-ことと似ている。例:
+結果が確定した時点で残りの式は省略され、解釈されない。これはC言語で行なわれる
+ことに似ている。例: >
 
->	let a = 1
->	echo a || b
+	let a = 1
+	echo a || b
 
 これはaが非零で戻り値は絶対に非零であるから、変数bが宣言されていなくても有効で
-ある。次のも同様に:
+ある。次のも同様に: >
 
->	echo exists("b") && b == "yes"
+	echo exists("b") && b == "yes"
 
 これもbが宣言されているいないに関わらず有効である。後半の項はbが定義されている
 時にだけ評価される。
 
 
-expr3							*expr3*
+expr4							*expr4*
 -----
 
-	expr4 {cmp} expr4
+expr5 {cmp} expr5
 
-2つの表現expr4を比較し、結果が偽なら0を真なら1を返す。
+2つの式expr5を比較し、結果が偽なら0を、真なら1を返す。
 
 				*expr-==*  *expr-!=*  *expr->*   *expr->=*
 				*expr-<*   *expr-<=*  *expr-=~*  *expr-!~*
@@ -182,14 +226,16 @@ expr3							*expr3*
 正規表現非マッチ	!~		!~#		!~?
 
 Examples:
-	"abc" ==# "Abc"	  0と評価される
-	"abc" ==? "Abc"	  1と評価される
-	"abc" == "Abc"	  'ignorecase'が設定されていれば1と、でなければ0と評価
+"abc" ==# "Abc"	  0と評価される
+"abc" ==? "Abc"	  1と評価される
+"abc" == "Abc"	  'ignorecase'が設定されていれば1と、でなければ0と評価
 
-文字列と数値を比較した場合、文字列が数値に変換され、数値として比較される。
+文字列と数値を比較した場合、文字列が数値に変換され、数値として比較される。これ
+は"0 == 'x'"が、'x'が数値としては0であることから、真となることを意味する。
 
 文字列同士を比較した場合、strcmp()やstricmp()によって比較される。これは数値的
-に(バイトの値で)比較されるのであって、言語による文字種の違いである必要は無い。
+に(バイトの値で)比較されるのであって、必ずしも言語に基づく文字種の違いではな
+い。
 
 '#'を付けた演算子を使うか、省略形かつ'ignorecase'が設定されていない場合、比較
 はstrcmp()で行なわれる。
@@ -197,23 +243,28 @@ Examples:
 '?'を付けた演算子を使うか、省略形かつ'ignorecase'が設定されている場合、比較は
 stricmp()で行なわれる。
 
-"=~"と"!~"演算子は右側の引数を正規表現のパターンとして左側の引数に対してマッチ
-を試みる。正規表現のパターンに関しては|pattern|を参照。このマッチは'magic'が設
-定され'cpoptions'が空であるように振舞い、実際の'magic'や'cpoptions'に何が設定
-されているには依存しない。これがスクリプトをポータブルにしてくれる。正規表現中
-のバックスラッシュが重複してしまうのを避けるには、シングルクォーテーションの文
-字列を使用する。詳細は|literal-string|
+"=~"と"!~"演算子は右側の引数を正規表現のパターンとして、左側の引数に対してマッ
+チを試みる。正規表現のパターンに関しては|pattern|を参照。このマッチは'magic'が
+設定され'cpoptions'が空であるように振舞い、実際の'magic'や'cpoptions'に何が設
+定されているには依存しない。これがスクリプトをポータブルにしてくれる。正規表現
+中のバックスラッシュが重複してしまうのを避けるには、シングルクォーテーションの
+文字列を使用する。詳細は|literal-string|を参照。
+文字列は単一行として扱われるので、複数行のパターン(\nを含むもの)はマッチしな
+い。しかしながらリテラルなヌル文字(NL)を、普通の文字として代用することはでき
+る。例:
+	"foo\nbar" =~ "\n"	1として評価される
+	"foo\nbar" =~ "\\n"	0として評価される
 
 
-expr4 and expr5						*expr4* *expr5*
+expr5 and expr6						*expr5* *expr6*
 ---------------
-	expr5 +	 expr5 ..	number addition		*expr-+*
-	expr5 -	 expr5 ..	number subtraction	*expr--*
-	expr5 .	 expr5 ..	string concatenation	*expr-.*
+expr6 +	 expr6 ..	足し算			*expr-+*
+expr6 -	 expr6 ..	引き算			*expr--*
+expr6 .	 expr6 ..	文字列の連結		*expr-.*
 
-	expr6 *	 expr6 ..	number multiplication	*expr-star*
-	expr6 /	 expr6 ..	number division		*expr-/*
-	expr6 %	 expr6 ..	number modulo		*expr-%*
+expr7 *	 expr7 ..	掛け算			*expr-star*
+expr7 /	 expr7 ..	割り算			*expr-/*
+expr7 %	 expr7 ..	剰余(割った余り)	*expr-%*
 
 "."を除く全ての演算子は自動的に文字列を数値に変換する。
 
@@ -221,79 +272,84 @@ expr4 and expr5						*expr4* *expr5*
 	"123" + "456" = 579
 	"123" . "456" = "123456"
 
-'/'の右辺(除数)が0の場合、結果は0xfffffffになる。
+'/'の右辺(除数)が0の場合、結果は0x7ffffffになる。
 '%'の右辺(法)が0の場合、結果は0になる。
-
-
-expr6							*expr6*
------
-	! expr6			logical NOT		*expr-!*
-	- expr6			unary minus		*expr-unary--*
-
-'!'演算子では非零は0に、0は1になる。
-'-'では数値の符号が反転される。
-
-文字列はまず数値に変換される。
-
-これら2つは繰り返したり混ぜたりできる。例:
-    !-1	    == 0
-    !!8	    == 1
-    --9	    == 9
 
 
 expr7							*expr7*
 -----
-	expr8[expr1]		index in String		*expr-[]*
+! expr7			論理否定		*expr-!*
+- expr7			単項マイナス		*expr-unary--*
++ expr7			unary plus		*expr-unary-+*
 
-これの結果は文字列expr8のexpr1番目の単一のキャラクタからなる文字列である。
-expr8は文字列、expr1は数である。
+'!'演算子では非零は0に、0は1になる。
+'-'では数値の符号が反転される。
+'+"では変化はない。
+
+文字列はまず数値に変換される。
+
+これら2つは繰り返したり混ぜたりできる。例:
+	!-1	    == 0
+	!!8	    == 1
+	--9	    == 9
+
+
+expr8							*expr8*
+-----
+expr9[expr1]		文字列内でのインデックス	*expr-[]* *E111*
+
+これの結果は文字列expr9のexpr1番目の単一の文字からなる文字列である。expr9は文
+字列、expr1は数である。ただしマルチバイトエンコーディングの文字列については、
+単なるバイトコードであることに注意。
 
 インデックスが0の場合、先頭のキャラクタが得られることに注意。これはC言語のよう
 に働く。注意:カラム番号は1から始まる。例えばカーソルの下の文字を得るためには、
-次のようにする必要がある:
->   c = getline(line("."))[col(".") - 1]
+次のようにする必要がある: >
+	:let c = getline(line("."))[col(".") - 1]
 
 文字列の長さよりも大きなインデックスが指定された場合、結果は空文字列になる。
 
-							*expr8*
+							*expr9*
 数
 ------
-	number			number constant		*expr-number*
+number			数定数			*expr-number*
 
 10進数、16進数(0xか0Xで始まる)、もしくは8進数(0で始まる)の数定数。
 
 
-文字列							*expr-string*
+文字列							*expr-string* *E114*
 ------
-	"string"		string constant		*expr-quote*
+"string"		文字列定数		*expr-quote*
 
 ダブルクォートが使われていることに注意。
 
-文字列定数には以下の特別文字が使用できる: 
-A string constant accepts these special characters:
-	\...	3桁の8進数字 (例 "\316")
-	\..	2桁の8進数字 (非数字が続かなければならない)
-	\.	1桁の8進数字 (非数字が続かなければならない)
-	\x..	2桁の16進数字 (例 "\x1f")
-	\x.	1桁の16進数字 (16進数字でないものが続かなければならない)
-	\X..	\x..に同じ
-	\X.	\x.に同じ
-	\b	バックスペース <BS>
-	\e	エスケープ <Esc>
-	\f	フォームフィード <FF>
-	\n	改行 <NL>
-	\r	改行(キャリッジリターン) <CR>
-	\t	タブ <Tab>
-	\\	円記号(バックスラッシュ)
-	\"	ダブルクォート
-	\<xxx>	"xxx"というなの特別キー。 例 "\<C-W>" は CTRL-W.
+文字列定数には以下の特殊文字が使用できる: 
+\...	3桁の8進数字 (例 "\316")
+\..	2桁の8進数字 (非数字が続かなければならない)
+\.	1桁の8進数字 (非数字が続かなければならない)
+\x..	2桁の16進数字 (例 "\x1f")
+\x.	1桁の16進数字 (16進数字でないものが続かなければならない)
+\X..	\x..に同じ
+\X.	\x.に同じ
+\u....  文字を4桁の16進数で表現したもので、実際の値は現在の'encoding'の値に依
+	存する (例えば "\u02a4")
+\U....	\u....に同じ
+\b	バックスペース <BS>
+\e	エスケープ <Esc>
+\f	フォームフィード <FF>
+\n	改行 <NL>
+\r	改行(キャリッジリターン) <CR>
+\t	タブ <Tab>
+\\	円記号(バックスラッシュ)
+\"	ダブルクォート
+\<xxx>	"xxx"というなの特別キー。 例 "\<C-W>" は CTRL-W.
 
 Note "\000"と"\x00"は強制的に文字列の終端として扱われる。
 
 
-リテラル文字列						*literal-string*
+リテラル文字列						*literal-string* *E115*
 ---------------
-	'string'		literal string constant		*expr-'*
+'string'		リテラル文字列定数		*expr-'*
 
 Note シングルクォートが使われていることに注意。
 
@@ -302,16 +358,24 @@ Note シングルクォートが使われていることに注意。
 い。含む必要がある場合は普通の文字列(ダブルクォート)を使用すること。
 
 
-オプション						*expr-option*
+オプション					*expr-option* *E112* *E113*
 ------
-	&option			option value
+&option			オプション変数、ローカルなものが優先
+&g:option		グローバルオプション変数
+&l:option		ローカルオプション変数
 
-ここにはあらゆるオプション名を使うことができる。|options|を参照。
+例: >
+	echo "タブストップは " . &tabstop . " です"
+	if &insertmode
+
+ここにはあらゆるオプション名を使うことができる。|options|を参照。ローカル変数
+を使おうとして、実際にはバッファローカルもウィンドウローカルも存在しない場合に
+は、グローバル変数が利用される。
 
 
 レジスタ						*expr-register*
 --------
-	@r			contents of register 'r'
+@r			レジスタ'r'の値
 
 結果は、名前付けられたレジスタの内容が単一の文字列として与えられる。必要なとこ
 ろには改行文字が挿入されている。無名レジスタの内容を取得するためには@@を使う。
@@ -319,14 +383,14 @@ Note シングルクォートが使われていることに注意。
 照。
 
 
-入れ子							*expr-nesting*
+入れ子							*expr-nesting* *E110*
 -------
-	(expr1)			nested expression(式の入れ子)
+(expr1)			式の入れ子
 
 
 環境変数						*expr-env*
 --------------------
-	$VAR			environment variable(環境変数)
+$VAR			環境変数
 
 環境変数の文字列。定義されていない環境変数を指定した場合、結果は空文字列。
 							*expr-env-expand*
@@ -334,52 +398,189 @@ Note $VARを直接使用した場合とexpand("$VAR")を使用した場合では
 ることに注意。直接使用した場合には、現在のVimのセッション中で既知の値に展開さ
 れるだけである。expand()を使用した場合、まず最初にVimのセッション中で既知の値
 に展開される。それが失敗した場合、変数の展開にシェルが使用されることになる。こ
-れは遅くはなるが、シェルの知りうる総ての変数を展開することができる。例:
->   echo $version
->   echo expand("$version")
+れは遅くはなるが、シェルの知りうる総ての変数を展開することができる。例: >
+	:echo $version
+	:echo expand("$version")
 最初の一つは恐らく何も帰ってこず、2つ目は$versionの値が帰ってくるだろう(貴方の
 シェルがサポートしていたとして)
 
 
 内部変数						*expr-variable*
 -----------------
-	variable		internal variable(内部変数)
+variable		内部変数
 以下の|internal-variables|を参照。
 
 
-関数呼出						*expr-function*
+関数呼出		*expr-function* *E116* *E117* *E118* *E119* *E120*
 -------------
-	function(expr1, ...)	function call(関数呼出)
+function(expr1, ...)	関数呼出
 以下の|functions|を参照。
 
 
 ==============================================================================
-3. 内部変数						*internal-variables*
-
+3. 内部変数					*internal-variables* *E121*
+									*E461*
 内部変数の名前には文字と、数字とアンダーバー('_')を使うことができる。しかし数
-字で始めることはできない。
+字で始めることはできない。波括弧を使うこともできる。
+詳細は|curly-braces-names|を参照。
 
 内部変数は":let"コマンドで作成される|:let|。":unlet"コマンドで内部変数を破棄す
 ることができる|:unlet|。内部変数に使われてない名前か、既に破棄された内部変数を
 使うとエラーとなる。
 
+変数には幾つもの名前空間が存在する。実際にどれが利用されるかは、どのような前置
+子が使われたかで決まる:
+
+		(無し) 関数の中では関数ローカル、それ以外ではグローバル
+|buffer-variable|    b:	  現在のバッファにローカル
+|window-variable|    w:	  現在のウィンドウにローカル
+|global-variable|    g:	  グローバル
+|local-variable|     l:	  関数にローカル
+|script-variable|    s:	  |:source|されたVimスクリプトにローカル
+|function-argument|  a:	  関数の引数(関数内のみ)
+|vim-variable|       v:	  グローバル、Vimがあらかじめ定義
+
+						*buffer-variable* *b:var*
 "b:"で始まる変数名は、カレントバッファに局所的な変数を意味する。このように一つ
 一つのバッファ毎に、変数"b:foo"を別々に使用することができる。この種の変数は
-バッファがアンロードされた時に破棄される。もしもそれを破棄したくない場合には、
-'hidden'オプションを設定することでバッファがアンロードされるのを避けることがで
-きる。
+バッファが掃除(wipe out)された時や、":bdelete"で削除された時に一緒に削除され
+る。
 
+1つのバッファローカル変数が定義済:
+					*b:changedtick-variable* *changetick*
+b:changedtick	現在のバッファに対する総変更の回数。変更を行うたびに増加する。
+		これには一回のアンドゥ操作もカウントされる。この変数はバッファ
+		に変更が行われた際にだけアクションを起こしたい時に利用できる。
+		例: >
+		    :if my_changedtick != b:changedtick
+		    :   let my_changedtick = b:changedtick
+		    :   call My_Update()
+		    :endif
+<
+						*window-variable* *w:var*
 "w:"で始まる変数名は、カレントウィンドウに局所的な変数を意味する。これはウィン
 ドウを閉じるときに破棄される。
 
-関数の中からグローバル変数へアクセスするには、"g:"を付けた名前を使用する。
+						*global-variable* *g:var*
+関数の中からグローバル変数へアクセスするには、"g:"を付けた名前を使用する。これ
+が省略された場合は関数ローカルな変数にアクセスする。ただし"g:"自体は、関数の外
+でも使うことができる。
 
-Vimの定義済変数:
+						*local-variable* *l:var*
+関数の中からそのローカル変数にアクセスするには何も前置しなければ良い。しかし明
+示的に"l:"を付けることも可能。
+
+						*script-variable* *s:var*
+In a Vim script variables starting with "s:" can be used.  They cannot be
+accessed from outside of the scripts, thus are local to the script.
+
+They can be used in:
+- commands executed while the script is sourced
+- functions defined in the script
+- autocommands defined in the script
+- functions and autocommands defined in functions and autocommands which were
+  defined in the script (recursively)
+- user defined commands defined in the script
+Thus not in:
+- other scripts sourced from this one
+- mappings
+- etc.
+
+script variables can be used to avoid conflicts with global variable names.
+Take this example:
+
+	let s:counter = 0
+	function MyCounter()
+	  let s:counter = s:counter + 1
+	  echo s:counter
+	endfunction
+	command Tick call MyCounter()
+
+You can now invoke "Tick" from any script, and the "s:counter" variable in
+that script will not be changed, only the "s:counter" in the script where
+"Tick" was defined is used.
+
+Another example that does the same: >
+
+	let s:counter = 0
+	command Tick let s:counter = s:counter + 1 | echo s:counter
+
+When calling a function and invoking a user-defined command, the context for
+script varialbes is set to the script where the function or command was
+defined.
+
+The script variables are also available when a function is defined inside a
+function that is defined in a script.  Example: >
+
+	let s:counter = 0
+	function StartCounting(incr)
+	  if a:incr
+	    function MyCounter()
+	      let s:counter = s:counter + 1
+	    endfunction
+	  else
+	    function MyCounter()
+	      let s:counter = s:counter - 1
+	    endfunction
+	  endif
+	endfunction
+
+This defines the MyCounter() function either for counting up or counting down
+when calling StartCounting().  It doesn't matter from where StartCounting() is
+called, the s:counter variable will be accessible in MyCounter().
+
+When the same script is sourced again it will use the same script variables.
+They will remain valid as long as Vim is running.  This can be used to
+maintain a counter: >
+
+	if !exists("s:counter")
+	  let s:counter = 1
+	  echo "script executed for the first time"
+	else
+	  let s:counter = s:counter + 1
+	  echo "script executed " . s:counter . " times now"
+	endif
+
+Note that this means that filetype plugins don't get a different set of script
+variables for each buffer.  Use local buffer variables instead |b:var|.
+
+
+Vimの定義済変数:				*vim-variable* *v:var*
+
+			*v:charconvert_from* *charconvert_from-variable*
+v:charconvert_from
+		The name of the character encoding of a file to be converted.
+		Only valid while evaluating the 'charconvert' option.
+
+			*v:charconvert_to* *charconvert_to-variable*
+v:charconvert_to
+		The name of the character encoding of a file after conversion.
+		Only valid while evaluating the 'charconvert' option.
+
+					*v:cmdarg* *cmdarg-variable*
+v:cmdarg	This variable is used for two purposes:
+		1. The extra arguments given to a file read/write command.
+		   Currently these are "++enc=" and "++ff=".  This variable is
+		   set before an autocommand event for a file read/write
+		   command is triggered.  There is a leading space to make it
+		   possible to append this variable directly after the
+		   read/write command.  Note: The "+cmd" argument isn't
+		   included here, because it will be executed anyway.
+		2. When printing a PostScript file with ":hardcopy" this is
+		   the argument for the ":hardcopy" command.  This can be used
+		   in 'printexpr'.
+
+					*v:cmdbang* *cmdbang-variable*
+v:cmdbang	Set like v:cmdarg for a file read/write command.  When a "!"
+		was used the value is 1, otherwise it is 0.  Note that this
+		can only be used in autocommands.  For user commands |<bang>|
+		can be used.
+
  					*v:count* *count-variable*
 v:count		最後に実行されたノーマルモードコマンドに渡されたコマンドの実行
-		回数を返す。読出し専用。使用例:
->	:map _x :<C-U>echo "the count is " . count<CR>
-		Note: <C-U>は、カウントの後に':'をタイプした時に示される、行範
+		回数を返す。読出し専用。使用例: >
+	:map _x :<C-U>echo "the count is " . count<CR>
+<		Note: <C-U>は、カウントの後に':'をタイプした時に示される、行範
 		囲指定を削除するために必要となる。
 		また"count"は、以前の版のVimとの互換性の為に動作する。
 
@@ -387,22 +588,131 @@ v:count		最後に実行されたノーマルモードコマンドに渡され�
 v:count1	"v:count"と同じように、しかしカウントが指定されなかった時の省
 		略値として存在する。
 
+						*v:ctype* *ctype-variable*
+v:ctype		The current locale setting for characters of the runtime
+		environment.  This allows Vim scripts to be aware of the
+		current locale encoding.  Technical: it's the value of
+		LC_CTYPE.  When not using a locale the value is "C".
+		This variable can not be set directly, use the |:language|
+		command.
+		See |multi-lang|.
+
+					*v:dying* *dying-variable*
+v:dying		Normally zero.  When a deadly signal is caught it's set to
+		one.  When multiple signals are caught the number increases.
+		Can be used in an autocommand to check if Vim didn't
+		terminate normally. {only works on Unix}
+		Example: >
+	:au VimLeave * if v:dying | echo "\nAAAAaaaarrrggghhhh!!!\n" | endif
+<
 					*v:errmsg* *errmsg-variable*
 v:errmsg	最後に表示されたエラーメッセージ。この変数はセットすることが許
-		されている。例:
->	:let errmsg = ""
->	:next
->	:if (errmsg != "")
->	:  ...
-		また"errmsg"は、以前の版のVimとの互換性の為に動作する。
+		されている。例: >
+	:let errmsg = ""
+	:next
+	:if (errmsg != "")
+	:  ...
+<		また"errmsg"は、以前の版のVimとの互換性の為に動作する。
 
-					*v:warningmsg* *warningmsg-variable*
-v:warningmsg	最後に表示された警告メッセージ。この変数はセットすることが許さ
-		れている。
+					*v:exception* *exception-variable*
+v:exception	The value of the exception most recently caught and not
+		finished.  See also |v:throwpoint| and |throw-variables|.
+		Example: >
+	:try
+	:  throw "oops"
+	:catch /.*/
+	:  echo "caught" v:exception
+	:endtry
+<		Output: "caught oops".
 
-					*v:statusmsg* *statusmsg-variable*
-v:statusmsg	最後に表示されたステータスメッセージ。この変数はセットすること
-		が許されている。
+					*v:fname_in* *fname_in-variable*
+v:fname_in	The name of the input file.  Only valid while evaluating:
+			option		used for ~
+			'charconvert'	file to be converted
+			'diffexpr'	original file
+			'patchexpr'	original file
+			'printexpr'	file to be printed
+
+					*v:fname_out* *fname_out-variable*
+v:fname_out	The name of the output file.  Only valid while
+		evaluating:
+			option		used for ~
+			'charconvert'	resulting converted file (*)
+			'diffexpr'	output of diff
+			'patchexpr'	resulting patched file
+		(*) When doing conversion for a write command (e.g., ":w
+		file") it will be equal to v:fname_in.  When doing conversion
+		for a read command (e.g., ":e file") it will be a temporary
+		file and different from v:fname_in.
+
+					*v:fname_new* *fname_new-variable*
+v:fname_new	The name of the new version of the file.  Only valid while
+		evaluating 'diffexpr'.
+
+					*v:fname_diff* *fname_diff-variable*
+v:fname_diff	The name of the diff (patch) file.  Only valid while
+		evaluating 'patchexpr'.
+
+					*v:folddashes* *folddashes-variable*
+v:folddashes	Used for 'foldtext': dashes representing foldlevel of a closed
+		fold.
+		Read-only. |fold-foldtext|
+
+					*v:foldlevel* *foldlevel-variable*
+v:foldlevel	Used for 'foldtext': foldlevel of closed fold.
+		Read-only. |fold-foldtext|
+
+					*v:foldend* *foldend-variable*
+v:foldend	Used for 'foldtext': last line of closed fold.
+		Read-only. |fold-foldtext|
+
+					*v:foldstart* *foldstart-variable*
+v:foldstart	Used for 'foldtext': first line of closed fold.
+		Read-only. |fold-foldtext|
+
+						*v:lang* *lang-variable*
+v:lang		The current locale setting for messages of the runtime
+		environment.  This allows Vim scripts to be aware of the
+		current language.  Technical: it's the value of LC_MESSAGES.
+		The value is system dependent.
+		This variable can not be set directly, use the |:language|
+		command.
+		It can be different from |v:ctype| when messages are desired
+		in a different language than what is used for character
+		encoding.  See |multi-lang|.
+
+						*v:lc_time* *lc_time-variable*
+v:lc_time	The current locale setting for time messages of the runtime
+		environment.  This allows Vim scripts to be aware of the
+		current language.  Technical: it's the value of LC_TIME.
+		This variable can not be set directly, use the |:language|
+		command.  See |multi-lang|.
+
+						*v:lnum* *lnum-variable*
+v:lnum		Line number for the 'foldexpr' and 'indentexpr' expressions.
+		Only valid while one of these expressions is being evaluated.
+		Read-only. |fold-expr| 'indentexpr'
+
+					*v:prevcount* *prevcount-variable*
+v:prevcount	The count given for the last but one Normal mode command.
+		This is the v:count value of the previous command.  Useful if
+		you want to cancel Visual mode and then use the count. >
+			:vmap % <Esc>:call MyFilter(v:prevcount)<CR>
+<		Read-only.
+
+					*v:progname* *progname-variable*
+v:progname	Contains the name (with path removed) with which Vim was
+		invoked.  Allows you to do special initialisations for "view",
+		"evim" etc., or any other name you might symlink to Vim.
+		Read-only.
+
+					*v:register* *register-variable*
+v:register	The name of the register supplied to the last normal mode
+		command.  Empty if none were supplied. |getreg()| |setreg()|
+
+					*v:servername* *servername-variable*
+v:servername	The resulting registered |x11-clientserver| name if any.
+		Read-only.
 
 			    		*v:shell_error* *shell_error-variable*
 v:shell_error	最後に実行したシェルコマンドの結果。シェルコマンドの実行時にな
@@ -410,26 +720,63 @@ v:shell_error	最後に実行したシェルコマンドの結果。シェルコ
 		る。これはシェルがエラーコードをVimに通知する時のみ働く。コマ
 		ンドが実行されなかった時には、値として-1が良く使われる。読出し
 		専用。
-		例:
->	:!mv foo bar
->	:if v:shell_error
->	:  echo 'could not rename "foo" to "bar"!'
->	:endif
-		また"shell_error"は、以前の版のVimとの互換性の為に動作する。
+		例: >
+	:!mv foo bar
+	:if v:shell_error
+	:  echo 'could not rename "foo" to "bar"!'
+	:endif
+<		また"shell_error"は、以前の版のVimとの互換性の為に動作する。
+
+					*v:statusmsg* *statusmsg-variable*
+v:statusmsg	最後に表示されたステータスメッセージ。この変数はセットすること
+		が許されている。
+
+				*v:termresponse* *termresponse-variable*
+v:termresponse	The escape sequence returned by the terminal for the |t_RV|
+		termcap entry.  It is set when Vim receives an escape sequence
+		that starts with ESC [ or CSI and ends in a 'c', with only
+		digits, ';' and '.' in between.
+		When this option is set, the TermResponse autocommand event is
+		fired, so that you can react to the response from the
+		terminal.
+		The response from a new xterm is: "<Esc>[ Pp ; Pv ; Pc c".  Pp
+		is the terminal type: 0 for vt100 and 1 for vt220.  Pv is the
+		patch level (since this was introduced in patch 95, it's
+		always 95 or bigger).  Pc is always zero.
+		{only when compiled with |+termresponse| feature}
 
 				*v:this_session* *this_session-variable*
-v:this_session
-		最後にロードされたか、セーブされたセッションファイルの完全な
+v:this_session	最後にロードされたか、セーブされたセッションファイルの完全な
 		ファイル名。|:mksession|を参照。この変数はセットすることが許さ
 		れている。それ以前にセーブされたセッションがなければ、この変数
 		は空となる。
 		また"this_session"は、以前の版のVimとの互換性の為に動作する。
 
+					*v:throwpoint* *throwpoint-variable*
+v:throwpoint	The point where the exception most recently caught and not
+		finished was thrown.  Not set when commands are typed.  See
+		also |v:exception| and |throw-variables|.
+		Example: >
+	:try
+	:  throw "oops"
+	:catch /.*/
+	:  echo "Exception from" v:throwpoint
+	:endtry
+<		Output: "Exception from test.vim, line 2"
+
 				*v:version* *version-variable*
 v:version	Vimのバージョン番号。メジャーバージョン番号は100倍され、マイ
 		ナーバージョン番号と足されている。Version 5.0は500。Version
-		5.1 (5.01)は501となる。読出し専用。
-		また"version"は、以前の版のVimとの互換性の為に動作する。
+		5.1 (5.01)は501となる。読出し専用。また"version"は、以前の版の
+		Vimとの互換性の為に動作する。
+		特定のパッチが摘要されているかを調べるには|has()|を使う。例: >
+			if has("patch123")
+<		5.0と5.1には両方ともパッチ123が存在しているが、バージョンが違
+		えば番号は同じでもパッチの内容は全く異なっている。
+
+					*v:warningmsg* *warningmsg-variable*
+v:warningmsg	最後に表示された警告メッセージ。この変数はセットすることが許さ
+		れている。
 
 ==============================================================================
 4. 組み込み関数						*functions*
