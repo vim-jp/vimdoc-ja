@@ -1,0 +1,160 @@
+COMMENT: UNDOツリー
+STATUS: finished 7.0c
+TRANSLATOR: nakadaira <hopper2@nanameue.jp>
+
+*usr_32.txt*	For Vim version 7.0c.  Last change: 2006 Mar 24
+
+		     VIM USER MANUAL - by Bram Moolenaar
+
+			      undo ツリー
+
+
+Vim は多段 undo を提供しています。ユーザーが変更を undo した後で新たな変更を加
+えると、undo ツリーに枝が作成されます。このテキストでは、枝を移動する方法を説
+明します。
+
+|32.1|	変更の番号付け
+|32.2|	ツリーを飛び回る
+|32.3|	タイムトラベリング
+
+次章: |usr_40.txt|  新しいコマンドを作る
+前章: |usr_31.txt|  GUI の活用
+目次: |usr_toc.txt|
+
+==============================================================================
+*32.1*	変更の番号付け (Numbering changes)
+
+セクション |02.5| では一本の undo/redo について説明しましたが、実は、undo/redo
+を分岐させることができます。それは、変更を undo した後で新たな変更を加えた場合
+に起こります。新たな変更は undo ツリーの枝になります。
+
+まずは "one" というテキストから始めます。最初に " too" を追加します。次に、
+(tooの)最初の 'o' に移動し、'w' に変更します。そうすると、1、2、と番号が付けら
+れた二つの変更と、テキストの三つの状態ができます。
+
+		one ~
+		 |
+	      change 1
+	         |
+	      one too ~
+	         |
+	      change 2
+	         |
+	      one two ~
+
+一つだけ変更を undo し、"one too" の状態に戻ります。そして、"one" を "me" に変
+更します。すると、undo ツリーに枝が作成されます。
+
+		one ~
+		 |
+	      change 1
+	         |
+	      one too ~
+	      /     \
+         change 2  change 3
+            |         |
+         one two    me too ~
+
+この状態で |u| コマンドを使って undo します。二回 undo すると "one" に戻りま
+す。|CTRL-R| で redo すると "one too" になります。もう一度 |CTRL-R| を実行する
+と "me too" になります。このように、最後に使われた枝を使って undo や redo を実
+行し、ツリーを上下に移動できます。
+
+変更が作成される順番に注目してください。今は undo と redo の動作は重要ではあり
+ません。それぞれの変更の後にはテキストの新しい状態があります。
+
+Note: 変更だけが番号付けされます。上の説明でツリーに表示されている"テキスト"は
+個別に保存されていません。テキストは、そのテキストより上の変更によって表されま
+す。また、ツリーを上に移動しているときなどは、変更を undo するのと同じように、
+テキストは、そのテキストより下の変更によって表されます。
+訳注: 自信なし
+訳注: Note that only the changes are numbered, the text shown in the tree
+訳注: above has no identifier.  They are mostly referred to by the number of
+訳注: the change above it.  But sometimes by the number of one of the changes
+訳注: below it, especially when moving up in the tree, so that you know which
+訳注: change was just undone.
+
+==============================================================================
+*32.2*	ツリーを飛び回る (Jumping around the tree)
+
+今の状態から "one two" に行くにはどうすればいいでしょう。次のコマンドが使えま
+す: >
+
+	:undo 2
+
+すると、テキストは "one two" になります。あなたは change 2 の下にいます。
+|:undo| コマンドを使ってツリーの任意の変更の下にジャンプできます。
+
+さらに他の変更を加えてみましょう。"one" を "not" に変更します:
+
+		one ~
+		 |
+	      change 1
+	         |
+	      one too ~
+	      /     \
+         change 2  change 3
+            |         |
+         one two    me too ~
+	    |
+	 change 4
+	    |
+	 not two ~
+
+そして、何か考えが変わって "me too" に戻りたいとします。|g-| コマンドを使って
+ください。このコマンドは時間を基準にして戻ります。ツリーを上がったり下がったり
+せず、以前の変更に移動します。
+
+|g-| を繰り返し実行すると、テキストが次のように変化していきます:
+	me too ~
+	one two ~
+	one too ~
+	one ~
+
+|g+| を使えば時間を進めることができます:
+	one ~
+	one too ~
+	one two ~
+	me too ~
+	not two ~
+
+ジャンプしたい変更点が分かっているときには |:undo| が便利です。変更番号がよく
+分からないときには |g-| と |g+| が便利です。
+
+|g-| と |g+| の前にカウントを入力して実行する回数を指定できます。
+
+==============================================================================
+*32.3*	タイムトラベリング (Time travelling)
+
+しばらくテキストを編集していると、ツリーは大きくなってきます。そして、数分前の
+テキストに戻りたいと思うことがあるかもしれません。
+
+undo ツリーにどのような枝があるか確認するには次のコマンドを使います: >
+
+	:undolist
+<	number changes  time ~
+	     3       2  16 seconds ago
+	     4       3  5 seconds ago
+
+枝に付いている葉の数と、変更された時間が確認できます。今、change 4 の下の
+"not two" にいるとして、10 秒前に戻るには次のようにします: >
+
+	:earlier 10s
+
+指定した時間だけ戻り、ツリーの特定の位置へ移動できます。|:earlier| コマンドの
+引数は "m" で分、"h" で時間を指定することもできます。すべての変更を元に戻すに
+は大きな値を指定します: >
+
+	:earlier 10h
+
+時間を進めるには |:later| コマンドを使います: >
+
+	:later 1m
+
+|:earlier| と同じように "s"、"m"、"h" で時間を指定します。
+
+==============================================================================
+
+次章: |usr_40.txt|  新しいコマンドを作る
+
+Copyright: see |manual-copyright|  vim:tw=78:ts=8:ft=help:norl:
