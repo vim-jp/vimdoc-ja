@@ -1,0 +1,294 @@
+COMMENT: GetLatestVimScripts プラグイン
+STATUS: finished 7.0
+TRANSLATOR: nakadaira <hopper2@nanameue.jp>
+MAINTEINER: nakadaira <hopper2@nanameue.jp>
+
+*getscript.txt*	For Vim version 7.0.  Last change: 2006 Apr 30
+
+		Get the Latest VimScripts
+
+Authors:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.Mbiz>
+	  (remove NOSPAM from the email address)
+						*GetLatestVimScripts-copyright*
+Copyright: (c) 2004-2005 by Charles E. Campbell, Jr.
+	   The VIM LICENSE applies to GetLatestVimScripts.vim and
+	   GetLatestVimScripts.txt (see |copyright|) except use
+	   "GetLatestVimScripts" instead of "Vim".
+	   No warranty, express or implied.  Use At-Your-Own-Risk.
+
+
+==============================================================================
+1. 目次							*glvs-contents*
+
+	1. 目次...........................................: |glvs-contents|
+	2. GetLatestVimScripts の使い方...................: |glvs|
+	3. GetLatestVimScripts データファイル.............: |glvs-data|
+	4. GetLatestVimScripts プラグイン.................: |glvs-plugins|
+	5. GetLatestVimScripts 自動インストール...........: |glvs-autoinstall|
+	6. GetLatestVimScripts アルゴリズム...............: |glvs-alg|
+	7. GetLatestVimScripts 開発履歴...................: |glvs-hist|
+
+
+==============================================================================
+2. GetLatestVimScripts の使い方       *getlatestvimscripts* *getscript* *glvs*
+
+	Vim から次のように入力してください。
+>
+		:GetLatestVimScripts
+<
+	次のコマンドでも同じです。ただし、他の場所で既に定義されていた場合は使
+	えません。
+>
+		:GLVS
+<
+	このコマンドは、http://vim.sourceforge.net/ を確認して、スクリプトを更
+	新し、指定がある場合には、自動的にインストールしようとします。そのため
+	に、[.vim|vimfiles]/GetLatest/GetLatestVimScripts.dat を調べ
+	(|glvs-data|参照)、[.vim|vimfiles]/plugin ディレクトリのプラグインを検
+	査します(|glvs-plugins|参照)。
+
+	ダウンロードしたファイルは .../GetLatest ディレクトリに保存されます。
+
+	<GetLatestVimScripts.dat> は、ダウンロードしたスクリプトのバージョンを
+	反映し、自動的に更新されます。
+
+
+==============================================================================
+3. GetLatestVimScripts データファイル	*getlatestvimscripts-data* *glvs-data*
+
+	データファイルには次のヘッダが付きます:
+>
+		ScriptID SourceID Filename
+		--------------------------
+<
+	その下に、数値 数値 テキスト、の三列の行が続きます。
+
+	各行の一番目の数値はスクリプト番号 ScriptID です。ウェブブラウザを使っ
+	て http://vim.sf.net/ にあるスクリプトを見るときに、スクリプトへのリン
+	クをクリックすると、次のようなurlが確認できると思います。
+
+	http://vim.sourceforge.net/scripts/script.php?script_id=40
+
+	"40" が ScriptID です。GetLatestVimScripts はこの番号のページからスク
+	リプトをダウンロードします。
+
+	二番目の数値はスクリプトのソース番号 SouceID です。vim.sf.net にスクリ
+	プトがアップロードされた順番に番号が付けられるので、SourceID を見れば
+	スクリプトがアップロードされた時期がわかります。SourceID に 1 を指定し
+	た場合、そのスクリプトはまだ最新の状態に更新されていないと判断されま
+	す。
+
+	GetLatestVimScripts は、vim.sf.net のスクリプトのページから SourceIDを
+	抜き出して、GetLatestVimScripts.dat に記録された番号よりも大きいような
+	ら、そのスクリプトをダウンロードします。
+
+	スクリプトの作者が、プラグインに特殊なコメント行を書いていた場合、その
+	コメント行を使って <GetLatestVimScripts.dat> が生成されます。スクリプ
+	トの依存関係も扱えます。
+
+	コメントフィールド が :AutoInstall: で始まっている場合、
+	GetLatestVimScripts は、そのスクリプトを自動的にインストールしようとし
+	ます。これを使うと、プラグインを最新の状態に保つことができます。
+
+==============================================================================
+4. GetLatestVimScripts プラグイン *getlatestvimscripts-plugins* *glvs-plugins*
+
+
+	プラグインの作者が、プラグインのどこかに以下のようなコメントを書いてい
+	た場合、GetLatestVimScripts はそれを見付けて、GetLatestVimScripts.dat
+	ファイルを生成します:
+>
+				     src_id
+					    v
+		" GetLatestVimScripts: ### ### yourscriptname
+					^
+				    scriptid
+<
+	プラグインの作者は、上記のような行を書いて自分のプラグインを参照させて
+	ください。複数行書けるので、依存している別のプラグインを参照させること
+	もできます。その場合でも書式は同じです。
+
+	プラグインが、自動インストール (|glvs-autoinstall|参照) 可能なら、
+	"yourscriptname" の直前に :AutoInstall: と書いてもいいでしょう。
+
+	未登録の GetLatestVimScript 命令は、ユーザーの
+	GetLatest/GetLatestVimScripts.dat ファイルに追加されます。
+	プラグインが依存しているスクリプトの入手を比較的簡単に自動化できます。
+
+	自分でプラグインを製作している場合、そのプラグインをダウンロードして欲
+	しくはないと思います。まだリリースしていない作業中のスクリプトを上書き
+	して欲しくはないでしょう。GetLatestVimScripts にはそのための仕組があり
+	ます。次の行を <GetLatestVimScripts.dat> に書いてください。
+>
+		0 0 yourscriptname
+<
+	スクリプト "yourscriptname" に対する GetLatestVimScript 命令は処理され
+	なくなります。その命令行が <GetLatestVimScripts.dat> にうっかり登録さ
+	れることもなくなり、スクリプトはダウンロードされなくなります。これは
+	:AutoInstall: を指定しているときには特に重要です。
+
+	"0 0 yourscriptname" の指定では必ず、スクリプトに書いた
+	"yourscriptname" と同じにしてください。
+
+
+==============================================================================
+5. GetLatestVimScripts 自動インストール	*getlatestvimscripts-autoinstall*
+					*glvs-autoinstall*
+
+	GetLatestVimScripts には自動インストール機能があります。インストールに
+	特別な作業が必要なスクリプトもあるので、すべてを自動インストールできる
+	わけではありません (スクリプトの "インストール" の説明を参照してくださ
+	い)。しかし、ほとんどのスクリプトは自動インストール可能です。
+
+	自動インストールするには、データファイルのコメントフィールドを次のテキ
+	ストで開始してください (前後の空白は無視されます):
+
+		:AutoInstall:
+
+	両端のコロンは必要です。必ずコメントフィールド (yourscriptname) の最初
+	に書いてください。
+
+	以下の行を <.vimrc> に書くと、自動インストールを抑止できます:
+>
+		let g:GetLatestVimScripts_allowautoinstall= 0
+<
+
+	:AutoInstall: を有効にした場合には、ファイルの拡張子が次のどれかで、
+
+	  ---.tar.bz2  : 解凍して [.vim|vimfiles] ディレクトリ以下に展開
+	  ---.tar.gz   : 解凍して [.vim|vimfiles] ディレクトリ以下に展開
+	  ---.vim.bz2  : 解凍して .vim/plugin ディレクトリに移動
+	  ---.vim.gz   : 解凍して .vim/plugin ディレクトリに移動
+	  ---.zip      : 解凍して [.vim|vimfiles] ディレクトリ以下に展開
+	  ---.vim      : [.vim|vimfiles]/plugin ディレクトリに移動
+
+	単に、圧縮ファイルを解凍したり、ファイルをプラグインディレクトリにコ
+	ピーするだけでインストール可能でなければなりません。
+
+	自動インストールできないのはどんな場合でしょう？例を示します:
+>
+		[.vim|vimfiles]/after/syntax/blockhl.vim
+<
+	<blockhl.vim> は C/C++ のブロックを強調表示するスクリプトです。次の場
+	所から入手できます:
+>
+		http://vim.sourceforge.net/scripts/script.php?script_id=104
+<
+	現在、Vim の after/syntax はファイルタイプと同じ名前のスクリプトしかサ
+	ポートしてません (blockhl.vim の場合は、after/syntax/c.vim)。そのた
+	め、自動的にインストールすると、ユーザーの after/syntax/c.vim を上書き
+	する可能性があります。
+
+	私は個人的に、<aftersyntax.vim> を after/syntax/c.vim にコピーして、
+	after/syntax/c/ ディレクトリを使えるようにしています:
+>
+		http://vim.sourceforge.net/scripts/script.php?script_id=1023
+<
+	このスクリプトを使うと、after/syntax/c ディレクトリにある複数のファイ
+	ルをシンタックスファイルとして使えます。ユーザーの after/syntax/c.vim
+	を上書きしてしまう可能性があるため、配布物には含めていません。
+
+
+==============================================================================
+6. GetLatestVimScripts アルゴリズム	*getlatestvimscripts-algorithm*
+								*glvs-alg*
+
+	Vim のサイトでは、以下のように ScriptID を受けて動的にページを生成して
+	います。
+
+		http://vim.sourceforge.net/scripts/script.php?script_id=40
+
+	ページ内には最新の SourceID (src_id) が書かれた行があります。
+	SourceID にはファイルがアップロードされた順番に大きな番号が付けられる
+	ので、SourceID が GetLatestVimScripts.dat に記録された番号より大きけれ
+	ば、新しいスクリプトをダウンロードします。
+
+	スクリプトをダウンロードしたら、内部データベースのScriptID、SourceID、
+	scriptnameを更新します。
+
+	自動インストールの手順は以下の通り:
+
+		ファイルを GetLatest/ から以下のディレクトリに移動する
+			Unix   : $HOME/.vim
+			Windows: $HOME\vimfiles
+
+		ファイルの拡張子が ".bz2" なら
+			bunzip2 を実行
+		ファイルの拡張子が ".gz" なら
+			gunzip を実行
+		続いて、
+		ファイルの拡張子が ".zip" なら
+			unzip を実行
+		ファイルの拡張子が ".tar" なら
+			tar -oxvf を実行
+		ファイルの拡張子が ".vim" なら
+			plugin ディレクトリに移動
+
+
+==============================================================================
+7. GetLatestVimScripts 開発履歴      *getlatestvimscripts-history* *glvs-hist*
+
+	v20 Dec 23, 2005 : * Eric Haarbauer found&fixed a bug with unzip use;
+			     unzip needs the -o flag to overwrite.
+	v19 Nov 28, 2005 : * v18's GetLatestVimScript line accessed the wrong
+			     script! Fixed.
+	v18 Mar 21, 2005 : * bugfix to automatic database construction
+			   * bugfix - nowrapscan caused an error
+			     (tnx to David Green for the fix)
+	    Apr 01, 2005   * if shell is bash, "mv" instead of "ren" used in
+			     :AutoInstall:s, even though its o/s is windows
+	    Apr 01, 2005   * when downloading errors occurred, GLVS was
+			     terminating early.  It now just goes on to trying
+			     the next script (after trying three times to
+			     download a script description page)
+	    Apr 20, 2005   * bugfix - when a failure to download occurred,
+			     GetLatestVimScripts would stop early and claim that
+			     everything was current.  Fixed.
+	v17 Aug 25, 2004 : * g:GetLatestVimScripts_allowautoinstall, which
+			     defaults to 1, can be used to prevent all
+			     :AutoInstall:
+	v16 Aug 25, 2004 : * made execution of bunzip2/gunzip/tar/zip silent
+			   * fixed bug with :AutoInstall: use of helptags
+	v15 Aug 24, 2004 : * bugfix: the "0 0 comment" download prevention wasn't
+			     always preventing downloads (just usually).  Fixed.
+	v14 Aug 24, 2004 : * bugfix -- helptags was using dotvim, rather than
+			     s:dotvim.	Fixed.
+	v13 Aug 23, 2004 : * will skip downloading a file if its scriptid or srcid
+			     is zero.  Useful for script authors; that way their
+			     own GetLatestVimScripts activity won't overwrite
+			     their scripts.
+	v12 Aug 23, 2004 : * bugfix - a "return" got left in the distribution that
+			     was intended only for testing.  Removed, now works.
+			   * :AutoInstall: implemented
+	v11 Aug 20, 2004 : * GetLatestVimScripts is now a plugin:
+			   * :GetLatestVimScripts command
+			   * (runtimepath)/GetLatest/GetLatestVimScripts.dat
+			     now holds scripts that need updating
+	v10 Apr 19, 2004 : * moved history from script to doc
+	v9  Jan 23, 2004 :   windows (win32/win16/win95) will use
+			     double quotes ("") whereas other systems will use
+			     single quotes ('') around the urls in calls via wget
+	v8  Dec 01, 2003 :   makes three tries at downloading
+	v7  Sep 02, 2003 :   added error messages if "Click on..." or "src_id="
+			     not found in downloaded webpage
+			     Uses t_ti, t_te, and rs to make progress visible
+	v6  Aug 06, 2003 :   final status messages now display summary of work
+			     ( "Downloaded someqty scripts" or
+			       "Everything was current")
+			     Now GetLatestVimScripts is careful about downloading
+			     GetLatestVimScripts.vim itself!
+			     (goes to <NEW_GetLatestVimScripts.vim>)
+	v5  Aug 04, 2003 :   missing an endif near bottom
+	v4  Jun 17, 2003 :   redraw! just before each "considering" message
+	v3  May 27, 2003 :   Protects downloaded files from errant shell
+			     expansions with single quotes: '...'
+	v2  May 14, 2003 :   extracts name of item to be obtained from the
+			     script file.  Uses it instead of comment field
+			     for output filename; comment is used in the
+			     "considering..." line and is now just a comment!
+			   * Fixed a bug: a string-of-numbers is not the
+			     same as a number, so I added zero to them
+			     and they became numbers.  Fixes comparison.
+
+==============================================================================
+vim:tw=78:ts=8:ft=help
