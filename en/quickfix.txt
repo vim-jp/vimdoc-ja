@@ -1,4 +1,4 @@
-*quickfix.txt*  For Vim version 6.3.  Last change: 2004 May 20
+*quickfix.txt*  For Vim version 7.0.  Last change: 2006 Apr 30
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -30,6 +30,11 @@ The idea is to save the error messages from the compiler in a file and use Vim
 to jump to the errors one by one.  You can examine each problem and fix it,
 without having to remember all the error messages.
 
+In Vim the quickfix commands are used more generally to find a list of
+positions in files.  For example, |:vimgrep| finds pattern matches.  You can
+use the positions in a script with the |getqflist()| function.  Thus you can
+do a lot more than the edit/compile/fix cycle!
+
 If you are using Manx's Aztec C compiler on the Amiga look here for how to use
 it with Vim: |quickfix-manx|.  If you are using another compiler you should
 save the error messages in a file and start Vim with "vim -q filename".  An
@@ -37,7 +42,19 @@ easy way to do this is with the |:make| command (see below).  The
 'errorformat' option should be set to match the error messages from your
 compiler (see |errorformat| below).
 
-The following quickfix commands can be used:
+						*location-list* *E776*
+A location list is similar to a quickfix list and contains a list of positions
+in files.  A location list is associated with a window and each window can
+have a separate location list.  A location list can be associated with only
+one window.  The location list is independent of the quickfix list.
+
+When a window with a location list is split, the new window gets a copy of the
+location list.  When there are no references to a location list, the location
+list is destroyed.
+
+The following quickfix commands can be used.  The location list commands are
+similar to the quickfix commands, replacing the 'c' prefix in the quickfix
+command with 'l'.
 
 							*:cc*
 :cc[!] [nr]		Display error [nr].  If [nr] is omitted, the same
@@ -51,17 +68,31 @@ The following quickfix commands can be used:
 			The 'switchbuf' settings are respected when jumping
 			to a buffer.
 
+							*:ll*
+:ll[!] [nr]		Same as ":cc", except the location list for the
+			current window is used instead of the quickfix list.
+
 							*:cn* *:cnext* *E553*
 :[count]cn[ext][!]	Display the [count] next error in the list that
 			includes a file name.  If there are no file names at
 			all, go to the [count] next error.  See |:cc| for
 			[!] and 'switchbuf'.
 
+							*:lne* *:lnext*
+:[count]lne[xt][!]	Same as ":cnext", except the location list for the
+			current window is used instead of the quickfix list.
+
 :[count]cN[ext][!]			*:cp* *:cprevious* *:cN* *:cNext*
 :[count]cp[revious][!]	Display the [count] previous error in the list that
 			includes a file name.  If there are no file names at
 			all, go to the [count] previous error.  See |:cc| for
 			[!] and 'switchbuf'.
+
+
+:[count]lN[ext][!]			*:lp* *:lprevious* *:lN* *:lNext*
+:[count]lp[revious][!]	Same as ":cNext" and ":cprevious", except the location
+			list for the current window is used instead of the
+			quickfix list.
 
 							*:cnf* *:cnfile*
 :[count]cnf[ile][!]	Display the first error in the [count] next file in
@@ -70,6 +101,10 @@ The following quickfix commands can be used:
 			the [count] next error.  See |:cc| for [!] and
 			'switchbuf'.
 
+							*:lnf* *:lnfile*
+:[count]lnf[ile][!]	Same as ":cnfile", except the location list for the
+			current window is used instead of the quickfix list.
+
 :[count]cNf[ile][!]			*:cpf* *:cpfile* *:cNf* *:cNfile*
 :[count]cpf[ile][!]	Display the last error in the [count] previous file in
 			the list that includes a file name.  If there are no
@@ -77,16 +112,33 @@ The following quickfix commands can be used:
 			the [count] previous error.  See |:cc| for [!] and
 			'switchbuf'.
 
+
+:[count]lNf[ile][!]			*:lpf* *:lpfile* *:lNf* *:lNfile*
+:[count]lpf[ile][!]	Same as ":cNfile" and ":cpfile", except the location
+			list for the current window is used instead of the
+			quickfix list.
+
 							*:crewind* *:cr*
 :cr[ewind][!] [nr]	Display error [nr].  If [nr] is omitted, the FIRST
 			error is displayed.  See |:cc|.
 
+							*:lrewind* *:lr*
+:lr[ewind][!] [nr]	Same as ":crewind", except the location list for the
+			current window is used instead of the quickfix list.
+
 							*:cfirst* *:cfir*
 :cfir[st][!] [nr]	Same as ":crewind".
+
+							*:lfirst* *:lfir*
+:lfir[st][!] [nr]	Same as ":lrewind".
 
 							*:clast* *:cla*
 :cla[st][!] [nr]	Display error [nr].  If [nr] is omitted, the LAST
 			error is displayed.  See |:cc|.
+
+							*:llast* *:lla*
+:lla[st][!] [nr]	Same as ":clast", except the location list for the
+			current window is used instead of the quickfix list.
 
 							*:cq* *:cquit*
 :cq[uit]		Quit Vim with an error code, so that the compiler
@@ -100,16 +152,107 @@ The following quickfix commands can be used:
 			name of the errorfile, the 'errorfile' option will
 			be set to [errorfile].  See |:cc| for [!].
 
-							*:cg* *:cgetfile*
-:cg[etfile][!] [errorfile]
+							*:lf* *:lfile*
+:lf[ile][!] [errorfile]	Same as ":cfile", except the location list for the
+			current window is used instead of the quickfix list.
+			You can not use the -q command-line option to set
+			the location list.
+
+
+:cg[etfile][!] [errorfile]				*:cg* *:cgetfile*
 			Read the error file.  Just like ":cfile" but don't
 			jump to the first error.
+
+
+:lg[etfile][!] [errorfile]				*:lg* *:lgetfile*
+			Same as ":cgetfile", except the location list for the
+			current window is used instead of the quickfix list.
+
+							*:caddf* *:caddfile*
+:caddf[ile] [errorfile]	Read the error file and add the errors from the
+			errorfile to the current quickfix list. If a quickfix
+			list is not present, then a new list is created.
+
+							*:laddf* *:laddfile*
+:laddf[ile] [errorfile]	Same as ":caddfile", except the location list for the
+			current window is used instead of the quickfix list.
+
+						*:cb* *:cbuffer* *E681*
+:cb[uffer] [bufnr]	Read the error list from the current buffer.
+			When [bufnr] is given it must be the number of a
+			loaded buffer.  That buffer will then be used instead
+			of the current buffer.
+			A range can be specified for the lines to be used.
+			Otherwise all lines in the buffer are used.
+
+						*:lb* *:lbuffer*
+:lb[uffer] [bufnr]	Same as ":cbuffer", except the location list for the
+			current window is used instead of the quickfix list.
+
+						*:cgetb* *:cgetbuffer*
+:cgetb[uffer] [bufnr]	Read the error list from the current buffer.  Just
+			like ":cbuffer" but don't jump to the first error.
+
+						*:lgetb* *:lgetbuffer*
+:lgetb[uffer] [bufnr]	Same as ":cgetbuffer", except the location list for
+			the current window is used instead of the quickfix
+			list.
+
+							*:caddb* *:caddbuffer*
+:caddb[uffer] [bufnr]	Read the error list from the current buffer and add
+			the errors to the current quickfix list.  If a
+			quickfix list is not present, then a new list is
+			created. Otherwise, same as ":cbuffer".
+
+							*:laddb* *:laddbuffer*
+:laddb[uffer] [bufnr]	Same as ":caddbuffer", except the location list for
+			the current window is used instead of the quickfix
+			list.
+
+							*:cex* *:cexpr* *E777*
+:cex[pr][!] {expr}	Create a quickfix list using the result of {expr} and
+			jump to the first error.  If {expr} is a String, then
+			each new-line terminated line in the String is
+			processed using 'errorformat' and the result is added
+			to the quickfix list.  If {expr} is a List, then each
+			String item in the list is processed and added to the
+			quickfix list.  Non String items in the List are
+			ignored. See |:cc|
+			for [!].
+			Examples: >
+				:cexpr system('grep -n xyz *')
+				:cexpr getline(1, '$')
+<
+							*:lex* *:lexpr*
+:lex[pr][!] {expr}	Same as ":cexpr", except the location list for the
+			current window is used instead of the quickfix list.
+
+							*:cgete* *:cgetexpr*
+:cgete[xpr][!] {expr}	Create a quickfix list using the result of {expr}.
+			Just like ":cexpr", but don't jump to the first error.
+
+							*:lgete* *:lgetexpr*
+:lgete[xpr][!] {expr}	Same as ":cgetexpr", except the location list for the
+			current window is used instead of the quickfix list.
+
+							*:cad* *:caddexpr*
+:cad[dexpr][!] {expr}	Evaluate {expr} and add the resulting lines to the
+			current quickfix list. If a quickfix list is not
+			present, then a new list is created. The current
+			cursor position will not be changed. See |:cexpr| for
+			more information.
+			Example: >
+    :g/mypattern/caddexpr expand("%") . ":" . line(".") .  ":" . getline(".")
+<
+							*:lad* *:laddexpr*
+:lad[dexpr][!] {expr}	Same as ":caddexpr", except the location list for the
+			current window is used instead of the quickfix list.
 
 							*:cl* *:clist*
 :cl[ist] [from] [, [to]]
 			List all errors that are valid |quickfix-valid|.
 			If numbers [from] and/or [to] are given, the respective
-			range of errors is listed. A negative number counts
+			range of errors is listed.  A negative number counts
 			from the last error backwards, -1 being the last error.
 			The 'switchbuf' settings are respected when jumping
 			to a buffer.
@@ -117,11 +260,24 @@ The following quickfix commands can be used:
 :cl[ist]! [from] [, [to]]
 			List all errors.
 
+							*:lli* *:llist*
+:lli[st] [from] [, [to]]
+			Same as ":clist", except the location list for the
+			current window is used instead of the quickfix list.
+
+:lli[st]! [from] [, [to]]
+			List all the entries in the location list for the
+			current window.
+
 If you insert or delete lines, mostly the correct error location is still
 found because hidden marks are used.  Sometimes, when the mark has been
 deleted for some reason, the message "line changed" is shown to warn you that
 the error location may not be correct.  If you quit Vim and start again the
 marks are lost and the error locations may not be correct anymore.
+
+If vim is built with |+autocmd| support, two autocommands are available for
+running commands before and after a quickfix command (':make', ':grep' and so
+on) is executed. See |QuickFixCmdPre| and |QuickFixCmdPost| for details.
 
 =============================================================================
 2. The error window					*quickfix-window*
@@ -137,14 +293,28 @@ marks are lost and the error locations may not be correct anymore.
 			the current window.  It is not possible to open a
 			second quickfix window.
 
+							*:lop* *:lopen*
+:lop[en] [height]	Open a window to show the location list for the
+			current window. Works only when the location list for
+			the current window is present.  You can have more than
+			one location window opened at a time.  Otherwise, it
+			acts the same as ":copen".
+
 							*:ccl* *:cclose*
 :ccl[ose]		Close the quickfix window.
+
+							*:lcl* *:lclose*
+:lcl[ose]		Close the window showing the location list for the
+			current window.
 
 							*:cw* *:cwindow*
 :cw[indow] [height]	Open the quickfix window when there are recognized
 			errors.  If the window is already open and there are
 			no recognized errors, close the window.
 
+							*:lw* *:lwindow*
+:lw[indow] [height]	Same as ":cwindow", except use the window showing the
+			location list for the current window.
 
 Normally the quickfix window is at the bottom of the screen.  If there are
 vertical splits, it's at the bottom of the rightmost column of windows.  To
@@ -158,23 +328,28 @@ height manually (e.g., by dragging the status line above it with the mouse).
 
 In the quickfix window, each line is one error.  The line number is equal to
 the error number.  You can use ":.cc" to jump to the error under the cursor.
-Hitting the <CR> key or double-clicking the mouse on a line has the same
+Hitting the <Enter> key or double-clicking the mouse on a line has the same
 effect.  The file containing the error is opened in the window above the
 quickfix window.  If there already is a window for that file, it is used
 instead.  If the buffer in the used window has changed, and the error is in
 another file, jumping to the error will fail.  You will first have to make
 sure the window contains a buffer which can be abandoned.
+					*CTRL-W_<Enter>* *CTRL-W_<CR>*
+You can use CTRL-W <Enter> to open a new window and jump to the error there.
 
 When the quickfix window has been filled, two autocommand events are
 triggered.  First the 'filetype' option is set to "qf", which triggers the
-FileType event.  Then the BufReadPost event is triggered.  This can be used to
-perform some action on the listed errors.  Example: >
-	au BufReadPost quickfix  setlocal nomodifiable
-		\ | silent g/^/s//\=line(".")." "/
-		\ | setlocal modifiable
+FileType event.  Then the BufReadPost event is triggered, using "quickfix" for
+the buffer name.  This can be used to perform some action on the listed
+errors.  Example: >
+	au BufReadPost quickfix  setlocal modifiable
+		\ | silent exe 'g/^/s//\=line(".")." "/'
+		\ | setlocal nomodifiable
 This prepends the line number to each line.  Note the use of "\=" in the
 substitute string of the ":s" command, which is used to evaluate an
 expression.
+The BufWinEnter event is also triggered, again using "quickfix" for the buffer
+name.
 
 Note: Making changes in the quickfix window has no effect on the list of
 errors.  'modifiable' is off to avoid making changes.  If you delete or insert
@@ -182,6 +357,29 @@ lines anyway, the relation between the text and the error number is messed up.
 If you really want to do this, you could write the contents of the quickfix
 window to a file and use ":cfile" to have it parsed and used as the new error
 list.
+
+						*location-list-window*
+The location list window displays the entries in a location list.  When you
+open a location list window, it is created below the current window and
+displays the location list for the current window.  The location list window
+is similar to the quickfix window, except that you can have more than one
+location list window open at a time. When you use a location list command in
+this window, the displayed location list is used.
+
+When you select a file from the location list window, the following steps are
+used to find a window to edit the file:
+
+1. If a window with the location list displayed in the location list window is
+   present, then the file is opened in that window.
+2. If the above step fails and if the file is already opened in another
+   window, then that window is used.
+3. If the above step fails then an existing window showing a buffer with
+   'buftype' not set is used.
+4. If the above step fails, then the file is edited in a new window.
+
+In all of the above cases, if the location list for the selected window is not
+yet set, then it is set to the location list displayed in the location list
+window.
 
 =============================================================================
 3. Using more than one list of errors			*quickfix-error-lists*
@@ -196,10 +394,18 @@ lists.  They set one of the existing error lists as the current one.
 			this [count] times.  When already at the oldest error
 			list, an error message is given.
 
+						*:lolder* *:lol*
+:lol[der] [count]	Same as ":colder", except use the location list for
+			the current window instead of the quickfix list.
+
 						*:cnewer* *:cnew* *E381*
 :cnew[er] [count]	Go to newer error list.  When [count] is given, do
 			this [count] times.  When already at the newest error
 			list, an error message is given.
+
+						*:lnewer* *:lnew*
+:lnew[er] [count]	Same as ":cnewer", except use the location list for
+			the current window instead of the quickfix list.
 
 When adding a new error list, it becomes the current list.
 
@@ -212,23 +418,32 @@ lists, use ":cnewer 99" first.
 4. Using :make						*:make_makeprg*
 
 							*:mak* *:make*
-:mak[e][!] [arguments]	1. If the 'autowrite' option is on, write any changed
+:mak[e][!] [arguments]	1. If vim was built with |+autocmd|, all relevant
+			   |QuickFixCmdPre| autocommands are executed.
+			2. If the 'autowrite' option is on, write any changed
 			   buffers
-			2. An errorfile name is made from 'makeef'.  If
+			3. An errorfile name is made from 'makeef'.  If
 			   'makeef' doesn't contain "##", and a file with this
 			   name already exists, it is deleted.
-			3. The program given with the 'makeprg' option is
+			4. The program given with the 'makeprg' option is
 			   started (default "make") with the optional
 			   [arguments] and the output is saved in the
 			   errorfile (for Unix it is also echoed on the
 			   screen).
-			4. The errorfile is read using 'errorformat'.
-			5. If [!] is not given the first error is jumped to.
-			6. The errorfile is deleted.
-			7. You can now move through the errors with commands
+			5. The errorfile is read using 'errorformat'.
+			6. If [!] is not given the first error is jumped to.
+			7. The errorfile is deleted.
+			8. If vim was built with |+autocmd|, all relevant
+			   |QuickFixCmdPost| autocommands are executed.
+			9. You can now move through the errors with commands
 			   like |:cnext| and |:cprevious|, see above.
 			This command does not accept a comment, any "
 			characters are considered part of the arguments.
+
+							*:lmak* *:lmake*
+:lmak[e][!] [arguments]
+			Same as ":make", except the location list for the
+			current window is used instead of the quickfix list.
 
 The ":make" command executes the command given with the 'makeprg' option.
 This is done by passing the command to the shell given with the 'shell'
@@ -266,7 +481,93 @@ If 'shellpipe' is empty, the {errorfile} part will be omitted.  This is useful
 for compilers that write to an errorfile themselves (e.g., Manx's Amiga C).
 
 ==============================================================================
-5. Using :grep						*grep* *lid*
+5. Using :vimgrep and :grep				*grep* *lid*
+
+Vim has two ways to find matches for a pattern: Internal and external.  The
+advantage of the internal grep is that it works on all systems and uses the
+powerful Vim search patterns.  An external grep program can be used when the
+Vim grep does not do what you want.
+
+The internal method will be slower, because files are read into memory.  The
+advantages are:
+- Line separators and encoding are automatically recognized, as if a file is
+  being edited.
+- Uses Vim search patterns.  Multi-line patterns can be used.
+- When plugins are enabled: compressed and remote files can be searched.
+	|gzip| |netrw|
+
+To be able to do this Vim loads each file as if it is being edited.  When
+there is no match in the file the associated buffer is wiped out again.  The
+'hidden' option is ignored here to avoid running out of memory or file
+descriptors when searching many files.  However, when the |:hide| command
+modifier is used the buffers are kept loaded.  This makes following searches
+in the same files a lot faster.
+
+
+5.1 using Vim's internal grep
+
+					*:vim* *:vimgrep* *E682* *E683*
+:vim[grep][!] /{pattern}/[g][j] {file} ...
+			Search for {pattern} in the files {file} ... and set
+			the error list to the matches.
+			Without the 'g' flag each line is added only once.
+			With 'g' every match is added.
+
+			{pattern} is a Vim search pattern.  Instead of
+			enclosing it in / any non-ID character (see
+			|'isident'|) can be used, so long as it does not
+			appear in {pattern}.
+			'ignorecase' applies.  To overrule it put |/\c| in the
+			pattern to ignore case or |/\C| to match case.
+			'smartcase' is not used.
+
+			When a number is put before the command this is used
+			as the maximum number of matches to find.  Use
+			":1vimgrep pattern file" to find only the first.
+			Useful if you only want to check if there is a match
+			and quit quickly when it's found.
+
+			Without the 'j' flag Vim jumps to the first match.
+			With 'j' only the quickfix list is updated.
+			With the [!] any changes in the current buffer are
+			abandoned.
+
+			Every second or so the searched file name is displayed
+			to give you an idea of the progress made.
+			Examples: >
+				:vimgrep /an error/ *.c
+				:vimgrep /\<FileName\>/ *.h include/*
+				:vimgrep /myfunc/ **/*.c
+<			For the use of "**" see |starstar-wildcard|.
+
+:vim[grep][!] {pattern} {file} ...
+			Like above, but instead of enclosing the pattern in a
+			non-ID character use a white-separated pattern.  The
+			pattern must start with an ID character.
+			Example: >
+				:vimgrep Error *.c
+<
+							*:lv* *:lvimgrep*
+:lv[imgrep][!] /{pattern}/[g][j] {file} ...
+:lv[imgrep][!] {pattern} {file} ...
+			Same as ":vimgrep", except the location list for the
+			current window is used instead of the quickfix list.
+
+						*:vimgrepa* *:vimgrepadd*
+:vimgrepa[dd][!] /{pattern}/[g][j] {file} ...
+:vimgrepa[dd][!] {pattern} {file} ...
+			Just like ":vimgrep", but instead of making a new list
+			of errors the matches are appended to the current
+			list.
+
+						*:lvimgrepa* *:lvimgrepadd*
+:lvimgrepa[dd][!] /{pattern}/[g][j] {file} ...
+:lvimgrepa[dd][!] {pattern} {file} ...
+			Same as ":vimgrepadd", except the location list for
+			the current window is used instead of the quickfix
+			list.
+
+5.2 External grep
 
 Vim can interface with "grep" and grep-like programs (such as the GNU
 id-utils) in a similar way to its compiler integration (see |:make| above).
@@ -277,6 +578,14 @@ id-utils) in a similar way to its compiler integration (see |:make| above).
 							    *:gr* *:grep*
 :gr[ep][!] [arguments]	Just like ":make", but use 'grepprg' instead of
 			'makeprg' and 'grepformat' instead of 'errorformat'.
+			When 'grepprg' is "internal" this works like
+			|:vimgrep|.  Note that the pattern needs to be
+			enclosed in separator characters then.
+
+							    *:lgr* *:lgrep*
+:lgr[ep][!] [arguments]	Same as ":grep", except the location list for the
+			current window is used instead of the quickfix list.
+
 							*:grepa* *:grepadd*
 :grepa[dd][!] [arguments]
 			Just like ":grep", but instead of making a new list of
@@ -290,19 +599,24 @@ id-utils) in a similar way to its compiler integration (see |:make| above).
 			":grepadd" jumps to the first error, which is not
 			allowed with |:bufdo|.
 
-5.1 Setting up grep
+							*:lgrepa* *:lgrepadd*
+:lgrepa[dd][!] [arguments]
+			Same as ":grepadd", except the location list for the
+			current window is used instead of the quickfix list.
+
+5.3 Setting up external grep
 
 If you have a standard "grep" program installed, the :grep command may work
-well with the defaults. The syntax is very similar to the standard command: >
+well with the defaults.  The syntax is very similar to the standard command: >
 
 	:grep foo *.c
 
-Will search all files with the .c extension for the substring "foo". The
+Will search all files with the .c extension for the substring "foo".  The
 arguments to :grep are passed straight to the "grep" program, so you can use
 whatever options your "grep" supports.
 
 By default, :grep invokes grep with the -n option (show file and line
-numbers). You can change this with the 'grepprg' option. You will need to set
+numbers).  You can change this with the 'grepprg' option.  You will need to set
 'grepprg' if:
 
 a)	You are using a program that isn't called "grep"
@@ -322,7 +636,7 @@ error in |quickfix| mode.  You can then use the |:cnext|, |:clist|, etc.
 commands to see the other matches.
 
 
-5.2 Using :grep with id-utils
+5.4 Using :grep with id-utils
 
 You can set up :grep to work with the GNU id-utils like this: >
 
@@ -336,31 +650,31 @@ works just as you'd expect.
 (provided you remembered to mkid first :)
 
 
-5.3 Browsing source code with :grep
+5.5 Browsing source code with :vimgrep or :grep
 
 Using the stack of error lists that Vim keeps, you can browse your files to
 look for functions and the functions they call.  For example, suppose that you
 have to add an argument to the read_file() function.  You enter this command: >
 
-	:grep read_file *.c
+	:vimgrep /\<read_file\>/ *.c
 
 You use ":cn" to go along the list of matches and add the argument.  At one
 place you have to get the new argument from a higher level function msg(), and
 need to change that one too.  Thus you use: >
 
-	:grep msg *.c
+	:vimgrep /\<msg\>/ *.c
 
 While changing the msg() functions, you find another function that needs to
-get the argument from a higher level.  You can again use ":grep" to find these
-functions.  Once you are finished with one function, you can use >
+get the argument from a higher level.  You can again use ":vimgrep" to find
+these functions.  Once you are finished with one function, you can use >
 
 	:colder
 
 to go back to the previous one.
 
-This works like browsing a tree: ":grep" goes one level deeper, creating a
+This works like browsing a tree: ":vimgrep" goes one level deeper, creating a
 list of branches.  ":colder" goes back to the previous level.  You can mix
-this use of ":grep" and "colder" to browse all the locations in a tree-like
+this use of ":vimgrep" and "colder" to browse all the locations in a tree-like
 way.  If you do this consistently, you will find all locations without the
 need to write down a "todo" list.
 
@@ -392,7 +706,7 @@ not "b:current_compiler".  What the command actually does is the following:
 - Execute ":runtime! compiler/{name}.vim".  The plugins are expected to set
   options with "CompilerSet" and set the "current_compiler" variable to the
   name of the compiler.
-- Delete the "CompilerSet user command.
+- Delete the "CompilerSet" user command.
 - Set "b:current_compiler" to the value of "current_compiler".
 - Without "!" the old value of "current_compiler" is restored.
 
@@ -428,8 +742,8 @@ stdin (standard input) will not be interactive.
 PYUNIT COMPILER						*compiler-pyunit*
 
 This is not actually a compiler, but a unit testing framework for the
-Python language. It is included into standard Python distribution
-starting from version 2.0. For older versions, you can get it from
+Python language.  It is included into standard Python distribution
+starting from version 2.0.  For older versions, you can get it from
 http://pyunit.sourceforge.net.
 
 When you run your tests with the help of the framework, possible errors
@@ -447,20 +761,20 @@ Also see http://vim.sourceforge.net/tip_view.php?tip_id=280.
 TEX COMPILER						*compiler-tex*
 
 Included in the distribution compiler for TeX ($VIMRUNTIME/compiler/tex.vim)
-uses make command if possible. If the compiler finds a file named "Makefile"
+uses make command if possible.  If the compiler finds a file named "Makefile"
 or "makefile" in the current directory, it supposes that you want to process
-your *TeX files with make, and the makefile does the right work. In this case
-compiler sets 'errorformat' for *TeX output and leaves 'makeprg' untouched. If
+your *TeX files with make, and the makefile does the right work.  In this case
+compiler sets 'errorformat' for *TeX output and leaves 'makeprg' untouched.  If
 neither "Makefile" nor "makefile" is found, the compiler will not use make.
 You can force the compiler to ignore makefiles by defining
 b:tex_ignore_makefile or g:tex_ignore_makefile variable (they are checked for
 existence only).
 
 If the compiler chose not to use make, it need to choose a right program for
-processing your input. If b:tex_flavor or g:tex_flavor (in this precedence)
+processing your input.  If b:tex_flavor or g:tex_flavor (in this precedence)
 variable exists, it defines TeX flavor for :make (actually, this is the name
 of executed command), and if both variables do not exist, it defaults to
-"latex". For example, while editing chapter2.tex \input-ed from mypaper.tex
+"latex".  For example, while editing chapter2.tex \input-ed from mypaper.tex
 written in AMS-TeX: >
 
 	:let b:tex_flavor = 'amstex'
@@ -470,16 +784,16 @@ written in AMS-TeX: >
 
 Note that you must specify a name of the file to process as an argument (to
 process the right file when editing \input-ed or \include-ed file; portable
-solution for substituting % for no arguments is welcome). This is not in the
+solution for substituting % for no arguments is welcome).  This is not in the
 semantics of make, where you specify a target, not source, but you may specify
 filename without extension ".tex" and mean this as "make filename.dvi or
 filename.pdf or filename.some_result_extension according to compiler".
 
 Note: tex command line syntax is set to usable both for MikTeX (suggestion
-by Srinath Avadhanula) and teTeX (checked by Artem Chuprina). Suggestion
+by Srinath Avadhanula) and teTeX (checked by Artem Chuprina).  Suggestion
 from |errorformat-LaTeX| is too complex to keep it working for different
 shells and OSes and also does not allow to use other available TeX options,
-if any. If your TeX doesn't support "-interaction=nonstopmode", please
+if any.  If your TeX doesn't support "-interaction=nonstopmode", please
 report it with different means to express \nonstopmode from the command line.
 
 =============================================================================
@@ -513,7 +827,7 @@ Basic items
 			column of the error, (1 <tab> == 1 character column))
 	%v		virtual column number (finds a number representing
 			screen column of the error (1 <tab> == 8 screen
-			columns)
+			columns))
 	%t		error type (finds a single character)
 	%n		error number (finds a number)
 	%m		error message (finds a string)
@@ -522,15 +836,15 @@ Basic items
 			uses the length for the column number)
 	%*{conv}	any scanf non-assignable conversion
 	%%		the single '%' character
+	%s		search text (finds a string)
 
-The "%f" conversion depends on the current 'isfname' setting.
+The "%f" conversion may depend on the current 'isfname' setting.  "~/" is
+expanded to the home directory and environment variables are expanded.
 
-The "%f" and "%m" conversions have to detect the end of the string.  They
-should be followed by a character that cannot be in the string.  Everything
-up to that character is included in the string.  But when the next character
-is a '%' or a backslash, "%f" will look for any 'isfname' character and "%m"
-finds anything.  If the "%f" or "%m" is at the end, everything up to the end
-of the line is included.
+The "%f" and "%m" conversions have to detect the end of the string.  This
+normally happens by matching following characters and items.  When nothing is
+following the rest of the line is matched.  If "%f" is followed by a '%' or a
+backslash, it will look for a sequence of 'isfname' characters.
 
 On MS-DOS, MS-Windows and OS/2 a leading "C:" will be included in "%f", even
 when using "%f:".  This means that a file name which is a single alphabetical
@@ -544,6 +858,13 @@ or >
 to indicate the column of the error.  This is to be used in a multi-line error
 message.  See |errorformat-javac| for a  useful example.
 
+The "%s" conversion specifies the text to search for to locate the error line.
+The text is used as a literal string.  The anchors "^" and "$" are added to
+the text to locate the error line exactly matching the search text and the
+text is prefixed with the "\V" atom to make it "very nomagic".  The "%s"
+conversion can be used to locate lines without a line number in the error
+output.  Like the output of the "grep" shell command.
+When the pattern is present the line number will not be used.
 
 Changing directory
 
@@ -551,7 +872,7 @@ The following uppercase conversion characters specify the type of special
 format strings.  At most one of them may be given as a prefix at the begin
 of a single comma-separated format pattern.
 Some compilers produce messages that consist of directory names that have to
-be prepended to each file name read by %f (example: GNU make). The following
+be prepended to each file name read by %f (example: GNU make).  The following
 codes can be used to scan these directory names; they will be stored in an
 internal directory stack.					*E379*
 	%D		"enter directory" format string; expects a following
@@ -559,7 +880,7 @@ internal directory stack.					*E379*
 	%X		"leave directory" format string; expects following %f
 
 When defining an "enter directory" or "leave directory" format, the "%D" or
-"%X" has to be given at the start of that substring. Vim tracks the directory
+"%X" has to be given at the start of that substring.  Vim tracks the directory
 changes and prepends the current directory to each erroneous file found with a
 relative path.  See |quickfix-directory-stack| for details, tips and
 limitations.
@@ -568,23 +889,26 @@ limitations.
 Multi-line messages				*errorformat-multi-line*
 
 It is possible to read the output of programs that produce multi-line
-messages, ie. error strings that consume more than one line.  Possible
+messages, i.e. error strings that consume more than one line.  Possible
 prefixes are:
 	%E		start of a multi-line error message
 	%W		start of a multi-line warning message
 	%I		start of a multi-line informational message
 	%A		start of a multi-line message (unspecified type)
+	%>		for next line start with current pattern again |efm-%>|
 	%C		continuation of a multi-line message
 	%Z		end of a multi-line message
 These can be used with '+' and '-', see |efm-ignore| below.
 
+Using "\n" in the pattern won't work to match multi-line messages.
+
 Example: Your compiler happens to write out errors in the following format
 (leading line numbers not being part of the actual output):
 
-     1	Error 275
-     2	line 42
-     3	column 3
-     4	' ' expected after '--'
+     1	Error 275 ~
+     2	line 42 ~
+     3	column 3 ~
+     4	' ' expected after '--' ~
 
 The appropriate error format string has to look like this: >
    :set efm=%EError\ %n,%Cline\ %l,%Ccolumn\ %c,%Z%m
@@ -623,6 +947,27 @@ starting with a space, followed by any characters to the end of the line,
 it also hides line 7 which would trigger a separate error message otherwise.
 Error format strings are always parsed pattern by pattern until the first
 match occurs.
+							*efm-%>*
+The %> item can be used to avoid trying patterns that appear earlier in
+'errorformat'.  This is useful for patterns that match just about anything.
+For example, if the error looks like this:
+
+	Error in line 123 of foo.c: ~
+	unknown variable "i" ~
+
+This can be found with: >
+	:set efm=xxx,%E%>Error in line %l of %f:,%Z%m
+Where "xxx" has a pattern that would also match the second line.
+
+Important: There is no memory of what part of the errorformat matched before;
+every line in the error file gets a complete new run through the error format
+lines.  For example, if one has: >
+  setlocal efm=aa,bb,cc,dd,ee
+Where aa, bb, etc. are error format strings.  Each line of the error file will
+be matched to the pattern aa, then bb, then cc, etc.  Just because cc matched
+the previous error line does _not_ mean that dd will be tried first on the
+current line, even if cc and dd are multi-line errorformat strings.
+
 
 
 Separate file name			*errorformat-separate-filename*
@@ -661,7 +1006,7 @@ A call of |:clist| writes them accordingly with their correct filenames:
   9 a3.tt:67 col 3 warning: 's' already defined
 
 Unlike the other prefixes that all match against whole lines, %P, %Q and %O
-can be used to match several patterns in the same line. Thus it is possible
+can be used to match several patterns in the same line.  Thus it is possible
 to parse even nested files like in the following line:
   {"file1" {"file2" error1} error2 {"file3" error3 {"file4" error4 error5}}}
 The %O then parses over strings that do not contain any push/pop file name
@@ -671,11 +1016,11 @@ information.  See |errorformat-LaTeX| for an extended example.
 Ignoring and using whole messages			*efm-ignore*
 
 The codes '+' or '-' can be combined with the uppercase codes above; in that
-case they have to precede the letter, eg. '%+A' or '%-G':
+case they have to precede the letter, e.g. '%+A' or '%-G':
 	%-		do not include the matching multi-line in any output
 	%+		include the whole matching line in the %m error string
 
-One prefix is only useful in combination with '+' or '-', namely %G. It parses
+One prefix is only useful in combination with '+' or '-', namely %G.  It parses
 over lines containing general information like compiler version strings or
 other headers that can be skipped.
 	%-G		ignore this message
@@ -690,17 +1035,19 @@ with previous versions of Vim.  However, it is also possible to specify
 Since meta characters of the regular expression language can be part of
 ordinary matching strings or file names (and therefore internally have to
 be escaped), meta symbols have to be written with leading '%':
-	%\		the single '\' character. Note that this has to be
+	%\		The single '\' character.  Note that this has to be
 			escaped ("%\\") in ":set errorformat=" definitions.
-	%.		the single '.' character.
-	%#		the single '*'(!) character.
-	%^		the single '^' character.
-	%$		the single '$' character.
-	%[		the single '[' character for a [] character range.
-	%~		the single '~' character.
+	%.		The single '.' character.
+	%#		The single '*'(!) character.
+	%^		The single '^' character.  Note that this is not
+			useful, the pattern already matches start of line.
+	%$		The single '$' character.  Note that this is not
+			useful, the pattern already matches end of line.
+	%[		The single '[' character for a [] character range.
+	%~		The single '~' character.
 When using character classes in expressions (see |/\i| for an overview),
 terms containing the "\+" quantifier can be written in the scanf() "%*"
-notation. Example: "%\\d%\\+" ("\d\+", "any number") is equivalent to "%*\\d".
+notation.  Example: "%\\d%\\+" ("\d\+", "any number") is equivalent to "%*\\d".
 Important note: The \(...\) grouping of sub-matches can not be used in format
 specifications because it is reserved for internal conversions.
 
@@ -786,19 +1133,19 @@ required for the set command.
 8. The directory stack				*quickfix-directory-stack*
 
 Quickfix maintains a stack for saving all used directories parsed from the
-make output. For GNU-make this is rather simple, as it always prints the
-absolute path of all directories it enters and leaves. Regardless if this is
+make output.  For GNU-make this is rather simple, as it always prints the
+absolute path of all directories it enters and leaves.  Regardless if this is
 done via a 'cd' command in the makefile or with the parameter "-C dir" (change
-to directory before reading the makefile). It may be useful to use the switch
+to directory before reading the makefile).  It may be useful to use the switch
 "-w" to force GNU-make to print out the working directory before and after
 processing.
 
 Maintaining the correct directory is more complicated if you don't use
-GNU-make. AIX-make for example doesn't print any information about its working
-directory. Then you need to enhance the makefile. In the makefile of lesstiff
-there is a command which echoes "Making {target} in {dir}". The special
-problem here is that it doesn't print informations on leaving the directory
-and that it doesn't print the absolute path.
+GNU-make.  AIX-make for example doesn't print any information about its
+working directory.  Then you need to enhance the makefile.  In the makefile of
+LessTif there is a command which echoes "Making {target} in {dir}".  The
+special problem here is that it doesn't print informations on leaving the
+directory and that it doesn't print the absolute path.
 
 To solve the problem with relative paths and missing "leave directory"
 messages Vim uses following algorithm:
@@ -812,10 +1159,10 @@ messages Vim uses following algorithm:
 
 Additionally it is checked for every file, if it really exists in the
 identified directory.  If not, it is searched in all other directories of the
-directory stack (NOT the directory subtree!). If it is still not found, it is
+directory stack (NOT the directory subtree!).  If it is still not found, it is
 assumed that it is in Vim's current directory.
 
-There are limitation in this algorithm. This examples assume that make just
+There are limitation in this algorithm.  This examples assume that make just
 prints information about entering a directory in the form "Making all in dir".
 
 1) Assume you have following directories and files:
@@ -862,7 +1209,7 @@ Add
 to your 'errorformat' to handle the above output.
 
 Note that Vim doesn't check if the directory name in a "leave directory"
-messages is the current directory. This is why you could just use the message
+messages is the current directory.  This is why you could just use the message
 "Leaving dir".
 
 =============================================================================
@@ -924,7 +1271,7 @@ It should be easy to adopt the above LaTeX errorformat to any compiler output
 consisting of multi-line errors.
 
 The commands can be placed in a |vimrc| file or some other Vim script file,
-eg. a script containing LaTeX related stuff which is loaded only when editing
+e.g. a script containing LaTeX related stuff which is loaded only when editing
 LaTeX sources.
 Make sure to copy all lines of the example (in the given order), afterwards
 remove the comment lines.  For the '\' notation at the start of some lines see
@@ -938,7 +1285,7 @@ remove the comment lines.  For the '\' notation at the start of some lines see
  :set efm=%E!\ LaTeX\ %trror:\ %m,
 	\%E!\ %m,
 <		Start of multi-line warning messages; the first two also
-		include the line number. Meaning of some regular expressions:
+		include the line number.  Meaning of some regular expressions:
 		  - "%.%#"  (".*")   matches a (possibly empty) string
 		  - "%*\\d" ("\d\+") matches a number >
 	\%+WLaTeX\ %.%#Warning:\ %.%#line\ %l%.%#,
@@ -977,7 +1324,7 @@ remove the comment lines.  For the '\' notation at the start of some lines see
 		on a stack since the file apparently does not contain any
 		error: >
 	\%+O(%f)%r,
-<		Push a file name onto the stack. The name is given after '(': >
+<		Push a file name onto the stack.  The name is given after '(': >
 	\%+P(%f%r,
 	\%+P\ %\\=(%f%r,
 	\%+P%*[^()](%f%r,
