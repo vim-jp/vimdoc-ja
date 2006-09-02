@@ -1,4 +1,4 @@
-*tips.txt*      For Vim version 6.3.  Last change: 2004 Feb 17
+*tips.txt*      For Vim version 7.0.  Last change: 2006 Apr 30
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -24,6 +24,7 @@ Compressing the help files			|gzip-helpfile|
 Hex editing					|hex-editing|
 Executing shell commands in a window		|shell-window|
 Using <> notation in autocommands		|autocmd-<>|
+Highlighting matching parens			|match-parens|
 
 ==============================================================================
 Editing C programs					*C-editing*
@@ -129,26 +130,26 @@ Switching screens in an xterm		*xterm-screens* *xterm-save-screen*
 :the same thing as each other for a given xterm setup.
 
 They not necessarily do the same thing, as this may be a termcap vs.
-terminfo problem. You should be aware that there are two databases for
+terminfo problem.  You should be aware that there are two databases for
 describing attributes of a particular type of terminal: termcap and
-terminfo. This can cause differences when the entries differ AND when of
+terminfo.  This can cause differences when the entries differ AND when of
 the programs in question one uses terminfo and the other uses termcap
 (also see |+terminfo|).
 
 In your particular problem, you are looking for the control sequences
-^[[?47h and ^[[?47l. These switch between xterms alternate and main screen
-buffer. As a quick workaround a command sequence like >
+^[[?47h and ^[[?47l.  These switch between xterms alternate and main screen
+buffer.  As a quick workaround a command sequence like >
 	echo -n "^[[?47h"; vim ... ; echo -n "^[[?47l"
-may do what you want. (My notation ^[ means the ESC character, further down
+may do what you want.  (My notation ^[ means the ESC character, further down
 you'll see that the databases use \E instead).
 
 On startup, vim echoes the value of the termcap variable ti (terminfo:
-smcup) to the terminal. When exiting, it echoes te (terminfo: rmcup). Thus
+smcup) to the terminal.  When exiting, it echoes te (terminfo: rmcup).  Thus
 these two variables are the correct place where the above mentioned control
 sequences should go.
 
 Compare your xterm termcap entry (found in /etc/termcap) with your xterm
-terminfo entry (retrieved with /usr/5bin/infocmp -C xterm). Both should
+terminfo entry (retrieved with /usr/5bin/infocmp -C xterm).  Both should
 contain entries similar to: >
 	:te=\E[2J\E[?47l\E8:ti=\E7\E[?47h:
 
@@ -201,21 +202,22 @@ abbreviations that correct them.  For example: >
 ==============================================================================
 Counting words, lines, etc.				*count-items*
 
-To count how often any pattern occurs in a buffer, set 'report' to 0, and use
-the substitute command to replace the pattern with itself.  The reported
-number of substitutions is the number of items.  Examples: >
+To count how often any pattern occurs in the current buffer use the substitute
+command and add the 'n' flag to avoid the substitution.  The reported number
+of substitutions is the number of items.  Examples: >
 
-	:set report=0
-	:%s/./&/g		characters
-	:%s/\i\+/&/g		words
-	:%s/^			lines
-	:%s/the/&/g		"the" anywhere
-	:%s/\<the\>/&/g		"the" as a word
+	:%s/./&/gn		characters
+	:%s/\i\+/&/gn		words
+	:%s/^//n		lines
+	:%s/the/&/gn		"the" anywhere
+	:%s/\<the\>/&/gn	"the" as a word
 
 You might want to reset 'hlsearch' or do ":nohlsearch".
+Add the 'e' flag if you don't want an error when there are no matches.
 
-This does not work if the 'modifiable' option is off.  An alternative is using
-|v_g_CTRL-G| in Visual mode.
+An alternative is using |v_g_CTRL-G| in Visual mode.
+
+If you want to find matches in multiple files use |:vimgrep|.
 
 							*count-bytes*
 If you want to count bytes, you can use this:
@@ -258,7 +260,7 @@ digraph.c
 and I want to rename *.c *.bla.  I'd do it like this: >
 
 	$ vim
-	:r! ls *.c
+	:r !ls *.c
 	:%s/\(.*\).c/mv & \1.bla
 	:w !sh
 	:q!
@@ -338,7 +340,7 @@ be able to give comments to the parts of the mapping. >
 
 (<> notation |<>|.  Note that this is all typed literally.  ^W is "^" "W", not
 CTRL-W.  You can copy/paste this into Vim if '<' is not included in
-'cpoptions')
+'cpoptions'.)
 
 Note that the last comment starts with |", because the ":execute" command
 doesn't accept a comment directly.
@@ -441,5 +443,66 @@ forget to double the number of existing backslashes and put a backslash before
 
 For a real buffer menu, user functions should be used (see |:function|), but
 then the <> notation isn't used, which defeats using it as an example here.
+
+==============================================================================
+Highlighting matching parens					*match-parens*
+
+This example shows the use of a few advanced tricks:
+- using the |CursorMoved| autocommand event
+- using |searchpairpos()| to find a matching paren
+- using |synID()| to detect whether the cursor is in a string or comment
+- using |:match| to highlight something
+- using a |pattern| to match a specific position in the file.
+
+This should be put in a Vim script file, since it uses script-local variables.
+It skips matches in strings or comments, unless the cursor started in string
+or comment.  This requires syntax highlighting.
+
+A slightly more advanced version is used in the |matchparen| plugin.
+>
+	let s:paren_hl_on = 0
+	function s:Highlight_Matching_Paren()
+	  if s:paren_hl_on
+	    match none
+	    let s:paren_hl_on = 0
+	  endif
+
+	  let c_lnum = line('.')
+	  let c_col = col('.')
+
+	  let c = getline(c_lnum)[c_col - 1]
+	  let plist = split(&matchpairs, ':\|,')
+	  let i = index(plist, c)
+	  if i < 0
+	    return
+	  endif
+	  if i % 2 == 0
+	    let s_flags = 'nW'
+	    let c2 = plist[i + 1]
+	  else
+	    let s_flags = 'nbW'
+	    let c2 = c
+	    let c = plist[i - 1]
+	  endif
+	  if c == '['
+	    let c = '\['
+	    let c2 = '\]'
+	  endif
+	  let s_skip ='synIDattr(synID(line("."), col("."), 0), "name") ' .
+		\ '=~?	"string\\|comment"'
+	  execute 'if' s_skip '| let s_skip = 0 | endif'
+
+	  let [m_lnum, m_col] = searchpairpos(c, '', c2, s_flags, s_skip)
+
+	  if m_lnum > 0 && m_lnum >= line('w0') && m_lnum <= line('w$')
+	    exe 'match Search /\(\%' . c_lnum . 'l\%' . c_col .
+		  \ 'c\)\|\(\%' . m_lnum . 'l\%' . m_col . 'c\)/'
+	    let s:paren_hl_on = 1
+	  endif
+	endfunction
+
+	autocmd CursorMoved,CursorMovedI * call s:Highlight_Matching_Paren()
+	autocmd InsertEnter * match none
+<
 
  vim:tw=78:ts=8:ft=help:norl:
