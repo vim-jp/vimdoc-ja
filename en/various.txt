@@ -1,4 +1,4 @@
-*various.txt*   For Vim version 6.3.  Last change: 2004 May 01
+*various.txt*   For Vim version 7.0.  Last change: 2006 Apr 25
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -8,14 +8,14 @@ Various commands					*various*
 
 1. Various commands		|various-cmds|
 2. Online help			|online-help|
-3. Printing			|printing|
-4. Using Vim like less or more	|less|
+3. Using Vim like less or more	|less|
 
 ==============================================================================
 1. Various commands					*various-cmds*
 
 							*CTRL-L*
-CTRL-L			Clear and redraw the screen (later).
+CTRL-L			Clear and redraw the screen.  The redraw may happen
+			later, after processing typeahead.
 
 							*:redr* *:redraw*
 :redr[aw][!]		Redraw the screen right now.  When ! is included it is
@@ -55,52 +55,79 @@ ga			Print the ascii value of the character under the
 			The <Nul> character in a file is stored internally as
 			<NL>, but it will be shown as:
 				<^@>  0,  Hex 00,  Octal 000 ~
+			If the character has composing characters these are
+			also shown.  The value of 'maxcombine' doesn't matter.
 			Mnemonic: Get Ascii value.  {not in Vi}
 
 							*g8*
 g8			Print the hex values of the bytes used in the
 			character under the cursor, assuming it is in |UTF-8|
-			encoding.  This also shows composing characters.
-			Example of a character with three composing
-			characters:
+			encoding.  This also shows composing characters.  The
+			value of 'maxcombine' doesn't matter.
+			Example of a character with two composing characters:
 				e0 b8 81 + e0 b8 b9 + e0 b9 89 ~
-			{not in Vi}
+			{not in Vi} {only when compiled with the |+multi_byte|
+			feature}
 
-							*:p* *:pr* *:print*
-:[range]p[rint]		Print [range] lines (default current line).
+							*8g8*
+8g8			Find an illegal UTF-8 byte sequence at or after the
+			cursor.  This works in two situations:
+			1. when 'encoding' is any 8-bit encoding
+			2. when 'encoding' is "utf-8" and 'fileencoding' is
+			   any 8-bit encoding
+			Thus it can be used when editing a file that was
+			supposed to be UTF-8 but was read as if it is an 8-bit
+			encoding because it contains illegal bytes.
+			Does not wrap around the end of the file.
+			Note that when the cursor is on an illegal byte or the
+			cursor is halfway a multi-byte character the command
+			won't move the cursor.
+			{not in Vi} {only when compiled with the |+multi_byte|
+			feature}
+
+						*:p* *:pr* *:print* *E749*
+:[range]p[rint] [flags]
+			Print [range] lines (default current line).
 			Note: If you are looking for a way to print your text
-			file, you need an external program for that.  In the
-			GUI you can use the File.Print menu entry.
-			(For printing on paper see |:hardcopy|)
+			on paper see |:hardcopy|.  In the GUI you can use the
+			File.Print menu entry.
+			See |ex-flags| for [flags].
 
-:[range]p[rint] {count}
+:[range]p[rint] {count} [flags]
 			Print {count} lines, starting with [range] (default
 			current line |cmdline-ranges|).
+			See |ex-flags| for [flags].
 
 							*:P* *:Print*
-:[range]P[rint] [count]
+:[range]P[rint] [count] [flags]
 			Just as ":print".  Was apparently added to Vi for
 			people that keep the shift key pressed too long...
+			See |ex-flags| for [flags].
 
 							*:l* *:list*
-:[range]l[ist] [count]
+:[range]l[ist] [count] [flags]
 			Same as :print, but display unprintable characters
-			with '^'.
+			with '^' and put $ after the line.
+			See |ex-flags| for [flags].
 
 							*:nu* *:number*
-:[range]nu[mber] [count]
+:[range]nu[mber] [count] [flags]
 			Same as :print, but precede each line with its line
-			number.  (See also 'highlight' option).
+			number.  (See also 'highlight' and 'numberwidth'
+			option).
+			See |ex-flags| for [flags].
 
 							*:#*
-:[range]# [count]	synonym for :number.
+:[range]# [count] [flags]
+			synonym for :number.
 
 							*:z* *E144*
 :{range}z[+-^.=]{count}	Display several lines of text surrounding the line
 			specified with {range}, or around the current line
 			if there is no {range}.  If there is a {count}, that's
-			how many lines you'll see; otherwise, the current
-			window size is used.
+			how many lines you'll see; if there is only one window
+			then the 'window' option is used, otherwise the
+			current window size is used.
 
 			:z can be used either alone or followed by any of
 			several punctuation marks.  These have the following
@@ -111,8 +138,8 @@ g8			Print the hex values of the bytes used in the
 			+      current line  1 scr forward  1 scr forward
 			-      1 scr back    current line   current line
 			^      2 scr back    1 scr back     1 scr back
-			.      1/2 scr back  1/2 scr fwd    1/2 src fwd
-			=      1/2 src back  1/2 scr fwd    current line
+			.      1/2 scr back  1/2 scr fwd    1/2 scr fwd
+			=      1/2 scr back  1/2 scr fwd    current line
 
 			Specifying no mark at all is the same as "+".
 			If the mark is "=", a line of dashes is printed
@@ -123,11 +150,13 @@ g8			Print the hex values of the bytes used in the
 			{not in all versions of Vi, not with these arguments}
 
 							*:=*
-:=			Print the last line number.
+:= [flags]		Print the last line number.
+			See |ex-flags| for [flags].
 
-:{range}=		Prints the last line number in {range}.  For example,
+:{range}= [flags]	Prints the last line number in {range}.  For example,
 			this prints the current line number: >
 				:.=
+<			See |ex-flags| for [flags].
 
 :norm[al][!] {commands}					*:norm* *:normal*
 			Execute Normal mode commands {commands}.  This makes
@@ -141,8 +170,9 @@ g8			Print the hex values of the bytes used in the
 			The display isn't updated while ":normal" is busy.
 			This implies that an insert command must be completed
 			(to start Insert mode, see |:startinsert|).  A ":"
-			command must be completed as well.
-			{commands} cannot start with a space. Put a 1 (one)
+			command must be completed as well.  And you can't use
+			"Q" or "gQ" to start Ex mode.
+			{commands} cannot start with a space.  Put a 1 (one)
 			before it, 1 space is one space.
 			The 'insertmode' option is ignored for {commands}.
 			This command cannot be followed by another command,
@@ -241,7 +271,9 @@ g8			Print the hex values of the bytes used in the
    *+ARP*		Amiga only: ARP support included
 B  *+arabic*		|Arabic| language support
 N  *+autocmd*		|:autocmd|, automatic commands
-m  *+balloon_eval*	|balloon-eval| support
+m  *+balloon_eval*	|balloon-eval| support. Included when compiling with
+			supported GUI (Motif, GTK, GUI) and either
+			Netbeans/Sun Workshop integration or |+eval| feature.
 N  *+browse*		|:browse| command
 N  *+builtin_terms*	some terminals builtin |builtin-terms|
 B  *++builtin_terms*	maximal terminals builtin |builtin-terms|
@@ -256,6 +288,8 @@ N  *+cmdline_info*	|'showcmd'| and |'ruler'|
 N  *+comments*		|'comments'| support
 N  *+cryptv*		encryption support |encryption|
 B  *+cscope*		|cscope| support
+m  *+cursorshape*	|termcap-cursor-shape| support
+m  *+debug*		Compiled for debugging.
 N  *+dialog_gui*	Support for |:confirm| with GUI dialog.
 N  *+dialog_con*	Support for |:confirm| with console dialog.
 N  *+dialog_con_gui*	Support for |:confirm| with GUI and console dialog.
@@ -277,12 +311,12 @@ N  *+folding*		|folding|
 N  *+gettext*		message translations |multi-lang|
    *+GUI_Athena*	Unix only: Athena |GUI|
    *+GUI_neXtaw*	Unix only: neXtaw |GUI|
-   *+GUI_BeOS*		BeOS only: BeOS |GUI|
    *+GUI_GTK*		Unix only: GTK+ |GUI|
    *+GUI_Motif*		Unix only: Motif |GUI|
    *+GUI_Photon*	QNX only:  Photon |GUI|
 m  *+hangul_input*	Hangul input support |hangul|
-   *+iconv*		Compiled with the |iconv()| function, may have |/dyn|
+   *+iconv*		Compiled with the |iconv()| function
+   *+iconv/dyn*		Likewise |iconv-dynamic| |/dyn|
 N  *+insert_expand*	|insert_expand| Insert mode completion
 N  *+jumplist*		|jumplist|
 B  *+keymap*		|'keymap'|
@@ -306,18 +340,25 @@ N  *+mouse_xterm*	Unix only: xterm mouse handling |xterm-mouse|
 B  *+multi_byte*	Korean and other languages |multibyte|
    *+multi_byte_ime*	Win32 input method for multibyte chars |multibyte-ime|
 N  *+multi_lang*	non-English language support |multi-lang|
+m  *+mzscheme*		Mzscheme interface |mzscheme|
+m  *+mzscheme/dyn*	Mzscheme interface |mzscheme-dynamic| |/dyn|
 m  *+netbeans_intg*	|netbeans|
 m  *+ole*		Win32 GUI only: |ole-interface|
    *+osfiletype*	Support for the 'osfiletype' option and filetype
 			checking in automatic commands.  |autocmd-osfiletypes|
 N  *+path_extra*	Up/downwards search in 'path' and 'tags'
-m  *+perl*		Perl interface |perl|, may have |/dyn|
+m  *+perl*		Perl interface |perl|
+m  *+perl/dyn*		Perl interface |perl-dynamic| |/dyn|
    *+postscript*	|:hardcopy| writes a PostScript file
 N  *+printer*		|:hardcopy| command
-m  *+python*		Python interface |python|, may have |/dyn|
+H  *+profile*		|:profile| command
+m  *+python*		Python interface |python|
+m  *+python/dyn*	Python interface |python-dynamic| |/dyn|
 N  *+quickfix*		|:make| and |quickfix| commands
+N  *+reltime*		|reltime()| function
 B  *+rightleft*		Right to left typing |'rightleft'|
-m  *+ruby*		Ruby interface |ruby|, may have |/dyn|
+m  *+ruby*		Ruby interface |ruby|
+m  *+ruby/dyn*		Ruby interface |ruby-dynamic| |/dyn|
 N  *+scrollbind*	|'scrollbind'|
 B  *+signs*		|:sign|
 N  *+smartindent*	|'smartindent'|
@@ -330,7 +371,8 @@ N  *+syntax*		Syntax highlighting |syntax|
 N  *+tag_binary*	binary searching in tags file |tag-binary-search|
 N  *+tag_old_static*	old method for static tags |tag-old-static|
 m  *+tag_any_white*	any white space allowed in tags file |tag-any-white|
-m  *+tcl*		Tcl interface |tcl|, may have |/dyn|
+m  *+tcl*		Tcl interface |tcl|
+m  *+tcl/dyn*		Tcl interface |tcl-dynamic| |/dyn|
    *+terminfo*		uses |terminfo| instead of termcap
 N  *+termresponse*	support for |t_RV| and |v:termresponse|
 N  *+textobjects*	|text-objects| selection
@@ -379,18 +421,39 @@ N  *+X11*		Unix only: can restore window title |X11|
 			To stop the messages and commands from being echoed to
 			the screen, put the commands in a function and call it
 			with ":silent call Function()".
+			An alternative is to use the 'verbosefile' option,
+			this can be used in combination with ":redir".
 			{not in Vi}
 
 :redi[r] >> {file}	Redirect messages to file {file}.  Append if {file}
 			already exists.  {not in Vi}
 
-:redi[r] @{a-zA-Z}	Redirect messages to register {a-z}.  Append to the
+:redi[r] @{a-zA-Z}>	Redirect messages to register {a-z}.  Append to the
 			contents of the register if its name is given
-			uppercase {A-Z}.  {not in Vi}
+			uppercase {A-Z}.  For backward compatibility, the ">"
+			after the register name can be omitted. {not in Vi}
+:redi[r] @{a-z}>>	Append messages to register {a-z}. {not in Vi}
 
-:redi[r] @*		Redirect messages to the clipboard. {not in Vi}
+:redi[r] @*>		Redirect messages to the clipboard. For backward
+			compatibility, the ">" after the register name can be
+			omitted. {not in Vi}
+:redi[r] @*>>		Append messages to the clipboard. {not in Vi}
 
-:redi[r] @"		Redirect messages to the unnamed register. {not in Vi}
+:redi[r] @">		Redirect messages to the unnamed register. For
+			backward compatibility, the ">" after the register
+			name can be omitted. {not in Vi}
+:redi[r] @">>		Append messages to the unnamed register. {not in Vi}
+
+:redi[r] => {var}	Redirect messages to a variable.  If the variable
+			doesn't exist, then it is created.  If the variable
+			exists, then it is initialized to an empty string.
+			Only string variables can be used.  After the
+			redirection starts, if the variable is removed or
+			locked or the variable type is changed, then further
+			command output messages will cause errors. {not in Vi}
+
+:redi[r] =>> {var}	Append messages to an existing variable.  Only string
+			variables can be used. {not in Vi}
 
 :redi[r] END		End redirecting messages.  {not in Vi}
 
@@ -431,7 +494,8 @@ N  *+X11*		Unix only: can restore window title |X11|
 						*:verb* *:verbose*
 :[count]verb[ose] {command}
 			Execute {command} with 'verbose' set to [count].  If
-			[count] is omitted one is used.
+			[count] is omitted one is used. ":0verbose" can be
+			used to set 'verbose' to zero.
 			The additional use of ":silent" makes messages
 			generated but not displayed.
 			The combination of ":silent" and ":verbose" can be
@@ -447,6 +511,17 @@ N  *+X11*		Unix only: can restore window title |X11|
 				:4verbose set verbose | set verbose
 <				  verbose=4 ~
 				  verbose=0 ~
+			For logging verbose messages in a file use the
+			'verbosefile' option.
+
+							*:verbose-cmd*
+When 'verbose' is non-zero, listing the value of a Vim option or a key map or
+an abbreviation or a user-defined function or a command or a highlight group
+or an autocommand will also display where it was last defined.  If it was
+defined manually then there will be no "Last set" message.  When it was
+defined while executing a function, user command or autocommand, the script in
+which it was defined is reported.
+{not available when compiled without the +eval feature}
 
 							*K*
 K			Run a program to lookup the keyword under the
@@ -481,16 +556,16 @@ K			Run a program to lookup the keyword under the
 
 [N]gs							*gs* *:sl* *:sleep*
 :[N]sl[eep] [N]	[m]	Do nothing for [N] seconds.  When [m] is included,
-			sleep for [N] milliseconds. The count for "gs" always
+			sleep for [N] milliseconds.  The count for "gs" always
 			uses seconds.  The default is one second. >
 			     :sleep	     "sleep for one second
 			     :5sleep	     "sleep for five seconds
 			     :sleep 100m     "sleep for a hundred milliseconds
 			     10gs	     "sleep for ten seconds
 <			Can be interrupted with CTRL-C (CTRL-Break on MS-DOS).
-			"gs" stands for "goto sleep".  While sleeping the
-			cursor is positioned in the text (if visible).  {not
-			in Vi}
+			"gs" stands for "goto sleep".
+			While sleeping the cursor is positioned in the text,
+			if at a visible position.  {not in Vi}
 
 							*g_CTRL-A*
 g CTRL-A		Only when Vim was compiled with MEM_PROFILING defined
@@ -570,9 +645,11 @@ g CTRL-A		Only when Vim was compiled with MEM_PROFILING defined
 			current file.  See |help-translated|.
 
 							*:helpg* *:helpgrep*
-:helpg[rep] {pattern}
+:helpg[rep] {pattern}[@xx]
 			Search all help text files and make a list of lines
 			in which {pattern} matches.  Jumps to the first match.
+			The optional [@xx] specifies that only matches in the
+			"xx" language are to be found.
 			You can navigate through the matches with the
 			|quickfix| commands, e.g., |:cnext| to jump to the
 			next one.  Or use |:cwindow| to get the list of
@@ -583,6 +660,8 @@ g CTRL-A		Only when Vim was compiled with MEM_PROFILING defined
 				:helpgrep Uganda
 <			Example for case ignoring search: >
 				:helpgrep uganda\c
+<			Example for searching in French help: >
+				:helpgrep backspace@fr
 <			Cannot be followed by another command, everything is
 			used as part of the pattern.  But you can use
 			|:execute| when needed.
@@ -590,6 +669,22 @@ g CTRL-A		Only when Vim was compiled with MEM_PROFILING defined
 			compresses the help files).
 			{not in Vi}
 
+							*:lh* *:lhelpgrep*
+:lh[elpgrep] {pattern}[@xx]
+			Same as ":helpgrep", except the location list is used
+			instead of the quickfix list. If the help window is
+			already opened, then the location list for that window
+			is used. Otherwise, a new help window is opened and
+			the location list for that window is set.  The
+			location list for the current window is not changed.
+
+							*:exu* *:exusage*
+:exu[sage]		Show help on Ex commands.  Added to simulate the Nvi
+			command. {not in Vi}
+
+							*:viu* *:viusage*
+:viu[sage]		Show help on Normal mode commands.  Added to simulate
+			the Nvi command. {not in Vi}
 
 When no argument is given to |:help| the file given with the 'helpfile' option
 will be opened.  Otherwise the specified tag is searched for in all "doc/tags"
@@ -661,6 +756,14 @@ It is possible to add translated help files, next to the original English help
 files.  Vim will search for all help in "doc" directories in 'runtimepath'.
 This is only available when compiled with the |+multi_lang| feature.
 
+At this moment translations are available for:
+	Chinese - multiple authors
+	French  - translated by David Blanchet
+	Italian - translated by Antonio Colombo
+	Polish  - translated by Mikolaj Machowski
+	Russian - translated by Vassily Ragosin
+See the Vim website to find them: http://www.vim.org/translations.php
+
 A set of translated help files consists of these files:
 
 	help.abx
@@ -716,370 +819,7 @@ Hints for translators:
   languages in the specified directory.
 
 ==============================================================================
-3. Printing						*printing*
-
-On MS-Windows Vim can print your text on any installed printer.  On other
-systems a PostScript file is produced.  This can be directly sent to a
-PostScript printer.  For other printers a program like ghostscript needs to be
-used.
-
-3.1 PostScript Printing			|postscript-printing|
-3.2 PostScript Printing Encoding	|postscript-print-encoding|
-3.3 PostScript Printing Troubleshooting |postscript-print-trouble|
-3.4 PostScript Utilities		|postscript-print-util|
-3.5 Formfeed Characters			|printing-formfeed|
-
-{not in Vi}
-{only available when compiled with |+printer| feature}
-
-					*:ha* *:hardcopy* *E237* *E238* *E324*
-:[range]ha[rdcopy][!] [arguments]
-			Send [range] lines (default whole file) to the
-			printer.
-
-			On MS-Windows a dialog is displayed to allow selection
-			of printer, paper size etc. To skip the dialog, use
-			the [!].  In this case the printer defined by
-			'printdevice' is used, or, if 'printdevice' is empty,
-			the system default printer.
-
-			For systems other than MS-Windows, PostScript is
-			written in a temp file and 'printexpr' is used to
-			actually print it.  Then [arguments] can be used by
-			'printexpr' through |v:cmdarg|.  Otherwise [arguments]
-			is ignored.  'printoptions' can be used to specify
-			paper size, duplex, etc.
-
-:[range]ha[rdcopy][!] >{filename}
-			As above, but write the resulting PostScript in file
-			{filename}.
-			Things like "%" are expanded |cmdline-special|
-			Careful: An existing file is silently overwritten.
-			{only available when compiled with the |+postscript|
-			feature}
-			On MS-Windows use the "print to file" feature of the
-			printer driver.
-
-Progress is displayed during printing as a page number and a percentage.  To
-abort printing use the interrupt key (CTRL-C or, on MS-systems, CTRL-Break).
-
-Printer output is controlled by the 'printfont' and 'printoptions' options.
-'printheader' specifies the format of a page header.
-
-The printed file is always limited to the selected margins, irrespective of
-the current window's 'wrap' or 'linebreak' settings.  The "wrap" item in
-'printoptions' can be used to switch wrapping off.
-The current highlighting colors are used in the printout, with the following
-considerations:
-1) The normal background is always rendered as white (i.e. blank paper.)
-2) White text or the default foreground is rendered as black, so that it shows
-   up!
-3) If 'background' is "dark", then the colours are darkened to compensate for
-   the fact that otherwise they would be too bright to show up clearly on
-   white paper.
-
-
-3.1 PostScript Printing					*postscript-printing*
-						*E455* *E456* *E457* *E624*
-Provided you have enough disk space there should be no problems generating a
-PostScript file.  You need to have the runtime files correctly installed (if
-you can find the help files, they probably are).
-
-There are currently a number of limitations with PostScript printing:
-
-- 'printfont' - The font name is ignored (the Courier family is always used -
-  it should be available on all PostScript printers) but the font size is
-  used.
-
-- 'printoptions' - The duplex setting is used when generating PostScript
-  output, but it is up to the printer to take notice of the setting.  If the
-  printer does not support duplex printing then it should be silently ignored.
-  Some printers, however, don't print at all.
-
-- 8-bit support - While a number of 8-bit print character encodings are
-  supported it is possible that some characters will not print.  Whether a
-  character will print depends on the font in the printer knowing the
-  character.  Missing characters will be replaced with an upside down question
-  mark, or a space if that character is also not known by the font.  It may be
-  possible to get all the characters in an encoding to print by installing a
-  new version of the Courier font family.
-
-- Multi-byte support - Currently VIM will try to convert multi-byte characters
-  to the 8-bit encoding specified by 'printencoding' (or latin1 if it is
-  empty).  Any characters that are not successfully converted are shown as
-  unknown characters.  Printing will fail if VIM cannot convert the multi-byte
-  to the 8-bit encoding.
-
-
-3.2 Custom 8-bit Print Character Encodings	*postscript-print-encoding*
-								*E618* *E619*
-To use your own print character encoding when printing 8-bit character data
-you need to define your own PostScript font encoding vector.  Details on how
-to to define a font encoding vector is beyond the scope of this help file, but
-you can find details in the PostScript Language Reference Manual, 3rd Edition,
-published by Addison-Wesley and available in PDF form at
-http://www.adobe.com/.  The following describes what you need to do for VIM to
-locate and use your print character encoding.
-
-i.   Decide on a unique name for your encoding vector, one that does not clash
-     with any of the recognized or standard encoding names that VIM uses (see
-     |encoding-names| for a list), and that no one else is likely to use.
-ii.  Copy $VIMRUNTIME/print/latin1.ps to the print subdirectory in your
-     'runtimepath' and rename it with your unique name.
-iii. Edit your renamed copy of latin1.ps, replacing all occurrences of latin1
-     with your unique name (don't forget the line starting %%Title:), and
-     modify the array of glyph names to define your new encoding vector.  The
-     array must have exactly 256 entries or you will not be able to print!
-iv.  Within VIM, set 'printencoding' to your unique encoding name and then
-     print your file.  VIM will now use your custom print character encoding.
-
-VIM will report an error with the resource file if you change the order or
-content of the first 3 lines, other than the name of the encoding on the line
-starting %%Title: or the version number on the line starting %%Version:.
-
-[Technical explanation for those that know PostScript - VIM looks for a file
-with the same name as the encoding it will use when printing.  The file
-defines a new PostScript Encoding resource called /VIM-name, where name is the
-print character encoding VIM will use.]
-
-
-3.3 PostScript Printing Troubleshooting		*postscript-print-trouble*
-									*E621*
-Usually the only sign of a problem when printing with PostScript is that your
-printout does not appear.  If you are lucky you may get a printed page that
-tells you the PostScript operator that generated the error that prevented the
-print job completing.
-
-There are a number of possible causes as to why the printing may have failed:
-
-- Wrong version of the prolog resource file.  The prolog resource file
-  contains some PostScript that VIM needs to be able to print.  Each version
-  of VIM needs one particular version.  Make sure you have correctly installed
-  the runtime files, and don't have any old versions of a file called prolog
-  in the print directory in your 'runtimepath' directory.
-
-- Paper size.  Some PostScript printers will abort printing a file if they do
-  not support the requested paper size.  By default VIM uses A4 paper.  Find
-  out what size paper your printer normally uses and set the appropriate paper
-  size with 'printoptions'.  If you cannot find the name of the paper used,
-  measure a sheet and compare it with the table of supported paper sizes listed
-  for 'printoptions', using the paper that is closest in both width AND height.
-  Note: The dimensions of actual paper may vary slightly from the ones listed.
-  If there is no paper listed close enough, then you may want to try psresize
-  from PSUtils, discussed below.
-
-- Two-sided printing (duplex).  Normally a PostScript printer that does not
-  support two-sided printing will ignore any request to do it.  However, some
-  printers may abort the job altogether.  Try printing with duplex turned off.
-  Note: Duplex prints can be achieved manually using PS utils - see below.
-
-- Collated printing.  As with Duplex printing, most PostScript printers that
-  do not support collating printouts will ignore a request to do so.  Some may
-  not.  Try printing with collation turned off.
-
-- Syntax highlighting.  Some print management code may prevent the generated
-  PostScript file from being printed on a black and white printer when syntax
-  highlighting is turned on, even if solid black is the only color used.  Try
-  printing with syntax highlighting turned off.
-
-A safe printoptions setting to try is: >
-
-	:set printoptions=paper:A4,duplex:off,collate:n,syntax:n
-
-Replace "A4" with the paper size that best matches your printer paper.
-
-
-3.4 PostScript Utilities			*postscript-print-util*
-
-3.4.1 Ghostscript
-
-Ghostscript is a PostScript and PDF interpreter that can be used to display
-and print on non-PostScript printers PostScript and PDF files.  It can also
-generate PDF files from PostScript.
-
-Ghostscript will run on a wide variety of platforms.
-
-There are three available versions:
-
-- AFPL Ghostscript (formerly Aladdin Ghostscript) which is free for
-  non-commercial use.  It can be obtained from:
-
-    http://www.cs.wisc.edu/~ghost/
-
-- GNU Ghostscript which is available under the GNU General Public License.  It
-  can be obtained from:
-
-    ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/gnu/
-
-- A commercial version for inclusion in commercial products.
-
-Additional information on Ghostscript can also be found at:
-
-  http://www.ghostscript.com/
-
-Support for a number of non PostScript printers is provided in the
-distribution as standard, but if you cannot find support for your printer
-check the Ghostscript site for other printers not included by default.
-
-
-3.4.2 Ghostscript Previewers.
-
-The interface to Ghostscript is very primitive so a number of graphical front
-ends have been created.  These allow easier PostScript file selection,
-previewing at different zoom levels, and printing.  Check supplied
-documentation for full details.
-
-X11
-
-- Ghostview.  Obtainable from:
-
-    http://www.cs.wisc.edu/~ghost/gv/
-
-- gv.  Derived from Ghostview.  Obtainable from:
-
-    http://wwwthep.physik.uni-mainz.de/~plass/gv/
-
-  Copies (possibly not the most recent) can be found at:
-
-    http://www.cs.wisc.edu/~ghost/gv/
-
-OpenVMS
-
-- Is apparently supported in the main code now (untested).  See:
-
-    http://wwwthep.physik.uni-mainz.de/~plass/gv/
-
-Windows and OS/2
-
-- GSview.  Obtainable from:
-
-    http://www.cs.wisc.edu/~ghost/gsview/
-
-DOS
-
-- ps_view.  Obtainable from:
-
-    ftp://ftp.pg.gda.pl/pub/TeX/support/ps_view/
-    ftp://ftp.dante.de/tex-archive/support/ps_view/
-
-Linux
-
-- GSview.  Linux version of the popular Windows and OS/2 previewer.
-  Obtainable from:
-
-    http://www.cs.wisc.edu/~ghost/gsview/
-
-- BMV.  Different from Ghostview and gv in that it doesn't use X but svgalib.
-  Obtainable from:
-
-    ftp://sunsite.unc.edu/pub/Linux/apps/graphics/viewers/svga/bmv-1.2.tgz
-
-
-3.4.3 PSUtils
-
-PSUtils is a collection of utility programs for manipulating PostScript
-documents.  Binary distributions are available for many platforms, as well as
-the full source.  PSUtils can be found at:
-
-  http://knackered.org/angus/psutils
-
-The utilities of interest include:
-
-- psnup.     Convert PS files for N-up printing.
-- psselect.  Select page range and order of printing.
-- psresize.  Change the page size.
-- psbook.    Reorder and lay out pages ready for making a book.
-
-The output of one program can be used as the input to the next, allowing for
-complex print document creation.
-
-
-N-UP PRINTING
-
-The psnup utility takes an existing PostScript file generated from VIM and
-convert it to an n-up version.  The simplest way to create a 2-up printout is
-to first create a PostScript file with: >
-
-	:hardcopy > test.ps
-
-Then on your command line execute: >
-
-	psnup -n 2 test.ps final.ps
-
-Note: You may get warnings from some Ghostscript previewers for files produced
-by psnup - these may safely be ignored.
-
-Finally print the file final.ps to your PostScript printer with your
-platform's print command.  (You will need to delete the two PostScript files
-afterwards yourself.)  'printexpr' could be modified to perform this extra
-step before printing.
-
-
-ALTERNATE DUPLEX PRINTING
-
-It is possible to achieve a poor man's version of duplex printing using the PS
-utility psselect.  This utility has options -e and -o for printing just the
-even or odd pages of a PS file respectively.
-
-First generate a PS file with the 'hardcopy' command, then generate a new
-files with all the odd and even numbered pages with: >
-
-	psselect -o test.ps odd.ps
-	psselect -e test.ps even.ps
-
-Next print odd.ps with your platform's normal print command.  Then take the
-print output, turn it over and place it back in the paper feeder.  Now print
-even.ps with your platform's print command.  All the even pages should now
-appear on the back of the odd pages.
-
-There a couple of points to bear in mind:
-
-1. Position of the first page.  If the first page is on top of the printout
-   when printing the odd pages then you need to reverse the order that the odd
-   pages are printed.  This can be done with the -r option to psselect.  This
-   will ensure page 2 is printed on the back of page 1.
-   Note: it is better to reverse the odd numbered pages rather than the even
-   numbered in case there are an odd number of pages in the original PS file.
-
-2. Paper flipping.  When turning over the paper with the odd pages printed on
-   them you may have to either flip them horizontally (along the long edge) or
-   vertically (along the short edge), as well as possibly rotating them 180
-   degrees.  All this depends on the printer - it will be more obvious for
-   desktop ink jets than for small office laser printers where the paper path
-   is hidden from view.
-
-
-3.5 Formfeed Characters					*printing-formfeed*
-
-By default VIM does not do any special processing of |formfeed| control
-characters.  Setting the 'printoptions' formfeed item will make VIM recognize
-formfeed characters and continue printing the current line at the beginning
-of the first line on a new page.  The use of formfeed characters provides
-rudimentary print control but there are certain things to be aware of.
-
-VIM will always start printing a line (including a line number if enabled)
-containing a formfeed character, even if it is the first character on the
-line.  This means if a line starting with a formfeed character is the first
-line of a page then VIM will print a blank page.
-
-Since the line number is printed at the start of printing the line containing
-the formfeed character, the remainder of the line printed on the new page
-will not have a line number printed for it (in the same way as the wrapped
-lines of a long line when wrap in 'printoptions' is enabled).
-
-If the formfeed character is the last character on a line, then printing will
-continue on the second line of the new page, not the first.  This is due to
-VIM processing the end of the line after the formfeed character and moving
-down a line to continue printing.
-
-Due to the points made above it is recommended that when formfeed character
-processing is enabled, printing of line numbers is disabled, and that form
-feed characters are not the last character on a line.  Even then you may need
-to adjust the number of lines before a formfeed character to prevent
-accidental blank pages.
-
-==============================================================================
-4. Using Vim like less or more					*less*
+3. Using Vim like less or more					*less*
 
 If you use the less or more program to view a file, you don't get syntax
 highlighting.  Thus you would like to use Vim instead.  You can do this by
