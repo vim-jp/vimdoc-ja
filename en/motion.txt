@@ -1,4 +1,4 @@
-*motion.txt*    For Vim version 6.3.  Last change: 2004 May 13
+*motion.txt*    For Vim version 7.0.  Last change: 2006 Apr 30
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -57,6 +57,7 @@ or change text.  The following operators are available:
 	|>|	>	shift right
 	|<|	<	shift left
 	|zf|	zf	define a fold
+	|g@|    g@      call function set with the 'operatorfunc' option
 
 If the motion includes a count and the operator also had a count before it,
 the two counts are multiplied.  For example: "2d3w" deletes six words.
@@ -72,17 +73,18 @@ and end position.  Generally, motions that move between lines affect lines
 characterwise).  However, there are some exceptions.
 
 						*exclusive* *inclusive*
-A character motion is either inclusive or exclusive. When inclusive, the start
-and end position of the motion are included in the operation.  When exclusive,
-the last character towards the end of the buffer is not included.  Linewise
-motions always include the start and end position.
+A character motion is either inclusive or exclusive.  When inclusive, the
+start and end position of the motion are included in the operation.  When
+exclusive, the last character towards the end of the buffer is not included.
+Linewise motions always include the start and end position.
 
-Which motions are linewise, inclusive or exclusive is mentioned below.  There
-are however, two general exceptions:
+Which motions are linewise, inclusive or exclusive is mentioned with the
+command.  There are however, two general exceptions:
 1. If the motion is exclusive and the end of the motion is in column 1, the
    end of the motion is moved to the end of the previous line and the motion
    becomes inclusive.  Example: "}" moves to the first line after a paragraph,
    but "d}" will not include that line.
+						*exclusive-linewise*
 2. If the motion is exclusive, the end of the motion is in column 1 and the
    start of the motion was at or before the first non-blank in the line, the
    motion becomes linewise.  Example: If a paragraph begins with some blanks
@@ -246,7 +248,7 @@ f{char}			To [count]'th occurrence of {char} to the right.  The
 
 							*F*
 F{char}			To the [count]'th occurrence of {char} to the left.
-			The cursor is placed on {char} |inclusive|.
+			The cursor is placed on {char} |exclusive|.
 			{char} can be entered like with the |f| command.
 
 							*t*
@@ -258,7 +260,7 @@ t{char}			Till before [count]'th occurrence of {char} to the
 							*T*
 T{char}			Till after [count]'th occurrence of {char} to the
 			left.  The cursor is placed on the character right of
-			{char} |inclusive|.
+			{char} |exclusive|.
 			{char} can be entered like with the |f| command.
 
 							*;*
@@ -349,6 +351,10 @@ or the last line.  The first two commands put the cursor in the same column
 except after the "$" command, then the cursor will be put on the last
 character of the line.
 
+If "k", "-" or CTRL-P is used with a [count] and there are less than [count]
+lines above the cursor and the 'cpo' option includes the "-" flag it is an
+error. |cpo--|.
+
 ==============================================================================
 4. Word motions						*word-motions*
 
@@ -380,10 +386,11 @@ These commands move over words or WORDS.
 							*word*
 A word consists of a sequence of letters, digits and underscores, or a
 sequence of other non-blank characters, separated with white space (spaces,
-tabs, <EOL>).  This can be changed with the 'iskeyword' option.
+tabs, <EOL>).  This can be changed with the 'iskeyword' option.  An empty line
+is also considered to be a word.
 							*WORD*
 A WORD consists of a sequence of non-blank characters, separated with white
-space.  An empty line is also considered to be a word and a WORD.
+space.  An empty line is also considered to be a WORD.
 
 A sequence of folded lines is counted for one word of a single character.
 "w" and "W", "e" and "E" move to the start/end of the first word or WORD after
@@ -424,20 +431,24 @@ between Vi and Vim.
 
 							*]]*
 ]]			[count] sections forward or to the next '{' in the
-			first column.  When used after an operator, then the
-			'}' in the first column.  |linewise|
+			first column.  When used after an operator, then also
+			stops below a '}' in the first column.  |exclusive|
+			Note that |exclusive-linewise| often applies.
 
 							*][*
 ][			[count] sections forward or to the next '}' in the
-			first column.  |linewise|
+			first column.  |exclusive|
+			Note that |exclusive-linewise| often applies.
 
 							*[[*
 [[			[count] sections backward or to the previous '{' in
-			the first column.  |linewise|
+			the first column.  |exclusive|
+			Note that |exclusive-linewise| often applies.
 
 							*[]*
 []			[count] sections backward or to the previous '}' in
-			the first column.  |linewise|
+			the first column.  |exclusive|
+			Note that |exclusive-linewise| often applies.
 
 These commands move over three kinds of text objects.
 
@@ -456,9 +467,12 @@ A paragraph begins after each empty line, and also at each of a set of
 paragraph macros, specified by the pairs of characters in the 'paragraphs'
 option.  The default is "IPLPPPQPP LIpplpipbp", which corresponds to the
 macros ".IP", ".LP", etc.  (These are nroff macros, so the dot must be in the
-first column).  A section boundary is also a paragraph boundary.  Note that
-this does not include a '{' or '}' in the first column.  Also note that a
-blank line (only containing white space) is NOT a paragraph boundary.
+first column).  A section boundary is also a paragraph boundary.
+Note that a blank line (only containing white space) is NOT a paragraph
+boundary.
+Also note that this does not include a '{' or '}' in the first column.  When
+the '{' flag is in 'cpoptions' then '{' in the first column is used as a
+paragraph boundary |posix|.
 
 							*section*
 A section begins after a form-feed (<C-L>) in the first column and at each of
@@ -583,6 +597,20 @@ i<			"inner <> block", select [count] <> blocks, from
 			'>', excluding the '<' and '>'.
 			When used in Visual mode it is made characterwise.
 
+						*v_at* *at*
+at			"a tag block", select [count] tag blocks, from the
+			[count]'th unmatched "<aaa>" backwards to the matching
+			"</aaa>", including the "<aaa>" and "</aaa>".
+			See |tag-blocks| about the details.
+			When used in Visual mode it is made characterwise.
+
+						*v_it* *it*
+it			"inner tag block", select [count] tag blocks, from the
+			[count]'th unmatched "<aaa>" backwards to the matching
+			"</aaa>", excluding the "<aaa>" and "</aaa>".
+			See |tag-blocks| about the details.
+			When used in Visual mode it is made characterwise.
+
 a}							*v_a}* *a}* *a{*
 a{							*v_aB* *v_a{* *aB*
 aB			"a Block", select [count] Blocks, from "[count] [{" to
@@ -596,6 +624,29 @@ iB			"inner Block", select [count] Blocks, from "[count] [{"
 			to the matching '}', excluding the '{' and '}' (see
 			|[{|).
 			When used in Visual mode it is made characterwise.
+
+a"							*v_aquote* *aquote*
+a'							*v_a'* *a'*
+a`							*v_a`* *a`*
+			"a quoted string".  Selects the text from the previous
+			quote until the next quote.  The 'quoteescape' option
+			is used to skip escaped quotes.
+			Only works within one line.
+			When the cursor starts on a quote, Vim will figure out
+			which quote pairs form a string by searching from the
+			start of the line.
+			Any trailing or leading white space is included.
+			When used in Visual mode it is made characterwise.
+			Repeating this object in Visual mode another string is
+			included.  A count is currently not used.
+
+i"							*v_iquote* *iquote*
+i'							*v_i'* *i'*
+i`							*v_i`* *i`*
+			Like a", a' and a`, but exclude the quotes and
+			repeating won't extend the Visual selection.
+			Special case: With a count of 2 the quotes are
+			included, but no extra white space as with a"/a'/a`.
 
 When used after an operator:
 For non-block objects:
@@ -647,6 +698,26 @@ where on the object the cursor is.  For example, compare "dw" and "daw": "dw"
 deletes from the cursor position to the start of the next word, "daw" deletes
 the word under the cursor and the space after or before it.
 
+
+Tag blocks						*tag-blocks*
+
+For the "it" and "at" text objects an attempt is done to select blocks between
+matching tags for HTML and XML.  But since these are not completely compatible
+there are a few restrictions.
+
+The normal method is to select a <tag> until the matching </tag>.  For "at"
+the tags are included, for "it" they are excluded.  But when "it" is repeated
+the tags will be included (otherwise nothing would change).  Also, "it" used
+on a tag block with no contents will select the leading tag.
+
+"<aaa/>" items are skipped.  Case is ignored, also for XML where case does
+matter.
+
+In HTML it is possible to have a tag like <br> or <meta ...> without a
+matching end tag.  These are ignored.
+
+The text objects are tolerant about mistakes.  Stray end tags are ignored.
+
 ==============================================================================
 7. Marks					*mark-motions* *E20* *E78*
 
@@ -672,11 +743,12 @@ m[  or  m]		Set the |'[| or |']| mark.  Useful when an operator is
 			the cursor, this is not a motion command).
 
 						*:ma* *:mark* *E191*
-:[range]ma[rk] {a-zA-Z}	Set mark {a-zA-Z} at last line number in [range],
+:[range]ma[rk] {a-zA-Z'}
+			Set mark {a-zA-Z'} at last line number in [range],
 			column 0.  Default is cursor line.
 
 						*:k*
-:[range]k{a-zA-Z}	Same as :mark, but the space before the mark name can
+:[range]k{a-zA-Z'}	Same as :mark, but the space before the mark name can
 			be omitted.
 
 						*'* *'a* *`* *`a*
@@ -692,17 +764,38 @@ g'{mark}  g`{mark}
 			jumping within the current buffer.  Example: >
 				g`"
 <			jumps to the last known position in a file.  See
-			$VIMRUNTIME/vimrc_example.vim.  {not in Vi}
+			$VIMRUNTIME/vimrc_example.vim.
+			Also see |:keepjumps|.
+			{not in Vi}
 
 						*:marks*
 :marks			List all the current marks (not a motion command).
 			The |'(|, |')|, |'{| and |'}| marks are not listed.
+			The first column has number zero.
 			{not in Vi}
 						*E283*
 :marks {arg}		List the marks that are mentioned in {arg} (not a
 			motion command).  For example: >
 				:marks aB
 <			to list marks 'a' and 'B'.  {not in Vi}
+
+							*:delm* *:delmarks*
+:delm[arks] {marks}	Delete the specified marks.  Marks that can be deleted
+			include A-Z and 0-9.  You cannot delete the ' mark.
+			They can be specified by giving the list of mark
+			names, or with a range, separated with a dash.  Spaces
+			are ignored.  Examples: >
+			   :delmarks a	      deletes mark a
+			   :delmarks a b 1    deletes marks a, b and 1
+			   :delmarks Aa       deletes marks A and a
+			   :delmarks p-z      deletes marks in the range p to z
+			   :delmarks ^.[]     deletes marks ^ . [ ]
+			   :delmarks \"	      deletes mark "
+<			{not in Vi}
+
+:delm[arks]!		Delete all marks for the current buffer, but not marks
+			A-Z or 0-9.
+			{not in Vi}
 
 A mark is not visible in any way.  It is just a position in the file that is
 remembered.  Do not confuse marks with named registers, they are totally
@@ -761,15 +854,21 @@ was made yet in the current file.
 
 							*'<* *`<*
 '<  `<			To the first character of the last selected Visual
-			area in the current buffer.  {not in Vi}.
+			area in the current buffer.  For block mode it may
+			also be the last character in the first line (to be
+			able to define the block).  {not in Vi}.
 
 							*'>* *`>*
 '>  `>			To the last character of the last selected Visual
-			area in the current buffer.  {not in Vi}.
+			area in the current buffer.  For block mode it may
+			also be the first character of the last line (to be
+			able to define the block).  Note that 'selection'
+			applies, the position may be just after the Visual
+			area.  {not in Vi}.
 
 							*''* *``*
-''  ``			To the position before latest jump, or where the last
-			"m'" or "m`" command was given.  Not set when the
+''  ``			To the position before the latest jump, or where the
+			last "m'" or "m`" command was given.  Not set when the
 			|:keepjumps| command modifier was used.
 			Also see |restore-position|.
 
@@ -785,8 +884,8 @@ was made yet in the current file.
 
 							*'^* *`^*
 '^  `^			To the position where the cursor was the last time
-			when Insert mode was stopped  This is used by the |gi|
-			command.  Not set when the |:keepjumps| command
+			when Insert mode was stopped.  This is used by the
+			|gi| command.  Not set when the |:keepjumps| command
 			modifier was used.  {not in Vi}
 
 							*'.* *`.*
@@ -868,7 +967,7 @@ These commands are not marks themselves, but jump to a mark:
 			  or larger than before, all marks are kept at the
 			  same line number.
 			- When the number of lines decreases, the marks in the
-			  ilnes that disappeared are deleted.
+			  lines that disappeared are deleted.
 			In any case the marks below the filtered text have
 			their line numbers adjusted, thus stick to the text,
 			as usual.
@@ -877,12 +976,24 @@ These commands are not marks themselves, but jump to a mark:
 
 							*:keepj* *:keepjumps*
 :keepj[umps] {command}
-			Do not change the |''|, |'.| and |'^| marks, the
-			|jumplist| or the |changelist|.  Useful when making a
-			change or inserting text automatically and the user
-			doesn't want to go to this position.  E.g., when
-			updating a "Last change" timestamp: >
-	autocmd BufWritePre,FileWritePre *.abc keepjumps call SetLastChange()
+			Moving around in {command} does not change the |''|,
+			|'.| and |'^| marks, the |jumplist| or the
+			|changelist|.
+			Useful when making a change or inserting text
+			automatically and the user doesn't want to go to this
+			position.  E.g., when updating a "Last change"
+			timestamp in the first line: >
+
+				:let lnum = line(".")
+				:keepjumps normal gg
+				:call SetLastChange()
+				:keepjumps exe "normal " . lnum . "G"
+<
+			Note that ":keepjumps" must be used for every command.
+			When invoking a function the commands in that function
+			can still change the jumplist.  Also, for
+			":keepjumps exe 'command '" the "command" won't keep
+			jumps.  Instead use: ":exe 'keepjumps command'"
 
 ==============================================================================
 8. Jumps					*jump-motions*
@@ -957,7 +1068,8 @@ The result is that when repeating CTRL-O you will get back to old positions
 only once.
 
 When the |:keepjumps| command modifier is used, jumps are not stored in the
-jumplist.
+jumplist.  Jumps are also not stored in other cases, e.g., in a |:global|
+command.  You can explicitly add a jump by setting the ' mark.
 
 After the CTRL-O command that got you into line 1154 you could give another
 jump command (e.g., "G").  The jump list would then become:
@@ -996,7 +1108,7 @@ g;			Go to [count] older position in change list.
 
 							*g,* *E663*
 g,			Go to [count] newer cursor position in change list.
-			Just like "g;| but in the opposite direction.
+			Just like |g;| but in the opposite direction.
 			(not a motion command)
 			{not in Vi}
 			{not available without the +jumplist feature}
@@ -1184,7 +1296,7 @@ L			To line [count] from bottom of window (default: Last
 			Cursor is adjusted for 'scrolloff' option.
 
 <LeftMouse>		Moves to the position on the screen where the mouse
-			click is |inclusive|.  See also |<LeftMouse>|.  If the
+			click is |exclusive|.  See also |<LeftMouse>|.  If the
 			position is in a status line, that window is made the
 			active window and the cursor is not moved.  {not in Vi}
 
