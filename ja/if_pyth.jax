@@ -1,9 +1,10 @@
 COMMENT: Pythonインターフェイス
-STATUS: finished 6.3.054
+STATUS: finished 7.0
 TRANSLATOR: 北条耀
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
+TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*if_pyth.txt* For Vim version 6.3.  Last change: 2004 Feb 28
+*if_pyth.txt*   For Vim version 7.0.  Last change: 2006 Apr 30
 
 
 		  VIM REFERENCE MANUAL    by Paul Moore
@@ -16,6 +17,7 @@ VimのPythonインターフェイス				*python* *Python*
 3. バッファオブジェクト		|python-buffer|
 4. レンジオブジェクト		|python-range|
 5. ウィンドウオブジェクト	|python-window|
+6. 動的ローディング		|python-dynamic|
 
 {Vi はこれらのコマンド群を持たない}
 
@@ -94,23 +96,23 @@ Pythonのコマンドは|sandbox|の中では使えません。
 	:python import vim
 
 概要 >
-	print "Hello"			# メッセージを表示
-	vim.command(cmd)		# exコマンドを実行
-	w = vim.windows[n]		# ウィンドウ"n"を得る
-	cw = vim.current.window		# 現在のウィンドウを得る
-	b = vim.buffers[n]		# バッファ"n"を得る
-	cb = vim.current.buffer		# 現在のバッファを得る
-	w.height = lines		# ウィンドウの高さを設定する
-	w.cursor = (row, col)		# ウィンドウのカーソル位置を設定する
-	pos = w.cursor			# (row, col)の組を得る
-	name = b.name			# バッファのファイル名を得る
-	line = b[n]			# バッファから１行を得る
-	lines = b[n:m]			# バッファから一連の行を得る
-	num = len(b)			# 行数を得る
-	b[n] = str			# バッファ内の１行を設定する
-	b[n:m] = [str1, str2, str3]	# １度に数行を設定する
-	del b[n]			# １行を削除する
-	del b[n:m]			# 数行を削除する
+	:py print "Hello"		# メッセージを表示
+	:py vim.command(cmd)		# exコマンドを実行
+	:py w = vim.windows[n]		# ウィンドウ"n"を得る
+	:py cw = vim.current.window	# 現在のウィンドウを得る
+	:py b = vim.buffers[n]		# バッファ"n"を得る
+	:py cb = vim.current.buffer	# 現在のバッファを得る
+	:py w.height = lines		# ウィンドウの高さを設定する
+	:py w.cursor = (row, col)	# ウィンドウのカーソル位置を設定する
+	:py pos = w.cursor		# (row, col)の組を得る
+	:py name = b.name		# バッファのファイル名を得る
+	:py line = b[n]			# バッファから１行を得る
+	:py lines = b[n:m]		# バッファから一連の行を得る
+	:py num = len(b)		# 行数を得る
+	:py b[n] = str			# バッファ内の１行を設定する
+	:py b[n:m] = [str1, str2, str3]	# １度に数行を設定する
+	:py del b[n]			# １行を削除する
+	:py del b[n:m]			# 数行を削除する
 
 
 "vim"モジュールのメソッド
@@ -118,8 +120,8 @@ Pythonのコマンドは|sandbox|の中では使えません。
 vim.command(str)					*python-command*
 	vim(exモード)のコマンドstrを実行する。戻り値はない。
 	例: >
-		vim.command("set tw=72")
-		vim.command("%s/aaa/bbb/g")
+	    :py vim.command("set tw=72")
+	    :py vim.command("%s/aaa/bbb/g")
 <	ノーマルモードのコマンドを実行するには、次の定義が使われる: >
 		def normal(str):
 			vim.command("normal "+str)
@@ -128,16 +130,25 @@ vim.command(str)					*python-command*
 <							*E659*
 	":python"コマンドはPython 2.2かそれより古いものでは再帰的に使えない。
 	Python 2.3 かそれより新しものを使ってください。 >
-		:python vim.command("python print 'Hello again Python'")
+	    :py vim.command("python print 'Hello again Python'")
 
 vim.eval(str)						*python-eval*
 	vim内の式評価を使って、式を評価する(|expression|を参照)。戻り値は、
-	式評価の結果の文字列。
+	次の通り:
+	- Vimの式を評価した結果が文字列か数値ならば文字列
+	- Vimの式を評価した結果がリストならばリスト
+	- Vimの式を評価した結果がVimの辞書ならば辞書
+	辞書とリストは再帰的に展開される。
 	例: >
-		text_width = vim.eval("'tw'")
-		str = vim.eval("12+12")		# 結果は文字列であることに注意！
+	    :py text_width = vim.eval("&tw")
+	    :py str = vim.eval("12+12")		# 結果は文字列であることに注意！
 						# 数に変換するには、
 						# string.atoi()を使うこと。
+
+	    :py tagList = vim.eval('taglist("eval_expr")')
+<	これの後半はPython辞書のPythonリストを返す。例:
+	[{'cmd': '/^eval_expr(arg, nextcmd)$/', 'static': 0, 'name':
+	'eval_expr', 'kind': 'f', 'filename': './src/eval.c'}]
 
 "vim"モジュールのエラーオブジェクト
 
@@ -157,18 +168,18 @@ vim.error						*python-error*
 vim.buffers						*python-buffers*
 	一連のvimバッファへのアクセスを提供するシーケンスオブジェクト。
 	次に示す操作がサポートされている: >
-		b = vim.buffers[i]	# インデックス化する (読取り専用)
-		b in vim.buffers	# メンバかどうか調べる
-		n = len(vim.buffers)	# 要素の個数
-		for b in vim.buffers:	# シーケンシャルアクセス
+	    :py b = vim.buffers[i]	# インデックス化する (読取り専用)
+	    :py b in vim.buffers	# メンバかどうか調べる
+	    :py n = len(vim.buffers)	# 要素の個数
+	    :py for b in vim.buffers:	# シーケンシャルアクセス
 
 vim.windows						*python-windows*
 	一連のvimウィンドウへのアクセスを提供するシーケンスオブジェクト。
 	このオブジェクトは次の操作をサポートしています: >
-		w = vim.windows[i]	# インデックス化する (読取り専用)
-		w in vim.windows	# メンバかどうか調べる
-		n = len(vim.windows)	# 要素の個数
-		for w in vim.windows:	# シーケンシャルアクセス
+	    :py w = vim.windows[i]	# インデックス化する (読取り専用)
+	    :py w in vim.windows	# メンバかどうか調べる
+	    :py n = len(vim.windows)	# 要素の個数
+	    :py for w in vim.windows:	# シーケンシャルアクセス
 
 vim.current						*python-current*
 	vim内で使える様々な"現在の"オブジェクトへの、(特定の属性を通した)
@@ -237,17 +248,21 @@ vim.current						*python-current*
 			|inclusive|)を示すレンジオブジェクト(|python-range|を
 			参照)を返す
 
+Note 行を追加するときは、その行に改行文字'\n'が含まれてはならない。末尾の'\n'
+は許されるが、無視される。そのため次のようなことができる: >
+	:py b.append(f.readlines())
+
 例 (bは現在のバッファに割り当てられている) >
-	print b.name		# バッファのファイル名を出力
-	b[0] = "hello!!!"	# 先頭の行を置換
-	b[:] = None		# 全てのバッファを削除
-	del b[:]		# 全てのバッファを削除 (上と同じ)
-	b[0:0] = "add a line"	# 先頭に行を追加
-	del b[2]		# 行を削除 (３番目)
-	b.append("bottom")	# 最後に行を追加
-	n = len(b)		# 行数
-	(row,col) = b.mark('a') # 名前付きマーク
-	r = b.range(1,5)	# バッファの部分範囲
+	:py print b.name		# バッファのファイル名を出力
+	:py b[0] = "hello!!!"	# 先頭の行を置換
+	:py b[:] = None		# 全てのバッファを削除
+	:py del b[:]		# 全てのバッファを削除
+	:py b[0:0] = "add a line"	# 先頭に行を追加
+	:py del b[2]		# 行を削除 (３番目)
+	:py b.append("bottom")	# 最後に行を追加
+	:py n = len(b)		# 行数
+	:py (row,col) = b.mark('a') # 名前付きマーク
+	:py r = b.range(1,5)	# バッファの部分範囲
 
 ==============================================================================
 4. レンジオブジェクト					*python-range*
@@ -293,7 +308,25 @@ vim.current						*python-current*
 				これは(row,col)の組で表される
 	height (読み書き)	ウィンドウの高さ、行の数で
 	width (読み書き)	ウインドウの幅、列の数で
-heightはスクリーンがが水平方向に分割されているときのみ書き込み可能です。
+heightはスクリーンが水平方向に分割されているときのみ書き込み可能です。
 widthはスクリーンが垂直方向に分割されているときのみ書き込み可能です。
+
+==============================================================================
+6. 動的ローディング					*python-dynamic*
+
+MS-WindowsではPythonライブラリを動的に読み込むことが可能である。これを行うと
+|:version|の出力に|+python/dyn|が含まれるようになる。
+
+この場合、Vimは必要なときだけPythonのDLLファイルを検索する。Pythonインターフェ
+イスを使わないときはDLLを必要としないので、DLLなしでVimを使うことができる。
+
+Pythonインターフェイスを使うにはPythonのDLLが検索パス内に存在しなければならな
+い。コンソールウィンドウで"path"とタイプすると、どのディレクトリが検索パスとな
+るか表示することができる。
+
+DLLの名前はVimをコンパイルした時のPythonのバージョンに一致しなければならない。
+現在その名前は"python24.dll"である。これはPython2.4用である。これを確かめるに
+は、"gvim.exe"を開き、"python\d*.dll\c"を検索する。
+
 ==============================================================================
  vim:tw=78:ts=8:ft=help:norl:

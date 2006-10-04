@@ -1,9 +1,10 @@
 COMMENT: C言語自動インデントとプログラム可能な自動インデント
-STATUS: finished 6.3.054
+STATUS: finished 7.0
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
+TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*indent.txt*    For Vim version 6.3.  Last change: 2004 Apr 25
+*indent.txt*    For Vim version 7.0.  Last change: 2006 Apr 30
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -40,7 +41,9 @@ VimにはCを自動的にインデントするためのオプションがある�
 この節の残りはオプション'cindent'について述べる。
 
 'cindent'はあらゆるCソースを正しくインデントできるわけではないことに注意。Vim
-はCコンパイラではない: だから全ての構文は認識できない。
+はCコンパイラではない: だから全ての構文は認識できない。1つの要求事項は、トップ
+レベル関数が第1桁が'{'で始まっていることである。そうなっていないとと宣言との区
+別が困難である。
 
 Cのインデントはこの4つのオプションで制御されている:
 'cindent'	Cの自動インデントを有効化する。
@@ -79,7 +82,7 @@ Cのファイルに対して自動的に'cindent'をオンにしてそれ以外�
 	"O"	ノーマルモードで "O" コマンドを使用した時
 	"e"	行の先頭で "else" の2つ目の 'e' をタイプした時
 
-各キーの前に置くことのできる文字は次の通り:
+各キーの前に置くことのできる文字は次の通り:			 *i_CTRL-F*
 !	'!' をキーの前に置くと、Vimはそのキーを挿入するのではなく替わりに現在
 	の行のインデントを再調整する。これにより現在の行の再調整するためのコマ
 	ンドキーを定義することができる。CTRL-Fはそのデフォルトキーである。
@@ -415,6 +418,14 @@ CTRL-TやCTRL-Dを使用してインデントを変更した後では、Vimは�
 		     )			    )
 		      foo;			foo;
 <
+	MN    Nが非ゼロのとき、閉じ括弧で始まる行のインデントを前の行の最初の
+		文字と同じ位置にする(省略値 0)。
+
+		cino=			  cino=M1 >
+		  if (cond1 &&		    if (cond1 &&
+			 cond2			   cond2
+		     )				   )
+<
 					*java-cinoptions* *java-indenting*
 	jN    Javaの無名クラスを正しくインデントする。値 'N' は現在のところ使
 	      われていないが 0 以外(例 'j1')にするべきである。'j1'にすることで
@@ -436,8 +447,8 @@ CTRL-TやCTRL-Dを使用してインデントを変更した後では、Vimは�
 
 
 省略値を全て並べるとこうなる:
-	cinoptions=>s,e0,n0,f0,{0,}0,^0,:s,=s,l0,gs,hs,ps,ts,+s,c3,C0,(2s,us,
-		   \U0,w0,m0,j0,)20,*30
+	cinoptions=>s,e0,n0,f0,{0,}0,^0,:s,=s,l0,b0,gs,hs,ps,ts,is,+s,c3,C0,
+		   /0,(2s,us,U0,w0,W0,m0,j0,)20,*30
 
 次のような場合にはVimは行頭を1列目に持っていく:
 - 'cinkeys'が '#' を含み行が '#' (プリプロセッサ命令)で始まる場合
@@ -458,14 +469,14 @@ CTRL-TやCTRL-Dを使用してインデントを変更した後では、Vimは�
 インデントファイルについての覚書 ~
 
 
-FORTRAN							*fortran-indent*
+FORTRAN							*ft-fortran-indent*
 
 ifブロック、select case、そしてwhere構成物がインデントされる。コメント、ラベル
 付き文、そして2行にまたがった行は、Fortranが自由形式のソースではインデントされ
 るが、一方Fortranが固定形式ソースの場合には左余白が言語仕様により決定されてい
 るのでインデントされない。それ故に固定形式ソースを使っている時にはラベル付き文
 と2行にまたがった行については手動でインデントを修正する必要がある。ソース形式
-の判定に使われている方法についてのさらなる議論は|fortran-syntax|を参照のこと。
+の判定に使われている方法についてのさらなる議論は|ft-fortran-syntax|を参照のこと。
 
 Doループ ~
 デフォルトでは全てのdoループはインデントされない。Fortranでは、ループはラベル
@@ -492,7 +503,20 @@ Tidyのようなプログラムは構造化do/continueループをdo/enddo形式
 で.forであるFortranのファイルのループはインデントせずに残すことができる。
 
 
-VERILOG							*verilog-indent*
+PYTHON							*ft-python-indent*
+
+以下の状況のためにインデントの量を設定することができる。この例は既定である。
+後で'shiftwidth'の値を変更するために変数に式を設定しておく。
+
+開き括弧の後のインデント: >
+	let g:pyindent_open_paren = '&sw * 2'
+ネストした括弧の後のインデント: >
+	let g:pyindent_nested_paren = '&sw'
+継続行のインデント: >
+	let g:pyindent_continue = '&sw * 2'
+
+
+VERILOG							*ft-verilog-indent*
 
 一般的なブロック文であるif, for, case, always, initial, function, specify, そ
 してbegin等などはインデントされる。moduleブロック文(最初のレベルのブロック)は
@@ -526,5 +550,16 @@ Verilogのファイルにだけこの変数を設定するには、次の設定�
 
 メッセージを表示できるようにするために、先に":set cmdheight=2"を実行することを
 確認すること。
+
+
+VIM							*ft-vim-indent*
+
+Vimスクリプトに対しては継続行(バックスラッシュで始まる行)のインデント量を指定
+する変数が1つある: >
+
+	:let g:vim_indent_cont = &sw * 3
+
+shiftwidthの値を3倍するのが既定値である。
+
 
  vim:tw=78:ts=8:ft=help:norl:

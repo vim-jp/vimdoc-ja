@@ -1,4 +1,4 @@
-*if_pyth.txt*   For Vim version 6.3.  Last change: 2004 Feb 28
+*if_pyth.txt*   For Vim version 7.0.  Last change: 2006 Apr 30
 
 
 		  VIM REFERENCE MANUAL    by Paul Moore
@@ -11,6 +11,7 @@ The Python Interface to Vim				*python* *Python*
 3. Buffer objects		|python-buffer|
 4. Range objects		|python-range|
 5. Window objects		|python-window|
+6. Dynamic loading		|python-dynamic|
 
 {Vi does not have any of these commands}
 
@@ -85,38 +86,38 @@ just like in the Python interpreter.)
 2. The vim module					*python-vim*
 
 Python code gets all of its access to vim (with one exception - see
-|python-output| below) via the "vim" module. The vim module implements two
+|python-output| below) via the "vim" module.  The vim module implements two
 methods, three constants, and one error object.  You need to import the vim
 module before using it: >
 	:python import vim
 
 Overview >
-	print "Hello"			# displays a message
-	vim.command(cmd)		# execute an ex command
-	w = vim.windows[n]		# gets window "n"
-	cw = vim.current.window		# gets the current window
-	b = vim.buffers[n]		# gets buffer "n"
-	cb = vim.current.buffer		# gets the current buffer
-	w.height = lines		# sets the window height
-	w.cursor = (row, col)		# sets the window cursor position
-	pos = w.cursor			# gets a tuple (row, col)
-	name = b.name			# gets the buffer file name
-	line = b[n]			# gets a line from the buffer
-	lines = b[n:m]			# gets a list of lines
-	num = len(b)			# gets the number of lines
-	b[n] = str			# sets a line in the buffer
-	b[n:m] = [str1, str2, str3]	# sets a number of lines at once
-	del b[n]			# deletes a line
-	del b[n:m]			# deletes a number of lines
+	:py print "Hello"		# displays a message
+	:py vim.command(cmd)		# execute an ex command
+	:py w = vim.windows[n]		# gets window "n"
+	:py cw = vim.current.window	# gets the current window
+	:py b = vim.buffers[n]		# gets buffer "n"
+	:py cb = vim.current.buffer	# gets the current buffer
+	:py w.height = lines		# sets the window height
+	:py w.cursor = (row, col)	# sets the window cursor position
+	:py pos = w.cursor		# gets a tuple (row, col)
+	:py name = b.name		# gets the buffer file name
+	:py line = b[n]			# gets a line from the buffer
+	:py lines = b[n:m]		# gets a list of lines
+	:py num = len(b)		# gets the number of lines
+	:py b[n] = str			# sets a line in the buffer
+	:py b[n:m] = [str1, str2, str3]	# sets a number of lines at once
+	:py del b[n]			# deletes a line
+	:py del b[n:m]			# deletes a number of lines
 
 
 Methods of the "vim" module
 
 vim.command(str)					*python-command*
-	Executes the vim (ex-mode) command str. Returns None.
+	Executes the vim (ex-mode) command str.  Returns None.
 	Examples: >
-		vim.command("set tw=72")
-		vim.command("%s/aaa/bbb/g")
+	    :py vim.command("set tw=72")
+	    :py vim.command("%s/aaa/bbb/g")
 <	The following definition executes Normal mode commands: >
 		def normal(str):
 			vim.command("normal "+str)
@@ -126,17 +127,27 @@ vim.command(str)					*python-command*
 <								*E659*
 	The ":python" command cannot be used recursively with Python 2.2 and
 	older.  This only works with Python 2.3 and later: >
-		:python vim.command("python print 'Hello again Python'")
+	    :py vim.command("python print 'Hello again Python'")
 
 vim.eval(str)						*python-eval*
 	Evaluates the expression str using the vim internal expression
-	evaluator (see |expression|). Returns the expression result as a
-	string.
+	evaluator (see |expression|).  Returns the expression result as:
+	- a string if the Vim expression evaluates to a string or number
+	- a list if the Vim expression evaluates to a Vim list
+	- a dictionary if the Vim expression evaluates to a Vim dictionary
+	Dictionaries and lists are recursively expanded.
 	Examples: >
-		text_width = vim.eval("&tw")
-		str = vim.eval("12+12")		# NB result is a string! Use
+	    :py text_width = vim.eval("&tw")
+	    :py str = vim.eval("12+12")		# NB result is a string! Use
 						# string.atoi() to convert to
 						# a number.
+
+	    :py tagList = vim.eval('taglist("eval_expr")')
+<	The latter will return a python list of python dicts, for instance:
+	[{'cmd': '/^eval_expr(arg, nextcmd)$/', 'static': 0, 'name':
+	'eval_expr', 'kind': 'f', 'filename': './src/eval.c'}]
+
+
 
 Error object of the "vim" module
 
@@ -156,20 +167,20 @@ Constants of the "vim" module
 	to which the variables referred.
 
 vim.buffers						*python-buffers*
-	A sequence object providing access to the list of vim buffers. The
+	A sequence object providing access to the list of vim buffers.  The
 	object supports the following operations: >
-		b = vim.buffers[i]	# Indexing (read-only)
-		b in vim.buffers	# Membership test
-		n = len(vim.buffers)	# Number of elements
-		for b in vim.buffers:	# Sequential access
+	    :py b = vim.buffers[i]	# Indexing (read-only)
+	    :py b in vim.buffers	# Membership test
+	    :py n = len(vim.buffers)	# Number of elements
+	    :py for b in vim.buffers:	# Sequential access
 <
 vim.windows						*python-windows*
-	A sequence object providing access to the list of vim windows. The
+	A sequence object providing access to the list of vim windows.  The
 	object supports the following operations: >
-		w = vim.windows[i]	# Indexing (read-only)
-		w in vim.windows	# Membership test
-		n = len(vim.windows)	# Number of elements
-		for w in vim.windows:	# Sequential access
+	    :py w = vim.windows[i]	# Indexing (read-only)
+	    :py w in vim.windows	# Membership test
+	    :py n = len(vim.windows)	# Number of elements
+	    :py for w in vim.windows:	# Sequential access
 <
 vim.current						*python-current*
 	An object providing access (via specific attributes) to various
@@ -179,10 +190,10 @@ vim.current						*python-current*
 		vim.current.window	The current window (RO)		Window
 		vim.current.range	The current line range (RO)	Range
 
-	The last case deserves a little explanation. When the :python or
+	The last case deserves a little explanation.  When the :python or
 	:pyfile command specifies a range, this range of lines becomes the
-	"current range". A range is a bit like a buffer, but with all access
-	restricted to a subset of lines. See |python-range| for more details.
+	"current range".  A range is a bit like a buffer, but with all access
+	restricted to a subset of lines.  See |python-range| for more details.
 
 
 Output from Python					*python-output*
@@ -197,31 +208,31 @@ Output from Python					*python-output*
 
 							*python-input*
 	Input (via sys.stdin, including input() and raw_input()) is not
-	supported, and may cause the program to crash. This should probably be
+	supported, and may cause the program to crash.  This should probably be
 	fixed.
 
 ==============================================================================
 3. Buffer objects					*python-buffer*
 
-Buffer objects represent vim buffers. You can obtain them in a number of ways:
+Buffer objects represent vim buffers.  You can obtain them in a number of ways:
 	- via vim.current.buffer (|python-current|)
 	- from indexing vim.buffers (|python-buffers|)
 	- from the "buffer" attribute of a window (|python-window|)
 
 Buffer objects have one read-only attribute - name - the full file name for
-the buffer. They also have three methods (append, mark, and range; see below).
+the buffer.  They also have three methods (append, mark, and range; see below).
 
-You can also treat buffer objects as sequence objects. In this context, they
+You can also treat buffer objects as sequence objects.  In this context, they
 act as if they were lists (yes, they are mutable) of strings, with each
-element being a line of the buffer. All of the usual sequence operations,
+element being a line of the buffer.  All of the usual sequence operations,
 including indexing, index assignment, slicing and slice assignment, work as
-you would expect. Note that the result of indexing (slicing) a buffer is a
-string (list of strings). This has one unusual consequence - b[:] is different
-from b. In particular, "b[:] = None" deletes the whole of the buffer, whereas
+you would expect.  Note that the result of indexing (slicing) a buffer is a
+string (list of strings).  This has one unusual consequence - b[:] is different
+from b.  In particular, "b[:] = None" deletes the whole of the buffer, whereas
 "b = None" merely updates the variable b, with no effect on the buffer.
 
-Buffer indexes start at zero, as is normal in Python. This differs from vim
-line numbers, which start from 1. This is particularly relevant when dealing
+Buffer indexes start at zero, as is normal in Python.  This differs from vim
+line numbers, which start from 1.  This is particularly relevant when dealing
 with marks (see below) which use vim line numbers.
 
 The buffer object methods are:
@@ -236,27 +247,31 @@ The buffer object methods are:
 			represents the part of the given buffer between line
 			numbers s and e |inclusive|.
 
+Note that when adding a line it must not contain a line break character '\n'.
+A trailing '\n' is allowed and ignored, so that you can do: >
+	:py b.append(f.readlines())
+
 Examples (assume b is the current buffer) >
-	print b.name		# write the buffer file name
-	b[0] = "hello!!!"	# replace the top line
-	b[:] = None		# delete the whole buffer
-	del b[:]		# delete the whole buffer (same as above)
-	b[0:0] = [ "a line" ]	# add a line at the top
-	del b[2]		# delete a line (the third)
-	b.append("bottom")	# add a line at the bottom
-	n = len(b)		# number of lines
-	(row,col) = b.mark('a') # named mark
-	r = b.range(1,5)	# a sub-range of the buffer
+	:py print b.name		# write the buffer file name
+	:py b[0] = "hello!!!"		# replace the top line
+	:py b[:] = None			# delete the whole buffer
+	:py del b[:]			# delete the whole buffer
+	:py b[0:0] = [ "a line" ]	# add a line at the top
+	:py del b[2]			# delete a line (the third)
+	:py b.append("bottom")		# add a line at the bottom
+	:py n = len(b)			# number of lines
+	:py (row,col) = b.mark('a')	# named mark
+	:py r = b.range(1,5)		# a sub-range of the buffer
 
 ==============================================================================
 4. Range objects					*python-range*
 
-Range objects represent a part of a vim buffer. You can obtain them in a
+Range objects represent a part of a vim buffer.  You can obtain them in a
 number of ways:
 	- via vim.current.range (|python-current|)
 	- from a buffer's range() method (|python-buffer|)
 
-A range object is almost identical in operation to a buffer object. However,
+A range object is almost identical in operation to a buffer object.  However,
 all operations are restricted to the lines within the range (this line range
 can, of course, change as a result of slice assignments, line deletions, or
 the range.append() method).
@@ -279,11 +294,11 @@ Example (assume r is the current range):
 ==============================================================================
 5. Window objects					*python-window*
 
-Window objects represent vim windows. You can obtain them in a number of ways:
+Window objects represent vim windows.  You can obtain them in a number of ways:
 	- via vim.current.window (|python-current|)
 	- from indexing vim.windows (|python-windows|)
 
-You can manipulate window objects only through their attributes. They have no
+You can manipulate window objects only through their attributes.  They have no
 methods, and no sequence or other interface.
 
 Window attributes are:
@@ -294,6 +309,23 @@ Window attributes are:
 	width (read-write)	The window width, in columns
 The height attribute is writable only if the screen is split horizontally.
 The width attribute is writable only if the screen is split vertically.
+
+==============================================================================
+6. Dynamic loading					*python-dynamic*
+
+On MS-Windows the Python library can be loaded dynamically.  The |:version|
+output then includes |+python/dyn|.
+
+This means that Vim will search for the Python DLL file only when needed.
+When you don't use the Python interface you don't need it, thus you can use
+Vim without this DLL file.
+
+To use the Python interface the Python DLL must be in your search path.  In a
+console window type "path" to see what directories are used.
+
+The name of the DLL must match the Python version Vim was compiled with.
+Currently the name is "python24.dll".  That is for Python 2.4.  To know for
+sure edit "gvim.exe" and search for "python\d*.dll\c".
 
 ==============================================================================
  vim:tw=78:ts=8:ft=help:norl:

@@ -1,4 +1,4 @@
-*indent.txt*    For Vim version 6.3.  Last change: 2004 Apr 25
+*indent.txt*    For Vim version 7.0.  Last change: 2006 Apr 30
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -33,7 +33,9 @@ There are in fact four methods available for indentation:
 The rest of this section describes the 'cindent' option.
 
 Note that 'cindent' indenting does not work for every code scenario.  Vim
-is not a C compiler: it does not recognize all syntax.
+is not a C compiler: it does not recognize all syntax.  One requirement is
+that toplevel functions have a '{' in the first column.  Otherwise they are
+easily confused with declarations.
 
 These four options control C program indenting:
 'cindent'	Enables Vim to perform C program indenting automatically.
@@ -68,7 +70,7 @@ as follows:
 	"e"	if you type the second 'e' for an "else" at the start of a
 		line
 
-Characters that can precede each key:
+Characters that can precede each key:				*i_CTRL-F*
 !	When a '!' precedes the key, Vim will not insert the key but will
 	instead reindent the current line.  This allows you to define a
 	command key for reindenting the current line.  CTRL-F is the default
@@ -237,7 +239,7 @@ assume a 'shiftwidth' of 4.
 				}		  }
 <
 	bN    If N != 0 Vim will align a final "break" with the case label,
-	      so that case..break looks like a sort of block. (default: 0).
+	      so that case..break looks like a sort of block.  (default: 0).
 
 		cino=		    cino=b1 >
 		  switch (x)	      switch(x)
@@ -286,7 +288,7 @@ assume a 'shiftwidth' of 4.
 		      int	      int			 int
 		  func()	      func()		  func()
 <
-	iN    Indent C++ base class declarations and contructor
+	iN    Indent C++ base class declarations and constructor
 	      initializations, if they start in a new line (otherwise they
 	      are aligned at the right side of the ':').
 	      (default 'shiftwidth').
@@ -325,7 +327,7 @@ assume a 'shiftwidth' of 4.
 		  ********/		    ********/
 <	      (Example uses ":set comments& comments-=s1:/* comments^=s0:/*")
 
-	/N    Indent comment lines N characters extra. (default 0).
+	/N    Indent comment lines N characters extra.  (default 0).
 		cino=			  cino=/4 >
 		  a = b;		    a = b;
 		  /* comment */			/* comment */
@@ -381,7 +383,7 @@ assume a 'shiftwidth' of 4.
 	      the last non-white character in its line and it is not the
 	      closing parentheses, indent the following line N characters
 	      relative to the outer context (i.e. start of the line or the
-	      next unclosed parentheses). (default: 0).
+	      next unclosed parentheses).  (default: 0).
 
 		cino=(0			   cino=(0,W4 >
 		  a_long_line(		    a_long_line(
@@ -404,9 +406,18 @@ assume a 'shiftwidth' of 4.
 		     )			    )
 		      foo;			foo;
 <
+	MN    When N is non-zero, line up a line starting with a closing
+	      parentheses with the first character of the previous line.
+	      (default 0).
+
+		cino=			  cino=M1 >
+		  if (cond1 &&		    if (cond1 &&
+			 cond2			   cond2
+		     )				   )
+<
 					*java-cinoptions* *java-indenting*
 	jN    Indent java anonymous classes correctly.  The value 'N' is
-	      currently unused but must be non-zero (e.g. 'j1'). 'j1' will
+	      currently unused but must be non-zero (e.g. 'j1').  'j1' will
 	      indent for example the following code snippet correctly: >
 
 		object.add(new ChangeListener() {
@@ -425,8 +436,8 @@ assume a 'shiftwidth' of 4.
 
 
 The defaults, spelled out in full, are:
-	cinoptions=>s,e0,n0,f0,{0,}0,^0,:s,=s,l0,gs,hs,ps,ts,+s,c3,C0,(2s,us,
-		   \U0,w0,m0,j0,)20,*30
+	cinoptions=>s,e0,n0,f0,{0,}0,^0,:s,=s,l0,b0,gs,hs,ps,ts,is,+s,c3,C0,
+		   /0,(2s,us,U0,w0,W0,m0,j0,)20,*30
 
 Vim puts a line in column 1 if:
 - It starts with '#' (preprocessor directives), if 'cinkeys' contains '#'.
@@ -449,33 +460,33 @@ $VIMRUNTIME/indent directory for examples.
 REMARKS ABOUT SPECIFIC INDENT FILES ~
 
 
-FORTRAN							*fortran-indent*
+FORTRAN							*ft-fortran-indent*
 
-Block if, select case, and where constructs are indented. Comments, labelled
+Block if, select case, and where constructs are indented.  Comments, labelled
 statements and continuation lines are indented if the Fortran is in free
 source form, whereas they are not indented if the Fortran is in fixed source
-form because of the left margin requirements. Hence manual indent corrections
+form because of the left margin requirements.  Hence manual indent corrections
 will be necessary for labelled statements and continuation lines when fixed
-source form is being used. For further discussion of the method used for the
-detection of source format see |fortran-syntax|.
+source form is being used.  For further discussion of the method used for the
+detection of source format see |ft-fortran-syntax|.
 
 Do loops ~
-All do loops are left unindented by default. Do loops can be unstructured in
+All do loops are left unindented by default.  Do loops can be unstructured in
 Fortran with (possibly multiple) loops ending on a labelled executable
-statement of almost arbitrary type. Correct indentation requires
-compiler-quality parsing. Old code with do loops ending on labelled statements
+statement of almost arbitrary type.  Correct indentation requires
+compiler-quality parsing.  Old code with do loops ending on labelled statements
 of arbitrary type can be indented with elaborate programs such as Tidy
-(http://www.unb.ca/chem/ajit/f_tidy.htm). Structured do/continue loops are
+(http://www.unb.ca/chem/ajit/f_tidy.htm).  Structured do/continue loops are
 also left unindented because continue statements are also used for purposes
-other than ending a do loop. Programs such as Tidy can convert structured
-do/continue loops to the do/enddo form. Do loops of the do/enddo variety can
-be indented. If you use only structured loops of the do/enddo form, you should
+other than ending a do loop.  Programs such as Tidy can convert structured
+do/continue loops to the do/enddo form.  Do loops of the do/enddo variety can
+be indented.  If you use only structured loops of the do/enddo form, you should
 declare this by setting the fortran_do_enddo variable in your .vimrc as
 follows >
 
    let fortran_do_enddo=1
 
-in which case do loops will be indented. If all your loops are of do/enddo
+in which case do loops will be indented.  If all your loops are of do/enddo
 type only in, say, .f90 files, then you should set a buffer flag with an
 autocommand such as >
 
@@ -485,7 +496,21 @@ to get do loops indented in .f90 files and left alone in Fortran files with
 other extensions such as .for.
 
 
-VERILOG							*verilog-indent*
+PYTHON							*ft-python-indent*
+
+The amount of indent can be set for the following situations.  The examples
+given are de the defaults.  Note that the variables are set to an expression,
+so that you can change the value of 'shiftwidth' later.
+
+Indent after an open paren: >
+	let g:pyindent_open_paren = '&sw * 2'
+Indent after a nested paren: >
+	let g:pyindent_nested_paren = '&sw'
+Indent for a continuation line: >
+	let g:pyindent_continue = '&sw * 2'
+
+
+VERILOG							*ft-verilog-indent*
 
 General block statements such as if, for, case, always, initial, function,
 specify and begin, etc., are indented.  The module block statements (first
@@ -518,5 +543,16 @@ In addition, you can turn the verbose mode for debug issue: >
   let b:verilog_indent_verbose = 1
 
 Make sure to do ":set cmdheight=2" first to allow the display of the message.
+
+
+VIM							*ft-vim-indent*
+
+For indenting Vim scripts there is one variable that specifies the amount of
+indent for a continuation line, a line that starts with a backslash: >
+
+	:let g:vim_indent_cont = &sw * 3
+
+Three times shiftwidth is the default value.
+
 
  vim:tw=78:ts=8:ft=help:norl:
