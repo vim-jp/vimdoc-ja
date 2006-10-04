@@ -1,4 +1,4 @@
-*windows.txt*   For Vim version 6.3.  Last change: 2004 Apr 29
+*windows.txt*   For Vim version 7.0.  Last change: 2006 Apr 24
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -33,7 +33,7 @@ compile time}
 disabled at compile time}
 
 ==============================================================================
-1. Introduction						*windows-intro*
+1. Introduction					*windows-intro* *window*
 
 A window is a viewport onto a buffer.  You can use multiple windows on one
 buffer, or several windows on different buffers.
@@ -68,6 +68,9 @@ inactive	  no		 no		  ' '
 Note: All CTRL-W commands can also be executed with |:wincmd|, for those
 places where a Normal mode command can't be used or is inconvenient.
 
+The main Vim window can hold several split windows.  There are also tab pages
+|tab-page|, each of which can hold multiple windows.
+
 ==============================================================================
 2. Starting Vim						*windows-starting*
 
@@ -101,6 +104,8 @@ when the last window also has a status line:
 	'laststatus' = 2	always a status line
 
 You can change the contents of the status line with the 'statusline' option.
+This option can be local to the window, so that you can have a different
+status line in each window.
 
 Normally, inversion is used to display the status line.  This can be changed
 with the 's' character in the 'highlight' option.  For example, "sb" sets it to
@@ -253,6 +258,9 @@ CTRL-W c					*CTRL-W_c* *:clo* *:close*
 :clo[se][!]	Close current window.  When the 'hidden' option is set, or
 		when the buffer was changed and the [!] is used, the buffer
 		becomes hidden (unless there is another window editing it).
+		When there is only one window in the current tab page and
+		there is another tab page, this closes the current tab page.
+		|tab-page|.
 		This command fails when:			*E444*
 		- There is only one window on the screen.
 		- When 'hidden' is not set, [!] is not used, the buffer has
@@ -269,6 +277,8 @@ CTRL-W CTRL-C						*CTRL-W_CTRL-C*
 :hid[e]		Quit current window, unless it is the last window on the
 		screen.  The buffer becomes hidden (unless there is another
 		window editing it or 'bufhidden' is "unload" or "delete").
+		If the window is the last one in the current tab page the tab
+		page is closed. |tab-page|
 		The value of 'hidden' is irrelevant for this command.
 		Changes to the buffer are not written and won't get lost, so
 		this is a "safe" command.
@@ -424,6 +434,13 @@ CTRL-W L	Move the current window to be at the far right, using the full
 		contents is used for the new window.
 		{not available when compiled without the +vertsplit feature}
 
+						*CTRL-W_T*
+CTRL-W T	Move the current window to a new tab page.  This fails if
+		there is only one window in the current tab page.
+		When a count is specified the new tab page will be opened
+		before the tab page with this index.  Otherwise it comes after
+		the current tab page.
+
 ==============================================================================
 6. Window resizing					*window-resize*
 
@@ -514,7 +531,7 @@ The minimal height and width of a window is set with 'winminheight' and
 24. :[N]sprevious [N]   34. :[N]sbprevious [N]  split + to Nth previous arg/buf
 25. :srewind / :sfirst	35. :sbrewind / :sbfirst split + to first arg/buf
 26. :slast		36. :sblast		split + to last arg/buf
-27. :sall		37: :sball		edit all args/buffers
+27. :sall		37. :sball		edit all args/buffers
 			38. :sunhide		edit all loaded buffers
 			39. :[N]sbmod [N]	split + to Nth modified buf
 
@@ -549,6 +566,9 @@ can also get to them with the buffer list commands, like ":bnext".
 		Rearrange the screen to open one window for each argument.
 		All other windows are closed.  When a count is given, this is
 		the maximum number of windows to open.
+		With the |:tab| modifier open a tab page for each argument.
+		When there are more arguments than 'tabpagemax' further ones
+		become split windows in the last tab page.
 		When the 'hidden' option is set, all buffers in closed windows
 		become hidden.
 		When 'hidden' is not set, and the 'autowrite' option is set,
@@ -585,7 +605,7 @@ can also get to them with the buffer list commands, like ":bnext".
 		not split.  Also see |++opt| and |+cmd|.
 
 						*:sfir* *:sfirst*
-:sfir[st [++opt] [+cmd]
+:sfir[st] [++opt] [+cmd]
 		Same as ":srewind".
 
 						*:sla* *:slast*
@@ -605,20 +625,23 @@ can also get to them with the buffer list commands, like ":bnext".
 		The |argument-list| is set, like with the |:next| command.
 		The purpose of this command is that it can be used from a
 		program that wants Vim to edit another file, e.g., a debugger.
+		When using the |:tab| modifier each argument is opened in a
+		tab page.  The last window is used if it's empty.
 		{only available when compiled with the +gui feature}
 
 ==============================================================================
 8. Do a command in all buffers or windows			*list-repeat*
 
 							*:windo*
-:windo[!] {cmd}		Execute {cmd} in each window.
+:windo {cmd}		Execute {cmd} in each window.
 			It works like doing this: >
 				CTRL-W t
 				:{cmd}
 				CTRL-W w
 				:{cmd}
 				etc.
-<			When an error is detected on one window, further
+<			This only operates in the current tab page.
+			When an error is detected on one window, further
 			windows will not be visited.
 			The last window (or where an error occurred) becomes
 			the current window.
@@ -626,7 +649,7 @@ can also get to them with the buffer list commands, like ":bnext".
 			{cmd} must not open or close windows or reorder them.
 			{not in Vi} {not available when compiled without the
 			|+listcmds| feature}
-			Also see |:argdo| and |:bufdo|.
+			Also see |:tabdo|, |:argdo| and |:bufdo|.
 
 							*:bufdo*
 :bufdo[!] {cmd}		Execute {cmd} in each buffer in the buffer list.
@@ -652,7 +675,7 @@ can also get to them with the buffer list commands, like ":bnext".
 			each buffer.
 			{not in Vi} {not available when compiled without the
 			|+listcmds| feature}
-			Also see |:argdo| and |:windo|.
+			Also see |:tabdo|, |:argdo| and |:windo|.
 
 Examples: >
 
@@ -691,7 +714,7 @@ CTRL-W g CTRL-]	Split current window in two.  Use identifier under cursor as a
 
 CTRL-W f					*CTRL-W_f* *CTRL-W_CTRL-F*
 CTRL-W CTRL-F	Split current window in two.  Edit file name under cursor.
-		Like ":split ]f", but window isn't split if the file does not
+		Like ":split gf", but window isn't split if the file does not
 		exist.
 		Uses the 'path' variable as a list of directory names where to
 		look for the file.  Also the path for current file is
@@ -699,6 +722,28 @@ CTRL-W CTRL-F	Split current window in two.  Edit file name under cursor.
 		If the name is a hypertext link that looks like
 		"type://machine/path", only "/path" is used.
 		If a count is given, the count'th matching file is edited.
+		{not available when the |+file_in_path| feature was disabled
+		at compile time}
+
+CTRL-W F						*CTRL-W_F*
+		Split current window in two.  Edit file name under cursor and
+		jump to the line number following the file name. See |gF| for
+		details on how the line number is obtained.
+		{not available when the |+file_in_path| feature was disabled
+		at compile time}
+
+CTRL-W gf						*CTRL-W_gf*
+		Open a new tab page and edit the file name under the cursor.
+		Like "tab split" and "gf", but the new tab page isn't created
+		if the file does not exist.
+		{not available when the |+file_in_path| feature was disabled
+		at compile time}
+
+CTRL-W gF						*CTRL-W_gF*
+		Open a new tab page and edit the file name under the cursor
+		and jump to the line number following the file name.  Like
+		"tab split" and "gF", but the new tab page isn't created if
+		the file does not exist.
 		{not available when the |+file_in_path| feature was disabled
 		at compile time}
 
@@ -713,17 +758,18 @@ normally a small window used to show an include file or definition of a
 function.
 {not available when compiled without the |+quickfix| feature}
 
-There can be only one preview window.  It is created with one of the commands
-below.  The 'previewheight' option can be set to specify the height of the
-preview window when it's opened.  The 'previewwindow' option is set in the
-preview window to be able to recognize it.  The 'winfixheight' option is set
-to have it keep the same height when opening/closing other windows.
+There can be only one preview window (per tab page).  It is created with one
+of the commands below.  The 'previewheight' option can be set to specify the
+height of the preview window when it's opened.  The 'previewwindow' option is
+set in the preview window to be able to recognize it.  The 'winfixheight'
+option is set to have it keep the same height when opening/closing other
+windows.
 
 						*:pta* *:ptag*
 :pta[g][!] [tagname]
 		Does ":tag[!] [tagname]" and shows the found tag in a
 		"Preview" window without changing the current buffer or cursor
-		position. If a "Preview" window already exists, it is re-used
+		position.  If a "Preview" window already exists, it is re-used
 		(like a help window is).  If a new one is opened,
 		'previewheight' is used for the height of the window.   See
 		also |:tag|.
@@ -748,12 +794,12 @@ CTRL-W CTRL-Z					*CTRL-W_CTRL-Z* *:pc* *:pclose*
 
 CTRL-W }						*CTRL-W_}*
 		Use identifier under cursor as a tag and perform a :ptag on
-		it. Make the new Preview window (if required) N high.  If N is
+		it.  Make the new Preview window (if required) N high.  If N is
 		not given, 'previewheight' is used.
 
 CTRL-W g }						*CTRL-W_g}*
 		Use identifier under cursor as a tag and perform a :ptjump on
-		it. Make the new Preview window (if required) N high.  If N is
+		it.  Make the new Preview window (if required) N high.  If N is
 		not given, 'previewheight' is used.
 
 							*:ped* *:pedit*
@@ -875,7 +921,7 @@ list of buffers. |unlisted-buffer|
 
 			1 #h  "/test/text"		line 1 ~
 			2u    "asdf"			line 0 ~
-			3 %l+ "version.c"		line 1 ~
+			3 %a+ "version.c"		line 1 ~
 
 		When the [!] is included the list will show unlisted buffers
 		(the term "unlisted" is a bit confusing then...).
@@ -901,7 +947,7 @@ list of buffers. |unlisted-buffer|
 :bad[d]	[+lnum] {fname}
 		Add file name {fname} to the buffer list, without loading it.
 		If "lnum" is specified, the cursor will be positioned at that
-		line when the buffer is first entered. Note that other
+		line when the buffer is first entered.  Note that other
 		commands after the + will be ignored.
 
 :[N]bd[elete][!]			*:bd* *:bdel* *:bdelete* *E516*
@@ -937,9 +983,10 @@ list of buffers. |unlisted-buffer|
 :bw[ipeout][!] {bufname}
 :N,Mbw[ipeout][!]
 :bw[ipeout][!] N1 N2 ...
-		Like |:bdelete|, but really delete the buffer.  All marks in
-		this buffer become invalid, option settings are lost, etc.
-		Don't use this unless you know what you are doing.
+		Like |:bdelete|, but really delete the buffer.  Everything
+		related to the buffer is lost.  All marks in this buffer
+		become invalid, option settings are lost, etc.  Don't use this
+		unless you know what you are doing.
 
 :[N]bun[load][!]				*:bun* *:bunload* *E515*
 :bun[load][!] [N]
@@ -990,9 +1037,11 @@ list of buffers. |unlisted-buffer|
 		Split window and edit buffer for {filename} from the buffer
 		list.  This will also edit a buffer that is not in the buffer
 		list, without setting the 'buflisted' flag.
+		Note: If what you want to do is split the buffer, make a copy
+		under another name, you can do it this way: >
+			:w foobar | sp #
 
-							*:bn* *:bnext* *E87*
-:[N]bn[ext][!] [N]
+:[N]bn[ext][!] [N]					*:bn* *:bnext* *E87*
 		Go to [N]th next buffer in buffer list.  [N] defaults to one.
 		Wraps around the end of the buffer list.
 		See |:buffer-!| for [!].
@@ -1000,7 +1049,7 @@ list of buffers. |unlisted-buffer|
 		buffer (if there is one).  Similarly, if you are in a normal
 		(non-help) buffer, this takes you to the next normal buffer.
 		This is so that if you have invoked help, it doesn't get in
-		the way when you're browsing code/text buffers. The next three
+		the way when you're browsing code/text buffers.  The next three
 		commands also work like this.
 
 							*:sbn* *:sbnext*
@@ -1069,6 +1118,8 @@ list of buffers. |unlisted-buffer|
 		of windows opened ('winwidth' if |:vertical| was prepended).
 		Buf/Win Enter/Leave autocommands are not executed for the new
 		windows here, that's only done when they are really entered.
+		When the |:tab| modifier is used new windows are opended in a
+		new tab, up to 'tabpagemax'.
 
 Note: All the commands above that start editing another buffer, keep the
 'readonly' flag as it was.  This differs from the ":edit" command, which sets
@@ -1087,29 +1138,30 @@ purposes.  A few options can be set to change the behavior of a buffer:
 
 A few useful kinds of a buffer:
 
-quickfix	Used to contain the error list.  See |:cwindow|.  This command
-		sets the 'buftype' option to "quickfix".  You are not supposed
-		to change this!  'swapfile' is off.
+quickfix	Used to contain the error list or the location list.  See
+		|:cwindow| and |:lwindow|.  This command sets the 'buftype'
+		option to "quickfix".  You are not supposed to change this!
+		'swapfile' is off.
 
 help		Contains a help file.  Will only be created with the |:help|
 		command.  The flag that indicates a help buffer is internal
 		and can't be changed.  The 'buflisted' option will be reset
 		for a help buffer.
 
-directory	Displays directory contents.  Used by the |file-explorer|
+directory	Displays directory contents.  Can be used by a file explorer
 		plugin.  The buffer is created with these settings: >
-			:set buftype=nowrite
-			:set bufhidden=delete
-			:set noswapfile
+			:setlocal buftype=nowrite
+			:setlocal bufhidden=delete
+			:setlocal noswapfile
 <		The buffer name is the name of the directory and is adjusted
 		when using the |:cd| command.
 
 scratch		Contains text that can be discarded at any time.  It is kept
 		when closing the window, it must be deleted explicitly.
 		Settings: >
-			:set buftype=nofile
-			:set bufhidden=hide
-			:set noswapfile
+			:setlocal buftype=nofile
+			:setlocal bufhidden=hide
+			:setlocal noswapfile
 <		The buffer name can be used to identify the buffer.
 
 						*unlisted-buffer*
@@ -1117,7 +1169,7 @@ unlisted	The buffer is not in the buffer list.  It is not used for
 		normal editing, but to show a help file, remember a file name
 		or marks.  The ":bdelete" command will also set this option,
 		thus it doesn't completely delete the buffer.  Settings: >
-			:set nobuflisted
+			:setlocal nobuflisted
 <
 
  vim:tw=78:ts=8:ft=help:norl:

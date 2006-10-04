@@ -1,4 +1,4 @@
-*visual.txt*    For Vim version 6.3.  Last change: 2004 Jun 06
+*visual.txt*    For Vim version 7.0.  Last change: 2006 Apr 24
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -46,7 +46,7 @@ However, when the 'selection' option is set to "exclusive" and the cursor is
 after the Visual area, the character under the cursor is not included.
 
 With "v" the text before the start position and after the end position will
-not be highlighted.  However, All uppercase and non-alpha operators, except
+not be highlighted.  However, all uppercase and non-alpha operators, except
 "~" and "U", will work on whole lines anyway.  See the list of operators
 below.
 
@@ -86,10 +86,13 @@ Visual		    Normal	   blockwise Visual	  linewise Visual
 blockwise Visual    Visual	   Normal		  linewise Visual
 linewise Visual     Visual	   blockwise Visual	  Normal
 
-							*gv* *v_gv*
+						*gv* *v_gv* *reselect-Visual*
 gv			Start Visual mode with the same area as the previous
-			area and the same mode.  In Visual mode the current and
-			the previous Visual area are exchanged.
+			area and the same mode.
+			In Visual mode the current and the previous Visual
+			area are exchanged.
+			After using "p" or "P" in Visual mode the text that
+			was put will be selected.
 
 							*<LeftMouse>*
 <LeftMouse>		Set the current cursor position.  If Visual mode is
@@ -139,6 +142,9 @@ extended to the rightmost column of the longest line.
 If you want to highlight exactly the same area as the last time, you can use
 "gv" |gv| |v_gv|.
 
+							*v_<Esc>*
+<Esc>			In Visual mode: Stop Visual mode.
+
 							*v_CTRL-C*
 CTRL-C			In Visual mode: Stop Visual mode.  When insert mode is
 			pending (the mode message shows
@@ -176,7 +182,7 @@ When switching to another window on the same buffer, the cursor position in
 that window is adjusted, so that the same Visual area is still selected.  This
 is especially useful to view the start of the Visual area in one window, and
 the end in another.  You can then use <RightMouse> (or <S-LeftMouse> when
-'mousemodel' is "popup") to move either end of the Visual area.
+'mousemodel' is "popup") to drag either end of the Visual area.
 
 ==============================================================================
 4. Operating on the Visual area				*visual-operators*
@@ -252,6 +258,11 @@ operator character: "v{move-around}3>" (move lines 3 indents to the right).
 The {move-around} is any sequence of movement commands.  Note the difference
 with {motion}, which is only ONE movement command.
 
+Another way to operate on the Visual area is using the |/\%V| item in a
+pattern.  For example, to replace all '(' in the Visual area with '#': >
+
+	:%s/\%V(/X/g
+
 ==============================================================================
 5. Blockwise operators					*blockwise-operators*
 
@@ -269,7 +280,7 @@ See |v_b_I_example|.
 
 Visual-block Append						*v_b_A*
 With a blockwise selection, A{string}<ESC> will append {string} to the end of
-block on every line of the block. There is some differing behavior where the
+block on every line of the block.  There is some differing behavior where the
 block RHS is not straight, due to different line lengths:
 
 1. Block was created with <C-v>$
@@ -294,12 +305,12 @@ all lines.
 
 								*v_b_<*
 Visual-block Shift						*v_b_>*
-The block is shifted by 'shiftwidth'. The RHS of the block is irrelevant. The
+The block is shifted by 'shiftwidth'.  The RHS of the block is irrelevant.  The
 LHS of the block determines the point from which to apply a right shift, and
-padding includes TABs optimally according to 'ts' and 'et'. The LHS of the
+padding includes TABs optimally according to 'ts' and 'et'.  The LHS of the
 block determines the point upto which to shift left.
     Note: v_< padding is buggy if the Visual Block starts and ends in the same
-    TAB. (Vim 5.4c).
+    TAB. (Vim 5.4c)
 See |v_b_>_example|.
 See |v_b_<_example|.
 
@@ -361,14 +372,14 @@ Note that special characters (like '.' and '*') will cause problems.
 
 Visual-block Examples					*blockwise-examples*
 With the following text, I will indicate the commands to produce the block and
-the results below. In all cases, the cursor begins on the 'a' in the first
-line if the test text.
+the results below.  In all cases, the cursor begins on the 'a' in the first
+line of the test text.
 The following modeline settings are assumed ":ts=8:sw=4:".
 
 It will be helpful to
 :set hls
 /<TAB>
-where <TAB> ia a real TAB. This helps visualise the operations.
+where <TAB> is a real TAB.  This helps visualise the operations.
 
 The test text is:
 
@@ -449,9 +460,10 @@ example, when a whole line is deleted, it can later be pasted halfway a line.
 
 Mappings and menus in Select mode.			*Select-mode-mapping*
 
-In Select mode the mappings and menus of Visual mode are used.  Before it is
-executed, Vim automatically switches to Visual mode, so that the same
-behavior as in Visual mode is effective.
+When mappings and menus are defined with the |:vmap| or |:vmenu| command they
+work both in Visual mode and in Select mode.  When these are used in Select
+mode Vim automatically switches to Visual mode, so that the same behavior as
+in Visual mode is effective.  If you don't want this use |:xmap| or |:smap|.
 
 After the mapping or menu finishes, the selection is enabled again and Select
 mode entered, unless the selected area was deleted, another buffer became
