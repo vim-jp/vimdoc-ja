@@ -1,4 +1,4 @@
-*gui.txt*       For Vim version 6.3.  Last change: 2004 Jun 02
+*gui.txt*       For Vim version 7.0.  Last change: 2006 May 04
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -24,9 +24,9 @@ Other GUI documentation:
 1. Starting the GUI				*gui-start* *E229* *E233*
 
 First you must make sure you actually have a version of Vim with the GUI code
-included.  You can check this with the ":version" command, it should include
-"+GUI_Athena", "+GUI_BeOS", "+GUI_GTK", "+GUI_Motif" or "MS-Windows ... bit
-GUI version".
+included.  You can check this with the ":version" command, it says "with xxx
+GUI", where "xxx" is X11-Motif, X11-Athena, Photon, GTK, GTK2, etc., or
+"MS-Windows 32 bit GUI version".
 
 How to start the GUI depends on the system used.  Mostly you can run the
 GUI version of Vim with:
@@ -36,8 +36,13 @@ The X11 version of Vim can run both in GUI and in non-GUI mode.  See
 |gui-x11-start|.
 
 					*gui-init* *gvimrc* *.gvimrc* *_gvimrc*
+The gvimrc file is where GUI-specific startup commands should be placed.  It
+is always sourced after the |vimrc| file.  If you have one then the $MYGVIMRC
+environment variable has its name.
+
 When the GUI starts up initializations are carried out, in this order:
-- The termcap options are reset to their default value for the GUI.
+- The 'term' option is set to "builgin_gui" and terminal options are reset to
+  their default value for the GUI |terminal-options|.
 - If the system menu file exists, it is sourced.  The name of this file is
   normally "$VIMRUNTIME/menu.vim".  You can check this with ":version".  Also
   see |$VIMRUNTIME|.  To skip loading the system menu include 'M' in
@@ -52,7 +57,8 @@ When the GUI starts up initializations are carried out, in this order:
 	:let bmenu_max_pathlen = 50
 - If the "-U {gvimrc}" command-line option has been used when starting Vim,
   the {gvimrc} file will be read for initializations.  The following
-  initializations are skipped.
+  initializations are skipped.  When {gvimrc} is "NONE" no file will be read
+  for initializations.
 - For Unix and MS-Windows, if the system gvimrc exists, it is sourced.  The
   name of this file is normally "$VIM/gvimrc".  You can check this with
   ":version".  Also see |$VIM|.
@@ -64,6 +70,8 @@ When the GUI starts up initializations are carried out, in this order:
   - For Win32, when $HOME is not set, "$VIM\_gvimrc" is used.
   - When a "_gvimrc" file is not found, ".gvimrc" is tried too.  And vice
     versa.
+  The name of the first file found is stored in $MYGVIMRC, unless it was
+  already set.
 - If the 'exrc' option is set (which is NOT the default) the file ./.gvimrc
   is sourced, if it exists and isn't the same file as the system or user
   gvimrc file.  If this file is not owned by you, some security restrictions
@@ -78,7 +86,7 @@ All this happens AFTER the normal Vim initializations, like reading your
 But the GUI window is only opened after all the initializations have been
 carried out.  If you want some commands to be executed just after opening the
 GUI window, use the |GUIEnter| autocommand event.  Example: >
-	:autocommand GUIEnter * winpos 100 50
+	:autocmd GUIEnter * winpos 100 50
 
 You can use the gvimrc files to set up your own customized menus (see |:menu|)
 and initialize other things that you may want to set up differently from the
@@ -94,8 +102,8 @@ There are a number of options which only have meaning in the GUI version of
 Vim.  These are 'guicursor', 'guifont', 'guipty' and 'guioptions'.  They are
 documented in |options.txt| with all the other options.
 
-If using the Motif or Athena version of the GUI (but not for the GTK+ or Win32
-version), a number of X resources are available.  See |gui-resources|.
+If using the Motif or Athena version of the GUI (but not for the GTK+ or
+Win32 version), a number of X resources are available.  See |gui-resources|.
 
 Another way to set the colors for different occasions is with highlight
 groups.  The "Normal" group is used to set the background and foreground
@@ -143,7 +151,7 @@ window Vim is running in with this command: >
 ==============================================================================
 2. Scrollbars						*gui-scrollbars*
 
-There are vertical scrollbars and a horizontal scrollbars.  You may
+There are vertical scrollbars and a horizontal scrollbar.  You may
 configure which ones appear with the 'guioptions' option.
 
 The interface looks like this (with ":set guioptions=mlrb"):
@@ -183,7 +191,7 @@ When the scrollbar is dragged all the way down, the last line of the file
 will appear in the top of the window.
 
 If a window is shrunk to zero height (by the growth of another window) its
-scrollbar disappears. It reappears when the window is restored.
+scrollbar disappears.  It reappears when the window is restored.
 
 If a window is vertically split, it will get a scrollbar when it is the
 current window and when, taking the middle of the current window and drawing a
@@ -202,11 +210,11 @@ scrolled as far as possible left and right.  The cursor is moved when
 necessary, it must remain on a visible character (unless 'virtualedit' is
 set).
 
-Computing the length of the longest visible takes quite a bit of computation,
-and it has to be done every time something changes.  If this takes too much
-time or you don't like the cursor jumping to another line, include the 'h'
-flag in 'guioptions'.  Then the scrolling is limited by the text of the
-current cursor line.
+Computing the length of the longest visible line takes quite a bit of
+computation, and it has to be done every time something changes.  If this
+takes too much time or you don't like the cursor jumping to another line,
+include the 'h' flag in 'guioptions'.  Then the scrolling is limited by the
+text of the current cursor line.
 
 							*athena-intellimouse*
 If you have an Intellimouse and an X server that supports using the wheel,
@@ -407,7 +415,7 @@ used - you should read whichever of these is appropriate now).
 							*clipboard*
 There is a special register for storing this selection, it is the "*
 register.  Nothing is put in here unless the information about what text is
-selected is about to change (eg with a left mouse click somewhere), or when
+selected is about to change (e.g. with a left mouse click somewhere), or when
 another application wants to paste the selected text.  Then the text is put
 in the "* register.  For example, to cut a line and make it the current
 selection/put it on the clipboard: >
@@ -497,13 +505,15 @@ floating menus that do not appear on the main menu bar.
 				*:nme* *:nmenu* *:nnoreme* *:nnoremenu*
 				*:ome* *:omenu* *:onoreme* *:onoremenu*
 				*:vme* *:vmenu* *:vnoreme* *:vnoremenu*
+				*:xme* *:xmenu* *:xnoreme* *:xnoremenu*
+				*:sme* *:smenu* *:snoreme* *:snoremenu*
 				*:ime* *:imenu* *:inoreme* *:inoremenu*
 				*:cme* *:cmenu* *:cnoreme* *:cnoremenu*
 				*E330* *E327* *E331* *E336* *E333*
 				*E328* *E329* *E337*
 To create a new menu item, use the ":menu" commands.  They are mostly like
 the ":map" set of commands but the first argument is a menu item name, given
-as a path of menus and submenus with a '.' between them. eg: >
+as a path of menus and submenus with a '.' between them, e.g.: >
 
    :menu File.Save  :w<CR>
    :inoremenu File.Save  <C-O>:w<CR>
@@ -578,12 +588,21 @@ The ":set ic" will not be echoed when using this menu.  Messages from the
 executed command are still given though.  To shut them up too, add a ":silent"
 in the executed command: >
 	:menu <silent> Search.Header :exe ":silent normal /Header\r"<CR>
-<
+"<silent>" may also appear just after "<special>" or "<script>".
+
+					*:menu-<special>* *:menu-special*
+Define a menu with <> notation for special keys, even though the "<" flag
+may appear in 'cpoptions'.  This is useful if the side effect of setting
+'cpoptions' is not desired.  Example: >
+	:menu <special> Search.Header /Header<CR>
+"<special>" must appear as the very first argument to the ":menu" command or
+just after "<silent>" or "<script>".
+
 						*:menu-<script>* *:menu-script*
 The "to" part of the menu will be inspected for mappings.  If you don't want
 this, use the ":noremenu" command (or the similar one for a specific mode).
 If you do want to use script-local mappings, add "<script>" as the very first
-argument to the ":menu" command or after "<silent>".
+argument to the ":menu" command or just after "<silent>" or "<special>".
 
 							*menu-priority*
 You can give a priority to a menu.  Menus with a higher priority go more to
@@ -646,10 +665,10 @@ because the item will never be selected.  Use a single colon to keep it
 simple.
 
 							*gui-toolbar*
-The toolbar is currently available in the Win32, Athena, Motif, GTK+ (X11) and
-Photon GUI.  It should turn up in other GUIs in due course.  The default
-toolbar is setup in menu.vim.
-The display of the toolbar is controlled by the 'guioptions' letter 'T'. You
+The toolbar is currently available in the Win32, Athena, Motif, GTK+ (X11),
+and Photon GUI.  It should turn up in other GUIs in due course.  The
+default toolbar is setup in menu.vim.
+The display of the toolbar is controlled by the 'guioptions' letter 'T'.  You
 can thus have menu & toolbar together, or either on its own, or neither.
 The appearance is controlled by the 'toolbar' option.  You can chose between
 an image, text or both.
@@ -660,7 +679,7 @@ level.  Vim interprets the items in this menu as follows:
 1)  If an "icon=" argument was specified, the file with this name is used.
     The file can either be specified with the full path or with the base name.
     In the last case it is searched for in the "bitmaps" directory in
-    'runtimepath', like in point 3).  Examples: >
+    'runtimepath', like in point 3.  Examples: >
 	:amenu icon=/usr/local/pixmaps/foo_icon.xpm ToolBar.Foo :echo "Foo"<CR>
 	:amenu icon=FooIcon ToolBar.Foo :echo "Foo"<CR>
 <   Note that in the first case the extension is included, while in the second
@@ -670,7 +689,7 @@ level.  Vim interprets the items in this menu as follows:
     A menu priority must come _after_ the icon argument: >
 	:amenu icon=foo 1.42 ToolBar.Foo :echo "42!"<CR>
 2)  An item called 'BuiltIn##', where ## is a number, is taken as number ## of
-    the built-in bitmaps available in Vim. Currently there are 31 numbered
+    the built-in bitmaps available in Vim.  Currently there are 31 numbered
     from 0 to 30 which cover most common editing operations |builtin-tools|. >
 	:amenu ToolBar.BuiltIn22 :call SearchNext("back")<CR>
 3)  An item with another name is first searched for in the directory
@@ -735,9 +754,9 @@ from the main menu bar.  You must then use the |:popup| or |:tearoff| command
 to display it.
 
 							*popup-menu*
-In the Win32, GTK+, Motif, Athena and Photon GUI, you can define the special
-menu "PopUp".  This is the menu that is displayed when the right mouse button
-is pressed, if 'mousemodel' is set to popup or popup_setpos.
+In the Win32, GTK+, Motif, Athena and Photon GUI, you can define the
+special menu "PopUp".  This is the menu that is displayed when the right mouse
+button is pressed, if 'mousemodel' is set to popup or popup_setpos.
 
 
 5.3 Showing What Menus Are Mapped To			*showing-menus*
@@ -746,7 +765,7 @@ To see what an existing menu is mapped to, use just one argument after the
 menu commands (just like you would with the ":map" commands).  If the menu
 specified is a submenu, then all menus under that hierarchy will be shown.
 If no argument is given after :menu at all, then ALL menu items are shown
-for the appropriate mode (eg, Command-line mode for :cmenu).
+for the appropriate mode (e.g., Command-line mode for :cmenu).
 
 Special characters in the list, just before the rhs:
 *	The menu was defined with "nore" to disallow remapping.
@@ -785,6 +804,8 @@ using the last visual selection.
 						*:nunme* *:nunmenu*
 						*:ounme* *:ounmenu*
 						*:vunme* *:vunmenu*
+						*:xunme* *:xunmenu*
+						*:sunme* *:sunmenu*
 						*:iunme* *:iunmenu*
 						*:cunme* *:cunmenu*
 To delete a menu item or a whole submenu, use the unmenu commands, which are
@@ -855,7 +876,7 @@ See section |42.4| in the user manual.
 
 When a tip is defined for a menu item, it appears in the command-line area
 when the mouse is over that item, much like a standard Windows menu hint in
-the status bar. (Except when Vim is in Command-line mode, when of course
+the status bar.  (Except when Vim is in Command-line mode, when of course
 nothing is displayed.)
 When a tip is defined for a ToolBar item, it appears as a tooltip when the
 mouse pauses over that button, in the usual fashion.  Use the |hl-Tooltip|
@@ -869,7 +890,7 @@ The tip is defined like this: >
 And delete it with: >
 	:tunmenu MyMenu.Hello
 
-Tooltips are currently only supported for the X11 and Win32 GUI. However, they
+Tooltips are currently only supported for the X11 and Win32 GUI.  However, they
 should appear for the other gui platforms in the not too distant future.
 
 The ":tmenu" command works just like other menu commands, it uses the same
@@ -896,9 +917,13 @@ it behaves in a strange way.
 				appear on the menu-bar (see |hidden-menus|).
 				{only available for Win32 and GTK GUI}
 
+:popu[p]! {name}		Like above, but use the position of the mouse
+				pointer instead of the cursor.
+
 Example: >
 	:popup File
-will make the "File" menu (if there is one) appear at the text cursor. >
+will make the "File" menu (if there is one) appear at the text cursor (mouse
+pointer if ! was used). >
 
 	:amenu ]Toolbar.Make	:make<CR>
 	:popup ]Toolbar
@@ -919,7 +944,7 @@ This section describes other features which are related to the GUI.
   get "<Modifiers-Key>".
 
 - In the GUI, the modifiers SHIFT, CTRL, and ALT (or META) may be used within
-  mappings of special keys and mouse events.  eg: :map <M-LeftDrag> <LeftDrag>
+  mappings of special keys and mouse events.  E.g.: :map <M-LeftDrag> <LeftDrag>
 
 - In the GUI, several normal keys may have modifiers in mappings etc, these
   are <Space>, <Tab>, <NL>, <CR>, <Esc>.
@@ -932,6 +957,23 @@ This section describes other features which are related to the GUI.
 	else
 	   echo "Boring old console"
 	endif
+<							*setting-guifont*
+- When you use the same vimrc file on various systems, you can use something
+  like this to set options specifically for each type of GUI: >
+
+	if has("gui_running")
+	    if has("gui_gtk2")
+		:set guifont=Luxi\ Mono\ 12
+	    elseif has("x11")
+		" Also for GTK 1
+		:set guifont=*-lucidatypewriter-medium-r-normal-*-*-180-*-*-m-*-*
+	    elseif has("gui_win32")
+		:set guifont=Luxi_Mono:h12:cANSI
+	    endif
+	endif
+
+A recommended Japanese font is MS Mincho.  You can find info here:
+http://www.lexikan.com/mincho.htm
 
 ==============================================================================
 7. Shell Commands					*gui-shell*

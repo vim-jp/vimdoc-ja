@@ -1,4 +1,4 @@
-*recover.txt*   For Vim version 6.3.  Last change: 2004 Apr 16
+*recover.txt*   For Vim version 7.0.  Last change: 2006 Apr 24
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -61,7 +61,7 @@ Disadvantages:
   directories (although Vim tries to avoid that by comparing the path name).
   This will result in bogus ATTENTION warning messages.
 - When you use your home directory, and somebody else tries to edit the same
-  file, he will not see your swap file and will not get the ATTENTION waring
+  file, he will not see your swap file and will not get the ATTENTION warning
   message.
 On the Amiga you can also use a recoverable ram disk, but there is no 100%
 guarantee that this works.  Putting swap files in a normal ram disk (like RAM:
@@ -116,11 +116,37 @@ command:
 
 					*:pre* *:preserve* *E313* *E314*
 :pre[serve]		Write all text for all buffers into swap file.  The
-			original file is no longer needed for recovery.  {Vi:
-			emergency exit}
+			original file is no longer needed for recovery.
+			This sets a flag in the current buffer.  When the '&'
+			flag is present in 'cpoptions' the swap file will not
+			be deleted for this buffer when Vim exits and the
+			buffer is still loaded |cpo-&|.
+			{Vi: might also exit}
 
 A Vim swap file can be recognized by the first six characters: "b0VIM ".
 After that comes the version number, e.g., "3.0".
+
+
+Links and symbolic links ~
+
+On Unix it is possible to have two names for the same file.  This can be done
+with hard links and with symbolic links (symlinks).
+
+For hard links Vim does not know the other name of the file.  Therefore, the
+name of the swapfile will be based on the name you used to edit the file.
+There is no check for editing the same file by the other name too, because Vim
+cannot find the other swapfile (except for searching all of your harddisk,
+which would be very slow).
+
+For symbolic links Vim resolves the links to find the name of the actual file.
+The swap file name is based on that name.  Thus it doesn't matter by what name
+you edit the file, the swap file name will normally be the same.  However,
+there are exceptions:
+- When the directory of the actual file is not writable the swapfile is put
+  elsewhere.
+- When the symbolic links somehow create a loop you get an *E773* error
+  message and the unmodified file name will be used.  You won't be able to
+  save your file normally.
 
 ==============================================================================
 2. Recovery					*recovery* *E308* *E311*

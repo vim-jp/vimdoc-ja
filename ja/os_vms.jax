@@ -1,9 +1,10 @@
 COMMENT: OS特有情報:VMS
-STATUS: finished 6.3.054
+STATUS: finished 7.0
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
+TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*os_vms.txt*    For Vim version 6.3.  Last change: 2004 May 16
+*os_vms.txt*    For Vim version 7.0.  Last change: 2006 Apr 30
 
 
 			  VIMリファレンスマニュアル
@@ -52,16 +53,22 @@ VMSでvim.exeを構築するにはUNIXとextraアーカイブの両方が必要�
 
 コンパイル済みバイナリを利用するには、以下のどれか1つのアーカイブが必要:
 
-  vim-XX-exe-alpha-gui.zip      Alpha GUI/Motif用実行可能ファイル
-  vim-XX-exe-alpha-gtk.zip      Alpha GUI/GTK用実行可能ファイル
-  vim-XX-exe-alpha-term.zip     Alpha console用実行可能ファイル
+  vim-XX-exe-ia64-gui.zip       IA64 GUI/Motif用実行可能ファイル
+  vim-XX-exe-ia64-gtk.zip       IA64 GUI/GTK用実行可能ファイル
+  vim-XX-exe-ia64-term.zip      IA64 console用実行可能ファイル
+  vim-XX-exe-axp-gui.zip	Alpha GUI/Motif用実行可能ファイル
+  vim-XX-exe-axp-gtk.zip	Alpha GUI/GTK用実行可能ファイル
+  vim-XX-exe-axp-term.zip       Alpha console用実行可能ファイル
   vim-XX-exe-vax-gui.zip	VAX GUI用実行可能ファイル
   vim-XX-exe-vax-term.zip       VAX console用実行可能ファイル
 
-そしてもちろん
+そしてもちろん(これはなくてもよい)
   vim-XX-runtime.zip		Vim用ランタイムファイル
 
 アーカイブには次のファイルが含まれる: vim.exe, ctags.exe, xxd.exe, mms_vim.exe
+
+GTK 用実行可能ファイルでは Alpha と IA64 プラットフォームで利用可能な GTKLIB 
+が必要。
 
 ==============================================================================
 
@@ -73,8 +80,8 @@ VMSでvim.exeを構築するにはUNIXとextraアーカイブの両方が必要�
 
 4. 問題点						*vms-problems*
 
-コードはコンパイラDECCを用いて、Alpha及びVAXプラットホームの両Open VMSバージョ
-ン 6.2 から 7.2 でテストされた。それらでは大きなも問題なく動作するだろう。
+コードはDEC Cコンパイラを用いて、Alpha, VAX, IA64 プラットホームのOpen VMSバー
+ジョン 6.2 から 8.2 でテストされた。それらでは大きなも問題なく動作するだろう。
 利用しているシステムにインクルードライブラリの欠けがある場合には、ファイル
 OS_VMS_CONF.Hを修正することで対応する。
 
@@ -82,6 +89,8 @@ Vimを+perlや+python、その他のオプションを追加して構築する�
 OpenVMS版のPerlやPythonを入手する必要がある。それらのライブラリを構築しインス
 トールしファイルOS_VMS.MMS内の適切な箇所を変更する。Vimの方には何の問題もない
 だろう。
+
+GTK, XPM のライブラリパスも MAKE_VMS.MMS で設定される。
 
 NOTE: VAXではDEC Cコンパイラを使えば問題ない。VAXCコンパイラはプリプロセッサ命
 令の構文にANSI C非互換な部分がある。従ってプリプロセッサ部分をVAXCコンパイラの
@@ -122,10 +131,10 @@ Vimはドキュメントとランタイムファイルを保持するのに特�
     |- vim57
     |----- doc
     |----- syntax
-    |- vim60
+    |- vim62
     |----- doc
     |----- syntax
-    |- vim61
+    |- vim64
     |----- doc
     |----- syntax
     vimrc    (システム設定ファイル)
@@ -238,6 +247,18 @@ SYS$STARTUP:SYLOGIN.COM にも追加する >
 
 これによりシステム全てのユーザから通常のVimが利用可能になるだろう。
 
+重要: OpenVMS (および大文字・小文字を区別しないシステム)上の Vim は、コマンド
+ライン引数が小文字であると仮定する。コマンドライン引数が大文字であることを示す
+には、記号 "/" を使わねばならない。
+
+例:
+ >
+	vim -R  filename  ! -r と解釈され、スワップファイルを表示して終了する
+	vim -/r filename  ! -R と解釈され、読み込み専用モードになる("view"と同
+			    じ)
+	vim -u	<vimrc>   ! -u と解釈され、.vimrc の代わりに <vimrc> を使う
+	vim -/u <gvimrc>  ! -U と解釈され、.gvimrc の代わりに <gvimrc> を使う
+
 ==============================================================================
 
 7. GUIモードの論点					*vms-gui*
@@ -254,6 +275,7 @@ Vim を GUI モードで「簡単に」起動することはできないが、�
 
 そして。GUI/GTK 対応の拡張機能を使って Vim を実行したいなら、GTK、もしくは
 GTK ランタイム (LIBGTK など) もインストール必要がある。
+LIBGTK は http://www.polarhome.com/vim/ からダウンロードできる。
 
 1) VMS X/Motifコンソールを利用しているならば:
    このコマンドでVimを起動する: >
@@ -282,9 +304,9 @@ NOTE: これらのうちからどれか1つを選ぶ必要がある。もっと�
    を使うことである。GUI コンソールを使うように XDM クライアントから作業でき
    る。
 
-4) MS Windowや他の非Xウィンドウ環境の場合:
+4) MS-Windowや他の非Xウィンドウ環境の場合:
    Xサーバを設定して2)と同様にする。
-   MS WindowsではフリーのXサーバMIXや、Omni X等が利用可能である。
+   MS-WindowsではフリーのXサーバMIXや、Omni X等が利用可能である。
    また、DEC により提供されている eXcursion や ReflectionX という素晴らしい
    商用製品もある。
 
@@ -652,7 +674,21 @@ VIMTUTOR.COM が用意されている。バイナリ配布物においては次�
 
 9. VMS関連の変更点					*vms-changes*
 
+バージョン 7
+- 低レベルの文字入力を改良 (コンソールモードにのみ影響する)
+
 (訳注: 翻訳対象から除外)
+
+Version 6.4 (2005 Oct 15)
+- GTKLIB and Vim build on IA64
+- colors in terminal mode
+- syntax highlighting in terminal mode
+- write problem fixed (extra CR)
+- ESC and ESC sequence recognition in terminal mode
+- make file changed to support new MMS version
+- env variable expansion in path corrected
+- printing problems corrected
+- help text added for case insensitive arguments
 
 Version 6.3 (2004 May 10)
 - Improved vms_read function
