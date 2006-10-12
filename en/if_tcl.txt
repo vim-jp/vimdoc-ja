@@ -1,4 +1,4 @@
-*if_tcl.txt*    For Vim version 6.3.  Last change: 2004 Jan 17
+*if_tcl.txt*    For Vim version 7.0.  Last change: 2006 Mar 06
 
 
 		  VIM REFERENCE MANUAL    by Ingo Wilken
@@ -14,6 +14,7 @@ The Tcl Interface to Vim				*tcl* *Tcl* *TCL*
 6. Miscellaneous; Output from Tcl	|tcl-misc| |tcl-output|
 7. Known bugs & problems		|tcl-bugs|
 8. Examples				|tcl-examples|
+9. Dynamic loading			|tcl-dynamic|
 
 {Vi does not have any of these commands} *E280* *E281*
 
@@ -36,7 +37,7 @@ comments, ideas etc to <Ingo.Wilken@informatik.uni-oldenburg.de>
 			wasn't compiled in.  To avoid errors, see
 			|script-here|.
 
-{endmarker} must NOT be preceded by any white space. If {endmarker} is
+{endmarker} must NOT be preceded by any white space.  If {endmarker} is
 omitted from after the "<<", a dot '.' must be used after {script}, like for
 the |:append| and |:insert| commands.
 This form of the |:tcl| command is mainly useful for including tcl code in Vim
@@ -132,7 +133,8 @@ Commands:
 	Evaluates the expression {expr} using vim's internal expression
 	evaluator (see |expression|).   Any expression that queries a buffer
 	or window property uses the current buffer/current window.  Returns
-	the result as a string.
+	the result as a string.  A |List| is turned into a string by joining
+	the items and inserting line breaks.
 	Examples: >
 		set perl_available [::vim::expr has("perl")]
 <	See also |tcl-window-expr| and |tcl-buffer-expr|.
@@ -152,7 +154,7 @@ Commands:
 
 	::vim::window {option}				*tcl-window*
 	Provides access to vim windows.  Currently only the "list" option is
-	implemented. This creates a window command (see |tcl-window-cmds|) for
+	implemented.  This creates a window command (see |tcl-window-cmds|) for
 	each window, and returns a list of the command names as the result.
 	Example: >
 		set wins [::vim::window list]
@@ -227,7 +229,7 @@ The ::vim::current(window) variable contains the name of the window command
 for the current window.  A window command is automatically deleted when the
 corresponding vim window is closed.
 
-Lets assume the name of the window command is stored in the Tcl variable "win",
+Let's assume the name of the window command is stored in the Tcl variable "win",
 i.e. "$win" calls the command.  The following options are available: >
 
 	$win buffer		# Create Tcl command for window's buffer.
@@ -306,7 +308,7 @@ changed, all marks in the buffer are automatically adjusted.  Any changes to
 the buffer's contents made by Tcl commands can be undone with the "undo" vim
 command (see |undo|).
 
-Lets assume the name of the buffer command is stored in the Tcl variable "buf",
+Let's assume the name of the buffer command is stored in the Tcl variable "buf",
 i.e. "$buf" calls the command.  The following options are available: >
 
 	$buf append {n} {str}	# Append a line to buffer, after line {n}.
@@ -497,7 +499,7 @@ This procedure runs an ex command on each buffer (idea stolen from Ron Aaron):
 	}
 Use it like this:
 	:tcl eachbuf %s/foo/bar/g
-Be careful with Tcl's string and backslash substitution, tough. If in doubt,
+Be careful with Tcl's string and backslash substitution, tough.  If in doubt,
 surround the ex command with curly braces.
 
 
@@ -507,6 +509,23 @@ startup file (usually "~/.vimrc" on Unix):
 	if has("tcl")
 		tclfile ~/.vimrc.tcl
 	endif
+
+==============================================================================
+9. Dynamic loading					*tcl-dynamic*
+
+On MS-Windows the Tcl library can be loaded dynamically.  The |:version|
+output then includes |+tcl/dyn|.
+
+This means that Vim will search for the Tcl DLL file only when needed.  When
+you don't use the Tcl interface you don't need it, thus you can use Vim
+without this DLL file.
+
+To use the Tcl interface the Tcl DLL must be in your search path.  In a
+console window type "path" to see what directories are used.
+
+The name of the DLL must match the Tcl version Vim was compiled with.
+Currently the name is "tcl83.dll".  That is for Tcl 8.3.  To know for sure
+edit "gvim.exe" and search for "tcl\d*.dll\c".
 
 ==============================================================================
  vim:tw=78:ts=8:ft=help:norl:
