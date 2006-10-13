@@ -1,4 +1,4 @@
-*filetype.txt*  For Vim version 6.3.  Last change: 2004 May 05
+*filetype.txt*  For Vim version 7.0.  Last change: 2006 Apr 28
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -44,15 +44,21 @@ Detail: The ":filetype on" command will load one of these files:
 	name, the file $VIMRUNTIME/scripts.vim is used to detect it from the
 	contents of the file.
 
-To add your own file types, see |new-filetype| below.
+To add your own file types, see |new-filetype| below.  To search for help on a
+filetype prepend "ft-" and optionally append "-syntax", "-indent" or
+"-plugin".  For example: >
+	:help ft-vim-indent
+	:help ft-vim-syntax
+	:help ft-man-plugin
 
 If the file type is not detected automatically, or it finds the wrong type,
 you can either set the 'filetype' option manually, or add a modeline to your
 file.  Example, for in an IDL file use the command: >
 	:set filetype=idl
-or add this |modeline| to the file: >
-	/* vim: set filetype=idl : */
-<
+
+or add this |modeline| to the file:
+	/* vim: set filetype=idl : */ ~
+
 						*:filetype-plugin-on*
 You can enable loading the plugin files for specific file types with: >
 	:filetype plugin on
@@ -82,6 +88,9 @@ You can disable it again with: >
 The filetype detection is not switched off then.  But if you do switch off
 filetype detection, the indent files will not be loaded either.
 This actually loads the file "indoff.vim" in 'runtimepath'.
+This disables auto-indenting for files you will open.  It will keep working in
+already opened files.  Reset 'autoindent', 'cindent', 'smartindent' and/or
+'indentexpr' to disable indenting in an opened file.
 
 						*:filetype-off*
 To disable file type detection, use this command: >
@@ -129,16 +138,17 @@ kind of file it is.  This doesn't always work.  A number of global variables
 can be used to overrule the filetype used for certain extensions:
 
 	file name	variable ~
-	*.asa		g:filetype_asa	|aspvbs-syntax| |aspperl-syntax|
-	*.asp		g:filetype_asp	|aspvbs-syntax| |aspperl-syntax|
-	*.asm		g:asmsyntax	|asm-syntax|
+	*.asa		g:filetype_asa	|ft-aspvbs-syntax| |ft-aspperl-syntax|
+	*.asp		g:filetype_asp	|ft-aspvbs-syntax| |ft-aspperl-syntax|
+	*.asm		g:asmsyntax	|ft-asm-syntax|
 	*.prg		g:filetype_prg
 	*.pl		g:filetype_pl
 	*.inc		g:filetype_inc
-	*.w		g:filetype_w	|cweb-syntax|
-	*.i		g:filetype_i	|progress-syntax|
-	*.p		g:filetype_p	|pascal-syntax|
-	*.sh		g:bash_is_sh	|sh-syntax|
+	*.w		g:filetype_w	|ft-cweb-syntax|
+	*.i		g:filetype_i	|ft-progress-syntax|
+	*.p		g:filetype_p	|ft-pascal-syntax|
+	*.sh		g:bash_is_sh	|ft-sh-syntax|
+	*.tex		g:tex_flavor	|ft-tex-plugin|
 
 							*filetype-ignore*
 To avoid that certain files are being inspected, the g:ft_ignore_pat variable
@@ -147,15 +157,15 @@ is used.  The default value is set like this: >
 This means that the contents of compressed files are not inspected.
 
 							*new-filetype*
-If a file type that you want to use is not detected yet, there are three ways
-to add it.  In any way, it's better not modify the $VIMRUNTIME/filetype.vim
+If a file type that you want to use is not detected yet, there are four ways
+to add it.  In any way, it's better not to modify the $VIMRUNTIME/filetype.vim
 file.  It will be overwritten when installing a new version of Vim.
 
 A. If you want to overrule all default file type checks.
    This works by writing one file for each filetype.  The disadvantage is that
    means there can be many files.  The advantage is that you can simply drop
    this file in the right directory to make it work.
-
+							*ftdetect*
    1. Create your user runtime directory.  You would normally use the first
       item of the 'runtimepath' option.  Then create the directory "ftdetect"
       inside it.  Example for Unix: >
@@ -175,7 +185,8 @@ A. If you want to overrule all default file type checks.
 <  3. To use the new filetype detection you must restart Vim.
 
    The files in the "ftdetect" directory are used after all the default
-   checks, thus they can overrule a previously detected file type.
+   checks, thus they can overrule a previously detected file type.  But you
+   can also use |:setfiletype| to keep a previously detected filetype.
 
 B. If you want to detect your file after the default file type checks.
 
@@ -377,9 +388,9 @@ ways to change this:
 3.  Docs for the default filetype plugins.		*ftplugin-docs*
 
 
-CHANGELOG						*changelog-plugin*
+CHANGELOG						*ft-changelog-plugin*
 
-Allows for easy entrance of Changelog entries in Changelog files. There are
+Allows for easy entrance of Changelog entries in Changelog files.  There are
 some commands, mappings, and variables worth exploring:
 
 Options:
@@ -398,7 +409,7 @@ Local mappings:
 Global mappings:
 			NOTE: The global mappings are accessed by sourcing the
 			ftplugin/changelog.vim file first, e.g. with >
-				runtime ftplugin/man.vim
+				runtime ftplugin/changelog.vim
 <			in your |.vimrc|.
 <Leader>o		Switches to the ChangeLog buffer opened for the
 			current directory, or opens it in a new buffer if it
@@ -459,11 +470,11 @@ g:changelog_date_entry_search
 The Changelog entries are inserted where they add the least amount of text.
 After figuring out the current date and user, the file is searched for an
 entry beginning with the current date and user and if found adds another item
-under it. If not found, a new entry and item is prepended to the beginning of
+under it.  If not found, a new entry and item is prepended to the beginning of
 the Changelog.
 
 
-FORTRAN							*fortran-plugin*
+FORTRAN							*ft-fortran-plugin*
 
 Options:
 'expandtab'	is switched on to avoid tabs as required by the Fortran
@@ -471,12 +482,12 @@ Options:
 'textwidth'	is set to 72 for fixed source format as required by the
 		Fortran standards and to 80 for free source format.
 'formatoptions' is set to break code and comment lines and to preserve long
-		lines. You can format comments with |gq|.
+		lines.  You can format comments with |gq|.
 For further discussion of fortran_have_tabs and the method used for the
-detection of source format see |fortran-syntax|.
+detection of source format see |ft-fortran-syntax|.
 
 
-MAIL							*mail-plugin*
+MAIL							*ft-mail-plugin*
 
 Options:
 'modeline'	is switched off to avoid the danger of trojan horses, and to
@@ -493,7 +504,7 @@ Local mappings:
 	to the end of the file in Normal mode.  This means "> " is inserted in
 	each line.
 
-MAN							*man-plugin* *:Man*
+MAN							*ft-man-plugin* *:Man*
 
 Displays a manual page in a nice way.  Also see the user manual
 |find-manpage|.
@@ -520,10 +531,31 @@ CTRL-]		Jump to the manual page for the word under the cursor.
 CTRL-T		Jump back to the previous manual page.
 
 
-RPM SPEC						*spec-plugin*
+RPM SPEC						*ft-spec-plugin*
 
 Since the text for this plugin is rather long it has been put in a separate
 file: |pi_spec.txt|.
+
+
+SQL							*ft-sql*
+
+Since the text for this plugin is rather long it has been put in a separate
+file: |sql.txt|.
+
+
+TEX							*ft-tex-plugin*
+
+If the first line of a *.tex file has the form >
+	%&<format>
+then this determined the file type:  plaintex (for plain TeX), context (for
+ConTeXt), or tex (for LaTeX).  Otherwise, the file is searched for keywords to
+choose context or tex.  If no keywords are found, it defaults to plaintex.
+You can change the default by defining the variable g:tex_flavor to the format
+(not the file type) you use most.  Use one of these: >
+	let g:tex_flavor = "plain"
+	let g:tex_flavor = "context"
+	let g:tex_flavor = "latex"
+Currently no other formats are recognized.
 
 
  vim:tw=78:ts=8:ft=help:norl:

@@ -1,9 +1,10 @@
 COMMENT: ファイル形式の自動判別
-STATUS: finished 6.3.054
+STATUS: finished 7.0
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
+TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*filetype.txt*  For Vim version 6.3.  Last change: 2004 May 05
+*filetype.txt*  For Vim version 7.0.  Last change: 2006 Apr 28
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -49,15 +50,20 @@ NOTE: Viコンパチブルとは全てのオプションがグローバルであ
 	きない時には、ファイルの内容を検出するために$VIMRUNTIME/scripts.vimが
 	使用される。
 
-独自のファイルタイプを追加するには、下の|new-filetype|を参照。
+独自のファイルタイプを追加するには、下の|new-filetype|を参照。あるファイルタイ
+プについてのヘルプを検索するには、ファイルタイプ名の前に "ft-" をつけ、さらに
+必要に応じて "-syntax", "-indent", "-plugin" をつける。例: >
+	:help ft-vim-indent
+	:help ft-vim-syntax
+	:help ft-man-plugin
 
 ファイル形式を自動的に検出できなかった場合や、間違った形式になってしまった場合
 には、'filetype'オプションを手動で設定するか、ファイルにモード行(modeline)を追
 加する選択肢がある。例として、IDLファイルに設定するにはこのコマンドを使うか:
 	:set filetype=idl
-この|modeline|をファイルに追加する: >
-	/* vim: set filetype=idl : */
-<
+この|modeline|をファイルに追加する:
+	/* vim: set filetype=idl : */ ~
+
 						*:filetype-plugin-on*
 ファイル形式別プラグインのロードを有効化するには: >
 	:filetype plugin on
@@ -90,6 +96,10 @@ You can disable it again with: >
 ファイル形式の検出自体は無効にならない。しかしながらファイル形式の検出を無効に
 した場合には、インデントファイルもロードされなくなる。
 これは実際には'runtimepath'にある"indoff.vim"をロードする。
+そうすると、これから開くファイルに対して自動インデントが無効になる。すでに開い
+ているファイルに対しては何も変わらない。すでに開いているファイルに対して自動イ
+ンデントを無効にするには 'autoindent', 'cindent', 'smartindent', 'indentexpr'
+をオフにする。
 
 						*:filetype-off*
 ファイル形式の検出を無効にするには、次のコマンドを使用する: >
@@ -139,16 +149,17 @@ You can disable it again with: >
 きる:
 
 	ファイル名	変数 ~
-	*.asa		g:filetype_asa	|aspvbs-syntax| |aspperl-syntax|
-	*.asp		g:filetype_asp	|aspvbs-syntax| |aspperl-syntax|
-	*.asm		g:asmsyntax	|asm-syntax|
+	*.asa		g:filetype_asa	|ft-aspvbs-syntax| |ft-aspperl-syntax|
+	*.asp		g:filetype_asp	|ft-aspvbs-syntax| |ft-aspperl-syntax|
+	*.asm		g:asmsyntax	|ft-asm-syntax|
 	*.prg		g:filetype_prg
 	*.pl		g:filetype_pl
 	*.inc		g:filetype_inc
-	*.w		g:filetype_w	|cweb-syntax|
-	*.i		g:filetype_i	|progress-syntax|
-	*.p		g:filetype_p	|pascal-syntax|
-	*.sh		g:bash_is_sh	|sh-syntax|
+	*.w		g:filetype_w	|ft-cweb-syntax|
+	*.i		g:filetype_i	|ft-progress-syntax|
+	*.p		g:filetype_p	|ft-pascal-syntax|
+	*.sh		g:bash_is_sh	|ft-sh-syntax|
+	*.tex		g:tex_flavor	|ft-tex-plugin|
 
 							*filetype-ignore*
 特定のファイルが検査されないようにするには、g:ft_ignore_pat 変数を使います。こ
@@ -158,14 +169,14 @@ You can disable it again with: >
 
 							*new-filetype*
 使いたいファイル形式がVimに検出されない(存在しない)場合には、その形式を追加す
-る3つの方法がある。どちらにせよファイル$VIMRUNTIME/filetype.vimは変更するべき
+る4つの方法がある。どちらにせよファイル$VIMRUNTIME/filetype.vimは変更するべき
 ではない。そのファイルは新しいVimをインストールする際に上書されるのだから。
 
 A. デフォルトのファイルタイプの検査をくつがえす。
    この方法はファイルタイプごとにファイルを作ることで機能する。不便な点は
    ファイルがたくさんになってしまうこと。便利な点は適切なディレクトリにファ
    イルを置くだけで機能すること。
-
+							*ftdetect* 
    1. ユーザランタイムディレクトリを作成する。通常は'runtimepath'オプション
       に記載される最初の項目使えば良い。次にそのディレクトリに"ftdetect"とい
       うディレクトリを作成する。UNIXを例に挙げる:
@@ -182,10 +193,12 @@ A. デフォルトのファイルタイプの検査をくつがえす。
       トリに保存する。UNIXを例に挙げる: >
 	:w ~/.vim/ftdetect/mine.vim
 <
-   3. 新しいファイル形式の検出を有効化するためにVimを再起動する。
+   3. 新しいファイル形式の検出を有効化するにはVimを再起動しなければならない。
 
    "ftdetect" ディレクトリの中のファイルはデフォルトの検査のあとに使われるの
-   で、それ以前に決定したファイルタイプを変更することができる。
+   で、それ以前に決定したファイルタイプを変更することができる。しかしここで
+   |:setfiletype|を使えば、それ以前に決定したファイルタイプをそのままにしてお
+   くこともできる。
 
 B. デフォルトのファイルタイプの検査の後にファイルタイプを決定する。
 
@@ -384,7 +397,7 @@ OSによる「形式」を利用するには自動実行コマンドの検出パ
 3.  標準で付属する形式別プラグインの解説		*ftplugin-docs*
 
 
-チェンジログ(CHANGELOG)					*changelog-plugin*
+チェンジログ(CHANGELOG)					*ft-changelog-plugin*
 
 (訳注)エントリ=日付ごとの区切り アイテム=日付内の項目
 
@@ -406,7 +419,7 @@ NewChangelogEntry	適切にアイテムを追加する(以下参照)。
 			NOTE: グローバルマッピングはあらかじめ
 			frplugin/changelog.vim を実行することで有効になる。
 			例えば
-				runtime ftplugin/man.vim
+				runtime ftplugin/changelog.vim
 			と |.vimrc| に書くようにして。
 			(訳注)この例だと間違えてこのまま書いちゃいそう。
 <Leader>o		カレントディレクトリに"ChangeLog"というファイルがあ
@@ -462,7 +475,7 @@ g:changelog_date_entry_search
 ムを加える。なければ新しいエントリとアイテムをファイルの先頭に加える。
 
 
-フォートラン(FORTRAN)					*fortran-plugin*
+フォートラン(FORTRAN)					*ft-fortran-plugin*
 
 オプション:
 'expandtab'	.vimrcでfortran_have_tabsが指定されなければ、フォートラン標準
@@ -471,11 +484,11 @@ g:changelog_date_entry_search
 		ソースでは80に設定される。
 'formatoptions' コードとコメントを分けて、長い行を保持するように設定される。
 		これにより|gq|でコメントを整形できる。
-fortran_have_tabsについての議論とソース形式の判定法については|fortran-syntax|
-を参照。
+fortran_have_tabsについての議論とソース形式の判定法については
+|ft-fortran-syntax|を参照。
 
 
-メール(MAIL)						*mail-plugin*
+メール(MAIL)						*ft-mail-plugin*
 
 オプション:
 'modeline'	トロイの木馬の危険を避けるのと、「件名」に含まれる"Vim:"がエ
@@ -492,7 +505,7 @@ fortran_have_tabsについての議論とソース形式の判定法について
 	位置からファイル末端までのテキストを引用する。これは全ての行に "> " が
 	挿入されることを意味している。
 
-MAN						*man-plugin* *:Man*
+MAN						*ft-man-plugin* *:Man*
 
 マニュアルページを洗練された方法で表示する。ユーザーマニュアルの
 |find-manpage|もご覧ください。
@@ -520,10 +533,29 @@ CTRL-]		カーソルの下の単語についてのマニュアルページへ移
 CTRL-T		直前のマニュアルページへ戻る。
 
 
-RPM SPEC						*spec-plugin*
+RPM SPEC						*ft-spec-plugin*
 
 このプラグインに関する説明は非常に多いので、別のファイル |pi_spec.txt| に記述
 してある。
 
+SQL							*ft-sql*
+
+このプラグインについての解説は長くなるので、別のファイルに分割してある:
+|sql.txt|
+
+
+TEX							*ft-tex-plugin*
+
+*.tex ファイルの最初の行が次のような形なら >
+	%&<format>
+ファイルタイプは次のどれかになる: plaintex (プレイン TeX), context (ConTeXt),
+tex (LaTeX)。そうでなければ context か tex かを決定するためにファイル内からキ
+ーワードを検索する。もしキーワードが見つからなければ既定値として plaintex にな
+る。この既定値は、変数 g:tex_flavor を定義すれば変更することができる。次のどれ
+かのようにする: >
+	let g:tex_flavor = "plain"
+	let g:tex_flavor = "context"
+	let g:tex_flavor = "latex"
+現在のところこれ以外のフォーマットは識別されない。
 
  vim:tw=78:ts=8:ft=help:norl:
