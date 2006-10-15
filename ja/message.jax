@@ -1,9 +1,9 @@
 COMMENT: メッセージ
-STATUS: finished 6.3.054
+STATUS: finished 7.0
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*message.txt*   For Vim version 6.3.  Last change: 2004 Jan 17
+*message.txt*   For Vim version 7.0.  Last change: 2006 Apr 30
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -24,11 +24,19 @@ TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 セージが上書きされてしまったり、スクロールで流れていってしまった時にとりわけ便
 利である。これは'shortmess'オプションに依存する。
 
-見ることのできるメッセージ数は20に固定されている。
+見ることのできるメッセージ数は、tiny バージョンでは20に、それ以外のバージョン
+では100に固定されている。
+
+								*g<*
+コマンド "g<" を使うと前のコマンドの出力の最後のページを見ることができる。
+hit-enter プロンプトで誤って <Space> を押してしまったときにこれは便利である。
+Note: 出力を表示中に "q" を押してそれ以降の出力表示をさせなかった場合は、
+"g<" を使ったときもそこまでしか表示されない。
+他のコマンドが出力を行うと、前のコマンドの出力は消去される。
 
 翻訳されたメッセージを使っているなら、誰がそのメッセージや翻訳をメンテナンスし
-ているかが最初の行に表示される。間違いを見つけたときにはこれを使ってメンテナと
-コンタクトすることができる。
+ているかが最初の行に表示される。間違いを見つけたときはそこを見てメンテナと連絡
+をとることができる。
 
 特定の(エラー)メッセージに関するヘルプを見つけたいときは、メッセージの最初に表
 示されるIDを使う。例えば: >
@@ -60,7 +68,7 @@ TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 LIST OF MESSAGES
 			*E222* *E228* *E232* *E256* *E293* *E298* *E304* *E317*
 			*E318* *E356* *E438* *E439* *E440* *E316* *E320* *E322*
-			*E323* *E341* *E473* *E570*  >
+			*E323* *E341* *E473* *E570* *E685* >
   Add to read buffer
   makemap: Illegal mode
   Cannot create BalloonEval with both message and callback
@@ -79,6 +87,7 @@ LIST OF MESSAGES
   line number out of range: {N} past the end
   line count wrong in block {N}
   Internal error
+  Internal error: {function}
   fatal error in cs_manage_matches
 
 これは内部エラーである。これを再現できる場合はバグレポートを送ってください。
@@ -279,10 +288,23 @@ Vim内部でなんらかの不具合が起こり、正規表現が壊れてし�
 これをこう変える: >
 	:w! /tmp/test
 <
+							*E768*  >
+  Swap file exists: {filename} (:silent! overrides)
+
+Vim で編集している最中のファイルは上書きしないようになっている。このエラーはス
+ワップファイルが存在するのに ":w! filename" を実行したときに発生する。
+- もしそのスワップファイルが昔のクラッシュした編集セッションで作られたものなら
+  このスワップファイルは消したいだろう。{filename} を編集するとそのスワップフ
+  ァイルについての情報が得られる。
+- 強制的に保存したいならコマンドの前に ":silent!" をつける。例: >
+	:silent! w! /tmp/test
+< 既存のファイルを上書きするために既に ! をつけているので、この特別なコマンド
+が必要になる。
+
 							*E139*  >
   File is loaded in another buffer
 
-あなたは別のバッファで使われている名前をでファイルを書き込もうとしている。そう
+あなたは別のバッファで使われている名前でファイルを書き込もうとしている。そう
 すると同じファイルの2つの版が出来てしまう。
 
 							*E142*  >
@@ -362,7 +384,8 @@ Vimの内部エラー。どうしたらこれを再現できるかを発見し�
 
 パターンに文字'~'を使用すると、以前に":substitute"コマンドで使われたパターンに
 置き換えられる。そのようなコマンドがまだ使われていない時には、これは失敗する。
-|/~|参照。
+|/~|参照。また、これは ":s/pat/%/" を使ったときにも起こる。この "%" は以前の置
+換で使われた置換後文字列を意味する。
 
 							*E35*  >
   No previous regular expression
@@ -388,7 +411,10 @@ GnomeサポートつきのGTK GUIでのみ表示される。Gnomeがオーディ
 
 ":unmap"コマンドを、存在していないマップを引数にして実行した。":cunmap"、
 ":unmap!"などの、このコマンドのバリエーションも同じメッセージを生成する。
-後ろに空白がついていないかチェックすること。
+いくつかのヒント:
+- 後ろに空白がついていないかチェックすること。
+- バッファローカルなマッピングについては ":unmap <buffer>" とする必要がある。
+  |:map-<buffer>|
 
 							*E37* *E89*  >
   No write since last change (use ! to override)
@@ -409,6 +435,13 @@ GnomeサポートつきのGTK GUIでのみ表示される。Gnomeがオーディ
 ッファを|:w|で書き込むか、":qa!"などのバッファを強制的に破棄するコマンドを使う
 かしなければならない。保存しておきたい変更を破棄しないように注意すること。特に
 'hidden'をセットしているときは、バッファのことを忘れているかもしれない。
+
+>
+  [No write since last change]
+
+このメッセージは、少なくとも1つのバッファが変更されているときにシェルコマンド
+を実行したときに現れる。このメッセージを表示させなくするには、オプション
+'warn' をオフにする。
 
 							*E38*  >
   Null argument
@@ -556,6 +589,7 @@ http://groups.yahoo.com/group/solarisonintel/message/12179.
 には、自動コマンドイベント|FileChangedRO|を使うことが出来る(自動コマンドは
 'readonly'オプションをリセットしなければならない)。ファイルへの変更を完全に禁
 止するには'modifiable'を参照。
+このメッセージは 'readonly' がセットされて以降最初の変更に対してのみ現れる。
 
 							*W13*  >
   Warning: File "{filename}" has been created after editing started
@@ -637,7 +671,7 @@ VimがXサーバへ接続を試みたが、接続を確立できなかった場�
 コマンドラインがバックスラッシュで始まっているか、コマンドの範囲のおかしな場所
 にバックスラッシュが含まれている。これはしばしばコマンドラインの行継続が無効に
 されているため引き起こされる。行継続を有効にするには'cpoptions'から'C'フラグを
-除くこと。
+除くか、または ":set nocp" とすること。
 
 							*E471*  >
   Argument required
@@ -697,9 +731,10 @@ Exコマンドでもユーザ定義コマンドでもないコマンドを実行
 
 Vimがくれるさまざまなメッセージの(不完全な)概観である:
 
-		*hit-enter* *press-enter* *hit-return* *press-return*  >
+			*hit-enter* *press-enter* *hit-return*
+			*press-return* *hit-enter-prompt*
 
-  Hit ENTER or type command to continue
+  Press ENTER or type command to continue
 
 このメッセージは読んでもらいたい何かがあって、スクリーンの再描画が中断されてい
 るときに与えられる:
@@ -711,6 +746,12 @@ Vimがくれるさまざまなメッセージの(不完全な)概観である:
    ことが条件)押す。
 -> 何かコマンドを使うために、":"か他のノーマルモードコマンドのキャラクタを叩
    く。
+-> 'k', <Up>, 'u', 'b', 'g' を押すとメッセージが上にスクロールする。これは
+   |more-prompt| と同様に働く。'compatible' がオフで 'more' がオンのときだけ有
+   効である。
+-> 'compatible' がオフで 'more' がオンのとき、メッセージが画面上端を越えてスク
+   ロールした場合、'j', 'd', <Down> は無視される。これは 'j' を押しっぱなしに
+   したときメッセージが消えてしまうのを避けるためである。
 -> <C-Y>を押し、モードレスセレクションをクリップボードレジスタにコピー(ヤンク)
    する。
 -> メニューを使う。コマンドラインモード用に定義されている文字が使われる。
@@ -720,29 +761,38 @@ Vimがくれるさまざまなメッセージの(不完全な)概観である:
    る。
 {Vi: ":"だけが割り込める}
 
+もし誤って <Enter> や <Space> を押してしまって、テキストを表示し直したいときは
+|g<| を使う。これは 'more' がオンのときだけ有効である。
+
 hit-enterのプロンプトの回数を減らすには:
 - 'cmdheight'を2かそれ以上に設定する。
 - 'shortmess'にフラグを追加する。
 - 'showcmd'と'ruler'の両方か、もしくはどちらかをリセットする。
+
+スクリプトが hit-enter プロンプトを出すが、なぜそれが出るのかわからない場合は
+変数 |v:scrollstart| が便利かもしれない。
 
 'mouse'も参照。hit-enterメッセージは|hl-Question|グループで強調される。
 
 
 						*more-prompt* *pager*  >
   -- More --
-  -- More -- (RET: line, SPACE: page, d: half page, q: quit)
-  -- More -- (RET/BS: line, SPACE/b: page, d/u: half page, q: quit)
+  -- More -- SPACE/d/j: screen/page/line down, b/u/k: up, q: quit
 
 このメッセージはスクリーンがメッセージで埋め尽くされた時に表示される。'more'オ
 プションがオンの時だけ与えられる。|hl-MoreMsg|グループで強調される。
 
 種類					効果 ~
      <CR> or <NL> or j or <Down>	1行進める
-     <BS> or k or <Up>			1行戻る (*)
-     <Space> or <PageDown>		次のページ
-     b or <PageUp>			前のページ (*)
      d					次の半ページ
+     <Space> or <PageDown>		次のページ (1画面)
+     G					最後へ(hit-enter プロンプトまで)
+
+     <BS> or k or <Up>			1行戻る (*)
      u					前の半ページ (*)
+     b or <PageUp>			前のページ (*)
+     g					最初へ戻る (*)
+
      q, <Esc> or CTRL-C			リスト表示を止める
      :					リスト表示を止めコマンドラインに入る
     <C-Y>				モードレスセレクションをクリップボード
@@ -753,13 +803,16 @@ hit-enterのプロンプトの回数を減らすには:
 
 その他のキーは、これらのキーの意味が表示される。
 
-(*) 逆スクロールコマンドは、このコマンドだけサポートされる: >
-    :clist
+(*) 逆スクロールコマンドは {Vi にはない}。メッセージのスクロールを始めた場所へ
+    戻るだけである。
 (**) 左クリックは次のときだけ機能する:
      - GUI使用時:スクリーンの最後の行で
      - 'mouse'が'r'を含んでいるとき(ただしこのときテキスト選択はできない)
 
 Note: タイプされたキーはターミナルから直接得られ、マップされずtypeaheadは無視
 される。
+
+コマンド |g<| を使うと前のコマンドの出力の最後のページを見ることができる。
+hit-enter プロンプトで誤って <Space> を押してしまったときにこれは便利である。
 
  vim:tw=78:ts=8:ft=help:norl:
