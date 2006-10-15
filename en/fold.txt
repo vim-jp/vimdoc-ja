@@ -1,4 +1,4 @@
-*fold.txt*      For Vim version 6.3.  Last change: 2004 May 20
+*fold.txt*      For Vim version 7.0.  Last change: 2006 Mar 29
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -109,6 +109,7 @@ level of the previous line.
 
 There must be no side effects from the expression.  The text in the buffer,
 cursor position, the search patterns, options etc. must not be changed.
+You can change and restore them if you are careful.
 
 If there is some error in the expression, or the resulting value isn't
 recognized, there is no error message and the fold level will be zero.
@@ -190,11 +191,11 @@ and the level given by the marker:
 3. if a marker with a lower fold level is found, all folds up to and including
    this level end and a fold with the specified level starts.
 
-The number indicates the fold level.  A zero cannot be used.
-You can use "}}}" with a digit to indicate the level of the fold that
-ends.  The fold level of the following line will be one less than the
-indicated level.  Note that Vim doesn't look back to the level of the matching
-marker (that would take too much time).  Example: >
+The number indicates the fold level.  A zero cannot be used (a marker with
+level zero is ignored).  You can use "}}}" with a digit to indicate the level
+of the fold that ends.  The fold level of the following line will be one less
+than the indicated level.  Note that Vim doesn't look back to the level of the
+matching marker (that would take too much time).  Example: >
 
 	{{{1
 	fold level here is 1
@@ -279,7 +280,7 @@ zF		Create a fold for N lines.  Works like "zf".
 		Create a fold for the lines in {range}.  Works like "zf".
 
 							*zd* *E351*
-zd		Delete one fold at the cursor.  When the cursor is on folded
+zd		Delete one fold at the cursor.  When the cursor is on a folded
 		line, that fold is deleted.  Nested folds are moved one level
 		up.  In Visual mode all folds (partially) in the selected area
 		are deleted.  Careful: This easily deletes more folds than you
@@ -330,7 +331,7 @@ zC		Close all folds under the cursor recursively.  Folds that
 		'foldenable' will be set.
 
 							*za*
-za		When on a closed fold: open it. When folds are nested, you
+za		When on a closed fold: open it.  When folds are nested, you
 		may have to use "za" several times.  When a count is given,
 		that many closed folds are opened.
 		When on an open fold: close it and set 'foldenable'.  This
@@ -457,7 +458,7 @@ FOLDLEVEL						*fold-foldlevel*
 
 'foldlevel' is a number option: The higher the more folded regions are open.
 When 'foldlevel' is 0, all folds are closed.
-When 'foldlevel' is positive, some folds closed.
+When 'foldlevel' is positive, some folds are closed.
 When 'foldlevel' is very high, all folds are open.
 'foldlevel' is applied when it is changed.  After that manually folds can be
 opened and closed.
@@ -512,7 +513,8 @@ FOLDCOLUMN						*fold-foldcolumn*
 
 'foldcolumn' is a number, which sets the width for a column on the side of the
 window to indicate folds.  When it is zero, there is no foldcolumn.  A normal
-value is 4 or 5.  The minimal useful value is 2.  The maximum is 12.
+value is 4 or 5.  The minimal useful value is 2, although 1 still provides
+some information.  The maximum is 12.
 
 An open fold is indicated with a column that has a '-' at the top and '|'
 characters below it.  This column stops where the open fold stops.  When folds
@@ -564,7 +566,7 @@ When using an operator, a closed fold is included as a whole.  Thus "dl"
 deletes the whole closed fold under the cursor.
 
 For Ex commands the range is adjusted to always start at the first line of a
-fold and end at the last line of a fold.  Thus this command: >
+closed fold and end at the last line of a closed fold.  Thus this command: >
 	:s/foo/bar/g
 when used with the cursor on a closed fold, will replace "foo" with "bar" in
 all lines of the fold.
