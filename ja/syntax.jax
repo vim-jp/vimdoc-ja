@@ -1,10 +1,10 @@
 COMMENT: 構文強調(テキストの着色)
-STATUS: suspend 6.3.54
+STATUS: finished 7.0
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*syntax.txt*	For Vim version 6.3.  Last change: 2004 Jun 04
+*syntax.txt*	For Vim version 7.0.  Last change: 2006 Apr 30
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -56,7 +56,7 @@ Vimは全ての端末で構文強調をサポートしている。しかし多�
 
 	:syntax enable
 
-このコマンドにより実際には次のコマンドが実行される >
+このコマンドにより実際には次のコマンドが実行される  >
 	:source $VIMRUNTIME/syntax/syntax.vim
 
 環境変数VIMが設定されていない場合は、Vimは別の方法(|$VIMRUNTIME|参照)でパスの
@@ -83,17 +83,17 @@ NOTE: MS-DOSとWindowsの構文ファイルは改行コードが<CR><NL>であ�
 いことを意味している。しかしながらMS-DOSとWindowsではオプション'fileformats'が
 空でなければ正しい形式が自動的に選択される。
 
-NOTE: 反転表示("gvim -fg white -bg black")を使用する際は、.gvimrcが読込まれた
+NOTE: 反転表示("gvim -fg white -bg black")を使用する際は、|gvimrc|が読込まれた
 後で、GUIウィンドウが開かれるまでオプション'background'のデフォルト値が設定さ
 れない。そのせいで誤ったデフォルト強調手法が使用されてしまう。強調表示を有効化
-する前に'background'のデフォルト値を設定するには、.gvimrcにコマンド":gui"を含
+する前に'background'のデフォルト値を設定するには、|gvimrc|にコマンド":gui"を含
 める: >
 
    :gui		" ウィンドウを開き'background'にデフォルト値を設定する
    :syntax on	" 強調を有効化し、色を設定するのに'background'を使用する
 
-NOTE: .gvimrcの中で":gui"を使用すると"gvim -f"によりフォアグラウンドで開始する
-ことができなくなる。その際は":gui -f"を使用すること。
+NOTE: |.gvimrc|の中で":gui"を使用すると"gvim -f"によりフォアグラウンドで開始す
+ることができなくなる。その際は":gui -f"を使用すること。
 
 
 次のコマンドで構文強調の有・無効を切換えることができる >
@@ -190,6 +190,10 @@ Vimにそのファイル形式を認識させたいならば、|new-filetype|を
 以上。次回Cのファイルを編集する時にはコメントが異なった色で表示される。Vimを再
 起動する必要はない。
 
+構文ファイルが複数になるときは、ファイルタイプの名前のディレクトリに置くとよい。
+そのディレクトリの中の全ての "*.vim" ファイルが読み込まれる。例: >
+	~/.vim/after/syntax/c/one.vim
+	~/.vim/after/syntax/c/two.vim
 
 既存の構文ファイルを置き換える				*mysyntaxfile-replace*
 
@@ -396,6 +400,10 @@ Vimはロードした構文の名前を変数"b:current_syntax"に記憶して�
 変数を削除すればデフォルトの'number'を使うように戻すことができる: >
    :unlet html_number_lines
 
+閉じた折り畳みは、画面表示通りに HTML に出力される。これが好ましくないなら、
+2html を呼ぶ前にコマンド |zR| を使うか、または次のようにする: >
+   :let html_ignore_folding = 1
+
 デフォルトでは、古いブラウザ用に最適化されたHTMLが生成される。属性を表現するの
 にカスケードスタイルシートを使用したい場合には次の設定を使用する(結果的にかな
 り短いHTML 4に準拠したファイルが得られる): >
@@ -416,6 +424,13 @@ HTMLファイルの文字集合の指定には現在の'encoding'の値が使わ
 自動的に判断する設定に戻したいなら、変数g:html_use_encodingを削除する: >
    :unlet html_use_encoding
 <
+差分モードにおいて、3行以上連続した削除行(訳注:他方のファイルに行が挿入されて
+いることを示す行)は3行で表示され、そこに何行挿入されているかが真ん中の行に表示
+される。挿入された行数分の空行を表示させたいなら、次のようにする: >
+    :let html_whole_filler = 1
+3行で表示するように戻すにはこうする: >
+    :unlet html_whole_filler
+<
 					    *convert-to-XML* *convert-to-XHTML*
 代わりにXHTML(XML準拠のHTML)を生成するスクリプトを使うこともできる。そうするに
 は変数"use_xhtml"をセットする: > :let use_xhtml = 1
@@ -435,7 +450,7 @@ HTMLファイルの文字集合の指定には現在の'encoding'の値が使わ
    for f in *.[ch]; do gvim -f +"syn on" +"run! syntax/2html.vim" +"wq" +"q" $f; done
 <
 
-ABEL							*abel.vim* *abel-syntax*
+ABEL						*abel.vim* *ft-abel-syntax*
 
 ABELの強調にはユーザが定義できるオプションが幾つかある。それらを有効化するには
 それぞれの変数に何か値を設定すれば良い。例: >
@@ -448,7 +463,7 @@ abel_obsolete_ok		古いキーワードをエラーでなく命令文として�
 abel_cpp_comments_illegal	'//'をインラインコメントリーダとして扱わない
 
 
-ADA							*ada.vim* *ada-syntax*
+ADA						*ada.vim* *ft-ada-syntax*
 
 このモードはオブジェクト指向プログラムや型保護等の機能がサポートされた、Adaの
 1995年版("Ada95")を想定して作られている。Ada95で追加されたキーワードを使用して
@@ -491,7 +506,7 @@ ada_begin_preproc        beginのようなキーワードの全てをCプリプ�
 スが受け入れられないほど低いようならば、ada_withuse_ordinaryを有効化する。
 
 
-ANT						*ant.vim* *ant-syntax*
+ANT						*ant.vim* *ft-ant-syntax*
 
 ANTの構文ファイルにはデフォルトでJavaScriptとPythonの構文強調が含まれている。
 関数AntSyntaxScript()の第1引数にタグ名を、第2引数にファイル名を指定することで
@@ -508,7 +523,7 @@ ANTの構文ファイルにはデフォルトでJavaScriptとPythonの構文強�
 スクリプト言語を永続的にインストールするには|mysyntaxfile-add|を参照。
 
 
-APACHE						*apache.vim* *apache-syntax*
+APACHE						*apache.vim* *ft-apache-syntax*
 
 apacheの構文ファイルはHTTPサーババージョンのApache(デフォルトでは1.3.x)に基づ
 いた構文強調を提供する。他のバージョン用の構文強調を利用するには
@@ -518,9 +533,8 @@ apacheの構文ファイルはHTTPサーババージョンのApache(デフォル
 <
 
 		*asm.vim* *asmh8300.vim* *nasm.vim* *masm.vim* *asm68k*
-アセンブリ言語	*asm-syntax* *asmh8300-syntax* *nasm-syntax* *masm-syntax*
-		*asm68k-syntax*
-
+アセンブリ言語	*ft-asm-syntax* *ft-asmh8300-syntax* *ft-nasm-syntax*
+		*ft-masm-syntax* *ft-asm68k-syntax* *fasm.vim*
 "*.i"にマッチする名前のファイルのタイプはProgressかアセンブリである。自動検出
 が動作しない場合や、Progressを編集しないことが判っている場合には、起動設定ファ
 イルvimrcに次のコマンドを書くことができる: >
@@ -571,7 +585,7 @@ nasm_ctx_outside_macro	マクロ外のコンテキストをエラーとしない
 nasm_no_warn		潜在的に危険な構文をToDoとして強調しない
 
 
-ASPPERLとASPVBS				*aspperl-syntax* *aspvbs-syntax*
+ASPPERL and ASPVBS			*ft-aspperl-syntax* *ft-aspvbs-syntax*
 
 *.aspと*.aspという名のファイルはどちらもPerlもしくはVisual Basicのスクリプトた
 りえる。Vimにとってこれを判別するのは難しいので、グローバル変数を設定すること
@@ -584,7 +598,40 @@ Visual Basicを使用するなら次のように設定する: >
 	:let g:filetype_asp = "aspvbs"
 
 
-BASIC				*basic.vim* *vb.vim* *basic-syntax* *vb-syntax*
+BAAN						    *baan.vim* *baan-syntax*
+
+baan.vim は リリース BaanIV から SSA ERP LN まで、3 GL と 4 GL プログラミング
+両方に対応した構文を定義している。たくさんの標準的な定義/定数がサポートされて
+いる。
+
+次を |.vimrc| に書いておくと、ある種のコーディング標準違反を教えてくれる: >
+	let baan_code_stds=1
+
+*baan-folding*
+
+以下の変数によって、様々なレベルで構文折り畳みを有効にできる (これらはユーザの
+|.vimrc| で設定すること)。ソースブロックと SQL についてより複雑な折り畳みを行
+うと CPU に負荷がかかる。
+
+折り畳みを有効にし、関数レベルで折り畳みをするにはこうする: >
+	let baan_fold=1
+次を設定すると if, while, for ... のようなソースブロックレベルの折り畳みが有効
+になる。キーワード begin/end の前のインデントはマッチしなければならない (スペー
+スとタブは同じとはみなされない)。 >
+	let baan_fold_block=1
+次を設定すると SELECT, SELECTDO, SELECTEMPTY ... のような埋め込み SQL ブロック
+の折り畳みが有効になる。キーワード begin/end の前のインデントはマッチしなけれ
+ばならない (スペースとタブは同じとはみなされない)。 >
+	let baan_fold_sql=1
+Note: ブロック折り畳みを有効にすると、小さな折り畳みがたくさんできるかもしれな
+い。|.vimrc| でオプション 'foldminlines' と 'foldnestmax' を |:set| するか、...
+/after/syntax/baan.vim 内で |:setlocal| をする (|after-directory| を参照) とよ
+いかもしれない。例: >
+	set foldminlines=5
+	set foldnestmax=6
+
+
+BASIC			*basic.vim* *vb.vim* *ft-basic-syntax* *ft-vb-syntax*
 
 Visual Basicも「通常の」BASICも、どちらも拡張子には".bas"が使用される。どちら
 が使用されているか判別するのに、Vimはファイルの先頭5行以内に"VB_Name"という文
@@ -593,7 +640,7 @@ Visual Basicも「通常の」BASICも、どちらも拡張子には".bas"が使
 扱われる。
 
 
-C							*c.vim* *c-syntax*
+C							*c.vim* *ft-c-syntax*
 
 Cには幾つかの補助的な強調方法がある。それらを有効化するには対応した変数に値を
 設定する。例: >
@@ -608,6 +655,8 @@ c_space_errors		行末の空白文字とタブ文字前のスペース文字
 c_no_trail_space_error	 ... 但し行末の空白文字は除外
 c_no_tab_space_error	 ... 但しタブ文字前のスペース文字は除外
 c_no_bracket_error	[]の中の{}をエラーとして表示しない
+c_no_curly_error	{ と } が第1桁にあるときを除き、[] と () の内側の {}
+			をエラーとして表示しない。
 c_no_ansi		ANSI標準の型と定数を強調しない
 c_ansi_typedefs		 ... 但し標準ANSI型は強調する
 c_ansi_constants	 ... 但し標準ANSI定数は強調する
@@ -617,8 +666,14 @@ c_no_if0		"#if 0"のブロックをコメントとして強調しない
 c_no_cformat		文字列中の"%"によるフォーマットを強調しない
 c_no_c99		C99の標準要素を強調しない
 
+'foldmethod' が "syntax" に設定されていると、/* */ のコメントと { } のブロック
+が折り畳まれる。コメントを折り畳みたくなければこのようにする: >
+	:let c_no_comment_fold = 1
+"#if 0" のブロックも同様に折り畳まれる。折り畳みたくなければこのようにする: >
+	:let c_no_if0_fold = 1
+
 バックスクロール中に強調表示のエラーが生じて、そのエラーが<CTRL-L>の再描画で解
-消される場合には、内部変数"c_minlines"にもっと大きな値を設定すれば解消されるか
+消される場合には、内部変数"c_minlines"にもっと大きな値を設定すれば解決できるか
 もしれない: >
 	:let c_minlines = 100
 これにより構文判定のシンクロナイズ位置が表示開始行の100行手前に設定される。初
@@ -653,19 +708,26 @@ Cファイルで折り畳みをしたいなら、以下の行を'runtimepath'中
     syn sync fromstart
     set foldmethod=syntax
 
+CH						*ch.vim* *ft-ch-syntax*
 
-CHILL						*chill.vim* *chill-syntax*
+C/C++ インタープリタ。Ch は C に似た構文強調を持ち、C の構文ファイルに基づいて
+いる。C で利用できる設定については |c.vim| を参照。
 
+変数を設定すれば、*.h ファイルに対して C, C++ でなく Ch の構文を使うようにする
+ことができる: >
+	:let ch_syntax_for_h = 1
+
+
+CHILL						*chill.vim* *ft-chill-syntax*
 Chillの構文強調はCに似ている。設定に関しては|c.vim|を参照。それに加えて次のも
 のがある:
 
-chill_syntax_for_h	use Ch syntax for *.h files, instead of C or C++
-chill_space_errors	like c_space_errors
-chill_comment_string	like c_comment_strings
-chill_minlines		like c_minlines
+chill_space_errors	c_space_errors と同様
+chill_comment_string	c_comment_strings と同様
+chill_minlines		c_minlines と同様
 
 
-CHANGELOG				*changelog.vim* *changelog-syntax*
+CHANGELOG				*changelog.vim* *ft-changelog-syntax*
 ChangeLogでは行頭のスペースの強調できる。これをオフにしたいなら、次の行を
 .vimrcに加える: >
 	let g:changelog_spacing_errors = 0
@@ -680,7 +742,7 @@ ChangeLogでは行頭のスペースの強調できる。これをオフにし�
 これは即座に有効になる。
 
 
-COBOL						*cobol.vim* *cobol-syntax*
+COBOL						*cobol.vim* *ft-cobol-syntax*
 
 既存のCOBOLコードに要求される強調方法と、新規に開発されるコードに要求されるそ
 れには違いがある。この違いはコードのおかれている状況(保守 vs 開発)やその他の要
@@ -690,7 +752,7 @@ COBOL						*cobol.vim* *cobol-syntax*
 	:unlet cobol_legacy_code
 
 
-COLD FUSION				*coldfusion.vim* *coldfusion-syntax*
+COLD FUSION			*coldfusion.vim* *ft-coldfusion-syntax*
 
 ColdFusionには独自版のHTMLコメントが存在する。ColdFusionのコメント強調を有効化
 するには、次の行を起動設定ファイルに書き足す: >
@@ -700,7 +762,7 @@ ColdFusionには独自版のHTMLコメントが存在する。ColdFusionのコ�
 ColdFusionの構文ファイルはHTML用構文ファイルに基づいている。
 
 
-CSH						*csh.vim* *csh-syntax*
+CSH						*csh.vim* *ft-csh-syntax*
 
 これは"csh"という名前のシェルに対応している。いくつかのシステムでは実際には
 tcshが使われていることに注意。
@@ -722,7 +784,7 @@ tcshを使うには: >
 が存在するならファイル形式はその値にセットされる。
 
 
-CYNLIB						*cynlib.vim* *cynlib-syntax*
+CYNLIB						*cynlib.vim* *ft-cynlib-syntax*
 
 Cynlibファイルは、ハードウェアのモデリングとシミュレーションを行なうCynlibクラ
 スライブラリを使用したC++ファイルである。通常Cynlibのファイルは.ccや.cppという
@@ -741,7 +803,7 @@ cppファイルについても同様(この拡張子は通常Windowsだけで使
 	:unlet cynlib_cyntax_for_cpp
 <
 
-CWEB						*cweb.vim* *cweb-syntax*
+CWEB						*cweb.vim* *ft-cweb-syntax*
 
 "*.w"にマッチする名前のファイルのタイプはProgressかCWEBである。自動検出が動作
 しない場合や、Progressを編集しないことが判っている場合には、起動設定ファイル
@@ -749,7 +811,7 @@ vimrcに次のコマンドを書くことができる: >
    :let filetype_w = "cweb"
 
 
-DESKTOP					   *desktop.vim* *desktop-syntax*
+DESKTOP					   *desktop.vim* *ft-desktop-syntax*
 
 この構文ファイルの本来の目的はfreedesktop.org標準:
 http://pdx.freedesktop.org/Standards/の.desktopと.directoryファイルを構文強調
@@ -759,7 +821,7 @@ http://pdx.freedesktop.org/Standards/の.desktopと.directoryファイルを構�
 	:let enforce_freedesktop_standard = 1
 
 
-DIRCOLORS			       *dircolors.vim* *dircolors-syntax*
+DIRCOLORS			       *dircolors.vim* *ft-dircolors-syntax*
 
 dircolorsユーティリティ用の強調定義には、Slackware GNU/Linuxディストリビューシ
 ョン版のdircolorsに対応するためのオプションがある。このオプションはほとんどの
@@ -769,9 +831,9 @@ dircolorsユーティリティ用の強調定義には、Slackware GNU/Linuxデ�
 	let dircolors_is_slackware = 1
 
 
-DOCBOOK					*docbk.vim* *docbk-syntax* *docbook*
-DOCBOOK	XML				*docbkxml.vim* *docbkxml-syntax*
-DOCBOOK	SGML				*docbksgml.vim* *docbksgml-syntax*
+DOCBOOK					*docbk.vim* *ft-docbk-syntax* *docbook*
+DOCBOOK	XML				*docbkxml.vim* *ft-docbkxml-syntax*
+DOCBOOK	SGML				*docbksgml.vim* *ft-docbksgml-syntax*
 
 DocBookファイルには2つの種類: SGMLとXMLがある。どちらのタイプを使用するのかを
 指定するには変数"b:docbk_type"をセットする。Vimがそのタイプを認識できた場合に
@@ -788,20 +850,75 @@ DocBookファイルには2つの種類: SGMLとXMLがある。どちらのタイ
 	:set filetype=docbkxml
 
 
-DOSバッチファイル			*dosbatch.vim* *dosbatch-syntax*
+DOSバッチファイル			*dosbatch.vim* *ft-dosbatch-syntax*
 
 DOSバッチファイルの強調にはオプションが1つある。このオプションによりWindows
 2000で導入されたコマンドインタプリタの新しい拡張機能がカバーされ、変数
 dosbatch_cmdextversionによりその有/無効が制御される。Windows NTでは値1を設定
-し、Windows 2000では2を設定するのが良い。次のような行で使用するバージョンを選
-択できる: >
+し、Windows 2000では2を設定するのが良い。次のようにすれば使用するバージョンを
+選択できる: >
 
   :let dosbatch_cmdextversion = 1
 
 変数が定義されていない際のデフォルトはWindows 2000をサポートする2となる。
 
+2番目のオプションは、*.btm ファイルを "dosbatch" (MS-DOS バッチファイル) タイ
+プか "btm" (4DOS バッチファイル) タイプのどちらと判定するかを指定する。デフォ
+ルトでは後者が使われる。前者を使うには、次のようにする: >
 
-DTD						*dtd.vim* *dtd-syntax*
+   :let g:dosbatch_syntax_for_btm = 1
+
+この変数が定義されていない、または0であると btm の構文が使われる。
+
+DOXYGEN						*doxygen.vim* *doxygen-syntax*
+
+Doxygen は JavaDoc に似た特殊なフォーマットからコードのドキュメントを生成する。
+この構文スクリプトは c, cpp, idl のファイルに対して Doxygen の強調を追加する。
+また、Java に対しても使える。
+
+Doxygen のフォーマットを有効にするにはいくつかの方法がある。手動でか、またはモー
+ドラインでそのファイルの syntax に '.doxygen' を追加する。例: >
+	:set syntax=c.doxygen
+または >
+	// vim:syntax=c.doxygen
+
+任意のファイルタイプの上で Doxygen のフォーマットを有効にするには、各ファイル
+タイプに対して次の行を .vimrc に加える。ここで {filetype} は適切な値に置き換え
+る。 >
+	:let g:syntax_extra_{filetype}='doxygen'
+
+c, cpp, idl のファイルに対しては、グローバルまたはバッファローカルな変数
+load_doxygen_syntax を設定すれば自動的にこれが行われる。次の行を .vimrc に加え
+る。 >
+	:let g:load_doxygen_syntax=1
+
+構文強調に影響を与える変数がいくつかある。また、これらは標準でない強調オプショ
+ンに関係している。
+
+変数				既定値	効果 ~
+g:doxygen_enhanced_color
+g:doxygen_enhanced_colour	0	Doxygen コメントに対して標準でない強調
+					を行う。
+
+doxygen_my_rendering		0	HTML の太字、斜体、html_my_rendering 
+					の下線の描画を無効にする。
+
+doxygen_javadoc_autobrief	1	0にすると JavaDoc の autobrief の色強
+					調を無効にする。
+
+doxygen_end_punctuation		'[.]'	brief の終わりを示す句読点にマッチする
+					正規表現。
+
+また、次の強調グループを設定すると便利である。
+
+強調				効果 ~
+doxygenErrorComment		code, verbatim, dot セクション中で句読点が抜け
+				ている終了コメントの色
+doxygenLinkError		\link セクションで \endlink が抜けているときの
+				終了コメントの色。
+
+
+DTD						*dtd.vim* *ft-dtd-syntax*
 
 初期状態ではDTD構文強調は大/小文字を無視しない。無視する状態にするには、起動設
 定ファイルに次の行を書き足す: >
@@ -824,7 +941,7 @@ XML内の埋め込みDTDを強調表示するために、DTDの構文ファイ�
 れる。
 
 
-EIFFEL						*eiffel.vim* *eiffel-syntax*
+EIFFEL					*eiffel.vim* *ft-eiffel-syntax*
 
 Eiffelは大小文字の区別をしないけれども、スタイルガイドラインが示すように、構文
 強調ではそれらが区別される。これにより大小文字が違えば違うクラス名として強調表
@@ -867,7 +984,7 @@ ISEが提案し、実験的に幾つかのコンパイラでは取り扱うこ�
 この行を起動設定ファイルに書き足す。
 
 
-ERLANG						*erlang.vim* *erlang-syntax*
+ERLANG						*erlang.vim* *ft-erlang-syntax*
 
 これはErlang(ERicsson LANGuage: エリクソン言語)をサポートする構文強調ファイル
 である。Erlangは大小文字を区別しデフォルトの拡張子は".erl"である。
@@ -880,7 +997,26 @@ ERLANG						*erlang.vim* *erlang-syntax*
 	:let erlang_characters = 1
 
 
-FORM						*form.vim* *form-syntax*
+FLEXWIKI				*flexwiki.vim* *ft-flexwiki-syntax*
+
+
+FlexWiki は http://www.flexwiki.com で入手できる ASP.NET ベースの wiki パッケ
+ージである。
+
+FlexWiki の構文のほとんどの一般的な要素に対して構文強調ができる。FlexWiki の
+tplugin スクリプトはバッファローカルなオプションを設定し、FlexWiki ページの編
+集をより便利にする。FlexWiki は改行を新しい段落の開始とみなすので、この
+ftplugin は 'tw' を0に設定し (行の長さを制限しない)、'wrap' をオンにし (長い行
+を水平スクロールさせるのでなく、折り返す)、'linebreak' をオンにする (画面上の
+最後の文字でなく 'breakat' の文字で折り返す)、などを行う。また、デフォルトでは
+無効にされているキーマップも含んでいる。
+
+"j"、"k"、カーソルキーで表示行単位で移動するようにするキーマップを有効にするに
+は次を .vimrc に追加する: >
+	:let flexwiki_maps = 1
+
+
+FORM						*form.vim* *ft-form-syntax*
 
 FORMファイルの構文要素に使用するカラースキームには、Conditional, Number,
 Statement, Comment, PreProc, Type, そしてStringが、次の文献で定義される言語仕
@@ -914,7 +1050,7 @@ FORM用の既定の拡張カラーモードではヘッダ命令ととFORMプロ
 る。
 
 
-FORTRAN					*fortran.vim* *fortran-syntax*
+FORTRAN					*fortran.vim* *ft-fortran-syntax*
 
 デフォルトの強調と方言 ~
 デフォルトではf95(Fortran 95)に相当する強調が行なわれる。Fortran 95はFortran
@@ -952,12 +1088,12 @@ Fortran 9xのソースコードには固定形式と自由形式が有る。形�
 既存のFortranファイルを編集する時には、変数fortran_free_sourceが設定されていれ
 ば構文ファイルは自由形式のソースであると仮定し、変数fortran_fixed_sourceが設定
 されていれば固定形式のソースであると仮定する。どちらも設定されていないときには
-、ファイルの先頭25行の行頭5カラムを調べて、その形式が固定なのか自由なのかを決
+、ファイルの先頭250行の行頭5カラムを調べて、その形式が固定なのか自由なのかを決
 定しようと試みる。自由形式コードの兆候が見られない場合には、ファイルは固定形式
 コードとして取り扱われる。このアルゴリズムはほとんどのケースにおいて有効に機能
-する。しかしいつかのケース、例えば先頭25行以上が行コメントで占められているよう
+する。しかしいつかのケース、例えば先頭250行以上が行コメントで占められているよう
 なファイルでは、構文ファイルが固定形式コードであると誤った判断をしてしまうだろ
-う。そのような場合には、ファイルの先頭25行の行頭5カラムのどこかに、コメント以
+う。そのような場合には、ファイルの先頭250行の行頭5カラムのどこかに、コメント以
 外の命令文を追加し、ファイルの保存(:w)そして再読込(:e!)を行なえば良い。
 
 Fortranファイル内のタブ文字 ~
@@ -1047,10 +1183,10 @@ fortran_dialectへ設定した場合にはそれは無視される。
 丸カッコチェックは、閉じカッコの不足については捕捉できない。ホレリス定数は認識
 されない。幾つかのキーワードはFortran90の予約語ではないので誤って強調される。
 
-Fortranに関するその他の情報は|fortran-indent|や|fortran-plugin|を参照。
+Fortranに関するその他の情報は|ft-fortran-indent|や|ft-fortran-plugin|を参照。
 
 
-FVWM CONFIGURATION FILES			*fvwm.vim* *fvwm-syntax*
+FVWM CONFIGURATION FILES			*fvwm.vim* *ft-fvwm-syntax*
 
 Vimに*fvwmrc*や*fvwm2rc*などにマッチしないFvwmコンフィギュレーションファイルを
 認識させるためには、ファイルmyfiletypefile.vimで適切な追加の認識パターンを設定
@@ -1072,7 +1208,7 @@ Vimに*fvwmrc*や*fvwm2rc*などにマッチしないFvwmコンフィギュレ�
 このような内容をファイル.vimrcに追加する。
 
 
-GSP							*gsp.vim*
+GSP						*gsp.vim* *ft-gsp-syntax*
 
 GSPページのデフォルトカラーは|html.vim|にて定義され、Javaコード(Javaタグ内部や
 インラインのバッククォート内)のカラーは|java.vim|にて定義される。|html.vim|で
@@ -1094,7 +1230,7 @@ constains節に加えれば、正しく強調されるようになる。
 で強調される。
 
 
-GROFF						*groff.vim* *groff-syntax*
+GROFF						*groff.vim* *ft-groff-syntax*
 
 groff構文ファイルは|nroff.vim|のラッパーであり、使用例と設定例についてはそこの
 下書かれている注意を参照。このラッパーの目的は、モードラインか個人用のファイル
@@ -1102,7 +1238,7 @@ groff構文ファイルは|nroff.vim|のラッパーであり、使用例と設�
 構文拡張を設定することである。
 
 
-HASKELL			     *haskell.vim* *lhaskell.vim* *haskell-syntax*
+HASKELL			     *haskell.vim* *lhaskell.vim* *ft-haskell-syntax*
 
 Haskell構文ファイルはプレーンHaskellコードliterate Haskellコード両方をサポート
 している。後者はBirdスタイルとTeXスタイル両方に対応している。Haskell用の構文強
@@ -1139,7 +1275,7 @@ literate Haskellコード用の構文強調はファイルがTeXマークアッ�
 を有効化するかファイルを読み込む前に設定しなければならない。
 
 
-HTML						*html.vim* *html-syntax*
+HTML						*html.vim* *ft-html-syntax*
 
 HTMLファイルのタグ用の構文ファイルは以下のように動作する。
 
@@ -1204,7 +1340,7 @@ htmlプロセッサ言語は複数ある。html.vimはインクルードしや�
 そしてプリプロセッサ言語を含むすべての領域をクラスタhtmlPreprocに加えればよい。
 
 
-HTML/OS (by Aestiva)				*htmlos.vim* *htmlos-syntax*
+HTML/OS (by Aestiva)				*htmlos.vim* *ft-htmlos-syntax*
 
 HTML/OS用のカラースキームは以下のように機能する:
 
@@ -1224,7 +1360,7 @@ HTML/OSコードのブロックの開始と終了を示す文字は、それぞ�
 >>または]]のどちらであってもよい。
 
 
-IA64				*ia64.vim* *intel-itanium* *ia64-syntax*
+IA64				*ia64.vim* *intel-itanium* *ft-ia64-syntax*
 
 Intel Itanium 64アセンブリ言語用の強調。このファイル形式を認識させる方法につい
 ては|asm.vim|を参照。
@@ -1232,7 +1368,7 @@ Intel Itanium 64アセンブリ言語用の強調。このファイル形式を�
 	:let g:filetype_inc = "ia64"
 
 
-INFORM						*inform.vim* *inform-syntax*
+INFORM						*inform.vim* *ft-inform-syntax*
 
 Inform構文強調はInform Libraryによって提供されるシンボルを含んでいる。ほとんど
 のプログラムがそれを利用しているためである。Libraryのシンボルを強調させたくな
@@ -1256,8 +1392,30 @@ Informコンパイラはある古いキーワードをエラーとみなす。�
 ァイルに加えるとよいかもしれない: >
 	:let inform_highlight_old=1
 
+IDL							*idl.vim* *idl-syntax*
 
-JAVA						*java.vim* *java-syntax*
+IDL (Interface Definition Language) ファイルは RPC 呼び出しを定義するために使
+われる。Microsoft の世界では COM インターフェイスと呼び出しの定義にも使われる。
+
+IDL の構造は単純であるため、ヒューリスティックな方法でなく、完全に文法にのっとっ
+たアプローチができる。その結果は巨大でいくぶん冗長であるが、一応は機能するよう
+である。
+
+idl ファイルには Microsoft 拡張がある。それらのうちいくつかは
+idl_no_ms_extensions を定義すると無効になる。
+
+より複雑な拡張は idl_no_extensions を定義すると無効になる。
+
+変数				効果 ~
+
+idl_no_ms_extensions		Microsoft 独自の拡張の一部を無効にする
+idl_no_extensions		複雑な拡張を無効にする
+idlsyntax_showerror		IDL エラーを表示する (少々うるさいがとても助け
+				になる)
+idlsyntax_showerror_soft	デフォルトでエラーにより柔らかい色を使う
+
+
+JAVA						*java.vim* *ft-java-syntax*
 
 java.vim構文強調ファイルはいくつかのオプションを提供している：
 
@@ -1343,7 +1501,7 @@ CSSを含むjavadocコメントがあるときだけ意味がある。これら�
 は10である。大きな値にすることの不利点は、再描画が遅くなることである。
 
 
-LACE						*lace.vim* *lace-syntax*
+LACE						*lace.vim* *ft-lace-syntax*
 
 Lace (Language for Assembly of Classes in Eiffel)は大文字・小文字を無視する。
 しかしスタイルガイドラインはそうでない。大文字・小文字を区別して強調させたいな
@@ -1351,7 +1509,7 @@ Lace (Language for Assembly of Classes in Eiffel)は大文字・小文字を無�
 	:let lace_case_insensitive=1
 
 
-LEX						*lex.vim* *lex-syntax*
+LEX						*lex.vim* *ft-lex-syntax*
 
 "^%%$"セクションデリミタが、その後にどんなセクションが続くかの手がかりを与えな
 いため、Lexはブルートフォースなシンクロナイズを行う。それゆえ(巨大なlexファイ
@@ -1360,7 +1518,24 @@ LEX						*lex.vim* *lex-syntax*
 の値を変更するとよいかもしれない。
 
 
-LITE						*lite.vim* *lite-syntax*
+LISP						*lisp.vim* *ft-lisp-syntax*
+
+lisp の構文強調には2つのオプションがある: >
+
+	g:lisp_instring : この変数が存在すると "(...)" 形式の文字列が、その中
+			  身が lisp であるかのように強調される。AutoLisp 用に
+			  便利である。
+	g:lisp_rainbow  : この変数が存在し、0以外であると段階の異なる括弧に
+			  対して異なる強調がつくようになる。
+<
+オプション g:lisp_rainbow は括弧とバッククォートされた括弧に対して10段階の異な
+る色をつける。色づけ段階の多さのため、rainbow モード自身が ctermfg とguifg を
+使って強調を指定する (rainbow モードでない場合はそうではない)。それゆえ、強調
+グループを使う普通のカラースキームの影響を受けない。実際にどう強調されるかは
+dark/bright の設定 (|'bg'| を参照) による。
+
+
+LITE						*lite.vim* *ft-lite-syntax*
 
 lite構文強調には2つのオプションがある。
 
@@ -1374,7 +1549,7 @@ lite構文強調には2つのオプションがある。
 	:let lite_minlines = 200
 
 
-LPC						*lpc.vim* *lpc-syntax*
+LPC						*lpc.vim* *ft-lpc-syntax*
 
 LPCはシンプルでメモリ効率的な言語、Lars Pensj| Cの略である。LPCのファイル名は
 通常*.cである。これらのファイルをLPCと認識するとCプログラムのみを書くユーザの
@@ -1414,17 +1589,26 @@ uLPCはPike用に開発されている。なのでPike構文を代わりに使�
 前を.pikeとすること。
 
 
-LUA						*lua.vim* *lua-syntax*
+LUA						*lua.vim* *ft-lua-syntax*
 
-この構文ファイルはLua 4.0とLua 5.0(デフォルト)用に使える。Lua 4.0でプログラミ
-ングしているなら、こうする: >
+この構文ファイルはLua 4.0とLua 5.0, 5.1(デフォルト)用に使える。グローバル変数
+lua_version と lua_subversion を使うと、これらのバージョンを指定することができ
+る。例えば、Lua 4.0 の構文強調を有効にするには次のコマンドを使う: >
 
 	:let lua_version = 4
 
-変数lua_versionが存在しない場合には5にセットされる。
+Lua 5.0 を使っているなら、次のコマンドを使う: >
+
+	:let lua_version = 5
+	:let lua_subversion = 0
+
+強調を Lua 5.1 に戻すには次のようにする: >
+
+	:let lua_version = 5
+	:let lua_subversion = 1
 
 
-MAIL								*mail.vim*
+MAIL						*mail.vim* *ft-mail.vim*
 
 Vimはemailの標準的な要素(ヘッダ、シグネチャ、引用文、URL / emailアドレス)の全
 てを強調する。標準的な慣習に従い、シグネチャは、"--"とそれに続く任意個の空白、そ
@@ -1441,7 +1625,7 @@ Vimは']', '}', '|', '>'で始まる行または'>'が続く単語を引用文�
     :let mail_minlines = 30
 
 
-MAKE						*make.vim* *make-syntax*
+MAKE						*make.vim* *ft-make-syntax*
 
 Makefileでは通常エラーを見つけやすくするためにコマンドが強調される。しかし、こ
 れは色が多すぎるかもしれない。この機能をオフにするにはこうする: >
@@ -1449,7 +1633,7 @@ Makefileでは通常エラーを見つけやすくするためにコマンドが
 	:let make_no_commands = 1
 
 
-MAPLE						*maple.vim* *maple-syntax*
+MAPLE						*maple.vim* *ft-maple-syntax*
 
 Waterloo Maple IncによるMaple Vは記号代数をサポートしている。その言語はユーザ
 によって選択的にロードされる関数のパッケージをたくさんサポートしている。Maple
@@ -1473,7 +1657,15 @@ V release 4で供給される標準的なパッケージセットの関数がユ
   mv_finance	 mv_logic	mv_powseries
 
 
-MOO						*moo.vim* *moo-syntax*
+MATHEMATICA		*mma.vim* *ft-mma-syntax* *ft-mathematica-syntax*
+
+次を .vimrc に書いておかないかぎり、空の *.m ファイルは自動的に Matlab のファ
+イルであるとみなされる: >
+
+	let filetype_m = "mma"
+
+
+MOO						*moo.vim* *ft-moo-syntax*
 
 式の中でCスタイルのコメントを使っていて、それが強調を乱している場合は、Cスタイ
 ル用の拡張マッチ(これは遅い!)を使うことが出来る: >
@@ -1507,7 +1699,7 @@ MOO						*moo.vim* *moo-syntax*
 	:syn keyword mooKnownBuiltinFunction sprintf contained
 
 
-MSQL						*msql.vim* *msql-syntax*
+MSQL						*msql.vim* *ft-msql-syntax*
 
 msql構文強調には2つのオプションがある。
 
@@ -1521,7 +1713,7 @@ msql構文強調には2つのオプションがある。
 	:let msql_minlines = 200
 
 
-NCF						*ncf.vim* *ncf-syntax*
+NCF						*ncf.vim* *ft-ncf-syntax*
 
 NCF構文強調には1つのオプションがある。
 
@@ -1532,7 +1724,7 @@ ncf.vimによって認識されない文をエラーとして強調させたい�
 これらをエラーとして強調させたくないなら、この変数をセットしないでおく。
 
 
-NROFF						*nroff.vim* *nroff-syntax*
+NROFF						*nroff.vim* *ft-nroff-syntax*
 
 nroff構文ファイルはそのままでAT&T n/troffに対応している。構文ファイルに含まれ
 ているGNU groff拡張機能を使うには、それを有効化する必要がある。
@@ -1597,7 +1789,7 @@ stretchの概念を持たず、入力に水平、垂直の空白があると全�
 ーバルの両方でgroff構文強調することができる。
 
 
-OCAML						*ocaml.vim* *ocaml-syntax*
+OCAML						*ocaml.vim* *ft-ocaml-syntax*
 
 OCaml構文ファイルは以下の拡張子を持つファイルに対応している: .ml, .mli, .mll
 .mly。以下の変数をセットすると、標準的OCaml構文からcamlp4プリプロセッサでサポ
@@ -1611,7 +1803,7 @@ OCaml構文ファイルは以下の拡張子を持つファイルに対応して
 	:let ocaml_noend_error = 1
 
 
-PAPP						*papp.vim* *papp-syntax*
+PAPP						*papp.vim* *ft-papp-syntax*
 
 PApp構文ファイルは.pappファイルと、その小さな拡張、トップレベルのファイルフォ
 ーマットとしてxmlを用いたperl/xml/html/その他の混合である.pxml, .pxslファイル
@@ -1627,7 +1819,7 @@ phtmlセクションの内側のhtmlコードを構文強調しようとする: 
 http://papp.plan9.de
 
 
-PASCAL						*pascal.vim* *pascal-syntax*
+PASCAL						*pascal.vim* *ft-pascal-syntax*
 
 "*.p"にマッチするファイルのタイプはProgressかPascalである。自動判別が機能しな
 いなら、またはProgressファイルを一切編集しないとわかっているなら、これをvimrc
@@ -1678,7 +1870,7 @@ pascal_gpc, pascal_fpcがある。デフォルトの拡張はTurbo Pascalに合�
    :let pascal_no_tabs=1
 
 
-PERL						*perl.vim* *perl-syntax*
+PERL						*perl.vim* *ft-perl-syntax*
 
 perl用の構文強調にはたくさんのオプションがある。
 
@@ -1686,14 +1878,23 @@ PODファイルやPODセグメントを使っているなら、こうすると�
 
 	:let perl_include_pod = 1
 
+パースの複雑さを軽減するために (そしてパフォーマンスを上げるために) 、変数名と
+内容のパースにおける2つの要素をオフにすることができる。 >
+
 変数名と関数名中のパッケージ参照('$PkgName::VarName'中の'PkgName::'のような)を
-他の名前と区別したいなら: >
+他の名前と区別しないようにするには次のようにする: >
 
-	:let perl_want_scope_in_variables = 1
+	:let perl_no_scope_in_variables = 1
 
-'@{${"foo"}}'のように複雑なものをパースさせたいなら: >
+(Vim 6.x では違う方法だった: "perl_want_scope_in_variables" を設定するとこの機
+能が有効になった)
 
-	:let perl_extended_vars = 1
+'@{${"foo"}}'のように複雑なものをパースさせたくないなら次のようにする: >
+
+	:let perl_no_extended_vars = 1
+
+(Vim 6.x では違う方法だった: "perl_extended_vars" を設定するとこの機能が有効に
+なった)
 
 文字列の色づけは変更できる。デフォルトでは文字列とqq friendsは第1行と同じよう
 に強調される。変数perl_string_as_statementをセットすると第2行のように強調され
@@ -1725,8 +1926,19 @@ perlで折りたたみを使いたいならperl_foldをセットすること: >
 
        :let perl_fold = 1
 
+if 文などでも同様にブロックを折り畳みたければ、次のように設定する: >
 
-PHP3 and PHP4		*php.vim* *php3.vim* *php-syntax* *php3-syntax*
+	:let perl_fold_blocks = 1
+
+perl の折り畳みが有効になっているとき、package や sub を折り畳みたくなければ、
+対応する変数を設定する: >
+
+	:unlet perl_nofold_packages
+	:unlet perl_nofold_subs
+
+
+
+PHP3 and PHP4		*php.vim* *php3.vim* *ft-php-syntax* *ft-php3-syntax*
 
 [注意: これは以前は"php3"と呼ばれていた。しかし現在はphp4もサポートしているの
 で"php"と名前が変更された]
@@ -1779,7 +1991,19 @@ x > 0 少なくともx行上までシンクロナイズ
 x = 0 最初からシンクロナイズ
 
 
-PPWIZARD					*ppwiz.vim* *ppwiz-syntax*
+PLAINTEX				*plaintex.vim* *ft-plaintex-syntax*
+
+TeX とは組版言語であり、plaintex は「素の」TeX に対して使われるファイルタイプ
+である。*.tex ファイルを決して素の TeX と認識してほしくないならば
+|ft-tex-plugin| を参照。
+
+この構文ファイルは次のオプションを持つ >
+
+	let g:plaintex_delimiters = 1
+
+角括弧 "[]" と波括弧 "{}" を強調させるには上の変数を設定する。
+
+PPWIZARD					*ppwiz.vim* *ft-ppwiz-syntax*
 
 PPWizardはHTMLとOS/2 INFファイル用のプリプロセッサである。
 
@@ -1800,7 +2024,7 @@ PPWizardはHTMLとOS/2 INFファイル用のプリプロセッサである。
   HTMLコードを通常のテキストのように扱う。
 
 
-PHTML						*phtml.vim* *phtml-syntax*
+PHTML						*phtml.vim* *ft-phtml-syntax*
 
 phtml用の構文強調には2つのオプションがある。
 
@@ -1814,7 +2038,7 @@ phtml用の構文強調には2つのオプションがある。
 	:let phtml_minlines = 200
 
 
-POSTSCRIPT					*postscr.vim* *postscr-syntax*
+POSTSCRIPT				*postscr.vim* *ft-postscr-syntax*
 
 PostScript用の構文強調にはいくつかのオプションがある。
 
@@ -1863,8 +2087,8 @@ postscr_andornot_binaryを定義すると、それらは2項演算子として�
 	:let postscr_andornot_binary=1
 <
 
-			*ptcap.vim*
-PRINTCAP + TERMCAP	*ptcap-syntax* *termcap-syntax* *printcap-syntax*
+			*ptcap.vim* *ft-printcap-syntax*
+PRINTCAP + TERMCAP	*ft-ptcap-syntax* *ft-termcap-syntax*
 
 この構文ファイルはprintcapとtermcapデータベースに適用される。
 
@@ -1888,7 +2112,7 @@ ptcapになる。
 (デフォルトは20行)
 
 
-PROGRESS				*progress.vim* *progress-syntax*
+PROGRESS				*progress.vim* *ft-progress-syntax*
 
 "*.w"にマッチするファイルのタイプはProgressかCWEBである。自動判別がうまく機能
 しないなら、またはcwebファイルを一切編集しないとわかっているなら、次をvimrcに
@@ -1901,7 +2125,7 @@ PROGRESS				*progress.vim* *progress-syntax*
 
 
 
-PYTHON						*python.vim* *python-syntax*
+PYTHON						*python.vim* *ft-python-syntax*
 
 Python構文強調をコントロールするオプションは4つある。
 
@@ -1921,7 +2145,7 @@ Python構文強調をコントロールするオプションは4つある。
 	:let python_highlight_all = 1
 
 
-QUAKE						*quake.vim* *quake-syntax*
+QUAKE						*quake.vim* *ft-quake-syntax*
 
 Quake構文定義はQuakeエンジンのどれかに基づくほとんど全てのFPS(First Person
 Shooter)用に対応するはずである。しかし3つのゲーム(Quake, Quake 2, Quake 3
@@ -1942,7 +2166,7 @@ Quake 3 Arenaでのみ利用可能なコマンドを強調するように設定:
 いコマンドも強調してしまうかもしれない。
 
 
-READLINE				*readline.vim* *readline-syntax*
+READLINE				*readline.vim* *ft-readline-syntax*
 
 readlineライブラリは主としてBASHシェルで使われ、BASHはかなりの数のコマンドとオ
 プションを追加している。これらの項目を同様に強調するには次を|vimrc|に加えるか
@@ -1953,7 +2177,7 @@ readlineライブラリは主としてBASHシェルで使われ、BASHはかな�
 ようになる。
 
 
-REXX						*rexx.vim* *rexx-syntax*
+REXX						*rexx.vim* *ft-rexx-syntax*
 
 上にスクロールしているときに強調間違いが出て、それがCTRL-Lで再描画すると直るよ
 うなら、変数"rexx_minlines"の値を大きくしてみるとよい: >
@@ -1962,32 +2186,73 @@ REXX						*rexx.vim* *rexx-syntax*
 くすることの欠点は、再描画が遅くなることである。
 
 
-RUBY						*ruby.vim* *ruby-syntax*
+RUBY						*ruby.vim* *ft-ruby-syntax*
 
-Ruby構文強調にはいくつかのオプションがある。
+Ruby構文強調にはたくさんのオプションがある。
 
 デフォルトではキーワード"end"はそれに対応するブロック開始文にしたがって色づけ
 される。この機能は便利だが、コストがかかる: 再描画が遅くなったら(または色機能
 の貧弱なターミナルを使っているなら)変数"ruby_no_expensive"を定義することによっ
 てこの機能をオフにできる: >
+
 	:let ruby_no_expensive = 1
+
 この場合すべての制御キーワードに同じ色が使われる。
 
 この機能を有効化したいが、
 上にスクロールしているときに強調間違いが出て、それがCTRL-Lで再描画すると直るよ
 うなら、変数"ruby_minlines"を50以上の値にセットしてみるとよい: >
+
 	:let ruby_minlines = 100
+
 理想的にはこの値はファイル中の最も大きいクラスやモジュールの長さよりも大きくし
 ておくとよい。
 
-最後に、色をつける単語をもっと少なくしたいなら"ruby_no_identifiers"を定義する
-ことが出来る: >
+"ruby_no_identifiers" を定義すると、特別な識別子が強調されなくなる: >
+
 	:let ruby_no_identifiers = 1
-こうすると"ConstantName", "$global_var", "@instance_var", "| iterator |",
-":symbol".のような特別な識別子の強調をやめる。
+
+これによって "ConstantName", "$global_var", "@@class_var", "@instance_var",
+"| block_param |", ":symbol" のような特別な識別子が強調されなくなる。
+
+Kernel, Module, Object などの重要なメソッドはデフォルトで強調される。
+"ruby_no_special_methods" を定義するとこれらの強調がされなくなる: >
+
+	:let ruby_no_special_methods = 1
+
+これによって "require", "attr", "private", "raise", "proc" などの重要なメソッ
+ドの強調がされなくなる。
+
+"ruby_space_errors" を定義するとホワイトスペースのエラーが強調されるようになる。
+
+	:let ruby_space_errors = 1
+
+これによって行末のホワイトスペースやタブ文字の前のスペース文字がエラーとして強
+調されるようになる。これは "ruby_no_trail_space_error" と
+"ruby_no_tab_space_error" を定義すると改善することができる。これらはそれぞれ行
+末のホワイトスペースとスペース文字の後のタブ文字を無視する。
+
+"ruby_fold" を定義すると折り畳みを有効にすることができる: >
+
+	:let ruby_fold = 1
+
+これを定義すると、オプション 'foldmethod' が "syntax" になり、クラス、モジュー
+ル、メソッド、コードブロック、ヒアドキュメント、コメントの折り畳みを行うように
+なる。
 
 
-SDL						*sdl.vim* *sdl-syntax*
+SCHEME						*scheme.vim* *ft-scheme-syntax*
+
+デフォルトでは R5RS のキーワードだけが強調され、正しくインデントされる。
+
+変数 b:is_mzscheme または g:is_mzscheme が定義されていると、MzScheme 固有の設
+定が使われる。
+
+また、scheme.vim は Chicken Scheme->C コンパイラのキーワードにも対応している。
+それを有効にするには b:is_chicken または g:is_chicken を定義する。
+
+
+SDL						*sdl.vim* *ft-sdl-syntax*
 
 SDL用の強調にはいくつかのキーワードが抜けているかもしれない。しかしSDLにはたく
 さんのキーワードがあるので、すべてに対応することはほとんど不可能である。
@@ -2004,7 +2269,7 @@ SDL用の強調にはいくつかのキーワードが抜けているかもし�
 インデントもおそらく不完全であるが、今のところ私はこれでとても満足している。
 
 
-SED						*sed.vim* *sed-syntax*
+SED						*sed.vim* *ft-sed-syntax*
 
 タブをTodoと同じようにハイライトさせ、通常の空白から目立つようにさせるには
 次の行をvimrcに書き、"highlight_sedtabs"を定義する >
@@ -2025,7 +2290,7 @@ SED						*sed.vim* *sed-syntax*
   このバグを容認している。
 
 
-SGML						*sgml.vim* *sgml-syntax*
+SGML						*sgml.vim* *ft-sgml-syntax*
 
 SGMLファイル中のタグを強調する方法は以下のように動作する。
 
@@ -2063,9 +2328,9 @@ SGMLファイル中のタグを強調する方法は以下のように動作す�
 用した)
 
 
-SH						*sh.vim* *sh-syntax*
+SH		*sh.vim* *ft-sh-syntax* *ft-bash-syntax* *ft-ksh-syntax*
 
-これは「普通の」Unix (Bourne) sh、bashそしてKornシェルをカバーしている。
+これは「普通の」Unix (Borne) sh、bashそしてKornシェルをカバーしている。
 
 Vimは様々なファイル名がどのタイプであるかを指定することによって、どのシェルが
 使われているかを決定しようとする: >
@@ -2077,17 +2342,24 @@ Vimは様々なファイル名がどのタイプであるかを指定するこ�
 /bin/sh /bin/ksh /bin/bash)。第一行でシェルを指定されていれば、そのシェルが使
 用される。しかしいくつかのファイル(例. .profile)はシェルファイルであることはわ
 かっていても、どのタイプか明らかではない。さらに、多くのシステムでshは
-"bash"(linux)や"ksh"(posix)へのシンボリックリンクになっている。
+"bash"(Linux, Windows+cygwin)や"ksh"(Posix)へのシンボリックリンクになっている。
 
 以下の3つの変数のどれかを.vimrcで定義することにより、デフォルトを設定すること
 が出来る:
 
     ksh: >
-	let is_kornshell = 1
+	let g:is_kornshell = 1
+<   posix: (これは is_kornshell を1に設定することと同じ) >
+	let g:is_posix     = 1
 <   bash: >
-	let is_bash	 = 1
-<   sh: >
-	let is_sh	 = 1
+	let g:is_bash	   = 1
+<   sh: (デフォルト) Borne shell >
+	let g:is_sh	   = 1
+
+"#! ..." という行がなく、かつユーザが上の方法でデフォルトの sh.vim の構文を設
+定していない場合、sh.vim は Borne シェルの構文であると仮定する。エラーレポート
+に RFC や市場浸透統計の引用を含める必要はありません。単に .vimrc でシステムで
+使われるデフォルトの sh のバージョンを選択してください。
 
 .vimrcで以下のように設定すると >
 	let g:sh_fold_enabled= 1
@@ -2113,7 +2385,7 @@ Vimは様々なファイル名がどのタイプであるかを指定するこ�
 さい値にすること。欠点は強調間違いが出るかもしれないことである。
 
 
-SPEEDUP (AspenTech plant simulator)		*spup.vim* *spup-syntax*
+SPEEDUP (AspenTech plant simulator)		*spup.vim* *ft-spup-syntax*
 
 Speedup構文ファイルにはいくつかのオプションがある:
 
@@ -2142,6 +2414,21 @@ Speedup構文ファイルにはいくつかのオプションがある:
 い。
 
 
+SQL						*sql.vim* *ft-sql-syntax*
+				*sqlinformix.vim* *ft-sqlinformix-syntax*
+				*sqlanywhere.vim* *ft-sqlanywhere-syntax*
+
+SQLにはANSI標準があるのだが、ほとんどのデータベースエンジンは独自の拡張を追加
+している。現在のところ、VimはOracleとInformixのSQL方言をサポートしている。
+デフォルトではVimは"*.sql"のファイルをOracle SQLであると判断する。
+
+現在のところ、Vimは構文スクリプトによって、多様なベンダのSQLに対応している。
+デフォルト設定をOracleから他の対応しているSQLに変更することができる。また、
+バッファごとに使うSQLの方言を変えることも簡単にできる。
+
+より詳しい説明は|sql.txt|を参照。
+
+
 TCSH						*tcsh.vim* *tcsh-syntax*
 
 これは"tcsh"という名前のシェルをカバーしている。これはcshのスーパーセットであ
@@ -2162,19 +2449,31 @@ tcshはシェル変数"backslash_quote"をセットしていない限り文字�
 値にすることの欠点は、再描画が遅くなることである。
 
 
-TEX						*tex.vim* *tex-syntax*
+TEX						*tex.vim* *ft-tex-syntax*
 
-追い込みコメント/Math? ~
+*tex-folding*
+構文折り畳み? ~
 
-tex用の構文強調はTeX, LaTeX, AmsTeXをサポートしている。normal, texZone,
-texMathZoneの3つの主な区間がサポートされている。これらの区域を適切に区切るよう
-かなりの努力がされたが、$..$と$$..$$で線引きされる区間は開始・終了のパターンと
-まったく同じにシンクロナイズさせることは出来ない。その結果、特別な"TeX
-comment"が提供されている >
+<syntax/tex.vim>のバージョン28以降では、構文による部分、章、節、小節などの折り
+畳みに対応している。それを有効にするには次の行を<.vimrc>に書き、>
+	let g:tex_fold_enabled=1
+:set fdm=syntaxとする。後者をLaTeXファイルの末尾にモードラインとして書いておく
+といいかもしれない: >
+	% vim: fdm=syntax
+<
+*tex-runon*
+追い込みコメント/Mathについて ~
+
+<syntax/tex.vim>の構文強調はTeX, LaTeX, AmsTeXをサポートしている。normal,
+texZone, texMathZoneの3つの主な区間・範囲がサポートされている。これらの区間を
+適切に区切るようかなりの努力がされたが、$..$と$$..$$で線引きされる区間は開始・
+終了のパターンとまったく同じにシンクロナイズさせることは出来ない。その結果、特
+別な"TeX comment"が提供されている >
 	%stopzone
 このコメントがあるとここで強制的にtexZoneまたはtexMathZoneの強調を終わらせる。
 
-構文強調が遅い? ~
+*tex-slow*
+構文強調が遅いならば ~
 
 遅いコンピュータを使っているなら、これらの値を減らすとよいかもしれない >
 	:syn sync maxlines=200
@@ -2183,34 +2482,36 @@ comment"が提供されている >
 らは第一にシンクロナイズ(つまり、画面最上行のテキストがどのグループに入るか)に
 影響を与える。
 
-過度なエラー強調? ~
+*tex-error*
+エラーの強調が行き過ぎならば ~
 
 <tex.vim>は様々な種類のレキシカルエラーチェックをサポートしている。すなわち、
 エラーチェックは暇なときにはとても便利だが、実際にはエラーでない箇所もエラーと
 示すかもしれない。それが嫌なら、次の行を<.vimrc>に置くとよい: >
 	let tex_no_error=1
-すると<tex.vim>によるすべてのエラーチェックが停止される。
+すると<syntax/tex.vim>によるすべてのエラーチェックが停止される。
 
-新しいMathグループが必要? ~
+*tex-math*
+新しいMathグループが必要ならば ~
 
-新しいmathグループをLaTeXに含めたいなら、以下のコードがそうする例である: >
+新しいmathグループをLaTeXに含めたいなら、以下のコードがその例となるだろう: >
 
-    syn cluster texMathZones add=texMathZoneLOCAL
-    syn region texMathZoneLOCAL start="\\begin\s*{\s*LOCALMATH\s*}"
-       \ end="\\end\s*{\s*LOCALMATH\s*}" keepend
-       \ contains=@texMathZoneGroup
-    if !exists("tex_no_math")
-     syn sync match texSyncMathZoneLOCAL grouphere texMathZoneLOCAL
-       \ "\\begin\s*{\s*LOCALMATH\*\s*}"
-     syn sync match texSyncMathZoneLOCAL groupthere NONE
-       \ "\\end\s*{\s*LOCALMATH\*\s*}"
-    endif
-    hi link texMathZoneLOCAL texMath
-<
+	call TexNewMathZone(sfx,mathzone,starform)
+新しいmathグループに一意な接尾辞をつけたいと思うだろう(現在のところ、AからLま
+でとVからZまでは<syntax/tex.vim>自身によって取得されている)。
+例として、<syntax/tex.vim>でeqnarrayがどのように設定されているかを見てみよ
+う: >
+	call TexNewMathZone("D","eqnarray",1)
+"mathzone"をあなたが作ったmathグループの名前に変える必要がある。
+また、それが呼ばれるようにするために.vim/after/syntax/tex.vimに書くこと。
+変数"starform"が真ならば、あなたが作ったmathグループがアスタリスクつきの形を
+もつことを意味する(例. eqnarray*)。
+
 LOCALMATHをあなたが決めた新しいmathグループに書き換える必要がある。そしてこれ
 を.vim/after/syntax/tex.vimに加えること。
 
-新しいスタイルを始める? ~
+*tex-style*
+新しいスタイルを始めるには ~
 
 *.texファイルで"\makeatletter"を使う人がいるかもしれないので、コマンド中で"@"
 が使えるようになっている。しかし*.texファイルは次の拡張子: sty cls clo dtx ltx
@@ -2223,7 +2524,7 @@ LOCALMATHをあなたが決めた新しいmathグループに書き換える必�
 法を受け入れるようになる。
 
 
-TF						*tf.vim* *tf-syntax*
+TF						*tf.vim* *ft-tf-syntax*
 
 tfの構文強調には1つのオプションがある。
 
@@ -2233,7 +2534,7 @@ tfの構文強調には1つのオプションがある。
 	:let tf_minlines = your choice
 
 
-VIM						*vim.vim* *vim-syntax*
+VIM						*vim.vim* *ft-vim-syntax*
 
 より正確な構文強調と画面更新速度にはトレードオフがある。正確さを向上させるには
 、変数g:vim_minlinesの値を大きくすればよい。変数g:vim_maxlinesは画面更新速度を
@@ -2253,8 +2554,14 @@ tcl)のサポートを犠牲にする代わりに、vimスクリプト用の構�
 	g:vimembedscript == 0			 埋め込みスクリプト言語用の構
 						 文強調を読み込まない。
 
+syntax/vim.vimによるエラーの強調はすべて正しいとは限らない。Vimスクリプトは正
+しく強調するのが難しい言語である。エラーの強調を抑制するには、次を|vimrc|に書
+けばよい: >
 
-XF86CONFIG				*xf86conf.vim* *xf86conf-syntax*
+	let g:vimsyntax_noerror = 1
+
+
+XF86CONFIG				*xf86conf.vim* *ft-xf86conf-syntax*
 
 XF86Configファイルの構文はXFree86 v3.xとv4.xで異なっている。両方のバージョンが
 サポートされている。自動的に判定がされるが、完全からはほど遠い。手動でバージョ
@@ -2268,7 +2575,7 @@ XF86Configファイルの構文はXFree86 v3.xとv4.xで異なっている。両
 ハイライトさせたいなら"__s yn con gr_e_e_n"でなく"SyncOnGreen"と書くこと。
 
 
-XML						*xml.vim* *xml-syntax*
+XML						*xml.vim* *ft-xml-syntax*
 
 Xml名前空間がデフォルトで強調される。次のグローバル変数をセットするとそれが無
 効化される: >
@@ -2287,7 +2594,7 @@ xml構文ファイルを使うと、開始タグと終了タグの間を折り�
 ではそうである。
 
 
-X Pixmaps (XPM)					*xpm.vim* *xpm-syntax*
+X Pixmaps (XPM)					*xpm.vim* *ft-xpm-syntax*
 
 xpm.vimは編集中のXPMファイルの内容から、動的に構文要素を生成する。そのため、色
 設定文字列などを変更したときは":set syn=xpm"などとしてxpm.vimを読み直さなけれ
@@ -2298,7 +2605,7 @@ xpm.vimは編集中のXPMファイルの内容から、動的に構文要素を�
 
 マウスで図を描きたければ次のようにしてみるとよい: >
    :function! GetPixel()
-   :   let c = getline(line("."))[col(".") - 1]
+   :   let c = getline(".")[col(".") - 1]
    :   echo c
    :   exe "noremap <LeftMouse> <LeftMouse>r".c
    :   exe "noremap <LeftDrag>	<LeftMouse>r".c
@@ -2361,11 +2668,29 @@ xpm.vimは編集中のXPMファイルの内容から、動的に構文要素を�
 
 大文字・小文字の区別					*:syn-case* *E390*
 
-:sy[ntax] case [match|ignore]
+:sy[ntax] case [match | ignore]
 	これ以降の":syntax"コマンドが大文字・小文字を区別するかどうかを定義す
 	る。"match"を使うと区別し、"ignore"を使うと区別しなくなる。これ以前の
 	要素には影響せず、次の":syntax case"コマンドまでのすべての要素に影響
 	する。
+
+
+スペルチェック						*:syn-spell*
+
+:sy[ntax] spell [toplevel | notoplevel | default]
+	これは構文アイテムに入っていないテキストに対して、どこでスペルチェック
+	を行うかを定義する:
+
+	toplevel:	テキストのスペルチェックを行う。
+	notoplevel:	テキストのスペルチェックを行わない。
+	default:	クラスタ@Spellがあるときスペルチェックを行わない。
+
+	構文アイテムに入っているテキストはクラスタ@Spellと@NoSpellを使う
+	|spell-syntax|。クラスタ@Spellと@NoSpellがないときは、スペルチェックは
+	"default"と"toplevel"に対して行われる。
+
+	スペルチェックを有効化するにはオプション'spell'をオンにしなければなら
+	ない。
 
 
 キーワードの定義 					*:syn-keyword*
@@ -2387,7 +2712,7 @@ xpm.vimは編集中のXPMファイルの内容から、動的に構文要素を�
   :syntax keyword   Type   contained int long char
   :syntax keyword   Type   int long contained char
   :syntax keyword   Type   int long char contained
-<
+<								*E789*
 	VimのExコマンドのようにキーワードに短縮形があるとき、省略可能な部分を
 	[]のでくくることによって受け入れるキーワードをいっぺんに定義することが
 	できる: >
@@ -2942,7 +3267,7 @@ region item end     -	 yes  -    yes	-    yes  yes
 <
 	 abcfoostringbarabc
 	    mmmmmmmmmmm	    マッチ部分
-	      ssrrrreee	    start/region/endとして強調される部分 ("Foo", "Exa", "Bar")
+	      sssrrreee	    start/region/endとして強調される部分 ("Foo", "Exa", "Bar")
 
 Leading context			*:syn-lc* *:syn-leading* *:syn-context*
 
@@ -3259,6 +3584,7 @@ Example: >
 	引数"groupthere"なしの場合。シンクロナイズポイントの検索の際にスキップ
 	されるリージョンやマッチを定義する。
 
+						*syn-sync-linecont*
     :syntax sync linecont {pattern}
 
 	{pattern}とのマッチが次の行にも継続されるとみなされる。つまりシンクロ
@@ -3317,6 +3643,10 @@ Example: >
 				:echo g:colors_name
 <			再帰的な読み込みはされない。つまりカラースキームスクリ
 			プト中で":colorscheme"を使うことはできない。
+			カラースキームが読み込まれた後、自動コマンドイベント
+			|ColorScheme|が発生する。カラースキームファイルを書く
+			ための情報については次を参照: >
+				:edit $VIMRUNTIME/colors/README.txt
 
 :hi[ghlight]		属性がセットされた強調グループを全て表示する。
 
@@ -3354,6 +3684,16 @@ Example: >
 行されるのと同じである: >
    :hi Comment	term=bold ctermfg=Cyan guifg=#80a0ff gui=bold
 <
+							*:highlight-verbose*
+'verbose'を0でない値にして強調グループの一覧を表示すると、それが最後に設定され
+た場所も表示される。例: >
+	:verbose hi Comment
+<	Comment        xxx term=bold ctermfg=4 guifg=Blue ~
+	   Last set from /home/mool/vim/vim7/runtime/syntax/syncolor.vim ~
+
+":hi clear"が実行されると、このコマンドを実行したスクリプトがデフォルト値とし
+て言及される。より詳しくは|:verbose-cmd|を参照。
+
 					*highlight-args* *E416* *E417* *E423*
 強調に関しては3種類のターミナルがある:
 term	通常のターミナル(vt100, xterm)
@@ -3367,11 +3707,14 @@ gui	GUI
 
 1. highlightコマンドの引数(通常のターミナル用)
 
+					*bold* *underline* *undercurl*
+					*inverse* *italic* *standout*
 term={attr-list}			*attr-list* *highlight-term* *E418*
 	attr-listはカンマ区切りのリスト(スペースは入れない)で、要素は以下の通
 	り(順序はどうでもよい):
 		bold
 		underline
+		undercurl	必ずしも使用できるとは限らない
 		reverse
 		inverse		reverseと同じ
 		italic
@@ -3380,6 +3723,9 @@ term={attr-list}			*attr-list* *highlight-term* *E418*
 
 	ここで"bold"を指定してもよいし、太文字のフォントを使ってもよい。どちら
 	も同じことになる。
+	"undercurl"は波線のことである。"undercurl"が使用できないときは
+	"underline"が使われる。一般的には"undercurl"はGUIでのみ使用できる。そ
+	の色は|highlight-guisp|で設定できる。
 
 start={term-list}				*highlight-start* *E422*
 stop={term-list}				*term-list* *highlight-stop*
@@ -3524,7 +3870,10 @@ font={font-name}					*highlight-font*
 
 guifg={color-name}					*highlight-guifg*
 guibg={color-name}					*highlight-guibg*
-	guifgは文字色、guibgは背景色を指定する。いくつか特別な名前がある:
+guisp={color-name}					*highlight-guisp*
+	guifgは文字色、guibgは背景色、guispは波線の色を指定する。これらはGUIで
+	使用される。
+	いくつか特別な名前がある:
 		NONE		no color (透明)
 		bg		通常の背景色を使う
 		background	通常の背景色を使う
@@ -3553,8 +3902,8 @@ guibg={color-name}					*highlight-guibg*
 	RGB値によって色を指定することもできる。
 	フォーマットは"#rrggbb"、ここで
 		"rr"	Red値
-		"bb"	Blue値
 		"gg"	Green値
+		"bb"	Blue値
 	これらの値は16進であり、範囲は"00"から"ff"。例: >
   :highlight Comment guifg=#11f0c3 guibg=#ff00ff
 <
@@ -3566,6 +3915,10 @@ guibg={color-name}					*highlight-guibg*
 Cursor		カーソル下の文字
 							*hl-CursorIM*
 CursorIM	Cursorと同じだが、IMEモードにいるとき使われる|CursorIM|。
+							*hl-CursorColumn*
+CursorColumn	'cursorcolumn'がオンになっているときのカーソルがある画面上の桁
+							*hl-CursorLine*
+CursorLine	'cursorline'がオンになっているときのカーソルがある画面上の行
 							*hl-Directory*
 Directory	ディレクトリ名(とリストにある特別な名前)
 							*hl-DiffAdd*
@@ -3591,6 +3944,10 @@ IncSearch	'incsearch'の強調; ":s///c"で置換されたテキストにも使�
 							*hl-LineNr*
 LineNr		":number"と":#"コマンドの行番号。オプション'number'がセットさ
 		れているときはそれにも使われる。
+							*hl-MatchParen*
+MatchParen	カーソル下の文字、または直後の文字が括弧であるとき、その文字と
+		対応する括弧に使われる。|pi_paren.txt|
+
 							*hl-ModeMsg*
 ModeMsg		'showmode'のメッセージ (例. "-- INSERT --")
 							*hl-MoreMsg*
@@ -3601,6 +3958,14 @@ NonText		ウィンドウの端の'~'と'@'、'showbreak'で設定された文字
 		とき">"が表示される)。
 							*hl-Normal*
 Normal		通常のテキスト
+							*hl-Pmenu*
+Pmenu		ポップアップメニュー: 通常の項目。
+							*hl-PmenuSel*
+PmenuSel	ポップアップメニュー: 選択されている項目。
+							*hl-PmenuSbar*
+PmenuSbar	ポップアップメニュー: スクロールバー。
+							*hl-PmenuThumb*
+PmenuThumb	ポップアップメニュー: スクロールバーのつまみ部分。
 							*hl-Question*
 Question	ヒットエンタープロンプト|hit-enter|とyes/noクエスチョン
 							*hl-Search*
@@ -3611,12 +3976,30 @@ Search		最後に検索した語の強調('hlsearch')を参照。
 SpecialKey	":map"でリストされるメタキーと特別なキー。テキスト中の
 		unprintableな文字を表示するのにも使われる。
 		一般に: 実際とは異なる文字で表示されるテキスト
+							*hl-SpellBad*
+SpellBad	スペルチェッカに認識されない単語。|spell|
+		これは他の強調と同時に組み合わせられる。
+							*hl-SpellCap*
+SpellCap	大文字で始まるべき単語。 |spell|
+		これは他の強調と同時に組み合わせられる。
+							*hl-SpellLocal*
+SpellLocal	スペルチェッカによって他の地域で使われると判断される単語。
+		|spell|これは他の強調と同時に組み合わせられる。
+							*hl-SpellRare*
+SpellRare	スペルチェッカによってまず使わないと判断される単語。|spell|
+		これは他の強調と同時に組み合わせられる。
 							*hl-StatusLine*
 StatusLine	カレントウィンドウのステータスライン
 							*hl-StatusLineNC*
 StatusLineNC	非カレントウィンドウのステータスライン。
 		Note: これが"StatusLine"に等しい場合、カレントウィンドウのステ
 		ータスラインに"^^^"が使われる。
+							*hl-TabLine*
+TabLine		タブページの行の、アクティブでないタブページのラベル
+							*hl-TabLineFill*
+TabLineFill	タブページの行の、ラベルがない部分
+							*hl-TabLineSel*
+TabLineSel	タブページの行の、アクティブなタブページのラベル
 							*hl-Title*
 Title		":set all"、":autocmd"などによる出力のタイトル。
 							*hl-Visual*
@@ -3630,7 +4013,7 @@ WarningMsg	警告メッセージ
 							*hl-WildMenu*
 WildMenu	'wildmenu'補完における現在の候補
 
-						*hl-User1* *hl-User1..9*
+					*hl-User1* *hl-User1..9* *hl-User9*
 'statusline'構文によってステータスラインとルーラー('rulerformat'によって)中で9
 個の強調が使えるようになっている。その名前はUser1からUser9である。
 
@@ -3760,6 +4143,11 @@ Unixでは~/.vim/after/syntax/syncolor.vimファイルを使うとよい。例: 
 ムで定義された色が使われるのかわからなくなる場合がある。これはカラースキーム
 ファイルに依存する。|:colorscheme|を参照。
 
+								*E679*
+このsyncolor.vimが"syntax on"を実行しないこと、また、オプション'background'を
+設定したりコマンド"colorscheme"を実行しないように注意すること。もしこれらを実
+行すると無限ループに陥ってしまう。
+
 							*syntax_cmd*
 syntax/syncolor.vimファイルが読み込まれると、変数"syntax_cmd"が次の3つの値のう
 ちどれかにセットされる:
@@ -3838,15 +4226,14 @@ Note: これらの設定は":syntax on"の前に行うこと。そうでない�
 							*colortest.vim*
 色設定をテストするためのファイルがVimディストリビューションに入っている。これ
 を使うには次のコマンドを実行する: >
-   :e $VIMRUNTIME/syntax/colortest.vim
-   :so %
+   :runtime syntax/colortest.vim
 
 xtermのあるバージョン(とlinuxコンソールのような他のターミナル)は、たとえ色数が
 8に定義されていても、より明るい文字色を出力することができる。そのため't_Co'が
 8のとき、Vimは明るい文字色に対して"cterm=bold"属性をセットする。
 
 							*xfree-xterm*
-16色以上を使うにはxtermの最新バージョンを入手すること(Xfree86 3.3以降に含まれ
+16色以上を使うにはxtermの最新バージョンを入手すること(XFree86 3.3以降に含まれ
 ているはずである)。また、以下の場所でも最新バージョンが得られる: >
 	http://invisible-island.net/xterm/xterm.html
 次にそれをconfigureするよい方法を示す。これは88色を使い、termcap-query機能を有
