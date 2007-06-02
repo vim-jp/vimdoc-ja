@@ -1,9 +1,9 @@
 COMMENT: クイックフィックス(プログラム開発支援)
-STATUS: finished 7.0
+STATUS: finished 7.1
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*quickfix.txt*  For Vim version 7.0.  Last change: 2006 Apr 30
+*quickfix.txt*  For Vim version 7.1.  Last change: 2007 May 10
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -170,14 +170,15 @@ AmigaでManx's Aztec C compilerを使っているなら、Vimと連携させる�
 			ウィンドウのロケーションリストが使われる。
 
 						*:cb* *:cbuffer* *E681*
-:cb[uffer] [bufnr]	カレントバッファからエラーリストを読み込む。[bufnr]を
+:cb[uffer][!] [bufnr]	カレントバッファからエラーリストを読み込む。[bufnr]を
 			指定すると、カレントバッファの代わりにそのバッファが使
 			われる。bufnrには読み込まれているバッファ番号を指定しな
 			ければならない。範囲を指定すると、読み込む行を指定する
 			ことができる。範囲指定がないとバッファ全体が使われる。
+			[!]については|:cc|を参照。
 
 						*:lb* *:lbuffer*
-:lb[uffer] [bufnr]	":cbuffer"と同様だが、QuickFixリストでなく、カレント
+:lb[uffer][!] [bufnr]	":cbuffer"と同様だが、QuickFixリストでなく、カレント
 			ウィンドウのロケーションリストが使われる。
 
 						*:cgetb* *:cgetbuffer*
@@ -408,11 +409,11 @@ BufWinEnterイベントも発生する。ここでもバッファ名は"quickfix
 			   出力がerrorfileに保存される(Unixではそれも画面に
 			   echoされる)。
 			5. 'errorformat'を使ってerrorfileが読みこまれる。
-			6. [!]が与えられていないときは最初のエラーに移動する。
-			7. エラーファイルが削除される。
-			8. vimが|+autocmd|つきでビルドされているならば、
+			6. vimが|+autocmd|つきでビルドされているならば、
 			   |QuickFixCmdPost|に関連付けられた自動コマンドが全て
 			   実行される。
+			7. [!]が与えられていないときは最初のエラーに移動する。
+			8. エラーファイルが削除される。
 			9.|:cnext|や|:cprevious|などのコマンドでエラー間を移動
 			できる。上を参照。
 			このコマンドは如何なるコメントも受けつけず、どんな "
@@ -681,6 +682,17 @@ piler"でなく"current_compiler"を使う。このコマンドが実際に行�
 コンパイラプラグインを書くためには|write-compiler-plugin|を参照せよ。
 
 
+GCC					*quickfix-gcc*	*compiler-gcc*
+
+GCC用に設定できる変数は1つある:
+
+g:compiler_gcc_ignore_unmatched_lines
+				GCC用に定義されたどのパターンにもマッチしない
+				行を無視する。makeから起動されたコマンドの出力
+				のせいで誤検出(false positive)が発生してしまう
+				ときに有用である。
+
+
 MANX AZTEC C				*quickfix-manx* *compiler-manx*
 
 Amiga上でManx's Aztec C compilerとともにVimを使うには次のようにする：
@@ -795,7 +807,7 @@ opmode"をサポートしていなければ、コマンドラインから\nonsto
 	%n		エラー番号（数字を検索）
 	%m		エラーメッセージ（文字列を検索）
 	%r		その行の残り全部 %O/%P/%Q
-	%p		ポインタライン（'-', '.', ' 'の列を検索し、その長さを桁
+	%p		ポインタ行（'-', '.', ' 'の列を検索し、その長さを桁
 			番号とする）
 	%*{conv}	scanfに割り当てられない変換
 	%%		1個のリテラル'%'
@@ -1183,15 +1195,34 @@ IBM Researchによって公開されているJavaコンパイラーJikes(TM)は�
 Jikes(TM)はオプション"+E"とともに起動されたときは１行エラーメッセージを出力す
 る。これは次によってマッチできる。
 
-  :set efm=%f:%l:%v:%*\\d:%*\\d:%*\\s%m
+  :setl efm=%f:%l:%v:%*\\d:%*\\d:%*\\s%m
 
 						*errorformat-javac*
 この'errorformat'は、エラーの桁を示すのに"^"の行を出力するjavac用にうまく動作
-すると報告されている：
-  :set efm=%A%f:%l:\ %m,%-Z%p^,%-C%.%#
-または：
-  :set efm=%A%f:%l:\ %m,%+Z%p^,%+C%.%#,%-G%.%#
+すると報告されている： >
+  :setl efm=%A%f:%l:\ %m,%-Z%p^,%-C%.%#
+または：  >
+  :setl efm=%A%f:%l:\ %m,%+Z%p^,%+C%.%#,%-G%.%#
 <
+Michael F. Lambが考案した別の方法を以下に示す。これはUnix用で、最初にエラーを
+フィルタリングする: >
+  :setl errorformat=%Z%f:%l:\ %m,%A%p^,%-G%*[^sl]%.%#
+  :setl makeprg=javac\ %\ 2>&1\ \\\|\ vim-javac-filter
+
+以下の行を"vim-javac-filter"というファイルに書いて、PATHの通ったディレクトリ(
+例えば~/bin)に置き、実行可能にしておく必要がある: >
+   #!/bin/sed -f
+   /\^$/s/\t/\ /g;/:[0-9]\+:/{h;d};/^[ \t]*\^/G;
+
+訳注: BSD sed では動作しないようです。GNU sed では動作します。
+
+このsedスクリプトを言葉で説明すると次のようになる:
+- 1つのタブを1つのスペースに置換し、
+- ファイル名・行番号・エラーメッセージを含む行をポインタ行("^"の行のこと)の直
+  後に移動する。これによって、エラーメッセージ行とポインタ行の間の使われないテ
+  キストが無視され、vimの「複数行メッセージ」の記法にマッチするようになり、ま
+  た、それを「複数行メッセージの継続」として含めなくてもよいようになる。
+
 						*errorformat-ant*
 ant(http://jakarta.apache.org/)用には、各javacの出力行の前につく[javac]を受け
 取るために、上のエラーフォーマットを修正しなければならない：
