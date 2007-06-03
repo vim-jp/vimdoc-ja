@@ -5,7 +5,7 @@ TRANSLATOR: 野田 開 <g340299@mail.ecc.u-tokyo.ac.jp>
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*autocmd.txt*   For Vim version 7.0.  Last change: 2006 May 06
+*autocmd.txt*   For Vim version 7.1.  Last change: 2007 Mar 27
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -294,6 +294,7 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 			たとき
 |SpellFileMissing|	スペリングファイルを使おうとしたが見つからなかったとき
 |SourcePre|		Vimスクリプトを読み込む前
+|SourceCmd|		Vimスクリプトを読み込む前 |Cmd-event|
 
 |VimResized|		Vimのウィンドウサイズが変わったとき
 |FocusGained|		Vimが入力フォーカスを得たとき
@@ -478,6 +479,11 @@ CursorHold			'updatetime' の時間の間、ユーザがキーを押さな
 				タグをプレビューするためには、
 				|CursorHold-example| を参照。
 				このイベントはノーマルモードのときのみ呼ばれる。
+				コマンドの引数の入力待ち状態、またはオペレータ
+				の後の移動コマンド入力待ち状態のときは発生しな
+				い。
+				レコーディングの最中にはCursorHoldイベントは発
+				生しない。|q| 
 				Note: このイベントには対話的なコマンドは使えな
 				いことに注意。「続けるには」プロンプトは現れず、
 				スクリーンは必要に応じて直接更新される。
@@ -541,8 +547,9 @@ FileChangedShell		ファイルのタイムスタンプが、ファイルの編�
 				かつバッファが変更されていないときには使われな
 				い。もし FileChangedShell の autocommand が存
 				在しても、警告メッセージやプロンプトは現れない。
-				これは、単一のコマンドに影響を受ける、複数の関
-				連バッファを再読み込みするのに便利である。
+				変数|v:fcs_reason|に何が起こったのかが設定され
+				、|v:fcs_choice|によってVimに次に何をすべきか
+				を指示できる。
 				NOTE: このイベントで autocommand が実行された
 				ときは、"%" で表されるカレントバッファと
 				"<afile>" で表される解放されるバッファとは異な
@@ -572,6 +579,7 @@ FileReadPost			コマンド ":read" でファイルを読み込んだ後。
 FileReadPre			コマンド ":read" でファイルを読み込む前。
 							*FileType*
 FileType			オプション 'filetype' が設定されたとき。
+				パターンはファイルタイプに対して照合される。
 				<afile> は 'filetype' が設定されたファイルの名
 				前として使える。<amatch> は 'filetype' の新し
 				い値として使える。
@@ -619,14 +627,21 @@ FocusLost			Vimが入力フォーカスを失ったとき。GUI版と、入力
 							*FuncUndefined*
 FuncUndefined			ユーザ定義関数が使われたが、定義されていなかっ
 				たとき。必要なときのみ関数を定義するのに便利で
-				ある。<amatch> と <afile> の両方とも関数名に設
-				定される。|autoload-functions|を参照。
+				ある。パターンは関数名に対して照合される。
+				<amatch> と <afile> の両方とも関数名に設定され
+				る。|autoload-functions|を参照。
 							*GUIEnter*
 GUIEnter			GUI の開始に成功し、ウィンドウを開いた後。
 				gvim を使ったときは、VimEnter の前に発生する。
 				ファイル .gvimrc からウィンドウの配置場所を設
 				定するために使うことができる。 >
 	:autocmd GUIEnter * winpos 100 50
+<							*GUIFailed*
+GUIFailed			GUIの開始に失敗した後。可能ならば、Vimはターミ
+				ナル内で実行を継続する(Unix系のみ。Xサーバへ接
+				続が失敗したとき)。ここでVimを終了させるには、
+				次のようにする: >
+	:autocmd GUIFailed * qall
 <							*InsertChange*
 InsertChange			インサート・上書きモードで<Insert>をタイプした
 				とき。変数|v:insertmode|が新しいモードを示す。
@@ -634,7 +649,7 @@ InsertChange			インサート・上書きモードで<Insert>をタイプした
 				は行わないように注意。
 							*InsertEnter*
 InsertEnter			インサートモード・上書きモード・Virtual上書き
-				モードを開始したとき。変数|v:insertmode|がモー
+				モードを開始する直前。変数|v:insertmode|がモー
 				ドを示す。カーソルを移動したりなどユーザが予期
 				しないことは行わないように注意。
 							*InsertLeave*
@@ -655,7 +670,7 @@ MenuPopup			(マウス右ボタンで)ポップアップメニューを表示す
 QuickFixCmdPre			QuickFixコマンドが実行される前 (|:make|,
 				|:lmake|, |:grep|, |:lgrep|, |:grepadd|,
 				|:lgrepadd|, |:vimgrep|, |:lvimgrep|,
-				|:vimgrepadd|, |:vimgrepadd|)。パターンには実
+				|:vimgrepadd|, |:lvimgrepadd|)。パターンには実
 				行されるコマンドを記述する。|:grep|が書かれて
 				いると、'grepprg'が"internal"にセットされてい
 				ても実行される。このコマンドを使って変数
@@ -668,7 +683,8 @@ QuickFixCmdPost			QuickFixCmdPreと同様だが、QuickFixコマンドが実
 				る。
 							*RemoteReply*
 RemoteReply			サーバとして働くVimからの応答を受け取ったとき
-				|server2client()|。
+				|server2client()|。パターンは|serverid|に対し
+				て照合される。
 				<amatch> は応答が送られてきたサーバの
 				{serverid} になり、<afile> は応答の実際の内容
 				になる。
@@ -689,10 +705,17 @@ ShellFilterPost			":{range}!cmd", ":w !cmd", ":r !cmd"を使ってシ
 				チェックするのに使える。
 							*SourcePre*
 SourcePre			Vimスクリプトを読み込む前。 |:source|
+				<afile>は読み込まれるファイルの名前となる。
+							*SourceCmd*
+SourceCmd			Vimスクリプトを読み込むとき。|:source|
+				<afile>は読み込まれるファイルの名前となる。こ
+				のautocommandはこのファイルを読み込まねばなら
+				ない。
 							*SpellFileMissing*
 SpellFileMissing		スペルチェックファイルを読み込もうとしたが、見
-				つからなかったとき。<amatch>は言語。'encoding'
-				も関係する。|spell-SpellFileMissing|を参照。
+				つからなかったとき。パターンは言語に対して照合
+				される。<amatch>は言語。'encoding'も関係する。
+				|spell-SpellFileMissing|を参照。
 							*StdinReadPost*
 StdinReadPost			標準入力からバッファへ読み込んだ後で、モードラ
 				インを実行する前。Vimを開始したときに引数 "-"
@@ -728,6 +751,7 @@ SwapExists			ファイルの編集を始めようとしてスワップファイ�
 				うすると予測できない結果になる。
 							*Syntax*
 Syntax				オプション 'syntax' が設定されたとき。
+				パターンは構文名に対して照合される。
 				<afile> は 'syntax' が設定されたファイルの名前
 				として使える。<amatch> は 'syntax' の新しい値
 				として使える。
@@ -1213,9 +1237,9 @@ Autocommand の中で ":nohlsearch" を使って、検索語の強調表示を�
 'h' を使うこと。
 
 							*Cmd-event*
-イベント "*Cmd" のうちどれかを使うと、それによる autocommand が読み込みまたは
-書き込みを行うものと想定される。これは特殊なファイル、例えばリモートシステム上
-のファイルに作業をするときに使える。
+イベント "*Cmd" のうちどれかを使うと、それによる autocommand が読み込み、書き
+込み、またはsourceを行うものと想定される。これは特殊なファイル、例えばリモート
+システム上のファイルに作業をするときに使える。
 注意: これらのイベントを誤った方法で使うと、そのイベントが発生するファイルの読
 み書きが不可能になってしまう。自分の autocommand をしっかりテストすること。最
 良の方法は、普通のファイル名には決してマッチしないパターン (例えば "ftp://*")
@@ -1227,10 +1251,10 @@ BufReadCmd に対して autocommand を定義すると、クラッシュした�
 能なので、コマンド |:preserve| を使って元のファイルが復旧に必要ないようにする
 こと。そうするのはファイルが変更を受けたと判断したときのみでもよい。
 
-Vim変数 |v:cmdarg| は引数 "++enc=" と "++ff=" の、有効だったものを保持している。
-これらはファイルを読み書きするコマンドで使われるべきである。
-Vim変数 |v:cmdbang|はコマンドに"!"が使われたときに 1。そうでないときに 0 が設
-定される。
+読み込みと書き込みのコマンドの場合、Vim変数 |v:cmdarg| は引数 "++enc=" と
+"++ff=" の、有効だったものを保持している。これらはファイルを読み書きするコマン
+ドで使われるべきである。Vim変数 |v:cmdbang|はコマンドに"!"が使われたときに 1。
+そうでないときに 0 が設定される。
 
 例は標準プラグイン $VIMRUNTIME/plugin/netrw.vim を参照。
 
