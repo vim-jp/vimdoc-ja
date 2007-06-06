@@ -1,10 +1,10 @@
 COMMENT: ファイル形式の自動判別
-STATUS: finished 7.0
+STATUS: finished 7.1
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*filetype.txt*  For Vim version 7.0.  Last change: 2006 Apr 28
+*filetype.txt*  For Vim version 7.1.  Last change: 2007 May 10
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -49,6 +49,8 @@ NOTE: Viコンパチブルとは全てのオプションがグローバルであ
 	義するVimスクリプトファイルである。ファイル形式がファイル名から決定で
 	きない時には、ファイルの内容を検出するために$VIMRUNTIME/scripts.vimが
 	使用される。
+	GUIで使用しているとき、またはGUIを開始しようとしているときには、
+	menu.vimも読み込まれる。これを避けるには|'go-M'|を参照。
 
 独自のファイルタイプを追加するには、下の|new-filetype|を参照。あるファイルタイ
 プについてのヘルプを検索するには、ファイルタイプ名の前に "ft-" をつけ、さらに
@@ -314,24 +316,28 @@ OSによる「形式」を利用するには自動実行コマンドの検出パ
 
 	set runtimepath
 
-次の内容が出力される: >
+次の内容が出力される:
 
-	runtimepath=/etc/vim,~/.vim,/usr/local/share/vim/vim60
+	runtimepath=/etc/vim,~/.vim,/usr/local/share/vim/vim60 ~
 
-この時Vimは以下に示すディレクトリにある全てのプラグインを読み込む: >
+この時Vimは以下に示すディレクトリとそれ以下にある全てのプラグインを読み込む:
 
-	/etc/vim/plugin/
-	~/.vim/plugin/
-	/usr/local/share/vim/vim60/plugin/
+	/etc/vim/plugin/ ~
+	~/.vim/plugin/ ~
+	/usr/local/share/vim/vim60/plugin/ ~
 
 最後の1つは$VIMRUNTIMEが展開されたものであることに注意。
 
 プラグインが読み込まれていないらしい場合はどうすれば良いのか? Vim起動時に|-V|
 引数を使用すれば何が起こっているか知ることができる: >
-	vim -V1
+
+	vim -V2
+
 多くのメッセージが表示されるが、プラグインの読み込みの前には特定の記述がなされ
 る。それは次のように始まる:
-	Searching for "plugin/*.vim" in
+
+	Searching for "plugin/**/*.vim" in ~
+
 これを見ればVimがプラグインスクリプトをどこから探しているのかがわかる。
 
 ==============================================================================
@@ -428,7 +434,8 @@ NewChangelogEntry	適切にアイテムを追加する(以下参照)。
 			く。
 
 変数:
-g:changelog_timeformat	エントリに入れる日付(と時間)の書式。
+g:changelog_timeformat	非推奨。g:changelog_dateformatを使うこと。
+g:changelog_dateformat	エントリに入れる日付(と時間)の書式。
 			使えるフォーマットは |strftime()| と同じ。
 			デフォルトでは標準的に使われている "%Y-%m-%d" が設定
 			されている。
@@ -464,11 +471,17 @@ g:changelog_new_entry_format
 				|        * |
 <
 g:changelog_date_entry_search
-			エントリを探すための検索パターン。
+			日付エントリを探すための検索パターン。
 			g:changelog_new_date_formatと同じ特別な文字が使え
 			る。デフォルトは '^/\s*%d\_s*%u' で、次のような行 >
 				|2003-01-14  Full Name  <user@host>
 <			を見つける。
+
+g:changelog_date_end_entry_search
+			日付エントリの終端を探すための検索パターン。
+			g:changelog_new_date_formatにおけるトークンと同じもの
+			が使用できる。デフォルトは'^\s*$'で、空白文字のみを含
+			む行または完全な空行を検索する。
 
 チェンジログエントリは適切な位置に挿入される。現在の日付とユーザーを得た後
 に、その日付とユーザーのエントリをファイルから探し、見つかればその下にアイテ
