@@ -1,4 +1,4 @@
-*options.txt*	For Vim version 7.0.  Last change: 2006 May 04
+*options.txt*	For Vim version 7.1.  Last change: 2007 May 11
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -312,7 +312,7 @@ For example, you have two windows, both on C source code.  They use the global
 then the other window will switch to the same value.  There is no need to set
 the 'makeprg' option in the other C source window too.
 However, if you start editing a Perl file in a new window, you want to use
-another 'makeprog' for it, without changing the value used for the C source
+another 'makeprg' for it, without changing the value used for the C source
 files.  You use this command: >
 	:setlocal makeprg=perlmake
 You can switch back to using the global value by making the local value empty: >
@@ -455,7 +455,7 @@ There are two forms of modelines.  The first form:
 [white]		optional white space
 {options}	a list of option settings, separated with white space or ':',
 		where each part between ':' is the argument for a ":set"
-		command
+		command (can be empty)
 
 Example:
    vi:noai:sw=3 ts=6 ~
@@ -528,7 +528,12 @@ This sets the 'dir' option to "c:\tmp".  Only a single backslash before the
 ':' is removed.  Thus to include "\:" you have to specify "\\:".
 
 No other commands than "set" are supported, for security reasons (somebody
-might create a Trojan horse text file with modelines).
+might create a Trojan horse text file with modelines).  And not all options
+can be set.  For some options a flag is set, so that when it's used the
+|sandbox| is effective.  Still, there is always a small risk that a modeline
+causes trouble.  E.g., when some joker sets 'textwidth' to 5 all your lines
+are wrapped unexpectedly.  So disable modelines before editing untrusted text.
+The mail ftplugin does this, for example.
 
 Hint: If you would like to do something else than setting an option, you could
 define an autocommand that checks the file for a specific string.  For
@@ -734,9 +739,9 @@ A jump table for the options with a short description can be found at |Q_op|.
 	Copy indent from current line when starting a new line (typing <CR>
 	in Insert mode or when using the "o" or "O" command).  If you do not
 	type anything on the new line except <BS> or CTRL-D and then type
-	<Esc> or <CR>, the indent is deleted again.  Moving the cursor to
-	another line has the same effect, unless the 'I' flag is included in
-	'cpoptions'.
+	<Esc>, CTRL-O or <CR>, the indent is deleted again.  Moving the cursor
+	to another line has the same effect, unless the 'I' flag is included
+	in 'cpoptions'.
 	When autoindent is on, formatting (with the "gq" command or when you
 	reach 'textwidth' in Insert mode) uses the indentation of the first
 	line.
@@ -896,8 +901,8 @@ A jump table for the options with a short description can be found at |Q_op|.
 
 	The "auto" value is the middle way: When Vim sees that renaming file
 	is possible without side effects (the attributes can be passed on and
-	and the file is not a link) that is used.  When problems are expected,
-	a copy will be made.
+	the file is not a link) that is used.  When problems are expected, a
+	copy will be made.
 
 	The "breaksymlink" and "breakhardlink" values can be used in
 	combination with any of "yes", "no" and "auto".  When included, they
@@ -1000,7 +1005,12 @@ A jump table for the options with a short description can be found at |Q_op|.
 	Watch out for special characters, see |option-backslash|.
 	When $TMPDIR, $TMP or $TEMP is not defined, it is not used for the
 	default value.  "/tmp/*" is only used for Unix.
-	Note that the default also makes sure that "crontab -e" works (when a
+
+	Note that environment variables are not expanded.  If you want to use
+	$HOME you must expand it explicitly, e.g.: >
+		:let backupskip = escape(expand('$HOME'), '\') . '/tmp/*'
+
+<	Note that the default also makes sure that "crontab -e" works (when a
 	backup would be made by renaming the original file crontab won't see
 	the newly created file).  Also see 'backupcopy' and |crontab|.
 
@@ -1464,8 +1474,12 @@ A jump table for the options with a short description can be found at |Q_op|.
 	option will cause the window size to be changed.  When you only want
 	to use the size for the GUI, put the command in your |gvimrc| file.
 	When you set this option and Vim is unable to change the physical
-	number of columns of the display, the display may be messed up.
-	Minimum value is 12, maximum value is 10000.
+	number of columns of the display, the display may be messed up.  For
+	the GUI it is always possible and Vim limits the number of columns to
+	what fits on the screen.  You can use this command to get the widest
+	window possible: >
+		:set columns=9999
+<	Minimum value is 12, maximum value is 10000.
 
 					*'comments'* *'com'* *E524* *E525*
 'comments' 'com'	string	(default
@@ -1510,8 +1524,9 @@ A jump table for the options with a short description can be found at |Q_op|.
 	modified will be set to the Vim defaults.  Effectively, this means
 	that when a |vimrc| or |gvimrc| file exists, Vim will use the Vim
 	defaults, otherwise it will use the Vi defaults.  (Note: This doesn't
-	happen for the system-wide vimrc or gvimrc file).  Also see
-	|compatible-default| and |posix-compliance|.
+	happen for the system-wide vimrc or gvimrc file, nor for a file given
+	with the |-u| argument).  Also see |compatible-default| and
+	|posix-compliance|.
 	You can also set this option with the "-C" argument, and reset it with
 	"-N".  See |-C| and |-N|.
 	Switching this option off makes the Vim defaults be used for options
@@ -1658,7 +1673,9 @@ A jump table for the options with a short description can be found at |Q_op|.
 		    used.
 
 	   preview  Show extra information about the currently selected
-		    completion in the preview window.
+		    completion in the preview window.  Only works in
+		    combination with "menu" or "menuone".
+
 
 				*'confirm'* *'cf'* *'noconfirm'* *'nocf'*
 'confirm' 'cf'		boolean (default off)
@@ -2326,7 +2343,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 	NOTE: Changing this option will not change the encoding of the
 	existing text in Vim.  It may cause non-ASCII text to become invalid.
 	It should normally be kept at its default value, or set when Vim
-	starts up.  See |multibyte|.
+	starts up.  See |multibyte|.  To reload the menus see |:menutrans|.
 
 	NOTE: For GTK+ 2 it is highly recommended to set 'encoding' to
 	"utf-8".  Although care has been taken to allow different values of
@@ -2516,7 +2533,8 @@ A jump table for the options with a short description can be found at |Q_op|.
 	|mbyte-conversion|.
 	When reading a file 'fileencoding' will be set from 'fileencodings'.
 	To read a file in a certain encoding it won't work by setting
-	'fileencoding', use the |++enc| argument.
+	'fileencoding', use the |++enc| argument.  One exception: when
+	'fileencodings' is empty the value of 'fileencoding' is used.
 	For a new file the global value of 'fileencoding' is used.
 	Prepending "8bit-" and "2byte-" has no meaning here, they are ignored.
 	When the option is set, the value is converted to lowercase.  Thus
@@ -3311,7 +3329,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 	"+=" and "-=" feature of ":set" |add-option-flags|.
 
 	Valid letters are as follows:
-							*guioptions_a*
+							*guioptions_a* *'go-a'*
 	  'a'	Autoselect:  If present, then whenever VISUAL mode is started,
 		or the Visual area extended, Vim tries to become the owner of
 		the windowing system's global selection.  This means that the
@@ -3326,7 +3344,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 		windowing system's global selection unless explicitly told to
 		by a yank or delete operation for the "* register.
 		The same applies to the modeless selection.
-
+								*'go-A'*
 	  'A'	Autoselect for the modeless selection.  Like 'a', but only
 		applies to the modeless selection.
 
@@ -3336,15 +3354,16 @@ A jump table for the options with a short description can be found at |Q_op|.
 			 "A"		 -			yes
 			 "aA"		yes			yes
 
+								*'go-c'*
 	  'c'	Use console dialogs instead of popup dialogs for simple
 		choices.
-
+								*'go-e'*
 	  'e'	Add tab pages when indicated with 'showtabline'.
 		'guitablabel' can be used to change the text in the labels.
 		When 'e' is missing a non-GUI tab pages line may be used.
 		The GUI tabs are only supported on some systems, currently
 		GTK, Motif and MS-Windows.
-
+								*'go-f'*
 	  'f'	Foreground: Don't use fork() to detach the GUI from the shell
 		where it was started.  Use this for programs that wait for the
 		editor to finish (e.g., an e-mail program).  Alternatively you
@@ -3352,50 +3371,62 @@ A jump table for the options with a short description can be found at |Q_op|.
 		foreground.  |gui-fork|
 		Note: Set this option in the vimrc file.  The forking may have
 		happened already when the |gvimrc| file is read.
-
+								*'go-i'*
 	  'i'	Use a Vim icon.  For GTK with KDE it is used in the left-upper
 		corner of the window.  It's black&white on non-GTK, because of
 		limitations of X11.  For a color icon, see |X11-icon|.
-
+	  							*'go-m'*
 	  'm'	Menu bar is present.
+	  							*'go-M'*
 	  'M'	The system menu "$VIMRUNTIME/menu.vim" is not sourced.  Note
 		that this flag must be added in the .vimrc file, before
 		switching on syntax or filetype recognition (when the |gvimrc|
 		file is sourced the system menu has already been loaded; the
 		":syntax on" and ":filetype on" commands load the menu too).
+	  							*'go-g'*
 	  'g'	Grey menu items: Make menu items that are not active grey.  If
 		'g' is not included inactive menu items are not shown at all.
 		Exception: Athena will always use grey menu items.
-
+								*'go-t'*
 	  't'	Include tearoff menu items.  Currently only works for Win32,
 		GTK+, and Motif 1.2 GUI.
+								*'go-T'*
 	  'T'	Include Toolbar.  Currently only in Win32, GTK+, Motif, Photon
 		and Athena GUIs.
-
+								*'go-r'*
 	  'r'	Right-hand scrollbar is always present.
+	  							*'go-R'*
 	  'R'	Right-hand scrollbar is present when there is a vertically
 		split window.
+	  							*'go-l'*
 	  'l'	Left-hand scrollbar is always present.
+	  							*'go-L'*
 	  'L'	Left-hand scrollbar is present when there is a vertically
 		split window.
+								*'go-b'*
 	  'b'	Bottom (horizontal) scrollbar is present.  Its size depends on
 		the longest visible line, or on the cursor line if the 'h'
 		flag is included. |gui-horiz-scroll|
+	  							*'go-h'*
 	  'h'	Limit horizontal scrollbar size to the length of the cursor
 		line.  Reduces computations. |gui-horiz-scroll|
 
 	And yes, you may even have scrollbars on the left AND the right if
 	you really want to :-).  See |gui-scrollbars| for more information.
 
+	  							*'go-v'*
 	  'v'	Use a vertical button layout for dialogs.  When not included,
 		a horizontal layout is preferred, but when it doesn't fit a
 		vertical layout is used anyway.
+	  							*'go-p'*
 	  'p'	Use Pointer callbacks for X11 GUI.  This is required for some
 		window managers.  If the cursor is not blinking or hollow at
 		the right moment, try adding this flag.  This must be done
 		before starting the GUI.  Set it in your |gvimrc|.  Adding or
 		removing it after the GUI has started has no effect.
+	  							*'go-F'*
 	  'F'	Add a footer.  Only for Motif.  See |gui-footer|.
+
 
 						*'guipty'* *'noguipty'*
 'guipty'		boolean	(default on)
@@ -4278,11 +4309,11 @@ A jump table for the options with a short description can be found at |Q_op|.
 	  eol:c		Character to show at the end of each line.  When
 			omitted, there is no extra character at the end of the
 			line.
-	  tab:xy	Two characters to be used to show a Tab.  The first
+	  tab:xy	Two characters to be used to show a tab.  The first
 			char is used once.  The second char is repeated to
-			fill the space that the Tab normally occupies.
-			"tab:>-" will show a Tab that takes four spaces as
-			">---".  When omitted, a Tab is show as ^I.
+			fill the space that the tab normally occupies.
+			"tab:>-" will show a tab that takes four spaces as
+			">---".  When omitted, a tab is show as ^I.
 	  trail:c	Character to show for trailing spaces.  When omitted,
 			trailing spaces are blank.
 	  extends:c	Character to show in the last column, when 'wrap' is
@@ -4304,6 +4335,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 	    :set lcs=extends:>,precedes:<
 <	The "NonText" highlighting will be used for "eol", "extends" and
 	"precedes".  "SpecialKey" for "nbsp", "tab" and "trail".
+	|hl-NonText| |hl-SpecialKey|
 
 			*'lpl'* *'nolpl'* *'loadplugins'* *'noloadplugins'*
 'loadplugins' 'lpl'	boolean	(default on)
@@ -4328,7 +4360,9 @@ A jump table for the options with a short description can be found at |Q_op|.
 		if exists('&macatsui')
 		   set nomacatsui
 		endif
-<
+<	Another option to check if you have drawing problems is
+	'termencoding'.
+
 						*'magic'* *'nomagic'*
 'magic'			boolean	(default on)
 			global
@@ -4361,13 +4395,14 @@ A jump table for the options with a short description can be found at |Q_op|.
 'makeprg' 'mp'		string	(default "make", VMS: "MMS")
 			global or local to buffer |global-local|
 			{not in Vi}
-	Program to use for the ":make" command.  See |:make_makeprg|.  This
-	option may contain '%' and '#' characters, which are expanded like
-	when used in a command-line.  Environment variables are expanded
-	|:set_env|.  See |option-backslash| about including spaces and
-	backslashes.  Note that a '|' must be escaped twice: once for ":set"
-	and once for the interpretation of a command.  When you use a filter
-	called "myfilter" do it like this: >
+	Program to use for the ":make" command.  See |:make_makeprg|.
+	This option may contain '%' and '#' characters, which are expanded to
+	the current and alternate file name. |:_%| |:_#|
+	Environment variables are expanded |:set_env|.  See |option-backslash|
+	about including spaces and backslashes.
+	Note that a '|' must be escaped twice: once for ":set" and once for
+	the interpretation of a command.  When you use a filter called
+	"myfilter" do it like this: >
 	    :set makeprg=gmake\ \\\|\ myfilter
 <	The placeholder "$*" can be given (even multiple times) to specify
 	where the arguments will be included, for example: >
@@ -4380,10 +4415,10 @@ A jump table for the options with a short description can be found at |Q_op|.
 			local to buffer
 			{not in Vi}
 	Characters that form pairs.  The |%| command jumps from one to the
-	other.  Currently only single character pairs are allowed, and they
-	must be different.  The characters must be separated by a colon.  The
-	pairs must be separated by a comma.  Example for including '<' and '>'
-	(HTML): >
+	other.  Currently only single byte character pairs are allowed, and
+	they must be different.  The characters must be separated by a colon.
+	The pairs must be separated by a comma.  Example for including '<' and
+	'>' (HTML): >
 		:set mps+=<:>
 
 <	A more exotic example, to jump between the '=' and ';' in an
@@ -4419,6 +4454,8 @@ A jump table for the options with a short description can be found at |Q_op|.
 'maxfuncdepth' 'mfd'	number	(default 100)
 			global
 			{not in Vi}
+			{not available when compiled without the +eval
+			feature}
 	Maximum depth of function calls for user functions.  This normally
 	catches endless recursion.  When using a recursive function with
 	more depth, set 'maxfuncdepth' to a bigger number.  But this will use
@@ -4453,8 +4490,8 @@ A jump table for the options with a short description can be found at |Q_op|.
 	Maximum amount of memory (in Kbyte) to use for pattern matching.
 	Maximum value 2000000.  Use this to work without a limit.
 							*E363*
-	When Vim runs into the limit it gives an error message mostly behaves
-	like CTRL-C was typed.
+	When Vim runs into the limit it gives an error message and mostly
+	behaves like CTRL-C was typed.
 	Running into the limit often means that the pattern is very
 	inefficient or too complex.  This may already happen with the pattern
 	"\(.\)*" on a very long line.  ".*" works much better.
@@ -4520,7 +4557,8 @@ A jump table for the options with a short description can be found at |Q_op|.
 	languages, no matter what you set 'mkspellmem' to.
 
 				   *'modeline'* *'ml'* *'nomodeline'* *'noml'*
-'modeline' 'ml'		boolean	(Vim default: on, Vi default: off)
+'modeline' 'ml'		boolean	(Vim default: on (off for root),
+				 Vi default: off)
 			local to buffer
 						*'modelines'* *'mls'*
 'modelines' 'mls'	number	(default 5)
@@ -4792,8 +4830,20 @@ A jump table for the options with a short description can be found at |Q_op|.
 	completion with CTRL-X CTRL-O. |i_CTRL-X_CTRL-O|
 	See |complete-functions| for an explanation of how the function is
 	invoked and what it should return.
-	This option is usually set by a filetype plugin.
+	This option is usually set by a filetype plugin:
 	|:filetype-plugin-on|
+
+
+			    *'opendevice'* *'odev'* *'noopendevice'* *'noodev'*
+'opendevice' 'odev'	boolean	(default off)
+			global
+			{not in Vi}
+			{only for MS-DOS, MS-Windows and OS/2}
+	Enable reading and writing from devices.  This may get Vim stuck on a
+	device that can be opened but doesn't actually do the I/O.  Therefore
+	it is off by default.
+	Note that on MS-Windows editing "aux.h", "lpt1.txt" and the like also
+	result in editing a device.
 
 
 						*'operatorfunc'* *'opfunc'*
@@ -5410,7 +5460,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 			1. When "jump" is not included, the relative offset is
 			   adjusted for the scroll position in the new current
 			   window.  When going back to the other window, the
-			   the new relative offset will be used.
+			   new relative offset will be used.
 			2. When "jump" is included, the other windows are
 			   scrolled to keep the same relative offset.  When
 			   going back to the other window, it still uses the
@@ -5515,8 +5565,6 @@ A jump table for the options with a short description can be found at |Q_op|.
 	   winsize	window sizes
 
 	Don't include both "curdir" and "sesdir".
-	There is no option to include tab pages yet, only the current tab page
-	is stored in the session. |tab-page|
 	When "curdir" nor "sesdir" is included, file names are stored with
 	absolute paths.
 	"slash" and "unix" are useful on Windows when sharing session files
@@ -5811,8 +5859,8 @@ A jump table for the options with a short description can be found at |Q_op|.
 			{not in Vi}
 			{not available when compiled without the
 			|+cmdline_info| feature}
-	Show (partial) command in status line.  Set this option off if your
-	terminal is slow.
+	Show (partial) command in the last line of the screen.  Set this
+	option off if your terminal is slow.
 	In Visual mode the size of the selected area is shown:
 	- When selecting characters within a line, the number of characters.
 	- When selecting more than one line, the number of lines.
@@ -5959,7 +6007,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 	When off, a <Tab> always inserts blanks according to 'tabstop' or
 	'softtabstop'.  'shiftwidth' is only used for shifting text left or
 	right |shift-left-right|.
-	What gets inserted (a Tab or spaces) depends on the 'expandtab'
+	What gets inserted (a <Tab> or spaces) depends on the 'expandtab'
 	option.  Also see |ins-expandtab|.  When 'expandtab' is not set, the
 	number of spaces is minimized by using <Tab>s.
 	NOTE: This option is reset when 'compatible' is set.
@@ -6216,7 +6264,8 @@ A jump table for the options with a short description can be found at |Q_op|.
 		- not applicable
 
 	item  meaning ~
-	f S   Path to the file in the buffer, relative to current directory.
+	f S   Path to the file in the buffer, as typed or relative to current
+	      directory.
 	F S   Full path to the file in the buffer.
 	t S   File name (tail) of file in the buffer.
 	m F   Modified flag, text is " [+]"; " [-]" if 'modifiable' is off.
@@ -6502,7 +6551,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 	There are four main ways to use tabs in Vim:
 	1. Always keep 'tabstop' at 8, set 'softtabstop' and 'shiftwidth' to 4
 	   (or 3 or whatever you prefer) and use 'noexpandtab'.  Then Vim
-	   will use a mix of tabs and spaces, but typing Tab and BS will
+	   will use a mix of tabs and spaces, but typing <Tab> and <BS> will
 	   behave like a tab appears every 4 (or 3) characters.
 	2. Set 'tabstop' and 'shiftwidth' to whatever you prefer and use
 	   'expandtab'.  This way you will always insert spaces.  The
@@ -6660,7 +6709,8 @@ A jump table for the options with a short description can be found at |Q_op|.
 	Encoding used for the terminal.  This specifies what character
 	encoding the keyboard produces and the display will understand.  For
 	the GUI it only applies to the keyboard ('encoding' is used for the
-	display).
+	display).  Except for the Mac when 'macatsui' is off, then
+	'termencoding' should be "macroman".
 	In the Win32 console version the default value is the console codepage
 	when it differs from the ANSI codepage.
 								*E617*
@@ -6981,7 +7031,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 			{only in Unix and VMS, doesn't work in the GUI; not
 			available when compiled without |+mouse|}
 	Name of the terminal type for which mouse codes are to be recognized.
-	Currently these three strings are valid:
+	Currently these strings are valid:
 							*xterm-mouse*
 	   xterm	xterm-like mouse handling.  The mouse generates
 			"<Esc>[Mscr", where "scr" is three bytes:
@@ -7274,7 +7324,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 	    onemore	Allow the cursor to move just past the end of the line
 
 	Virtual editing means that the cursor can be positioned where there is
-	no actual character.  This can be halfway into a Tab or beyond the end
+	no actual character.  This can be halfway into a tab or beyond the end
 	of the line.  Useful for selecting a rectangle in Visual mode and
 	editing a table.
 	"onemore" is not the same, it will only allow moving the cursor just
@@ -7439,7 +7489,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 			{not in Vi}
 	Completion mode that is used for the character specified with
 	'wildchar'.  It is a comma separated list of up to four parts.  Each
-	part specifies what to do for each consecutive use of 'wildchar.  The
+	part specifies what to do for each consecutive use of 'wildchar'.  The
 	first part specifies the behavior for the first use of 'wildchar',
 	The second part for the second use, etc.
 	These are the possible values for each part:
@@ -7547,8 +7597,8 @@ A jump table for the options with a short description can be found at |Q_op|.
 			{not available when compiled without the +windows
 			feature}
 	Keep the window height when windows are opened or closed and
-	'equalalways' is set.  Set by default for the |preview-window| and
-	|quickfix-window|.
+	'equalalways' is set.  Also for |CTRL-W_=|.  Set by default for the
+	|preview-window| and |quickfix-window|.
 	The height may be changed anyway when running out of room.
 
 			*'winfixwidth'* *'wfw'* *'nowinfixwidth'* *'nowfw'*
@@ -7558,7 +7608,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 			{not available when compiled without the +windows
 			feature}
 	Keep the window width when windows are opened or closed and
-	'equalalways' is set.
+	'equalalways' is set.  Also for |CTRL-W_=|.
 	The width may be changed anyway when running out of room.
 
 						*'winminheight'* *'wmh'*
