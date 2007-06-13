@@ -1,8 +1,8 @@
 COMMENT: 独自の構文強調(テキストの色つけ)を定義する
-STATUS: finished 6.3.054
+STATUS: finished 7.1
 TRANSLATOR: 清水俊彦(しみず) <mailto:t_smz@syd.odn.ne.jp>
 
-*usr_44.txt*	For Vim version 6.3.  Last change: 2002 Oct 10
+*usr_44.txt*	For Vim version 7.1.  Last change: 2006 Apr 24
 
 		     VIM USER MANUAL - by Bram Moolenaar
 
@@ -708,8 +708,13 @@ Perlファイルで定義された項目に戻ります。
 "b:current_syntax"というのはバッファローカルな変数のことです。
 
 最初に"b:current_syntax"を確認します。これが定義済であれば、'runtimepath'の
-最初の方でシンタックスファイルをロード済です。さらにvim5.8との互換が必要なら
-こうします。 >
+最初の方でシンタックスファイルをロード済です: >
+
+	if exists("b:current_syntax")
+	  finish
+	endif
+
+vim5.8との互換が必要なら次のようにします: >
 
 	if version < 600
 	  syntax clear
@@ -730,25 +735,20 @@ Perlファイルで定義された項目に戻ります。
 また、マップや短縮形も含んではいけません。ただし'iskeyword'だけは、キーワー
 ドの識別にどうしても必要であれば、設定してもかまいません。
 
-特定の色を使うことは避けてください。可能な限り標準ハイライトグループへのリン
-クを使ってください。利用者の環境によって背景色が違っていたり、色数が８色しか
-使えない場合もあるということを忘れないでください。
-vim5.8との後方互換を保つには次のような構文を使います。 >
+利用者が好きな色を選択できるようにするために、ハイライトする要素の全ての種類に
+対して異なるグループ名を与えてください。そしてそれらを標準のハイライトグループ
+のどれかにリンクしてください。そうすればどのカラースキームでも動作するようにな
+ります。あなたが特定の色を選んでしまうと、カラースキームによっては見え方が悪く
+なってしまいます。また、利用者の環境によって背景色が違っていたり、色数が８色し
+か使えない場合もあるということを忘れないでください。
 
-	if version >= 508 || !exists("did_c_syn_inits")
-	  if version < 508
-	    let did_c_syn_inits = 1
-	    command -nargs=+ HiLink hi link <args>
-	  else
-	    command -nargs=+ HiLink hi def link <args>
-	  endif
+リンクするには"hi def link"を使います。すると利用者はあなたの文法ファイルが読
+み込まれる前に異なるハイライトを選ぶことができます。例: >
 
-	  HiLink nameString	String
-	  HiLink nameNumber	Number
-	  ... etc ...
-
-	  delcommand HiLink
-	endif
+	  hi def link nameString	String
+	  hi def link nameNumber	Number
+	  hi def link nameCommand	Statement
+	  ... etc ...  
 
 同期を取る時には使わない項目には"display"パラメタを与えることで、逆スクロー
 ル時やCTRL-Lを実行した時のスピードアップを図ることができます。
