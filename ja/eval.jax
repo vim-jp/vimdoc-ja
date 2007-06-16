@@ -7114,145 +7114,90 @@ a "E600: Missing :endtry" error message is given, see |except-single-line|.
 9. 例							    *eval-examples*
 
 16進数で表示する ~
-
->  " The function Nr2Hex() returns the Hex string of a number.
->  func Nr2Hex(nr)
->    let n = a:nr
->    let r = ""
->    while n
->      let r = '0123456789ABCDEF'[n % 16] . r
->      let n = n / 16
->    endwhile
->    return r
->  endfunc
 >
->  " The function String2Hex() converts each character in a string to a two
->  " character Hex string.
->  func String2Hex(str)
->    let out = ''
->    let ix = 0
->    while ix < strlen(a:str)
->      let out = out . Nr2Hex(char2nr(a:str[ix]))
->      let ix = ix + 1
->    endwhile
->    return out
->  endfunc
+  :" 関数 Nr2Bin() は数値の2進文字列を返す。
+  :func Nr2Bin(nr)
+  :  let n = a:nr
+  :  let r = ""
+  :  while n
+  :    let r = '01'[n % 2] . r
+  :    let n = n / 2
+  :  endwhile
+  :  return r
+  :endfunc
 
-使い方:
->  echo Nr2Hex(32)
-結果: "20"
->  echo String2Hex("32")
-結果: "3332"
+  :" 関数 String2Bin() は文字列中の各文字を2進文字列に変換して、ハイフン(-)で
+  :" 区切って返す。
+  :func String2Bin(str)
+  :  let out = ''
+  :  for ix in range(strlen(a:str))
+  :    let out = out . '-' . Nr2Bin(char2nr(a:str[ix]))
+  :  endfor
+  :  return out[1:]
+  :endfunc
+
+使い方の例: >
+  :echo Nr2Bin(32)
+結果: "100000" >
+  :echo String2Bin("32")
+結果: "110011-110010"
+
 
 
 行をソート(並べ替え)する (by Robert Webb) ~
 
-これは行をソートするためのVimスクリプトである。Vimにおいて行を(Visualモードで)
-選択し":Sort"とタイプする。これは如何なる外部プログラムも起動しない。よってど
-のようなプラットホームであっても動作する。実は関数Sort()は、C言語のqsort()のよ
-うに引数として比較関数を受けつける。よって、データ毎に必要となるソート順に応じ
-た、異なった比較関数を与えることができる。
+以下は、指定した比較関数を使って行をソートする例である。 >
 
-> " Function for use with Sort(), to compare two strings.
-> func! Strcmp(str1, str2)
->     if (a:str1 < a:str2)
->	return -1
->     elseif (a:str1 > a:str2)
->	return 1
->     else
->	return 0
->     endif
-> endfunction
->
-> " Sort lines.  SortR() is called recursively.
-> func! SortR(start, end, cmp)
->     if (a:start >= a:end)
->	return
->     endif
->     let partition = a:start - 1
->     let middle = partition
->     let partStr = getline((a:start + a:end) / 2)
->     let i = a:start
->     while (i <= a:end)
->	let str = getline(i)
->	exec "let result = " . a:cmp . "(str, partStr)"
->	if (result <= 0)
->	    " Need to put it before the partition.  Swap lines i and partition.
->	    let partition = partition + 1
->	    if (result == 0)
->		let middle = partition
->	    endif
->	    if (i != partition)
->		let str2 = getline(partition)
->		call setline(i, str2)
->		call setline(partition, str)
->	    endif
->	endif
->	let i = i + 1
->     endwhile
->
->     " Now we have a pointer to the "middle" element, as far as partitioning
->     " goes, which could be anywhere before the partition.  Make sure it is at
->     " the end of the partition.
->     if (middle != partition)
->	let str = getline(middle)
->	let str2 = getline(partition)
->	call setline(middle, str2)
->	call setline(partition, str)
->     endif
->     call SortR(a:start, partition - 1, a:cmp)
->     call SortR(partition + 1, a:end, a:cmp)
-> endfunc
->
-> " To Sort a range of lines, pass the range to Sort() along with the name of a
-> " function that will compare two lines.
-> func! Sort(cmp) range
->     call SortR(a:firstline, a:lastline, a:cmp)
-> endfunc
->
-> " :Sort takes a range of lines and sorts them.
-> command! -nargs=0 -range Sort <line1>,<line2>call Sort("Strcmp")
+  :func SortBuffer()
+  :  let lines = getline(1, '$')
+  :  call sort(lines, function("Strcmp"))
+  :  call setline(1, lines)
+  :endfunction
 
+ワンライナーにすると次のようになる: >
+  :call setline(1, sort(getline(1, '$'), function("Strcmp")))
+
+scanf() の代替 ~
 							*sscanf*
 Vimにはsscanf()に相当する関数が無い。もしも行の一部を取り出す必要があるのなら
 ば、matchstr()やsubstitute()を使って行なうことができる。この例は"foobar.txt,
 123, 45"のような行から、どうやってファイル名と行番号とカラム番号を取り出すかを
-示している。
->  " Set up the match bit
->  let mx='\(\f\+\),\s*\(\d\+\),\s*\(\d\+\)'
->  "get the part matching the whole expression
->  let l = matchstr(line, mx)
->  "get each item out of the match
->  let file = substitute(l, mx, '\1', '')
->  let lnum = substitute(l, mx, '\2', '')
->  let col = substitute(l, mx, '\3', '')
+示している。 >
+   :" 正規表現を設定
+   :let mx='\(\f\+\),\s*\(\d\+\),\s*\(\d\+\)'
+   :" 正規表現全体にマッチする部分を取り出す
+   :let l = matchstr(line, mx)
+   :" マッチ結果から各要素を取り出す
+   :let file = substitute(l, mx, '\1', '')
+   :let lnum = substitute(l, mx, '\2', '')
+   :let col = substitute(l, mx, '\3', '')
 
 入力は変数"line"、結果は"file"と"lnum"と"col"に格納される(アイデアはMichael
 Geddesによる)。
 
-getting the scriptnames in a Dictionary ~
+
+辞書からscriptnamesを取り出す ~
 						*scriptnames-dictionary*
-The |:scriptnames| command can be used to get a list of all script files that
-have been sourced.  There is no equivalent function or variable for this
-(because it's rarely needed).  In case you need to manipulate the list this
-code can be used: >
-    " Get the output of ":scriptnames" in the scriptnames_output variable.
+コマンド|:scriptnames|により今までにsourceされた全てのスクリプトファイルのリス
+トを取得することができる。これと等価な関数や変数は存在しない(めったに必要にな
+らないからである)。そのような場合には次のコードが利用できる: >
+    " ":scriptnames" の出力を変数scriptnames_outputに入れる。
     let scriptnames_output = ''
     redir => scriptnames_output
     silent scriptnames
     redir END
     
-    " Split the output into lines and parse each line.  Add an entry to the
-    " "scripts" dictionary.
+    " 出力を行のリストに分割し、各行をパースする。辞書"scripts"に要素を追加
+    " する。
     let scripts = {}
     for line in split(scriptnames_output, "\n")
-      " Only do non-blank lines.
+      " 空行以外に対して実行
       if line =~ '\S'
-	" Get the first number in the line.
+	" 行内の最初の番号を取得
         let nr = matchstr(line, '\d\+')
-	" Get the file name, remove the script number " 123: ".
+	" ファイル名を取得。スクリプト番号" 123: "を削除。
         let name = substitute(line, '.\+:\s*', '', '')
-	" Add an item to the Dictionary
+	" 辞書に要素を追加
         let scripts[nr] = name
       endif
     endfor
@@ -7279,56 +7224,57 @@ code can be used: >
 ==============================================================================
 11. サンドボックス				*eval-sandbox* *sandbox* *E48*
 
-The 'foldexpr', 'includeexpr', 'indentexpr', 'statusline' and 'foldtext'
-options are evaluated in a sandbox.  This means that you are protected from
-these expressions having nasty side effects.  This gives some safety for when
-these options are set from a modeline.  It is also used when the command from
-a tags file is executed and for CTRL-R = in the command line.
-The sandbox is also used for the |:sandbox| command.
+オプション 'foldexpr', 'includeexpr', 'indentexpr', 'statusline', 'foldtext' 
+はサンドボックスの中で評価される。これによって、悪質な副作用を持つ式からの保護
+がなされている。これによって、これらのオプションがモードラインから設定された場合
+にある種の安全性がもたらされている。tagsファイルからのコマンドが実行されたとき
+とコマンドラインでのCTRL-R =に対してもサンドボックスが使われる。
+コマンド|:sandbox|に対してもサンドボックスが使われる。
 
-These items are not allowed in the sandbox:
-	- changing the buffer text
-	- defining or changing mapping, autocommands, functions, user commands
-	- setting certain options (see |option-summary|)
-	- setting certain v: variables (see |v:var|)  *E794*
-	- executing a shell command
-	- reading or writing a file
-	- jumping to another buffer or editing a file
-	- executing Python, Perl, etc. commands
-This is not guaranteed 100% secure, but it should block most attacks.
+サンドボックス内では以下の事が禁止される:
+	- バッファの変更
+	- マッピング、自動コマンド、関数、ユーザ定義コマンドの定義・変更
+	- ある種のオプションの設定 (|option-summary|を参照)
+	- ある種のVim定義済変数(v:)の設定 (|v:var|を参照)  *E794*
+	- シェルコマンドの実行
+	- ファイルの読み書き
+	- 他のバッファへの移動・ファイルを開く
+	- Python, Perl等のコマンドの実行
+これは100%安全と保証されているものではない。しかしある種の攻撃を防ぐ事ができる
+はずである。
 
 							*:san* *:sandbox*
-:san[dbox] {cmd}	Execute {cmd} in the sandbox.  Useful to evaluate an
-			option that may have been set from a modeline, e.g.
-			'foldexpr'.
+:san[dbox] {cmd}	サンドボックス内で{cmd}を実行する。モードラインから設
+			定された可能性のあるオプションを評価するために使える。
+			例: 'foldexpr'.
 
 							*sandbox-option*
-A few options contain an expression.  When this expression is evaluated it may
-have to be done in the sandbox to avoid a security risk.  But the sandbox is
-restrictive, thus this only happens when the option was set from an insecure
-location.  Insecure in this context are:
-- sourcing a .vimrc or .exrc in the current directory
-- while executing in the sandbox
-- value coming from a modeline
+いくつかのオプションは式を含んでいる。その式を評価するときはセキュリティ上の危
+険性を回避するためにサンドボックス内で行わねばならない。しかしサンドボックスに
+は制限があるので、これはそのオプションが安全でない場所で設定されたときのみ行わ
+れる。ここで「安全でない」とは次の場合をいう:
+- カレントディレクトリの .vimrc や .exrc を source するとき
+- サンドボックス内で実行している最中
+- モードラインから設定された値
 
-Note that when in the sandbox and saving an option value and restoring it, the
-option will still be marked as it was set in the sandbox.
+Note サンドボックス内でオプションの値を退避し、それから復元した場合、そのオプ
+ションはやはりサンドボックス内で設定されたものとマークされる。
 
 ==============================================================================
 12. テキストロック						*textlock*
 
-In a few situations it is not allowed to change the text in the buffer, jump
-to another window and some other things that might confuse or break what Vim
-is currently doing.  This mostly applies to things that happen when Vim is
-actually doing something else.  For example, evaluating the 'balloonexpr' may
-happen any moment the mouse cursor is resting at some position.
+いくつか状況において、バッファを変更する・他のウィンドウへジャンプするなどVim
+の現在の処理を混乱させたり破壊してしまうような動作は禁止される。これはvimが実
+際に他の何かをしているときに起こることに対して当てはまる。例えば、
+'balloonexpr'の評価は、マウスカーソルがある位置に留まっているどんなときにでも
+起こる。
 
-This is not allowed when the textlock is active:
-	- changing the buffer text
-	- jumping to another buffer or window
-	- editing another file
-	- closing a window or quitting Vim
-	- etc.
+テキストロックが有効になっているときは、以下の事が禁止される:
+	- バッファの変更
+	- 他のバッファやウィンドウへの移動
+	- 他のファイルを開く
+	- ウィンドウを閉じる。Vimを終了する。
+	- など。
 
 
  vim:tw=78:ts=8:ft=help:norl:
