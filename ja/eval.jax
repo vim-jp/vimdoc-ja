@@ -1,6 +1,7 @@
 COMMENT: Vimスクリプト
 STATUS: suspended 7.1
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
+TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
 *eval.txt*      For Vim version 7.1.  Last change: 2007 May 11
 
@@ -6119,148 +6120,131 @@ This would call the function "my_func_whizz(parameter)".
 ==============================================================================
 8. 例外処理					*exception-handling*
 
-The Vim script language comprises an exception handling feature.  This section
-explains how it can be used in a Vim script.
+Vimスクリプト言語は例外処理機構を備えている。この節では例外処理をどのように行
+うかについて説明する。
 
-Exceptions may be raised by Vim on an error or on interrupt, see
-|catch-errors| and |catch-interrupt|.  You can also explicitly throw an
-exception by using the ":throw" command, see |throw-catch|.
+例外はエラー発生時や割り込み発生時にVimによって投げられる。それについては
+|catch-errors|と|catch-interrupt|を参照。ユーザはコマンド|:throw|によって明示
+的に例外を投げることができる。|throw-catch|を参照。
 
 
-TRY CONDITIONALS					*try-conditionals*
+TRY 条件文					*try-conditionals*
 
-Exceptions can be caught or can cause cleanup code to be executed.  You can
-use a try conditional to specify catch clauses (that catch exceptions) and/or
-a finally clause (to be executed for cleanup).
-   A try conditional begins with a |:try| command and ends at the matching
-|:endtry| command.  In between, you can use a |:catch| command to start
-a catch clause, or a |:finally| command to start a finally clause.  There may
-be none or multiple catch clauses, but there is at most one finally clause,
-which must not be followed by any catch clauses.  The lines before the catch
-clauses and the finally clause is called a try block. >
+例外を捕捉したり、例外を引き金として後始末のコードを実行することができる。try
+条件文を使う事によってcatch節(これが例外を捕捉する)やfinally節(後始末のために
+実行される)を指定する事ができる。
+try条件文はコマンド|:try|によって始まり、対応するコマンド|:endtry|によって終了
+する。その間でコマンド|:catch|によりcatch節を定めたり、コマンド|:finally|によ
+ってfinally節を定めることができる。catch節は1個もなかったり、複数個あってもよ
+い。しかしfinally節は1個までしか持てない。finally節の後にcatch節があってはなら
+ない。catch節とfinally節の前の部分はtryブロックと呼ばれる。
 
      :try
      :  ...
-     :  ...				TRY BLOCK
+     :  ...				try ブロック
      :  ...
      :catch /{pattern}/
      :  ...
-     :  ...				CATCH CLAUSE
+     :  ...				catch 節
      :  ...
      :catch /{pattern}/
      :  ...
-     :  ...				CATCH CLAUSE
+     :  ...				catch 節
      :  ...
      :finally
      :  ...
-     :  ...				FINALLY CLAUSE
+     :  ...				finally 節
      :  ...
      :endtry
 
-The try conditional allows to watch code for exceptions and to take the
-appropriate actions.  Exceptions from the try block may be caught.  Exceptions
-from the try block and also the catch clauses may cause cleanup actions.
-   When no exception is thrown during execution of the try block, the control
-is transferred to the finally clause, if present.  After its execution, the
-script continues with the line following the ":endtry".
-   When an exception occurs during execution of the try block, the remaining
-lines in the try block are skipped.  The exception is matched against the
-patterns specified as arguments to the ":catch" commands.  The catch clause
-after the first matching ":catch" is taken, other catch clauses are not
-executed.  The catch clause ends when the next ":catch", ":finally", or
-":endtry" command is reached - whatever is first.  Then, the finally clause
-(if present) is executed.  When the ":endtry" is reached, the script execution
-continues in the following line as usual.
-   When an exception that does not match any of the patterns specified by the
-":catch" commands is thrown in the try block, the exception is not caught by
-that try conditional and none of the catch clauses is executed.  Only the
-finally clause, if present, is taken.  The exception pends during execution of
-the finally clause.  It is resumed at the ":endtry", so that commands after
-the ":endtry" are not executed and the exception might be caught elsewhere,
-see |try-nesting|.
-   When during execution of a catch clause another exception is thrown, the
-remaining lines in that catch clause are not executed.  The new exception is
-not matched against the patterns in any of the ":catch" commands of the same
-try conditional and none of its catch clauses is taken.  If there is, however,
-a finally clause, it is executed, and the exception pends during its
-execution.  The commands following the ":endtry" are not executed.  The new
-exception might, however, be caught elsewhere, see |try-nesting|.
-   When during execution of the finally clause (if present) an exception is
-thrown, the remaining lines in the finally clause are skipped.  If the finally
-clause has been taken because of an exception from the try block or one of the
-catch clauses, the original (pending) exception is discarded.  The commands
-following the ":endtry" are not executed, and the exception from the finally
-clause is propagated and can be caught elsewhere, see |try-nesting|.
+try条件文により、コードから発生する例外を監視したり、適切な対応を取ることができる。
+tryブロック内で発生した例外は捕捉される。tryブロックとcatch節内で発生した例外
+は捕捉され、後始末が行われる。
+tryブロックの実行中に例外が発生しなかった場合は、制御は(もしあれば)finally節に
+移動する。その実行後に、スクリプトは":endtry"の後の行から実行を継続する。
+tryブロックの実行中に例外が発生した場合は、tryブロックの残りの行はスキップされる。
+例外はコマンド":catch"の引数として指定された正規表現に照合される。最初にマッチ
+した":catch"の後のcatch節が実行される。他のcatch節は実行されない。catch節は次
+に":catch", ":finally", ":endtry"が現れたところで終了する(どれでもよい)。
+":endtry"に達すると、スクリプトは次の行から通常通り実行が続けられる。
+発生した例外が、コマンド":catch"で指定されたどの正規表現にもマッチしないとき、
+その例外はそのtry条件文で捕捉されず、どのcatch節も実行されない。finally節があ
+るならば実行される。finally節の実行中は例外は後回しにされ、":endtry"のときに実
+行される。そして":endtry"の後のコマンドは実行されず、例外は他のどこかで捕捉さ
+れる。|try-nesting|を参照。
+catch節の実行中に新たな例外が発生した場合は、そのcatch節の残りの行は実行されな
+い。新しい例外は同じtry条件文のどの":catch"コマンドの正規表現にも照合されず、
+どのcatch節も実行されない。しかしfinally節があるならばそこが実行され、その間そ
+の例外は保留される。":endtry"の後のコマンドは実行されない。新しい例外は他のど
+こかで捕捉される。|try-nesting|を参照。
+finally節の実行中に例外が発生した場合は、そのfinally節の残りの行は実行されない。
+tryブロックやそのcatch節のどこかで例外が発生してからそのfinally節が実行されて
+いた場合は、元の(保留されていた)例外は破棄される。":endtry"の後のコマンドは実
+行されない。finally節で発生した例外は伝播し、他のどこかで捕捉される。
+|try-nesting|を参照。
 
-The finally clause is also executed, when a ":break" or ":continue" for
-a ":while" loop enclosing the complete try conditional is executed from the
-try block or a catch clause.  Or when a ":return" or ":finish" is executed
-from the try block or a catch clause of a try conditional in a function or
-sourced script, respectively.  The ":break", ":continue", ":return", or
-":finish" pends during execution of the finally clause and is resumed when the
-":endtry" is reached.  It is, however, discarded when an exception is thrown
-from the finally clause.
-   When a ":break" or ":continue" for a ":while" loop enclosing the complete
-try conditional or when a ":return" or ":finish" is encountered in the finally
-clause, the rest of the finally clause is skipped, and the ":break",
-":continue", ":return" or ":finish" is executed as usual.  If the finally
-clause has been taken because of an exception or an earlier ":break",
-":continue", ":return", or ":finish" from the try block or a catch clause,
-this pending exception or command is discarded.
+完全なtry条件文を囲む":while"ループ内で、tryブロックやcatch節において":break"
+や":continue"が実行されたときもfinally節が実行される。
+また、関数の中やsourceされたスクリプト中で、tryブロックやtry条件文のcatch節に
+おいて":return"や":finish"が実行されたときもfinally節が実行される。finally節の
+実行中は":break", ":continue", ":return", ":finish"は保留され、":endtry"に達し
+たとき再開される。しかしこれらは、そのfinally節内で例外が発生したときは破棄さ
+れる。
+完全なtry条件節を囲む":while"ループ内での":break"や":continue"、またはfinally
+節内で":return"や":finish"に出会ったときは、finally節の残りはスキップされ、通
+常通り":break", "continue", ":return", "finish"が実行される。もしそのfinally節
+の前に、tryブロックやcatch節内で例外が発生したり、":break", ":continue",
+":return", ":finally"が行われていた場合は、それらの保留されていた例外やコマン
+ドは破棄される。
 
-For examples see |throw-catch| and |try-finally|.
+例として |throw-catch| と |try-finally| を参照。
 
 
-NESTING	OF TRY CONDITIONALS				*try-nesting*
+try条件文のネスト					*try-nesting*
 
-Try conditionals can be nested arbitrarily.  That is, a complete try
-conditional can be put into the try block, a catch clause, or the finally
-clause of another try conditional.  If the inner try conditional does not
-catch an exception thrown in its try block or throws a new exception from one
-of its catch clauses or its finally clause, the outer try conditional is
-checked according to the rules above.  If the inner try conditional is in the
-try block of the outer try conditional, its catch clauses are checked, but
-otherwise only the finally clause is executed.  It does not matter for
-nesting, whether the inner try conditional is directly contained in the outer
-one, or whether the outer one sources a script or calls a function containing
-the inner try conditional.
+try条件文は任意にネストされられる。つまり、try条件文のtryブロック・catch節・
+finally節のなかに別の完全なtry条件文を書くことができる。内側のtry条件文がtryブ
+ロックで発生した例外を捕捉しなかったときや、catch節・finally節で新たな例外が発
+生したときは、外側のtry条件文がそのルールにしたがって例外を捕捉する。内側の
+try条件文が外側の条件文のtryブロックの中にある場合はcatch節が判定されるが、そ
+うでない場合はfinally節のみが実行される。これはネストの仕方には関係ない。つま
+り、内側のtry条件文が直接外側のtry条件文に含まれていてもよいし、外側がスクリプ
+トをsourceしたり、内側のtry条件文を含む関数を呼び出していてもよい。
 
-When none of the active try conditionals catches an exception, just their
-finally clauses are executed.  Thereafter, the script processing terminates.
-An error message is displayed in case of an uncaught exception explicitly
-thrown by a ":throw" command.  For uncaught error and interrupt exceptions
-implicitly raised by Vim, the error message(s) or interrupt message are shown
-as usual.
+有効なtry条件文のどれも例外を捕捉しなかったときは、それらのfinally節が実行され
+る。その後、スクリプトの実行は停止する。":throw"コマンドにより明示的に投げられ
+た例外が捕捉されなかった場合は、エラーメッセージが表示される。Vimによって暗黙
+的に投げられたエラーや割り込み例外については、通常通りエラーメッセージや割り込
+みメッセージが表示される。
 
-For examples see |throw-catch|.
+例として |throw-catch| を参照。
 
 
-EXAMINING EXCEPTION HANDLING CODE			*except-examine*
+例外処理コードの検査					*except-examine*
 
-Exception handling code can get tricky.  If you are in doubt what happens, set
-'verbose' to 13 or use the ":13verbose" command modifier when sourcing your
-script file.  Then you see when an exception is thrown, discarded, caught, or
-finished.  When using a verbosity level of at least 14, things pending in
-a finally clause are also shown.  This information is also given in debug mode
-(see |debug-scripts|).
+例外処理のコードはトリッキーになりがちである。何が起こっているか知りたいときは
+スクリプトファイルをsourceするときに'verbose'を13に設定するか、コマンド修飾子
+":13verbose"を使う。すると例外が発生・破棄・捕捉・完了したときには表示されるよ
+うになる。冗長度のレベルを14異常にすると、finally節において保留されているもの
+も表示されるようになる。この情報はデバッグモードでも表示される
+(|debug-scripts|を参照)。
 
 
-THROWING AND CATCHING EXCEPTIONS			*throw-catch*
+例外の生成と捕捉					*throw-catch*
 
-You can throw any number or string as an exception.  Use the |:throw| command
-and pass the value to be thrown as argument: >
+任意の数値や文字列を例外として投げることができる。コマンド|:throw|を使い、投げ
+られる値を引数に渡す: >
 	:throw 4711
 	:throw "string"
 <							*throw-expression*
-You can also specify an expression argument.  The expression is then evaluated
-first, and the result is thrown: >
+式を引数に指定することもできる。まずその式が評価され、その結果が投げられる: >
 	:throw 4705 + strlen("string")
 	:throw strpart("strings", 0, 6)
 
-An exception might be thrown during evaluation of the argument of the ":throw"
-command.  Unless it is caught there, the expression evaluation is abandoned.
-The ":throw" command then does not throw a new exception.
-   Example: >
+":throw"コマンドの引数を評価している最中に例外が発生することもありうる。その例
+外が捕捉されない限り、その式の評価は破棄される。
+よって、その":throw"コマンドは例外を投げることができない。
+   例: >
 
 	:function! Foo(arg)
 	:  try
@@ -6277,15 +6261,14 @@ The ":throw" command then does not throw a new exception.
 	:
 	:throw Foo("arrgh") + Bar()
 
-This throws "arrgh", and "in Bar" is not displayed since Bar() is not
-executed. >
+この例を実行すると"arrgh"が投げられ、Bar()が実行されないため"in Bar"は表示され
+ない。しかし次のようにすると >
 	:throw Foo("foo") + Bar()
-however displays "in Bar" and throws 4711.
+"in Bar"を表示し、4711を投げる。
 
-Any other command that takes an expression as argument might also be
-abandoned by an (uncaught) exception during the expression evaluation.  The
-exception is then propagated to the caller of the command.
-   Example: >
+式を引数として受け取る他のコマンドでも、式の評価中に捕捉されない例外が発生する
+とコマンドが破棄される。そして例外はそのコマンドを呼び出した位置へ伝播する。
+   例: >
 
 	:if Foo("arrgh")
 	:  echo "then"
@@ -6293,14 +6276,14 @@ exception is then propagated to the caller of the command.
 	:  echo "else"
 	:endif
 
-Here neither of "then" or "else" is displayed.
+この例で、"then"と"else"のどちらも表示されない。
 
 							*catch-order*
-Exceptions can be caught by a try conditional with one or more |:catch|
-commands, see |try-conditionals|.   The values to be caught by each ":catch"
-command can be specified as a pattern argument.  The subsequent catch clause
-gets executed when a matching exception is caught.
-   Example: >
+例外は、1個以上の|:catch|コマンドを持つtry条件文で捕捉することができる。これに
+ついては|try-conditionals|を参照。各":catch"コマンドで捕捉される値は、引数にて
+正規表現で指定できる。マッチする例外が捕捉されると、その後に続くcatch節が実行
+される。
+   例: >
 
 	:function! Foo(value)
 	:  try
@@ -6315,30 +6298,29 @@ gets executed when a matching exception is caught.
 	:call Foo(0x1267)
 	:call Foo('string')
 
-The first call to Foo() displays "Number thrown", the second "String thrown".
-An exception is matched against the ":catch" commands in the order they are
-specified.  Only the first match counts.  So you should place the more
-specific ":catch" first.  The following order does not make sense: >
+最初のFoo()の呼び出しは"Number thrown"を表示し、2番目の呼び出しは"String
+thrown"を表示する。例外は、順番に":catch"コマンドに照合される。最初にマッチし
+たcatch節だけが実行される。そのため、より限定的な":catch"を先に書くべきである。
+次の順序で書くと無意味になってしまう: >
 
 	:  catch /.*/
 	:    echo "String thrown"
 	:  catch /^\d\+$/
 	:    echo "Number thrown"
 
-The first ":catch" here matches always, so that the second catch clause is
-never taken.
+最初の":catch"は常にマッチするため、2番目のcatch節は決して実行されない。
 
 							*throw-variables*
-If you catch an exception by a general pattern, you may access the exact value
-in the variable |v:exception|: >
+一般的な正規表現により例外を捕捉した場合、その正確な値には変数|v:exception|に
+よりアクセスできる: >
 
 	:  catch /^\d\+$/
 	:    echo "Number thrown.  Value is" v:exception
 
-You may also be interested where an exception was thrown.  This is stored in
-|v:throwpoint|.  Note that "v:exception" and "v:throwpoint" are valid for the
-exception most recently caught as long it is not finished.
-   Example: >
+また、どこで例外が発生したかも知りたいだろう。これは|v:throwpoint|に保持されて
+いる。Note "v:exception"と"v:throwpoint"は最も直近に捕捉された例外に対し、それ
+が終了するまで有効である。
+   例: >
 
 	:function! Caught()
 	:  if v:exception != ""
@@ -6369,15 +6351,15 @@ exception most recently caught as long it is not finished.
 	:
 	:call Foo()
 
-This displays >
+上の例は次のように表示する  >
 
 	Nothing caught
 	Caught "4711" in function Foo, line 4
 	Caught "oops" in function Foo, line 10
 	Nothing caught
 
-A practical example:  The following command ":LineNumber" displays the line
-number in the script or function where it has been used: >
+実用的な例:  次のコマンド":LineNumber"は、それが呼び出されたスクリプトや関数中
+の行番号を表示する: >
 
 	:function! LineNumber()
 	:    return substitute(v:throwpoint, '.*\D\(\d\+\).*', '\1', "")
@@ -6385,8 +6367,8 @@ number in the script or function where it has been used: >
 	:command! LineNumber try | throw "" | catch | echo LineNumber() | endtry
 <
 							*try-nested*
-An exception that is not caught by a try conditional can be caught by
-a surrounding try conditional: >
+try条件文によって捕捉されないはそれを囲むtry条件文によって捕捉することができる
+: >
 
 	:try
 	:  try
@@ -6400,13 +6382,12 @@ a surrounding try conditional: >
 	:  echo "foo"
 	:endtry
 
-The inner try conditional does not catch the exception, just its finally
-clause is executed.  The exception is then caught by the outer try
-conditional.  The example displays "inner finally" and then "foo".
+内側のtry条件文はこの例外を捕捉せず、finally節が実行されるだけである。そしてこ
+の例外は外側のtry条件文で捕捉される。この例を実行すると"inner finally"と"foo"
+が表示される。
 
 							*throw-from-catch*
-You can catch an exception and throw a new one to be caught elsewhere from the
-catch clause: >
+例外を捕捉した後、新しい例外を投げて他のcatch節で捕捉させることができる: >
 
 	:function! Foo()
 	:  throw "foo"
@@ -6427,11 +6408,11 @@ catch clause: >
 	:  echo "Caught" v:exception
 	:endtry
 
-This displays "Caught foo, throw bar" and then "Caught bar".
+これを実行すると"Caught foo, throw bar"と"Caught bar"が表示される。
 
 							*rethrow*
-There is no real rethrow in the Vim script language, but you may throw
-"v:exception" instead: >
+Vimスクリプト言語には本物のrethrowはないが、代わりに"v:exception"を使うことが
+できる: >
 
 	:function! Bar()
 	:  try
@@ -6442,11 +6423,10 @@ There is no real rethrow in the Vim script language, but you may throw
 	:  endtry
 	:endfunction
 <							*try-echoerr*
-Note that this method cannot be used to "rethrow" Vim error or interrupt
-exceptions, because it is not possible to fake Vim internal exceptions.
-Trying so causes an error exception.  You should throw your own exception
-denoting the situation.  If you want to cause a Vim error exception containing
-the original error exception value, you can use the |:echoerr| command: >
+Note この方法はVimのエラーや割り込み例外を"rethrow"するためには使えない。Vimの
+内部例外を偽装することはできないからである。それを行おうとするとエラー例外が発
+生する。その状況を表す自分自身の例外を投げるべきである。独自のエラー例外値を含
+むVimのエラー例外を発生させたい場合には、コマンド|:echoerr|を使うことができる: >
 
 	:try
 	:  try
@@ -6458,24 +6438,22 @@ the original error exception value, you can use the |:echoerr| command: >
 	:  echo v:exception
 	:endtry
 
-This code displays
+このコードを実行すると次が表示される
 
 	Vim(echoerr):Vim:E492: Not an editor command:   asdf ~
 
 
-CLEANUP CODE						*try-finally*
+後始末処理						*try-finally*
 
-Scripts often change global settings and restore them at their end.  If the
-user however interrupts the script by pressing CTRL-C, the settings remain in
-an inconsistent state.  The same may happen to you in the development phase of
-a script when an error occurs or you explicitly throw an exception without
-catching it.  You can solve these problems by using a try conditional with
-a finally clause for restoring the settings.  Its execution is guaranteed on
-normal control flow, on error, on an explicit ":throw", and on interrupt.
-(Note that errors and interrupts from inside the try conditional are converted
-to exceptions.  When not caught, they terminate the script after the finally
-clause has been executed.)
-Example: >
+しばしばスクリプト中でグローバルな設定を変更し、最後に元の設定を復元することが
+ある。しかしユーザがCTRL-Cを押してスクリプトを中断すると、設定が一貫しない状態
+になってしまう。スクリプトの開発段階においても、エラーが発生したり、明示的に例
+外を投げたが捕捉されなかった場合に、同じことが起こりうる。この問題は、try条件
+文を使ってfinally節で設定を復元することで解決できる。finally節は、通常の制御フ
+ロー・エラー時・明示的な":throw"時・割り込み時に実行されることが保証されている。
+(Note try条件文の内側で発生したエラーと割り込みは例外に変換される。これらが捕
+捉されなかったときには、finally節の実行の後にスクリプトの実行が停止する。)
+例: >
 
 	:try
 	:  let s:saved_ts = &ts
@@ -6488,14 +6466,14 @@ Example: >
 	:  unlet s:saved_ts
 	:endtry
 
-This method should be used locally whenever a function or part of a script
-changes global settings which need to be restored on failure or normal exit of
-that function or script part.
+関数やスクリプトの一部でグローバルな設定を変更し、その関数・スクリプトの失敗時・
+通常終了時に設定を復元する必要があるときは、必ず局所的にこの手法を使うべきであ
+る。
 
 							*break-finally*
-Cleanup code works also when the try block or a catch clause is left by
-a ":continue", ":break", ":return", or ":finish".
-   Example: >
+":continue", ":break", ":return", ":finish"などによってtryブロックやcatch節を
+抜けるときも後始末処理が働く。
+   例: >
 
 	:let first = 1
 	:while 1
@@ -6517,8 +6495,8 @@ a ":continue", ":break", ":return", or ":finish".
 	:endwhile
 	:echo "end"
 
-This displays "first", "cleanup", "second", "cleanup", and "end". >
-
+上の例を実行すると"first", "cleanup", "second", "cleanup", "end"と表示される:
+>
 	:function! Foo()
 	:  try
 	:    return 4711
@@ -6530,17 +6508,15 @@ This displays "first", "cleanup", "second", "cleanup", and "end". >
 	:
 	:echo Foo() "returned by Foo"
 
-This displays "cleanup" and "4711 returned by Foo".  You don't need to add an
-extra ":return" in the finally clause.  (Above all, this would override the
-return value.)
+上の例を実行すると"cleanup"と"4711 returned by Foo"が表示される。finally節に余
+計な":return"を書く必要はない。(そうすると戻り値が上書きされてしまう)
 
 							*except-from-finally*
-Using either of ":continue", ":break", ":return", ":finish", or ":throw" in
-a finally clause is possible, but not recommended since it abandons the
-cleanup actions for the try conditional.  But, of course, interrupt and error
-exceptions might get raised from a finally clause.
-   Example where an error in the finally clause stops an interrupt from
-working correctly: >
+finally節で":continue", ":break", ":return", ":finish", ":throw"を使うことは可
+能である。しかしそうするとtry条件文の後始末を破棄してしまうことになるので推奨
+されていない。しかし、当然、finally節の中で割り込みとエラー例外が発生すること
+はありうる。
+finally節におけるエラーにより、割り込みが正しく動作しなくなる例: >
 
 	:try
 	:  try
@@ -6555,134 +6531,130 @@ working correctly: >
 	:echo "Script still running"
 	:sleep 1
 
-If you need to put commands that could fail into a finally clause, you should
-think about catching or ignoring the errors in these commands, see
-|catch-errors| and |ignore-errors|.
+失敗する可能性のあるコマンドをfinally節に書く必要があるときは、それらのコマン
+ドにより発生するエラーを捕捉したり無視したりすることについて考えること。
+|catch-errors| と |ignore-errors| を参照。
 
 
-CATCHING ERRORS						*catch-errors*
+エラーを変更する					*catch-errors*
 
-If you want to catch specific errors, you just have to put the code to be
-watched in a try block and add a catch clause for the error message.  The
-presence of the try conditional causes all errors to be converted to an
-exception.  No message is displayed and |v:errmsg| is not set then.  To find
-the right pattern for the ":catch" command, you have to know how the format of
-the error exception is.
-   Error exceptions have the following format: >
+特定のエラーを捕捉するには、監視したいコードをtryブロックに入れ、そのエラーメ
+ッセージに対するcatch節を加えるだけでよい。try条件節が存在すると全てのエラーは
+例外に変換される。そのため、メッセージはまったく表示されず、|v:errmsg|は設定さ
+れない。":catch"コマンドに対する正しい正規表現を作るには、エラー例外のフォーマ
+ットがどのようなものか知っていなければならない。
+   エラー例外は次のフォーマットを持つ: >
 
 	Vim({cmdname}):{errmsg}
-or >
+または >
 	Vim:{errmsg}
 
-{cmdname} is the name of the command that failed; the second form is used when
-the command name is not known.  {errmsg} is the error message usually produced
-when the error occurs outside try conditionals.  It always begins with
-a capital "E", followed by a two or three-digit error number, a colon, and
-a space.
+{cmdname}は失敗したコマンド名である。2番目の形式はコマンド名が不明のとき用いら
+れる。{errmsg}は、そのエラーがtry条件文の外で発生したときに通常表示されるエラー
+メッセージである。エラーメッセージは必ず大文字の"E"で始まり、その後に2,3桁のエ
+ラー番号、コロン、スペースが続く。
 
-Examples:
+例:
 
-The command >
+次のコマンドを実行すると、 >
 	:unlet novar
-normally produces the error message >
+通常次のエラーメッセージが表示される  >
 	E108: No such variable: "novar"
-which is converted inside try conditionals to an exception >
+これはtry条件文の中では例外に変換される >
 	Vim(unlet):E108: No such variable: "novar"
 
-The command >
+次のコマンドを実行すると、 >
 	:dwim
-normally produces the error message >
+通常次のエラーメッセージが表示される  >
 	E492: Not an editor command: dwim
-which is converted inside try conditionals to an exception >
+これはtry条件文の中では例外に変換される >
 	Vim:E492: Not an editor command: dwim
 
-You can catch all ":unlet" errors by a >
+":unlet"の全てのエラーを次によって捕捉できる >
 	:catch /^Vim(unlet):/
-or all errors for misspelled command names by a >
+また、全てのミススペルされたコマンドのエラーは次で捕捉できる  >
 	:catch /^Vim:E492:/
 
-Some error messages may be produced by different commands: >
+複数のコマンドによって同一のエラーメッセージが表示される場合もある: >
 	:function nofunc
-and >
+と  >
 	:delfunction nofunc
-both produce the error message >
+は両方とも次のエラーメッセージを表示する。
 	E128: Function name must start with a capital: nofunc
-which is converted inside try conditionals to an exception >
+これはtry条件節の中では例外に変換される。それぞれ >
 	Vim(function):E128: Function name must start with a capital: nofunc
-or >
+または  >
 	Vim(delfunction):E128: Function name must start with a capital: nofunc
-respectively.  You can catch the error by its number independently on the
-command that caused it if you use the following pattern: >
+となる。どのコマンドによって発生したかに関係なくこのエラーを捕捉するには、次の
+正規表現を使う: >
 	:catch /^Vim(\a\+):E128:/
 
-Some commands like >
+複数のエラーメッセージを表示するコマンドもある:  >
 	:let x = novar
-produce multiple error messages, here: >
+は次のエラーメッセージを表示する: >
 	E121: Undefined variable: novar
 	E15: Invalid expression:  novar
-Only the first is used for the exception value, since it is the most specific
-one (see |except-several-errors|).  So you can catch it by >
+最初のエラーメッセージのみが例外の値として使われる。それが最も限定的なメッセー
+ジだからである(|except-several-errors|を参照)。これは次のようにして捕捉できる
+>
 	:catch /^Vim(\a\+):E121:/
 
-You can catch all errors related to the name "nofunc" by >
+"nofunc"という名前に関係したエラー全てを捕捉するには >
 	:catch /\<nofunc\>/
 
-You can catch all Vim errors in the ":write" and ":read" commands by >
+コマンド":write"と":read"による全てのVimエラーを捕捉するには >
 	:catch /^Vim(\(write\|read\)):E\d\+:/
 
-You can catch all Vim errors by the pattern >
+全てのVimエラーを捕捉するには次の正規表現を使う >
 	:catch /^Vim\((\a\+)\)\=:E\d\+:/
 <
 							*catch-text*
-NOTE: You should never catch the error message text itself: >
+NOTE: エラーメッセージのテキスト自身を捕捉してはならない >
 	:catch /No such variable/
-only works in the english locale, but not when the user has selected
-a different language by the |:language| command.  It is however helpful to
-cite the message text in a comment: >
+こうすると英語の環境では動作するが、コマンド |:language|により他の言語を使って
+いるユーザの環境では動作しなくなる。しかし、コメントとしてメッセージテキストを
+引用することは役に立つ: >
 	:catch /^Vim(\a\+):E108:/   " No such variable
-
 
 IGNORING ERRORS						*ignore-errors*
 
-You can ignore errors in a specific Vim command by catching them locally: >
+特定のコマンドで発生したエラーを捕捉すれば、エラーを無視することができる: >
 
 	:try
 	:  write
 	:catch
 	:endtry
 
-But you are strongly recommended NOT to use this simple form, since it could
-catch more than you want.  With the ":write" command, some autocommands could
-be executed and cause errors not related to writing, for instance: >
+しかしこの単純な形は使わないよう強く推奨されている。なぜなら、これはあなたが望
+むより多くの例外を捕捉してしまうからである。":write"コマンドを使うと自動コマン
+ドが実行され、書き込みとは関係ないエラーが発生する可能性がある。例えば: >
 
 	:au BufWritePre * unlet novar
 
-There could even be such errors you are not responsible for as a script
-writer: a user of your script might have defined such autocommands.  You would
-then hide the error from the user.
-   It is much better to use >
+このようなエラーの中には、スクリプトの作者が責任を追わないものもある: つまり、
+スクリプトのユーザがそのような自動コマンドを定義している場合である。その場合、
+上の例のようにすると、ユーザからエラーを隠してしまうことになる。エラーを無視す
+るには、次のようにした方がよい >
 
 	:try
 	:  write
 	:catch /^Vim(write):/
 	:endtry
 
-which only catches real write errors.  So catch only what you'd like to ignore
-intentionally.
+これは書き込みエラーだけを捕捉する。つまり、あなたが意図的に無視したいエラーだ
+けである。
 
-For a single command that does not cause execution of autocommands, you could
-even suppress the conversion of errors to exceptions by the ":silent!"
-command: >
+自動コマンドを発生させないような1つのコマンドに対しては、":silent!"を使えば
+エラーを例外に変換すること自体を抑制させることができる: >
 	:silent! nunmap k
-This works also when a try conditional is active.
+これはtry条件文が有効なときも機能する。
 
 
-CATCHING INTERRUPTS					*catch-interrupt*
+割り込みを捕捉する					*catch-interrupt*
 
-When there are active try conditionals, an interrupt (CTRL-C) is converted to
-the exception "Vim:Interrupt".  You can catch it like every exception.  The
-script is not terminated, then.
-   Example: >
+有効なtry条件文内では、割り込み(CTRL-C)は例外"Vim:Interrupt"に変換される。これ
+を他の例外と同様に捕捉することができる。するとそのスクリプトは停止しない。
+   例: >
 
 	:function! TASK1()
 	:  sleep 10
@@ -6709,38 +6681,38 @@ script is not terminated, then.
 	:    endif
 	:  catch /^Vim:Interrupt$/
 	:    echo "\nCommand interrupted"
-	:    " Caught the interrupt.  Continue with next prompt.
+	:    " 例外捕捉。次のプロンプトから継続する。
 	:  endtry
 	:endwhile
 
-You can interrupt a task here by pressing CTRL-C; the script then asks for
-a new command.  If you press CTRL-C at the prompt, the script is terminated.
+ここでCTRL-Cを押すとタスクに割り込むことができる。するとスクリプトは新しいコマ
+ンドを要求する。プロンプトでCTRL-Cを押すとスクリプトが終了する。
 
-For testing what happens when CTRL-C would be pressed on a specific line in
-your script, use the debug mode and execute the |>quit| or |>interrupt|
-command on that line.  See |debug-scripts|.
+スクリプト中の特定の行でCTRL-Cが押されたとき何が起こるかをテストするにはデバッ
+グモードを使い、その行の上で|>quit|や|>interrupt|コマンドを使う。
+|debug-scripts|を参照。
 
 
-CATCHING ALL						*catch-all*
+全てを捕捉する						*catch-all*
 
-The commands >
+次のコマンドは >
 
 	:catch /.*/
 	:catch //
 	:catch
 
-catch everything, error exceptions, interrupt exceptions and exceptions
-explicitly thrown by the |:throw| command.  This is useful at the top level of
-a script in order to catch unexpected things.
-   Example: >
+全てをエラー例外・割り込み例外・|:throw|コマンドにより明示的に投げられた例外の
+捕捉する。これはスクリプトのトップレベルで予期しないことを捕捉するために役に立
+つ。
+   例: >
 
 	:try
 	:
-	:  " do the hard work here
+	:  " ここで難しいことをする
 	:
 	:catch /MyException/
 	:
-	:  " handle known problem
+	:  " 既知の問題を制御する
 	:
 	:catch /^Vim:Interrupt$/
 	:    echo "Script interrupted"
@@ -6748,13 +6720,13 @@ a script in order to catch unexpected things.
 	:  echo "Internal error (" . v:exception . ")"
 	:  echo " - occurred at " . v:throwpoint
 	:endtry
-	:" end of script
+	:" スクリプトの終わり
 
-Note: Catching all might catch more things than you want.  Thus, you are
-strongly encouraged to catch only for problems that you can really handle by
-specifying a pattern argument to the ":catch".
-   Example: Catching all could make it nearly impossible to interrupt a script
-by pressing CTRL-C: >
+Note: 全てを捕捉すると、期待していた以上のものを捕捉してしまうかもしれない。そ
+れゆえ、":catch"コマンドの引数に正規表現を指定することにより、自分が本当に制御
+できる問題だけを捕捉することが強く推奨されている。
+例: 全てを捕捉してしまうと、CTRL-Cを押してスクリプトを中断することがほぼ不可能
+になってしまうかも知れない: >
 
 	:while 1
 	:  try
@@ -6764,9 +6736,9 @@ by pressing CTRL-C: >
 	:endwhile
 
 
-EXCEPTIONS AND AUTOCOMMANDS				*except-autocmd*
+例外と自動コマンド				*except-autocmd*
 
-Exceptions may be used during execution of autocommands.  Example: >
+自動コマンドの実行中に例外を使うこともできる。例: >
 
 	:autocmd User x try
 	:autocmd User x   throw "Oops!"
@@ -6782,14 +6754,14 @@ Exceptions may be used during execution of autocommands.  Example: >
 	:  echo v:exception
 	:endtry
 
-This displays "Oops!" and "Arrgh!".
+上の例を実行すると"Oops!"と"Arrgh!"が表示される。
 
 							*except-autocmd-Pre*
-For some commands, autocommands get executed before the main action of the
-command takes place.  If an exception is thrown and not caught in the sequence
-of autocommands, the sequence and the command that caused its execution are
-abandoned and the exception is propagated to the caller of the command.
-   Example: >
+いくつかのコマンドでは、それ自身が実行される前に自動コマンドが実行される。
+例外が発生し、それが一連の自動コマンドの中で捕捉されない場合、一連の自動コマン
+ドと、その引き金となったコマンドは破棄され、例外がそのコマンドを呼んだ位置へ伝
+播する。
+   例: >
 
 	:autocmd BufWritePre * throw "FAIL"
 	:autocmd BufWritePre * echo "Should not be displayed"
@@ -6800,19 +6772,18 @@ abandoned and the exception is propagated to the caller of the command.
 	:  echo "Caught:" v:exception "from" v:throwpoint
 	:endtry
 
-Here, the ":write" command does not write the file currently being edited (as
-you can see by checking 'modified'), since the exception from the BufWritePre
-autocommand abandons the ":write".  The exception is then caught and the
-script displays: >
+ここで":write"コマンドは現在編集しているファイルを書き込まない('modified'を確
+認すればわかる)。BufWritePreの自動コマンドで発生した例外により、":write"が破棄
+されたためである。そしてその例外は捕捉され、次を表示する: >
 
 	Caught: FAIL from BufWrite Auto commands for "*"
 <
 							*except-autocmd-Post*
-For some commands, autocommands get executed after the main action of the
-command has taken place.  If this main action fails and the command is inside
-an active try conditional, the autocommands are skipped and an error exception
-is thrown that can be caught by the caller of the command.
-   Example: >
+いくつかのコマンドでは、それ自身が実行された後で自動コマンドが実行される。引き
+金となったコマンド自身が失敗して、それが有効なtry条件文の内側にあった場合、自
+動コマンドはスキップされ、エラー例外が発生する。その例外は、コマンドを呼んだ位
+置で捕捉することができる。
+   例: >
 
 	:autocmd BufWritePost * echo "File successfully written!"
 	:
@@ -6822,13 +6793,13 @@ is thrown that can be caught by the caller of the command.
 	:  echo v:exception
 	:endtry
 
-This just displays: >
+この例は次を表示する: >
 
 	Vim(write):E212: Can't open file for writing (/i/m/p/o/s/s/i/b/l/e)
 
-If you really need to execute the autocommands even when the main action
-fails, trigger the event from the catch clause.
-   Example: >
+引き金となったコマンドが失敗したときでさえも自動コマンドを実行したいという場合
+は、catch節の中でそのイベントを引き起こすことできる。
+   例: >
 
 	:autocmd BufWritePre  * set noreadonly
 	:autocmd BufWritePost * set readonly
@@ -6839,7 +6810,7 @@ fails, trigger the event from the catch clause.
 	:  doautocmd BufWritePost /i/m/p/o/s/s/i/b/l/e
 	:endtry
 <
-You can also use ":silent!": >
+":silent!"を使うこともできる: >
 
 	:let x = "ok"
 	:let v:errmsg = ""
@@ -6852,10 +6823,10 @@ You can also use ":silent!": >
 	:endtry
 	:echo x
 
-This displays "after fail".
+上の例は"after fail"を表示する。
 
-If the main action of the command does not fail, exceptions from the
-autocommands will be catchable by the caller of the command:  >
+引き金となったコマンドが失敗しなかった場合、自動コマンドから発生した例外は、元
+のコマンドを呼んだ位置から捕捉できる: >
 
 	:autocmd BufWritePost * throw ":-("
 	:autocmd BufWritePost * echo "Should not be displayed"
@@ -6867,12 +6838,11 @@ autocommands will be catchable by the caller of the command:  >
 	:endtry
 <
 							*except-autocmd-Cmd*
-For some commands, the normal action can be replaced by a sequence of
-autocommands.  Exceptions from that sequence will be catchable by the caller
-of the command.
-   Example:  For the ":write" command, the caller cannot know whether the file
-had actually been written when the exception occurred.  You need to tell it in
-some way. >
+いくつかのコマンドでは、通常の処理を一連の自動コマンドで置き換えることができる。
+そのコマンド列で発生した例外は元のコマンドの呼び出し位置で捕捉できる。
+   例: ":write"コマンドでは、例外が発生したとき、呼び出し側は実際にファイルが
+書き込まれたのかどうかを知ることができない。これを教える必要があるときは、なん
+らかの手段を使わねばならない。 >
 
 	:if !exists("cnt")
 	:  let cnt = 0
@@ -6902,18 +6872,18 @@ some way. >
 	:    echo "Error on writing"
 	:endtry
 
-When this script is sourced several times after making changes, it displays
-first >
+バッファに変更を行った後でこのスクリプトを数回sourceすると、1回目は次のように
+表示される >
 	File successfully written!
-then >
+2回目は >
 	Error on writing (file contents not changed)
-then >
+3回目は >
 	Error after writing
-etc.
+以下同様。
 
 							*except-autocmd-ill*
-You cannot spread a try conditional over autocommands for different events.
-The following code is ill-formed: >
+異なるイベントに対する自動コマンドにわたってtry条件文を展開することはできない。
+以下のコードは不正である: >
 
 	:autocmd BufWritePre  * try
 	:
@@ -6924,21 +6894,20 @@ The following code is ill-formed: >
 	:write
 
 
-EXCEPTION HIERARCHIES AND PARAMETERIZED EXCEPTIONS	*except-hier-param*
+例外の階層と付加情報つき例外				*except-hier-param*
 
-Some programming languages allow to use hierarchies of exception classes or to
-pass additional information with the object of an exception class.  You can do
-similar things in Vim.
-   In order to throw an exception from a hierarchy, just throw the complete
-class name with the components separated by a colon, for instance throw the
-string "EXCEPT:MATHERR:OVERFLOW" for an overflow in a mathematical library.
-   When you want to pass additional information with your exception class, add
-it in parentheses, for instance throw the string "EXCEPT:IO:WRITEERR(myfile)"
-for an error when writing "myfile".
-   With the appropriate patterns in the ":catch" command, you can catch for
-base classes or derived classes of your hierarchy.  Additional information in
-parentheses can be cut out from |v:exception| with the ":substitute" command.
-   Example: >
+プログラミング言語の中には例外クラスを階層化したり、例外クラスのオブジェクトに
+付加的な情報を渡すことができるものがある。これと似たことをVimでもできる。
+階層構造を持った例外を投げるには、各部分をコロンで区切った完全なクラス名を投げ
+ればよい。例えば、数学ライブラリ内でオーバーフローが発生したときに
+"EXCEPT:MATHERR:OVERFLOW"を投げる。
+例外クラスに付加的な情報を与えたいときは、それを括弧の中に書く。例えば、
+"myfile"の書き込み中にエラーが発生したときに文字列"EXCEPT:IO:WRITEERR(myfile)"
+を投げる。
+":catch"コマンドにおいて適切な正規表現を使えば、階層の基底クラスや派生クラスを
+捕捉できる。括弧の中の付加情報は、":substitute"コマンドを使って|v:exception|か
+ら切り出すことができる。
+例: >
 
 	:function! CheckRange(a, func)
 	:  if a:a < 0
@@ -6975,7 +6944,7 @@ parentheses can be cut out from |v:exception| with the ":substitute" command.
 	:
 	:try
 	:
-	:  " something with arithmetics and I/O
+	:  " 計算やI/Oを行う
 	:
 	:catch /^EXCEPT:MATHERR:RANGE/
 	:  let function = substitute(v:exception, '.*(\(\a\+\)).*', '\1', "")
@@ -6997,55 +6966,47 @@ parentheses can be cut out from |v:exception| with the ":substitute" command.
 	:
 	:endtry
 
-The exceptions raised by Vim itself (on error or when pressing CTRL-C) use
-a flat hierarchy:  they are all in the "Vim" class.  You cannot throw yourself
-exceptions with the "Vim" prefix; they are reserved for Vim.
-   Vim error exceptions are parameterized with the name of the command that
-failed, if known.  See |catch-errors|.
+エラー時やCTRL-Cを押したときにVim自身によって投げられる例外は平坦な階層になっ
+ている: つまりこれらは全て"Vim"クラスに入っている。ユーザは接頭辞"Vim"をつけた
+例外を投げることはできない。これらはVim用に予約されている。
+Vimのエラー例外は失敗したコマンドの名前(わかっているならば)という付加情報がつ
+いている。|catch-errors|を参照。
 
 
 PECULIARITIES
 							*except-compat*
-The exception handling concept requires that the command sequence causing the
-exception is aborted immediately and control is transferred to finally clauses
-and/or a catch clause.
+例外制御のコンセプトは、例外を引き起こしたコマンドは即座に異常終了し、制御が
+finally節またはcatch節に移るという前提に基づいている。
 
-In the Vim script language there are cases where scripts and functions
-continue after an error: in functions without the "abort" flag or in a command
-after ":silent!", control flow goes to the following line, and outside
-functions, control flow goes to the line following the outermost ":endwhile"
-or ":endif".  On the other hand, errors should be catchable as exceptions
-(thus, requiring the immediate abortion).
+Vimスクリプト言語では、エラーの後もスクリプトや関数が処理を続行する場合がある。
+"abort"フラグのない関数や、":silent!"をつけて実行されたコマンドでは、制御は次
+の行、そして関数の外へ移り、制御フローは最外側の":endwhile"や":endif"の次の行へ
+移る。一方、エラーは例外と同様に捕捉できるべきである(つまり、即座に異常終了す
+ることが要求される)。
 
-This problem has been solved by converting errors to exceptions and using
-immediate abortion (if not suppressed by ":silent!") only when a try
-conditional is active.  This is no restriction since an (error) exception can
-be caught only from an active try conditional.  If you want an immediate
-termination without catching the error, just use a try conditional without
-catch clause.  (You can cause cleanup code being executed before termination
-by specifying a finally clause.)
+この問題は、try条件文が有効なときだけエラーを例外に変換し、(":silent!"で抑制さ
+れていない限り)即座に異常終了することで解決される。(エラー)例外は有効なtry条件
+文でのみ捕捉可能であるため、これはなんら制約とはならない。エラーを捕捉せずに即
+座に終了してほしいなら、単にcatch節を持たないtry条件文を使えばよい。(finally節
+を指定すれば、終了の前に後始末処理を行うことができる)
 
-When no try conditional is active, the usual abortion and continuation
-behavior is used instead of immediate abortion.  This ensures compatibility of
-scripts written for Vim 6.1 and earlier.
+有効なtry条件文がないとき、即座の異常終了でなく、通常の異常終了と継続が行われ
+る。これによってVim6.1以前用に書かれたスクリプトの互換性を保証している。
 
-However, when sourcing an existing script that does not use exception handling
-commands (or when calling one of its functions) from inside an active try
-conditional of a new script, you might change the control flow of the existing
-script on error.  You get the immediate abortion on error and can catch the
-error in the new script.  If however the sourced script suppresses error
-messages by using the ":silent!" command (checking for errors by testing
-|v:errmsg| if appropriate), its execution path is not changed.  The error is
-not converted to an exception.  (See |:silent|.)  So the only remaining cause
-where this happens is for scripts that don't care about errors and produce
-error messages.  You probably won't want to use such code from your new
-scripts.
+しかし、有効なtry条件文の中から、例外処理コマンドを使っていない既存のスクリプ
+トをsourceする(またはその関数の1つを呼ぶ)と、エラー発生時に既存のスクリプトの
+制御フローが変わるかもしれない。エラー発生時に即座に異常終了し、新しい方のスク
+リプト内でエラーを捕捉できる。しかしsourceされたスクリプトが":silent!"コマンド
+でエラーメッセージを抑制していた場合(それが適切なスクリプトなら|v:errmsg|を見
+ることでエラーを確認している)、実行パスは変わらない。そのエラーは例外に変換さ
+れない(|:silent|を参照)。これが起こる残りのただ1つの原因は、エラーに関心を払っ
+ていなく、エラーメッセージを表示させるスクリプトである。おそらく新しいスクリプ
+トからそのようなコードを使いたいとは思わないだろう。
 
 							*except-syntax-err*
-Syntax errors in the exception handling commands are never caught by any of
-the ":catch" commands of the try conditional they belong to.  Its finally
-clauses, however, is executed.
-   Example: >
+例外処理コマンドにおける構文エラーは、それが族するtry条件文のどの":catch"コマ
+ンドでも決して捕捉されない。しかしfinally節は実行される。
+   例: >
 
 	:try
 	:  try
@@ -7063,52 +7024,54 @@ clauses, however, is executed.
 	:    echo "outer finally"
 	:endtry
 
-This displays: >
+上の例を実行すると次が表示される: >
     inner finally
     outer catch-all caught "Vim(catch):E54: Unmatched \("
     outer finally
-The original exception is discarded and an error exception is raised, instead.
+元の例外は破棄され、代わりにエラー例外が投げられる。
+
+訳注: throw 4711により例外が発生したが、その後の catch /\(/ に構文エラーがある
+訳注: ためエラー例外が発生し、最初の例外は破棄された。
 
 							*except-single-line*
-The ":try", ":catch", ":finally", and ":endtry" commands can be put on
-a single line, but then syntax errors may make it difficult to recognize the
-"catch" line, thus you better avoid this.
-   Example: >
+コマンド":try", ":catch", ":finally", ":endtry"は1行の中に書くことができる。し
+かし構文エラーがあったとき"catch"の行を認識するのが難しくなるので、避けた方が
+よい。
+   例: >
 	:try | unlet! foo # | catch | endtry
-raises an error exception for the trailing characters after the ":unlet!"
-argument, but does not see the ":catch" and ":endtry" commands, so that the
-error exception is discarded and the "E488: Trailing characters" message gets
-displayed.
+この例は":unlet!"の後に余計な文字があるためエラー例外を発生させる。そして
+":catch"と":endtry"が認識されないため、この例外は破棄され、"E488: Trailing
+characters"のメッセージが表示される。
 
 							*except-several-errors*
-When several errors appear in a single command, the first error message is
-usually the most specific one and therefor converted to the error exception.
-   Example: >
+1つのコマンドにより複数のエラーが発生した場合、普通は最初のエラーメッセージが
+最も限定的であるため、それがエラー例外に変換される。
+   例: >
 	echo novar
-causes >
+は次を発生させる: >
 	E121: Undefined variable: novar
 	E15: Invalid expression: novar
-The value of the error exception inside try conditionals is: >
+try条件文の中のエラー例外の値は次になる: >
 	Vim(echo):E121: Undefined variable: novar
 <							*except-syntax-error*
-But when a syntax error is detected after a normal error in the same command,
-the syntax error is used for the exception being thrown.
-   Example: >
+しかし、同じコマンドにおいて通常のエラーの後に構文エラーが検出されたときは、構
+文エラーが例外として投げられる。
+   例: >
 	unlet novar #
-causes >
+これは次を発生させる: >
 	E108: No such variable: "novar"
-	E488: Trailing characters
-The value of the error exception inside try conditionals is: >
+	E488: Trailing characters 
+try条件文の中のエラー例外の値は次になる: >
 	Vim(unlet):E488: Trailing characters
-This is done because the syntax error might change the execution path in a way
-not intended by the user.  Example: >
+この理由は、構文エラーによってユーザが予期していない実行パスになってしまうかも
+しれないためである。例: >
 	try
 	    try | unlet novar # | catch | echo v:exception | endtry
 	catch /.*/
 	    echo "outer catch:" v:exception
 	endtry
-This displays "outer catch: Vim(unlet):E488: Trailing characters", and then
-a "E600: Missing :endtry" error message is given, see |except-single-line|.
+これは"outer catch: Vim(unlet):E488: Trailing characters"を表示し、次にエラー
+メッセージ "E600: Missing :endtry"が表示される。|except-single-line|を参照。
 
 ==============================================================================
 9. 例							    *eval-examples*
