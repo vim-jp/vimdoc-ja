@@ -16,6 +16,10 @@
 "   :call MakeHtmlAll()
 
 function! MakeHtmlAll()
+  if bufname("%") != "" || &modified
+    new
+  endif
+  let s:log = []
   let files = split(glob('*.??[tx]'), '\n')
   call MakeTagsFile()
   for i in range(len(files))
@@ -29,6 +33,10 @@ function! MakeHtmlAll()
     call MakeHtml(file)
     call setline(i+1, getline(i+1) . ' *DONE*')
   endfor
+  if s:log != []
+    new
+    call append(0, s:log)
+  endif
 endfunction
 
 function! MakeHtmlAllBatch()
@@ -66,7 +74,7 @@ endfunction
 
 function! MakeHtml(fname)
   new `=a:fname`
-  call s:WorkAroundToAvoidSyntaxBug1()
+
   " 2html options
   let g:html_use_css = 1
   let g:html_no_pre = 1
@@ -79,7 +87,9 @@ function! MakeHtml(fname)
     endfor
   endif
 
+  call s:WorkAroundToAvoidSyntaxBug1()
   TOhtml
+  call s:WorkAroundToAvoidSyntaxBug2()
 
   let lang = s:GetLang(a:fname)
   silent %s@<span class="\(helpHyperTextEntry\|helpHyperTextJump\|helpOption\)">\([^<]*\)</span>@\=s:MakeLink(lang, submatch(1), submatch(2))@ge
@@ -89,7 +99,6 @@ function! MakeHtml(fname)
 
   call s:Header()
   call s:Footer()
-  call s:WorkAroundToAvoidSyntaxBug2()
 
   wq! `=s:HtmlName(a:fname)`
   quit!
@@ -148,7 +157,8 @@ function! s:MakeLink(lang, hlname, tagname)
       let res = printf('<a class="%s" href="%s">%s%s%s</a>', s:attr_save[a:hlname], href, sep, a:tagname, sep)
     endif
   else
-    " missing tag or not translated.  use English if possible.
+    " missing tag or not translated or typo.  use English if possible.
+    call s:Log("%s: tag error: %s", bufname("%"), tagname)
     let tags = s:GetTags("")
     if has_key(tags, tagname)
       let href = tags[tagname]["html"]
@@ -239,6 +249,16 @@ function! s:MakeLangLinks(htmlfile)
     let res .= printf(' <a href="%s">%s</a>', s:HtmlName(name), lang)
   endfor
   return res
+endfunction
+
+function! s:Log(fmt, ...)
+  if exists("s:log")
+    if len(a:000) == 0
+      call add(s:log, a:fmt)
+    else
+      call add(s:log, call("printf", [a:fmt] + a:000))
+    endif
+  endif
 endfunction
 
 function! s:WorkAroundToAvoidSyntaxBug1()
