@@ -1,5 +1,5 @@
 COMMENT: Vimスクリプト
-STATUS: suspended 7.1
+STATUS: halfway 7.1
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
@@ -27,7 +27,7 @@ Vimスクリプトの利用についてはユーザマニュアルの41章|user_
 3.  内部変数		|internal-variables|
 4.  組み込み関数	|functions|
 5.  関数定義		|user-functions|
-6.  波括弧{}の名前	|curly-braces-names|
+6.  波括弧{}変数	|curly-braces-names|
 7.  コマンド		|expression-commands|
 8.  例外処理		|exception-handling|
 9.  例			|eval-examples|
@@ -1525,103 +1525,111 @@ v:warningmsg	最後に表示された警告メッセージ。この変数はセ�
 
 使用法				結果	説明		~
 
-add( {list}, {item})		List	append {item} to |List| {list}
+add( {list}, {item})		リスト	{item}をリスト{list}に追加する
 append( {lnum}, {string})	数値	{string}を{lnum}行目に付け加える
-append( {lnum}, {list})		Number	append lines {list} below line {lnum}
+append( {lnum}, {list})		Number	行{list}を{lnum}行目に付け加える
 argc()				数値	引数内のファイルの数
 argv( {nr})			文字列	引数の第{nr}番目
-argv( )				List	the argument list
+argv( )				リスト	引数リスト
 browse( {save}, {title}, {initdir}, {default})
 				文字列	ファイル選択ダイアログを表示
-browsedir( {title}, {initdir})  String	put up a directory requester
+browsedir( {title}, {initdir})  文字列	ディレクトリ選択ダイアログを表示
 bufexists( {expr})		数値	バッファ{expr}が存在すればTRUE
+buflisted( {expr})		数値	バッファ{expr}がリストにあるならTRUE
 bufloaded( {expr})		数値	バッファ{expr}がロード済みならTRUE
 bufname( {expr})		文字列	バッファ{expr}の名前
 bufnr( {expr})			数値	バッファ{expr}の番号
 bufwinnr( {nr})			数値	バッファ{nr}のウィンドウ番号
 byte2line( {byte})		数値	{byte}番目のバイトの行番号
-byteidx( {expr}, {nr})		Number	byte index of {nr}'th char in {expr}
+byteidx( {expr}, {nr})		数値	{expr}の{nr}文字目のバイトインデックス
 call( {func}, {arglist} [, {dict}])
-				any	call {func} with arguments {arglist}
-changenr()			Number  current change number
+				任意	引数{arglist}をつけて{func}を呼ぶ
+changenr()			数値	現在の変更番号
 char2nr( {expr})		数値	{expr}の先頭文字のASCIIコード
+cindent( {lnum})		数値	{lnum}行目のCインデント量
 col( {expr})			数値	カーソルかマークのカラム番号nr
-complete({startcol}, {matches})	String  set Insert mode completion
-complete_add( {expr})		Number	add completion match
-complete_check()		Number  check for key typed during completion
+complete({startcol}, {matches})	文字列  インサートモード補完の結果を設定する
+complete_add( {expr})		数値	補完候補を追加する
+complete_check()		数値	補完中に押されたキーをチェックする
 confirm( {msg}, {choices} [, {default} [, {type}]])
 				数値	ユーザへの選択肢と番号
-copy( {expr})			any	make a shallow copy of {expr}
+copy( {expr})			任意	{expr}の浅いコピーを作る
 count( {list}, {expr} [, {start} [, {ic}]])
-				Number	 count how many {expr} are in {list}
+				数値	 {list}中に{expr}が何個現れるか数える
 cscope_connection( [{num} , {dbpath} [, {prepend}]])
-				Number	checks existence of cscope connection
+				数値	cscope接続の存在を判定する
 cursor( {lnum}, {col} [, {coladd}])
-				Number	move cursor to {lnum}, {col}, {coladd}
-cursor( {list})			Number	move cursor to position in {list}
-deepcopy( {expr})		any	make a full copy of {expr}
+				数値	カーソルを{lnum}, {col}, {coladd}へ移動
+cursor( {list})			数値	カーソルを{list}の位置へ移動
+deepcopy( {expr})		任意	{expr}の完全なコピーを作る
 delete( {fname})		数値	ファイル{fname}を消す
 did_filetype()			数値	FileTypeのautocommandが実行されたか?
-diff_filler( {lnum})		Number	diff filler lines about {lnum}
-diff_hlID( {lnum}, {col})	Number	diff highlighting at {lnum}/{col}
-empty( {expr})			Number	TRUE if {expr} is empty
+diff_filler( {lnum})		数値	diffモードで{lnum}に挿入された行
+diff_hlID( {lnum}, {col})	数値	diffモードで{lnum}/{col}位置の強調
+empty( {expr})			数値	{expr}が空ならTRUE
 escape( {string}, {chars})	文字列	{string}内の{chars}を'\'でエスケープ
-eval( {string})			any	evaluate {string} into its value
+eval( {string})			任意	{string}を評価し、値を得る
+eventhandler( )			数値	イベントハンドラの内側ならTRUE
+executable( {expr})		数値	実行可能な{expr}が存在するなら1
 exists( {var})			数値	変数{var}が存在したらTRUE
 extend({expr1}, {expr2} [, {expr3}])
-				List/Dict insert items of {expr2} into {expr1}
+				リスト/辞書 {expr1}に{expr2}の要素を挿入
 expand( {expr})			文字列	{expr}内の特別なキーワードを展開
-feedkeys( {string} [, {mode}])	Number  add key sequence to typeahead buffer
+feedkeys( {string} [, {mode}])	数値	先行入力バッファにキーシーケンスを追加
 filereadable( {file})		数値	{file}が読みこみ可能ならTRUE
-filewritable( {file})		Number	TRUE if {file} is a writable file
-filter( {expr}, {string})	List/Dict  remove items from {expr} where
-					{string} is 0
+filewritable( {file})		Number	{file}が書き込み可能ならTRUE
+filter( {expr}, {string})	リスト/辞書  {string}が0となる要素を{expr}から
+					とり除く
 finddir( {name}[, {path}[, {count}]])
-				String	find directory {name} in {path}
+				文字列	{path}からディレクトリ{name}を探す
 findfile( {name}[, {path}[, {count}]])
-				String	find file {name} in {path}
+				文字列	{path}からファイル{name}を探す
 fnamemodify( {fname}, {mods})	文字列	ファイル名を変更
-foldclosed( {lnum})		Number	first line of fold at {lnum} if closed
-foldclosedend( {lnum})		Number	last line of fold at {lnum} if closed
-foldlevel( {lnum})		Number	fold level at {lnum}
-foldtext( )			String	line displayed for closed fold
-foldtextresult( {lnum})		String	text for closed fold at {lnum}
-foreground( )			Number	bring the Vim window to the foreground
-function( {name})		Funcref reference to function {name}
-garbagecollect()		none	free memory, breaking cyclic references
-get( {list}, {idx} [, {def}])	any	get item {idx} from {list} or {def}
-get( {dict}, {key} [, {def}])	any	get item {key} from {dict} or {def}
+foldclosed( {lnum})		数値	{lnum}の折り畳みの最初の行(閉じている
+					なら)
+foldclosedend( {lnum})		数値	{lnum}の折り畳みの最後の行(閉じている
+					なら)
+foldlevel( {lnum})		数値	{lnum}の折り畳みレベル
+foldtext( )			文字列	閉じた折り畳みに表示されている行
+foldtextresult( {lnum})		文字列	{lnum}で閉じている折り畳みのテキスト
+foreground( )			数値	Vimウィンドウを前面に移動する
+function( {name})		Funcref 関数{name}への参照を取得
+garbagecollect()		なし	メモリを解放する。循環参照を断ち切る
+get( {list}, {idx} [, {def}])	任意	{list}や{def}から要素{idx}を取得
+get( {dict}, {key} [, {def}])	任意	{dict}や{def}から要素{key}を取得
 getbufline( {expr}, {lnum} [, {end}])
-				List	lines {lnum} to {end} of buffer {expr}
-getbufvar( {expr}, {varname})	any	variable {varname} in buffer {expr}
-getcmdline()			String	return the current command-line
-getcmdpos()			Number	return cursor position in command-line
-getcmdtype()			String	return the current command-line type
+				リスト	バッファ{expr}の{lnum}から{end}行目
+getbufvar( {expr}, {varname})	任意	バッファ{expr}の変数 {varname}
+getcmdline()			文字列	現在のコマンドラインを取得
+getcmdpos()			数値	コマンドラインのカーソル位置を取得
+getcmdtype()			文字列	現在のコマンドラインの種類を取得
 getcwd()			文字列	現在の作業ディレクトリ
-getfperm( {fname})		String	file permissions of file {fname}
-getfsize( {fname})		Number	size in bytes of file {fname}
-getfontname( [{name}])		String	name of font being used
+getfperm( {fname})		文字列	ファイル{fname}の許可属性を取得
+getfsize( {fname})		数値	ファイル{fname}のバイト数を取得
+getfontname( [{name}])		文字列	使用しているフォントの名前
 getftime( {fname})		数値	ファイルの最終更新時間
-getftype( {fname})		String	description of type of file {fname}
+getftype( {fname})		文字列	ファイル{fname}の種類の説明
 getline( {lnum})		文字列	現在のバッファから行の内容を取得
-getline( {lnum}, {end})		List	lines {lnum} to {end} of current buffer
-getloclist({nr})		List	list of location list items
-getpos( {expr})			List	position of cursor, mark, etc.
-getqflist()			List	list of quickfix items
-getreg( [{regname} [, 1]])	String	contents of register
-getregtype( [{regname}])	String	type of register
+getline( {lnum}, {end})		リスト	カレントバッファの{lnum}から{end}行目
+getloclist({nr})		リスト	ロケーションリストの要素のリスト
+getpos( {expr})			リスト	カーソル・マークなどの位置を取得
+getqflist()			リスト	quickfixリストの要素のリスト
+getreg( [{regname} [, 1]])	文字列	レジスタの中身を取得
+getregtype( [{regname}])	文字列	レジスタの種類を取得
 gettabwinvar( {tabnr}, {winnr}, {name})
-				any	{name} in {winnr} in tab page {tabnr}
+				任意	タブページ{tabnr}の{winnr}の{name}
 getwinposx()			数値	GUI vim windowのX座標
 getwinposy()			数値	GUI vim windowのY座標
-getwinvar( {nr}, {varname})	any	variable {varname} in window {nr}
+getwinvar( {nr}, {varname})	文字列	ウィンドウ{nr}の変数{varname}
 glob( {expr} [, {flag}])	文字列	{expr}内のfile wildcardを展開
-globpath( {path}, {expr})	String	do glob({expr}) for all dirs in {path}
+globpath( {path}, {expr})	文字列	{path}の全ディレクトリに対し
+					glob({expr})を行う
 has( {feature})			数値	機能{feature}がサポートならばTRUE
-has_key( {dict}, {key})		Number	TRUE if {dict} has entry {key}
-haslocaldir()			Number	TRUE if current window executed |:lcd|
+has_key( {dict}, {key})		数値	{dict}が要素{key}を持つならTRUE
+haslocaldir()			数値	現在のウィンドウで|:lcd|が実行された
+					ならTRUE
 hasmapto( {what} [, {mode} [, {abbr}]])
-				Number	TRUE if mapping to {what} exists
+				数値	{what}へのマッピングが存在するならTRUE
 histadd( {history},{item})	文字列	ヒストリに追加
 histdel( {history} [, {item}])	文字列	ヒストリからitemを削除
 histget( {history} [, {index}])	文字列	ヒストリから{index}アイテムを取得
@@ -1629,119 +1637,124 @@ histnr( {history})		数値	ヒストリの数
 hlexists( {name})		数値	highligth group {name}が存在したらTRUE
 hlID( {name})			数値	highlight group {name}のID
 hostname()			文字列	vimが動作しているマシンの名前
-iconv( {expr}, {from}, {to})	String	convert encoding of {expr}
-indent( {lnum})			Number	indent of line {lnum}
+iconv( {expr}, {from}, {to})	文字列	{expr}のエンコーディングを変換する
+indent( {lnum})			文字列	行{lnum}のインデントを取得
 index( {list}, {expr} [, {start} [, {ic}]])
-				Number	index in {list} where {expr} appears
+				数値	{list}中に{expr}が現れる位置
 input( {prompt} [, {text} [, {completion}]])
 				文字列	ユーザからの入力を取得
-inputdialog( {p} [, {t} [, {c}]]) String  like input() but in a GUI dialog
-inputlist( {textlist})		Number	let the user pick from a choice list
-inputrestore()			Number	restore typeahead
-inputsave()			Number	save and clear typeahead
-inputsecret( {prompt} [, {text}]) String  like input() but hiding the text
-insert( {list}, {item} [, {idx}]) List	insert {item} in {list} [before {idx}]
+inputdialog( {p} [, {t} [, {c}]]) 文字列  input()と同様。GUIのダイアログを使用
+inputlist( {textlist})		数値	ユーザに選択肢から選ばせる
+inputrestore()			数値	先行入力を復元する
+inputsave()			数値	先行入力を保存し、クリアする
+inputsecret( {prompt} [, {text}]) 文字列  input()だがテキストを隠す
+insert( {list}, {item} [, {idx}]) リスト  {list}に要素{item}を挿入 [{idx}の前]
 isdirectory( {directory})	数値	{directory}がディレクトリならばTRUE
-islocked( {expr})		Number	TRUE if {expr} is locked
-items( {dict})			List	key-value pairs in {dict}
-join( {list} [, {sep}])		String	join {list} items into one String
-keys( {dict})			List	keys in {dict}
-len( {expr})			Number	the length of {expr}
+islocked( {expr})		数値	{expr}がロックされているならTRUE
+items( {dict})			リスト	{dict}のキーと値のペアを取得
+join( {list} [, {sep}])		文字列	{list}の要素を連結して文字列にする
+keys( {dict})			リスト	{dict}のキーを取得
+len( {expr})			数値	{expr}の長さを取得
 libcall( {lib}, {func}, {arg}	文字列	ライブラリ{lib}の関数{func}をコール
-libcallnr( {lib}, {func}, {arg})  Number  idem, but return a Number
+libcallnr( {lib}, {func}, {arg})  数値  上と同じ。ただし数値を返す
 line( {expr})			数値	行番号の取得
 line2byte( {lnum})		数値	行{lnum}のバイトカウント
-lispindent( {lnum})		Number	Lisp indent for line {lnum}
+lispindent( {lnum})		数値	{lnum}行目のLispインデント量を取得
 localtime()			数値	現在時刻
+map( {expr}, {string})		リスト/辞書  {expr}の各要素を{expr}に変える
 maparg( {name}[, {mode} [, {abbr}]])
-				String	rhs of mapping {name} in mode {mode}
+				文字列	モード{mode}でのマッピング{name}の値
 mapcheck( {name}[, {mode} [, {abbr}]])
-				String	check for mappings matching {name}
+				文字列	{name}にマッチするマッピングを確認
 match( {expr}, {pat}[, {start}[, {count}]])
-				Number	position where {pat} matches in {expr}
-matcharg( {nr})			List	arguments of |:match|
+				数値	{expr}内で{pat}がマッチする位置
+matcharg( {nr})			リスト	|:match|の引数
 matchend( {expr}, {pat}[, {start}[, {count}]])
-				Number	position where {pat} ends in {expr}
+				数値	{expr}内で{pat}が終了する位置
 matchlist( {expr}, {pat}[, {start}[, {count}]])
-				List	match and submatches of {pat} in {expr}
+				リスト	{expr}内の{pat}のマッチと部分マッチ
 matchstr( {expr}, {pat}[, {start}[, {count}]])
-				String	{count}'th match of {pat} in {expr}
-max({list})			Number	maximum value of items in {list}
-min({list})			Number	minimum value of items in {list}
+				文字列	{expr}内の{count}'番目の{pat}のマッチ
+max({list})			数値	{list}内の要素の最大値
+min({list})			数値	{list}内の要素の最小値
 mkdir({name} [, {path} [, {prot}]])
-				Number	create directory {name}
-mode()				String	current editing mode
-nextnonblank( {lnum})		Number	line nr of non-blank line >= {lnum}
+				数値	ディレクトリ{name}を作成
+mode()				文字列	現在の編集モード
+nextnonblank( {lnum})		数値	{lnum}行目以降で空行でない行の行番号
 nr2char( {expr})		文字列	ASCIIコード{expr}で示されるキャラクタ
-pathshorten( {expr})		String	shorten directory names in a path
-prevnonblank( {lnum})		Number	line nr of non-blank line <= {lnum}
-printf( {fmt}, {expr1}...)	String  format text
-pumvisible()			Number  whether popup menu is visible
+pathshorten( {expr})		文字列	path内の短縮したディレクトリ名
+prevnonblank( {lnum})		数値	{lnum}行目以前の空行でない行の行番号
+printf( {fmt}, {expr1}...)	文字列  文字列を組み立てる
+pumvisible()			数値    ポップアップメニューが表示されているか
 range( {expr} [, {max} [, {stride}]])
-				List	items from {expr} to {max}
+				リスト	{expr}から{max}までの要素のリスト
 readfile({fname} [, {binary} [, {max}]])
-				List	get list of lines from file {fname}
-reltime( [{start} [, {end}]])	List	get time value
-reltimestr( {time})		String	turn time value into a String
+				リスト	ファイル{fname}から行のリストを取得
+reltime( [{start} [, {end}]])	リスト	時刻の値を取得
+reltimestr( {time})		文字列	時刻の値を文字列に変換
 remote_expr( {server}, {string} [, {idvar}])
-				String	send expression
-remote_foreground( {server})	Number	bring Vim server to the foreground
+				文字列	式を送信する
+remote_foreground( {server})	数値	Vimサーバを前面に出す
 remote_peek( {serverid} [, {retvar}])
-				Number	check for reply string
-remote_read( {serverid})	String	read reply string
+				数値	返信文字列を確認する
+remote_read( {serverid})	文字列	返信文字列を読み込む
 remote_send( {server}, {string} [, {idvar}])
-				String	send key sequence
-remove( {list}, {idx} [, {end}])  any	remove items {idx}-{end} from {list}
-remove( {dict}, {key})		any	remove entry {key} from {dict}
+				文字列	キーシーケンスを送信する
+remove( {list}, {idx} [, {end}])  任意	{list}から{idx}〜{end}の要素を削除
+remove( {dict}, {key})		任意	{dict}から要素{key}を削除
 rename({from}, {to})		数値	{file}から{to}へファイル名変更
-repeat( {expr}, {count})	String	repeat {expr} {count} times
-resolve( {filename})		String	get filename a shortcut points to
-reverse( {list})		List	reverse {list} in-place
-search( {pattern} [, {flags}])	Number	search for {pattern}
+repeat( {expr}, {count})	文字列	{expr}を{count}回繰り返す
+resolve( {filename})		文字列	ショートカットが指す先のファイル名
+reverse( {list})		文字列	{list}をその場で反転させる
+search( {pattern} [, {flags}])	数値	{pattern}を検索する
 searchdecl({name} [, {global} [, {thisblock}]])
-				Number  search for variable declaration
+				数値    変数の宣言を検索
 searchpair( {start}, {middle}, {end} [, {flags} [, {skip} [, {stopline}]]])
-				Number	search for other end of start/end pair
+				数値	開始/終端のペアの他方を検索
 searchpairpos( {start}, {middle}, {end} [, {flags} [, {skip} [, {stopline}]]])
-				List	search for other end of start/end pair
+				リスト	開始/終端のペアの他方を検索
 searchpos( {pattern} [, {flags} [, {stopline}]])
-				List	search for {pattern}
+				リスト	{pattern}を検索
 server2client( {clientid}, {string})
-				Number	send reply string
-serverlist()			String	get a list of available servers
-setbufvar( {expr}, {varname}, {val})	set {varname} in buffer {expr} to {val}
-setcmdpos( {pos})		Number	set cursor position in command-line
+				数値	返信文字列を送信する
+serverlist()			文字列	利用可能なサーバのリストを取得
+setbufvar( {expr}, {varname}, {val})	バッファ{expr}内の変数{varname}に{val}
+					をセット
+setcmdpos( {pos})		数値	コマンドライン内のカーソル位置を設定
 setline( {lnum}, {line})	数値	行{lnum}に{line}(文字列)をセット
 setloclist( {nr}, {list}[, {action}])
-				Number	modify location list using {list}
-setpos( {expr}, {list})		none	set the {expr} position to {list}
-setqflist( {list}[, {action}])	Number	modify quickfix list using {list}
-setreg( {n}, {v}[, {opt}])	Number	set register to value and type
-settabwinvar( {tabnr}, {winnr}, {varname}, {val})    set {varname} in window
+				数値	{list}を使ってロケーションリストを変更
+setpos( {expr}, {list})		なし	{expr}の位置を{list}にする
+setqflist( {list}[, {action}])	数値	{list}を使ってQuickFixリストを変更
+setreg( {n}, {v}[, {opt}])	数値	レジスタの値とタイプを設定
+settabwinvar( {tabnr}, {winnr}, {varname}, {val})  タブページ{tabnr}内のウィン
+					ドウ{nr}の変数{varname}に{val}をセット
 					{winnr} in tab page {tabnr} to {val}
-setwinvar( {nr}, {varname}, {val})	set {varname} in window {nr} to {val}
-shellescape( {string})		String	escape {string} for use as shell
-					command argument
-simplify( {filename})		String	simplify filename as much as possible
-sort( {list} [, {func}])	List	sort {list}, using {func} to compare
-soundfold( {word})		String	sound-fold {word}
-spellbadword()			String	badly spelled word at cursor
+setwinvar( {nr}, {varname}, {val})	ウィンドウ{nr}の変数{varname}に{val}を
+					セット
+shellescape( {string})		文字列	{string}をシェルコマンド引数として使う
+					ためにエスケープする。
+simplify( {filename})		文字列	ファイル名を可能なかぎり簡略化する
+sort( {list} [, {func}])	リスト	比較に{func}を使って{list}をソートする
+soundfold( {word})		文字列	{word}のsound-fold
+spellbadword()			文字列	カーソル位置のスペルミスした単語
 spellsuggest( {word} [, {max} [, {capital}]])
-				List	spelling suggestions
+				リスト	スペリング補完
 split( {expr} [, {pat} [, {keepempty}]])
-				List	make |List| from {pat} separated {expr}
-str2nr( {expr} [, {base}])	Number	convert string to number
+				リスト	{expr}を{pat}で区切ってリストを作る
+str2nr( {expr} [, {base}])	数値	文字列を数値に変換する
 strftime( {format}[, {time}])	文字列	指定されたフォーマットでの時刻
 stridx( {haystack}, {needle}[, {start}])
-				Number	index of {needle} in {haystack}
-string( {expr})			String	String representation of {expr} value
+				数値	{haystack}内の{needle}のインデックス
+string( {expr})			文字列	{expr}の値の文字列表現
 strlen( {expr})			数値	文字列{expr}の長さ
 strpart( {src}, {start}[, {len}])
 				文字列	{src}内{start}から長さ{len}の部分
 strridx( {haystack}, {needle} [, {start}])
-				Number	last index of {needle} in {haystack}
+				数値	{haystack}内の最後の{needle}のインデッ
+					クス
 strtrans( {expr})		文字列	文字列を表示可能に変更
-submatch( {nr})			String	specific match in ":substitute"
+submatch( {nr})			文字列	":substitute"における特定のマッチ
 substitute( {expr}, {pat}, {sub}, {flags})
 				文字列	{expr}の{pat}を{sub}に置換え
 synID( {line}, {col}, {trans})	数値	{line}と{col}のsyntax IDを取得
@@ -1749,32 +1762,32 @@ synIDattr( {synID}, {what} [, {mode}])
 				文字列	syntax ID{synID}の属性{what}を取得
 synIDtrans( {synID})		数値	{synID}の翻訳されたsyntax ID
 system( {expr} [, {input}])	文字列	シェルコマンド{expr}の出力結果
-tabpagebuflist( [{arg}])	List	list of buffer numbers in tab page
-tabpagenr( [{arg}])		Number	number of current or last tab page
+tabpagebuflist( [{arg}])	リスト	タブページ内のバッファ番号のリスト
+tabpagenr( [{arg}])		数値	現在または最後のタブページの番号
 tabpagewinnr( {tabarg}[, {arg}])
-				Number	number of current window in tab page
-taglist( {expr})		List	list of tags matching {expr}
-tagfiles()			List    tags files used
+				数値	タブページ内の現在のウィンドウの番号
+taglist( {expr})		リスト	{expr}にマッチするタグのリスト
+tagfiles()			リスト  使用しているタグファイルのリスと
 tempname()			文字列	テンポラリファイルの名前
-tolower( {expr})		String	the String {expr} switched to lowercase
-toupper( {expr})		String	the String {expr} switched to uppercase
-tr( {src}, {fromstr}, {tostr})	String	translate chars of {src} in {fromstr}
-					to chars in {tostr}
-type( {name})			Number	type of variable {name}
-values( {dict})			List	values in {dict}
+tolower( {expr})		文字列	文字列{expr}を小文字にする
+toupper( {expr})		文字列	文字列{expr}を大文字にする
+tr( {src}, {fromstr}, {tostr})	文字列	{src}中に現れる文字{fromstr}を{tostr}
+					に変換する。
+type( {name})			数値	変数{name}の型
+values( {dict})			リスト	{dict}の値のリスト
 virtcol( {expr})		数値	カーソルのスクリーンカラム位置
 visualmode( [expr])		文字列	最後に使われたVisualモード
 winbufnr( {nr})			数値	ウィンドウ{nr}のバッファ番号
-wincol()			Number	window column of the cursor
+wincol()			数値	カーソル位置のウィンドウ桁
 winheight( {nr})		数値	ウィンドウ{nr}の高さ
-winline()			Number	window line of the cursor
+winline()			数値	カーソル位置のウィンドウ行
 winnr()				数値	現在のウィンドウの番号
-winrestcmd()			String	returns command to restore window sizes
-winrestview({dict})		None	restore view of current window
-winsaveview()			Dict	save view of current window
-winwidth( {nr})			Number	width of window {nr}
+winrestcmd()			文字列	ウィンドウサイズを復元するコマンド
+winrestview({dict})		なし	現在のウィンドウのビューを復元
+winsaveview()			Dict	現在のウィンドウのビューを保存
+winwidth( {nr})			数値	ウィンドウ{nr}の幅を取得
 writefile({list}, {fname} [, {binary}])
-				Number	write list of lines to file {fname}
+				数値	行のリストをファイル{fname}に書き込む
 
 
 add({list}, {expr})					*add()*
@@ -3624,13 +3637,12 @@ getpos({expr})	Get the position for {expr}.  For possible values of {expr}
 <		Also see |setpos()|.
 
 pathshorten({expr})					*pathshorten()*
-		Shorten directory names in the path {expr} and return the
-		result.  The tail, the file name, is kept as-is.  The other
-		components in the path are reduced to single letters.  Leading
-		'~' and '.' characters are kept.  Example: >
+		パス{expr}におけるディレクトリ名を短縮して返す。拡張子、ファイ
+		ル名はそのまま保たれる。パスのその他の構成要素は1文字に縮めら
+		れる。1文字目の'~'と'.'はそのまま保たれる。例: >
 			:echo pathshorten('~/.vim/autoload/myfile.vim')
 <			~/.v/a/myfile.vim ~
-		It doesn't matter if the path exists or not.
+		パスが実際に存在するかどうかは関係ない。
 
 prevnonblank({lnum})					*prevnonblank()*
 		Return the line number of the first line at or above {lnum}
@@ -5452,58 +5464,56 @@ inside a function body.
 
 AUTOMATICALLY LOADING FUNCTIONS ~
 							*autoload-functions*
-When using many or large functions, it's possible to automatically define them
-only when they are used.  There are two methods: with an autocommand and with
-the "autoload" directory in 'runtimepath'.
+たくさんの関数または巨大な関数を使うときは、それらが使用されたときだけ自動的に
+定義されるようにすることができる。これには2つの方法がある: 自動コマンドによる
+方法と、'runtimepath'内の"autoload"ディレクトリによる方法である。
 
 
-Using an autocommand ~
+自動コマンドを使う方法 ~
 
-This is introduced in the user manual, section |41.14|.
+これはユーザマニュアルのセクション|41.14|で説明されている。
 
-The autocommand is useful if you have a plugin that is a long Vim script file.
-You can define the autocommand and quickly quit the script with |:finish|.
-That makes Vim startup faster.  The autocommand should then load the same file
-again, setting a variable to skip the |:finish| command.
+自動コマンドは、長いVimスクリプトファイルのプラグインに対して有用である。自動
+コマンドを定義し、すぐに|:finish|でそのスクリプトを抜ける。こうするとVimの起動
+が速くなる。その後自動コマンドにより|:finish|コマンドをスキップする変数を定義
+し、そのファイルが再び読み込まれる。
 
-Use the FuncUndefined autocommand event with a pattern that matches the
-function(s) to be defined.  Example: >
+定義すべき関数名にマッチするパターンを指定して自動コマンドイベント
+FuncUndefinedを使う。例: >
 
 	:au FuncUndefined BufNet* source ~/vim/bufnetfuncs.vim
 
-The file "~/vim/bufnetfuncs.vim" should then define functions that start with
-"BufNet".  Also see |FuncUndefined|.
+ファイル"~/vim/bufnetfuncs.vim"は"BufNet"で始まる関数を定義しなければならない。
+|FuncUndefined|も参照。
 
 
-Using an autoload script ~
+自動ロードスクリプトの使い方 ~
 							*autoload* *E746*
-This is introduced in the user manual, section |41.15|.
+これはユーザマニュアルのセクション|41.15|で説明されている。
 
-Using a script in the "autoload" directory is simpler, but requires using
-exactly the right file name.  A function that can be autoloaded has a name
-like this: >
+"autoload"ディレクトリのスクリプトを使う方法はより簡単である。しかし完全に正し
+いファイル名を使う必要がある。自動ロードされる関数は次のような名前を持つ: >
 
 	:call filename#funcname()
 
-When such a function is called, and it is not defined yet, Vim will search the
-"autoload" directories in 'runtimepath' for a script file called
-"filename.vim".  For example "~/.vim/autoload/filename.vim".  That file should
-then define the function like this: >
+このような関数が呼ばれ、それがまだ定義されていなかった場合、Vimは'runtimepath'
+内の"autoload"ディレクトリから"filename.vim"というスクリプトファイルを探す。
+例えば"~/.vim/autoload/filename.vim"のように。そしてこのファイルは次のような関
+数を定義していなければならない: >
 
 	function filename#funcname()
 	   echo "Done!"
 	endfunction
 
-The file name and the name used before the # in the function must match
-exactly, and the defined function must have the name exactly as it will be
-called.
+このファイル名と関数の # の前の部分は完全に一致しなければならない。そして定義
+された関数は呼ばれた関数と完全に同じ名前でなければならない。
 
-It is possible to use subdirectories.  Every # in the function name works like
-a path separator.  Thus when calling a function: >
+サブディレクトリを使うこともできる。関数名の中の # はパスのセパレータのように
+解釈される。つまり、次の関数を呼ぶと: >
 
 	:call foo#bar#func()
 
-Vim will look for the file "autoload/foo/bar.vim" in 'runtimepath'.
+Vimは'runtimepath'からファイル"autoload/foo/bar.vim"を探す。
 
 This also works when reading a variable that has not been set yet: >
 
@@ -5531,48 +5541,46 @@ Hint: If you distribute a bunch of scripts you can pack them together with the
 |vimball| utility.  Also read the user manual |distribute-script|.
 
 ==============================================================================
-6. Curly braces names					*curly-braces-names*
+6. 波括弧変数						*curly-braces-names*
 
-Wherever you can use a variable, you can use a "curly braces name" variable.
-This is a regular variable name with one or more expressions wrapped in braces
-{} like this: >
+変数を使える文脈ではいつでも「波括弧」変数を使うことができる。これは有効な変数
+名であり、次のように、1個以上の式を波括弧{}で囲む: >
 	my_{adjective}_variable
 
-When Vim encounters this, it evaluates the expression inside the braces, puts
-that in place of the expression, and re-interprets the whole as a variable
-name.  So in the above example, if the variable "adjective" was set to
-"noisy", then the reference would be to "my_noisy_variable", whereas if
-"adjective" was set to "quiet", then it would be to "my_quiet_variable".
+Vimはこれを見つけると、まず波括弧の中の式を評価し、その値をもとの位置に置きか
+え、全体を変数名として再解釈する。よって上の例では、変数"adjective"に"noisy"が
+代入されていたとすると、この変数は"my_noisy_variable"となる。あるいは、
+"adjective"に"quiet"が代入されていたとすれば"my_quiet_variable"となる。
 
-One application for this is to create a set of variables governed by an option
-value.  For example, the statement >
+これの応用の1つは、オプション値によって支配される変数の集合を作ることである。
+例えば次の文 >
 	echo my_{&background}_message
 
-would output the contents of "my_dark_message" or "my_light_message" depending
-on the current value of 'background'.
+は現在の'background'の値に応じて"my_dark_message"か"my_light_message"の中身を
+表示する。
 
-You can use multiple brace pairs: >
+波括弧を複数使うこともできる: >
 	echo my_{adverb}_{adjective}_message
-..or even nest them: >
+ネストさせることもできる: >
 	echo my_{ad{end_of_word}}_message
-where "end_of_word" is either "verb" or "jective".
+ここで"end_of_word"は"verb"か"jective"のどちらかである。
 
-However, the expression inside the braces must evaluate to a valid single
-variable name, e.g. this is invalid: >
+しかし、波括弧の中の式を評価した結果が有効な変数名とならなければならない。
+つまり、次は無効である: >
 	:let foo='a + b'
 	:echo c{foo}d
-.. since the result of expansion is "ca + bd", which is not a variable name.
+というのは、展開の結果が"ca + bd"となるからで、これは有効な名前ではない。
 
 						*curly-braces-function-names*
-You can call and define functions by an evaluated name in a similar way.
-Example: >
+同様の方法で評価した名前により関数を定義したり呼び出したりできる。
+例: >
 	:let func_end='whizz'
 	:call my_func_{func_end}(parameter)
 
-This would call the function "my_func_whizz(parameter)".
+この例は関数"my_func_whizz(parameter)"を呼びだす。
 
 ==============================================================================
-7. Commands						*expression-commands*
+7. コマンド						*expression-commands*
 
 :let {var-name} = {expr1}				*:let*
 			内部変数{var-name}に式{expr1}の結果をセットする。変数
@@ -5580,37 +5588,35 @@ This would call the function "my_func_whizz(parameter)".
 			がまだ存在しない場合、新たに作成される。
 
 :let {var-name}[{idx}] = {expr1}			*E689*
-			Set a list item to the result of the expression
-			{expr1}.  {var-name} must refer to a list and {idx}
-			must be a valid index in that list.  For nested list
-			the index can be repeated.
-			This cannot be used to add an item to a list.
+			リストの要素に式{expr1}の結果をセットする。{var-name}
+			はリストを参照し、{idx}はそのリストの有効なインデック
+			スでなければならない。ネストしたリストに対してはインデ
+			ックスを繰り返すことができる。
+			このコマンドはリストに要素を追加するためには使えない。
 
 							*E711* *E719*
 :let {var-name}[{idx1}:{idx2}] = {expr1}		*E708* *E709* *E710*
-			Set a sequence of items in a |List| to the result of
-			the expression {expr1}, which must be a list with the
-			correct number of items.
-			{idx1} can be omitted, zero is used instead.
-			{idx2} can be omitted, meaning the end of the list.
-			When the selected range of items is partly past the
-			end of the list, items will be added.
+			リスト|List|の一部を式{expr}の値で置き換える。{expr}の
+			値は正しい個数の要素を持つリストでなければならない。
+			{idx1}を省略すると0となる。
+			{idx2}を省略するとリストの末尾となる。
+			指定された範囲の一部がリストの末尾を越える場合、要素が
+			追加される。
 
 					*:let+=* *:let-=* *:let.=* *E734*
-:let {var} += {expr1}	Like ":let {var} = {var} + {expr1}".
-:let {var} -= {expr1}	Like ":let {var} = {var} - {expr1}".
-:let {var} .= {expr1}	Like ":let {var} = {var} . {expr1}".
-			These fail if {var} was not set yet and when the type
-			of {var} and {expr1} don't fit the operator.
+:let {var} += {expr1}	":let {var} = {var} + {expr1}"と同様。
+:let {var} -= {expr1}	":let {var} = {var} - {expr1}"と同様。
+:let {var} .= {expr1}	":let {var} = {var} . {expr1}"と同様。
+			{var}がセットされていないときや、{var}と{expr1}の型が
+			演算子に合わないときは失敗する。
 
 
 :let ${env-name} = {expr1}			*:let-environment* *:let-$*
 			環境変数{env-name}に式{expr1}の結果をセットする。型は
 			常に文字列。
 :let ${env-name} .= {expr1}
-			Append {expr1} to the environment variable {env-name}.
-			If the environment variable didn't exist yet this
-			works like "=".
+			環境変数{env-name}に{expr1}を付け加える。その環境変数
+			が存在しないときは"="と同様にはたらく。
 
 :let @{reg-name} = {expr1}			*:let-register* *:let-@*
 			式{expr1}の結果をレジスタ{reg-name}に書きこむ。
@@ -5624,161 +5630,158 @@ This would call the function "my_func_whizz(parameter)".
 			次のコマンドにより最後に検索したパターンをクリアするこ
 			とができる: >
 				:let @/ = ""
-<			This is different from searching for an empty string,
-			that would match everywhere.
+<			これは空文字列を検索するのとは異なる。空文字列を検索す
+			ると、いたるところでマッチする。
 
 :let @{reg-name} .= {expr1}
-			Append {expr1} to register {reg-name}.  If the
-			register was empty it's like setting it to {expr1}.
+			レジスタ{reg-name}に{expr1}を付け加える。このレジスタ
+			が空のときは、そこに{expr1}をセットする。
 
-  A String or Number value is
-			always converted to the type of the option.
-			For an option local to a window or buffer the effect
-			is just like using the |:set| command: both the local
-			value and the global value are changed.
-			Example: >
+:let &{option-name} = {expr1}			*:let-option* *:let-&*
+			オプション{option-name}に式{expr}の値をセットする。文
+			字列や数値の値はそのオプションの型に変換される。
+			ウィンドウやバッファについてローカルなオプションに対し
+			ては、その効果は|:set|コマンドを使ったときと同様で、ロー
+			カルな値とグローバルな値の両方が変更される。
+			例: >
 				:let &path = &path . ',/usr/local/include'
 
 :let &{option-name} .= {expr1}
-			For a string option: Append {expr1} to the value.
-			Does not insert a comma like |:set+=|.
+			文字列のオプションの場合: その値に{expr}を付け加える。
+			|:set+=|とは違い、コンマを挿入しない。
 
 :let &{option-name} += {expr1}
 :let &{option-name} -= {expr1}
-			For a number or boolean option: Add or subtract
-			{expr1}.
+			数値または切替のオプションの場合: {expr1}を足す・引く。 
 
 :let &l:{option-name} = {expr1}
 :let &l:{option-name} .= {expr1}
 :let &l:{option-name} += {expr1}
 :let &l:{option-name} -= {expr1}
-			Like above, but only set the local value of an option
-			(if there is one).  Works like |:setlocal|.
+			上と同様だが、オプションのローカルな値だけをセットする
+			(ローカルな値があるならば)。|:setlocal|と同様にはたら
+			く。
 
 :let &g:{option-name} = {expr1}
 :let &g:{option-name} .= {expr1}
 :let &g:{option-name} += {expr1}
 :let &g:{option-name} -= {expr1}
-			Like above, but only set the global value of an option
-			(if there is one).  Works like |:setglobal|.
+			上と同様だが、オプションのグローバルな値だけをセットす
+			る(グローバルな値があるならば)。|:setglobal|と同様には
+			たらく。
 
 :let [{name1}, {name2}, ...] = {expr1}		*:let-unpack* *E687* *E688*
-			{expr1} must evaluate to a |List|.  The first item in
-			the list is assigned to {name1}, the second item to
-			{name2}, etc.
-			The number of names must match the number of items in
-			the |List|.
-			Each name can be one of the items of the ":let"
-			command as mentioned above.
-			Example: >
+			{expr1}の値はリスト|List|でなければならない。そのリス
+			トの最初の要素が{name1}に代入され、2番目の要素が
+			{name2}に代入される。以下同様。
+			nameの個数がリスト|List|の要素の個数に一致しなければな
+			らない。
+			前述のように各nameは":let"コマンドの要素の1つになるこ
+			とができる。
+			例: >
 				:let [s, item] = GetItem(s)
-<			Detail: {expr1} is evaluated first, then the
-			assignments are done in sequence.  This matters if
-			{name2} depends on {name1}.  Example: >
+<			詳細: 最初に{expr1}が評価され、それから順番に代入が行
+			われる。{name2}が{name1}に依存するかどうかは問題になる。
+			例: >
 				:let x = [0, 1]
 				:let i = 0
 				:let [i, x[i]] = [1, 2]
 				:echo x
-<			The result is [0, 2].
+<			子の結果は[0, 2]となる。
 
 :let [{name1}, {name2}, ...] .= {expr1}
 :let [{name1}, {name2}, ...] += {expr1}
 :let [{name1}, {name2}, ...] -= {expr1}
-			Like above, but append/add/subtract the value for each
-			|List| item.
+			上と同様だが、リスト|List|の各要素に対し連結・足し算・
+			引き算を行う。
 
 :let [{name}, ..., ; {lastname}] = {expr1}
-			Like |:let-unpack| above, but the |List| may have more
-			items than there are names.  A list of the remaining
-			items is assigned to {lastname}.  If there are no
-			remaining items {lastname} is set to an empty list.
-			Example: >
+			|:let-unpack|と同様だが、リスト|List|の要素数がnamesの
+			数より多くてもよい。余った要素のリストが{lastname}に代
+			入される。要素の余りがないとき{lastname}は空リストにな
+			る。
+			例: >
 				:let [a, b; rest] = ["aval", "bval", 3, 4]
 <
 :let [{name}, ..., ; {lastname}] .= {expr1}
 :let [{name}, ..., ; {lastname}] += {expr1}
 :let [{name}, ..., ; {lastname}] -= {expr1}
-			Like above, but append/add/subtract the value for each
-			|List| item.
+			上と同様だが、リスト|List|の各要素に対して連結・足し算
+			・引き算を行う。
 							*E106*
-:let {var-name}	..	List the value of variable {var-name}.  Multiple
-			variable names may be given.  Special names recognized
-			here:				*E738*
-			  g:	global variables
-			  b:	local buffer variables
-			  w:	local window variables
-			  t:	local tab page variables
-			  s:	script-local variables
-			  l:	local function variables
-			  v:	Vim variables.
+:let {var-name}	..	変数{var-name}の値を一覧表示する。変数の名前を複数指定
+			することができる。以下の特別な名前が認識される:	*E738*
+			  g:	グローバル変数
+			  b:	バッファローカル変数
+			  w:	ウィンドウローカル変数
+			  t:	タブページローカル変数
+			  s:	スクリプトローカル変数
+			  l:	関数ローカル変数
+			  v:	Vimの変数
 
-:let			List the values of all variables.  The type of the
-			variable is indicated before the value:
-			    <nothing>	String
-				#	Number
+:let			全変数の値を一覧表示する。値の前に変数の型が示される:
+			    <nothing>	文字列
+				#	数値
 				*	Funcref
 
 
 :unl[et][!] {name} ...				*:unlet* *:unl* *E108* *E795*
-			Remove the internal variable {name}.  Several variable
-			names can be given, they are all removed.  The name
-			may also be a |List| or |Dictionary| item.
-			With [!] no error message is given for non-existing
-			variables.
-			One or more items from a |List| can be removed: >
-				:unlet list[3]	  " remove fourth item
-				:unlet list[3:]   " remove fourth item to last
-<			One item from a |Dictionary| can be removed at a time: >
+			内部変数{name}を削除する。複数の変数名を指定すると、そ
+			れらが全て削除される。名前はリスト|List|や辞書
+			|Dictionary|の要素でもよい。
+			[!]をつけると存在しない変数に対するエラーメッセージを
+			表示しない。
+			リスト|List|から1個以上の要素を削除することができる: >
+				:unlet list[3]	  " 4番目の要素を削除
+				:unlet list[3:]   " 4番目から最後までの要素を
+						    削除
+<			辞書からは一度に1個の要素を削除することができる: >
 				:unlet dict['two']
 				:unlet dict.two
 
 :lockv[ar][!] [depth] {name} ...			*:lockvar* *:lockv*
-			Lock the internal variable {name}.  Locking means that
-			it can no longer be changed (until it is unlocked).
-			A locked variable can be deleted: >
+			内部変数{name}をロックする。ロックすると、それ以降変更
+			ができなくなる(アンロックするまで)。
+			ロックされた変数を削除することはできる: >
 				:lockvar v
-				:let v = 'asdf'		" fails!
+				:let v = 'asdf'		" 失敗!
 				:unlet v
 <							*E741*
-			If you try to change a locked variable you get an
-			error message: "E741: Value of {name} is locked"
+			ロックされた変数を変更しようとするとエラーメッセージ
+			"E741: Value of {name} is locked"が表示される。
 
-			[depth] is relevant when locking a |List| or
-			|Dictionary|.  It specifies how deep the locking goes:
-				1	Lock the |List| or |Dictionary| itself,
-					cannot add or remove items, but can
-					still change their values.
-				2	Also lock the values, cannot change
-					the items.  If an item is a |List| or
-					|Dictionary|, cannot add or remove
-					items, but can still change the
-					values.
-				3	Like 2 but for the |List| /
-					|Dictionary| in the |List| /
-					|Dictionary|, one level deeper.
-			The default [depth] is 2, thus when {name} is a |List|
-			or |Dictionary| the values cannot be changed.
+			[depth]はリスト|List|や辞書|Dictionary|をロックすると
+			きに意味がある。どれだけ深くロックするかを指定する:
+				1	リストや辞書それ自身をロックする。要素
+					を追加したり削除はできないが、要素の値
+					を変えることはできる。
+				2	要素の値もロックする。その要素がリスト
+					や辞書である場合、その中の要素の追加や
+					削除はできないが、値の変更はできる。
+				3	2と同様だが、リスト・辞書内のリスト・
+					辞書に対してもあてはまる。1レベル深い。
+			[depth]の既定値は2であり、{name}がリストまたは辞書であ
+			る場合、その値は変更できない。
 								*E743*
-			For unlimited depth use [!] and omit [depth].
-			However, there is a maximum depth of 100 to catch
-			loops.
+			深さを無限にするには[!]を使い、[depth]を省略する。しか
+			しループを捕捉するために深さの最大値は100に設定されて
+			いる。
 
-			Note that when two variables refer to the same |List|
-			and you lock one of them, the |List| will also be
-			locked when used through the other variable.
-			Example: >
+			Note 2つの変数が同じリスト|List|を参照している場合、片
+			方の変数をロックすると、もう一方の変数を介してアクセス
+			した場合もロックされている。
+			例: >
 				:let l = [0, 1, 2, 3]
 				:let cl = l
 				:lockvar l
-				:let cl[1] = 99		" won't work!
-<			You may want to make a copy of a list to avoid this.
-			See |deepcopy()|.
+				:let cl[1] = 99		" 代入できない!
+<			
+			これを回避するにはリストのコピーを作るとよい。
+			|deepcopy()|を参照。
 
 
 :unlo[ckvar][!] [depth] {name} ...			*:unlockvar* *:unlo*
-			Unlock the internal variable {name}.  Does the
-			opposite of |:lockvar|.
-
+			内部変数{name}をアンロックする。|:lockvar|の逆を行う。
 
 
 :if {expr1}						*:if* *:endif* *:en*
@@ -5796,25 +5799,24 @@ This would call the function "my_func_whizz(parameter)".
 				:if version >= 500
 				:  version-5-specific-commands
 				:endif
-<			The commands still need to be parsed to find the
-			"endif".  Sometimes an older Vim has a problem with a
-			new command.  For example, ":silent" is recognized as
-			a ":substitute" command.  In that case ":execute" can
-			avoid problems: >
+<			しかしそれでも"endif"を見つけるために後続のコマンドを
+			パースする必要がある。古いVimで新しいコマンドを使うと
+			問題が起こることがある。例えば":silent"が":substitute"
+			コマンドと認識されるなど。その場合には、":execute"を使
+			うと問題を避けることができる: >
 				:if version >= 600
 				:  execute "silent 1,$delete"
 				:endif
 <
-			NOTE: The ":append" and ":insert" commands don't work
-			properly in between ":if" and ":endif".
+			NOTE: ":append"と":insert"コマンドは":if"と":endif"の
+			間では正しく動かない。
 
-
-							*:else* *:el*
+						*:else* *:el* *E581* *E583*
 :el[se]			対応する":if"ブロックが実行されなかった場合には、これ
 			に対応する":else"か":endif"までのコマンドが実行され
 			る。
 
-							*:elseif* *:elsei*
+					*:elseif* *:elsei* *E582* *E584*
 :elsei[f] {expr1}	":else" ":if"の省略形。":endif"を付け加える(入れ子にす
 			る)手間を省くことができる。
 
@@ -5836,286 +5838,249 @@ This would call the function "my_func_whizz(parameter)".
 
 :for {var} in {list}					*:for* *E690* *E732*
 :endfo[r]						*:endfo* *:endfor*
-			Repeat the commands between ":for" and ":endfor" for
-			each item in {list}.  Variable {var} is set to the
-			value of each item.
-			When an error is detected for a command inside the
-			loop, execution continues after the "endfor".
-			Changing {list} inside the loop affects what items are
-			used.  Make a copy if this is unwanted: >
+			{list}の各要素に対し、":for"と":endfor"の間のコマンド
+			を繰り返す。変数{var}に各要素の値がセットされる。
+			ループの内側のコマンドでエラーが検出されたときは
+			"endfor"の後から実行が継続される。
+			ループの内側で{list}を変更するとどの要素が使われるかに
+			影響を与える。それを望まない場合はコピーを作ること: >
 				:for item in copy(mylist)
-<			When not making a copy, Vim stores a reference to the
-			next item in the list, before executing the commands
-			with the current item.  Thus the current item can be
-			removed without effect.  Removing any later item means
-			it will not be found.  Thus the following example
-			works (an inefficient way to make a list empty): >
+<			コピーを作らないと、Vimは現在の要素に対してコマンドを
+			実行する前に、リストの次の要素への参照を保存する。その
+			ため副作用なしに現在の要素を削除することができる。それ
+			以降の要素を変更すると、それが見つからなくなる。つまり
+			以下の例は動作する(リストを空にする非効率な方法): >
 				:for item in mylist
 				   :call remove(mylist, 0)
 				:endfor
-<			Note that reordering the list (e.g., with sort() or
-			reverse()) may have unexpected effects.
-			Note that the type of each list item should be
-			identical to avoid errors for the type of {var}
-			changing.  Unlet the variable at the end of the loop
-			to allow multiple item types.
+<			Note リストを並べ替える(例えばsort()やreverse()で)と予
+			期しない結果になることがある。
+			Note {var}の型が変わってしまうのを避けるために、リスト
+			の各要素の型は同じでなければならない。ループの末尾でこ
+			の変数をunletすれば要素の型が同一でなくてもよくなる。
 
-:for {var} in {list}					*:for* *E690* *E732*
-:endfo[r]						*:endfo* *:endfor*
-			Repeat the commands between ":for" and ":endfor" for
-			each item in {list}.  Variable {var} is set to the
-			value of each item.
-			When an error is detected for a command inside the
-			loop, execution continues after the "endfor".
-			Changing {list} inside the loop affects what items are
-			used.  Make a copy if this is unwanted: >
-				:for item in copy(mylist)
-<			When not making a copy, Vim stores a reference to the
-			next item in the list, before executing the commands
-			with the current item.  Thus the current item can be
-			removed without effect.  Removing any later item means
-			it will not be found.  Thus the following example
-			works (an inefficient way to make a list empty): >
-				:for item in mylist
-				   :call remove(mylist, 0)
-				:endfor
-<			Note that reordering the list (e.g., with sort() or
-			reverse()) may have unexpected effects.
-			Note that the type of each list item should be
-			identical to avoid errors for the type of {var}
-			changing.  Unlet the variable at the end of the loop
-			to allow multiple item types.
 
 :for [{var1}, {var2}, ...] in {listlist}
 :endfo[r]
-			Like ":for" above, but each item in {listlist} must be
-			a list, of which each item is assigned to {var1},
-			{var2}, etc.  Example: >
+			上の":for"と同様だが、{listlist}の各要素がリストでなけ
+			ればならない点が異なる。そのリストの各要素が{var1},
+			{var2}などに代入される。例: >
 				:for [lnum, col] in [[1, 3], [2, 5], [3, 8]]
 				   :echo getline(lnum)[col]
 				:endfor
 <
 						*:continue* *:con* *E586*
-:con[tinue]		When used inside a ":while" or ":for" loop, jumps back
-			to the start of the loop.
-			If it is used after a |:try| inside the loop but
-			before the matching |:finally| (if present), the
-			commands following the ":finally" up to the matching
-			|:endtry| are executed first.  This process applies to
-			all nested ":try"s inside the loop.  The outermost
-			":endtry" then jumps back to the start of the loop.
+:con[tinue]		":while"または":for"ループの内側で使われたときは、その
+			ループの開始位置まで戻る。
+			ループの内側の|:try|と|:finally|の間で使われた場合、
+			|:finally|から|:endtry|までの間のコマンドがまず実行さ
+			れる。ループの内側で":try"がネストしている場合、全ての
+			":try"に対してこのプロセスが適用される。最も外側の
+			":endtry"の後ループの開始位置まで戻る。
 
 						*:break* *:brea* *E587*
-:brea[k]		When used inside a ":while" or ":for" loop, skips to
-			the command after the matching ":endwhile" or
-			":endfor".
-			If it is used after a |:try| inside the loop but
-			before the matching |:finally| (if present), the
-			commands following the ":finally" up to the matching
-			|:endtry| are executed first.  This process applies to
-			all nested ":try"s inside the loop.  The outermost
-			":endtry" then jumps to the command after the loop.
+:brea[k]		":while"または":for"ループの内側で使われたときは、対応
+			する":endwhile"または":endfor"の後のコマンドまでスキッ
+			プする。
+			ループの内側の|:try|と|:finally|の間で使われた場合、
+			|:finally|から|:endtry|までの間のコマンドがまず実行さ
+			れる。ループの内側で":try"がネストしている場合、全ての
+			":try"に対してこのプロセスが適用される。最も外側の
+			":endtry"の後ループの後までジャンプする。
 
 :try				*:try* *:endt* *:endtry* *E600* *E601* *E602*
-:endt[ry]		Change the error handling for the commands between
-			":try" and ":endtry" including everything being
-			executed across ":source" commands, function calls,
-			or autocommand invocations.
+:endt[ry]		":try"と":endtry"の間のコマンド(":source"コマンド、関
+			数呼び出し、自動コマンド実行を含めた全てのコマンド実行)
+			のエラー制御を変更する。
 
-			When an error or interrupt is detected and there is
-			a |:finally| command following, execution continues
-			after the ":finally".  Otherwise, or when the
-			":endtry" is reached thereafter, the next
-			(dynamically) surrounding ":try" is checked for
-			a corresponding ":finally" etc.  Then the script
-			processing is terminated.  (Whether a function
-			definition has an "abort" argument does not matter.)
-			Example: >
+			エラーや割り込みが検出された場合、後に|:finally|コマン
+			ドがあるならば、":finally"の後から実行が継続される。そ
+			うでければ、または":endtry"に達した後は次の動的に囲ん
+			でいる":try"に対応する":finally"などが探される。その後
+			スクリプトは実行を停止する。(関数定義に引数"abort"がつ
+			いているかどうかは関係ない)
+			例: >
 		:try | edit too much | finally | echo "cleanup" | endtry
-		:echo "impossible"	" not reached, script terminated above
+		:echo "impossible"	" 実行されない。上のコマンドにより
+					" スクリプトは停止する。
 <
-			Moreover, an error or interrupt (dynamically) inside
-			":try" and ":endtry" is converted to an exception.  It
-			can be caught as if it were thrown by a |:throw|
-			command (see |:catch|).  In this case, the script
-			processing is not terminated.
+			さらに、(動的に)":try"と":endtry"の内側にあるエラーや
+			割り込みは例外に変換される。そしてそれは|:throw|コマン
+			ドによって投げたときと同様に捕捉できる(|:catch|を参照)。
+			この場合はスクリプトの実行は停止しない。
 
-			The value "Vim:Interrupt" is used for an interrupt
-			exception.  An error in a Vim command is converted
-			to a value of the form "Vim({command}):{errmsg}",
-			other errors are converted to a value of the form
-			"Vim:{errmsg}".  {command} is the full command name,
-			and {errmsg} is the message that is displayed if the
-			error exception is not caught, always beginning with
-			the error number.
-			Examples: >
+			割り込み例外には"Vim:Interrupt"という値が使われる。
+			Vimコマンドにおけるエラーは"Vim({command}):{errmsg}"と
+			いう形式の値に変換される。その他のエラーは
+			"Vim:{errmsg}"という形式のエラーに変換される。ここで
+			{command}はコマンドの完全な名前であり、{errmsg}はその
+			例外が捕捉されなかった場合に表示されるメッセージで、常
+			にエラー番号で始まる。
+			例: >
 		:try | sleep 100 | catch /^Vim:Interrupt$/ | endtry
 		:try | edit | catch /^Vim(edit):E\d\+/ | echo "error" | endtry
 <
 					*:cat* *:catch* *E603* *E604* *E605*
-:cat[ch] /{pattern}/	The following commands until the next ":catch",
-			|:finally|, or |:endtry| that belongs to the same
-			|:try| as the ":catch" are executed when an exception
-			matching {pattern} is being thrown and has not yet
-			been caught by a previous ":catch".  Otherwise, these
-			commands are skipped.
-			When {pattern} is omitted all errors are caught.
-			Examples: >
-		:catch /^Vim:Interrupt$/	" catch interrupts (CTRL-C)
-		:catch /^Vim\%((\a\+)\)\=:E/	" catch all Vim errors
-		:catch /^Vim\%((\a\+)\)\=:/	" catch errors and interrupts
-		:catch /^Vim(write):/		" catch all errors in :write
-		:catch /^Vim\%((\a\+)\)\=:E123/	" catch error E123
-		:catch /my-exception/		" catch user exception
-		:catch /.*/			" catch everything
-		:catch				" same as /.*/
+:cat[ch] /{pattern}/	{pattern}にマッチする例外が発生し、より前の":catch"
+			で捕捉されなかった場合、このコマンドから次の|:catch|,
+			|:finally|, |:endtry|までのコマンドが実行される。その
+			ような例外が発生しなかった場合、そのコマンドはスキップ
+			される。
+			{pattern}が省略された場合は全てのエラーが捕捉される。
+			例: >
+		:catch /^Vim:Interrupt$/	" 割り込み (CTRL-C) を捕捉
+		:catch /^Vim\%((\a\+)\)\=:E/	" 全Vimエラーを捕捉
+		:catch /^Vim\%((\a\+)\)\=:/	" 例外と割り込みを捕捉
+		:catch /^Vim(write):/		" :writeにおける全エラーを捕捉
+		:catch /^Vim\%((\a\+)\)\=:E123/	" エラーE123を捕捉
+		:catch /my-exception/		" ユーザ定義例外を捕捉
+		:catch /.*/			" 全てを捕捉
+		:catch				" /.*/と同じ
 <
-			Another character can be used instead of / around the
-			{pattern}, so long as it does not have a special
-			meaning (e.g., '|' or '"') and doesn't occur inside
-			{pattern}.
-			NOTE: It is not reliable to ":catch" the TEXT of
-			an error message because it may vary in different
-			locales.
+			{pattern}を囲むのに/以外の文字を使うことができる。ただ
+			しその文字は特別な意味(例: '|'や'"'など)を持っていては
+			ならず、{pattern}の内側に現れてはならない。
+			NOTE: エラーメッセージの本文によって":catch"することは
+			確実ではない。メッセージはロケールによって異なるからで
+			ある。
 
 					*:fina* *:finally* *E606* *E607*
-:fina[lly]		The following commands until the matching |:endtry|
-			are executed whenever the part between the matching
-			|:try| and the ":finally" is left:  either by falling
-			through to the ":finally" or by a |:continue|,
-			|:break|, |:finish|, or |:return|, or by an error or
-			interrupt or exception (see |:throw|).
+:fina[lly]		|:try|と":finally"の間を抜ける前に必ず、このコマンドか
+			ら対応する|:endtry|の間のコマンドが実行される。つまり
+			正常に進んだ場合、|:continue|, |:break|, |:finish|,
+			|:return|を使った場合、エラー・割り込み・例外が発生し
+			た場合(|:throw|を参照)のいずれの場合でも。
 
 							*:th* *:throw* *E608*
-:th[row] {expr1}	The {expr1} is evaluated and thrown as an exception.
-			If the ":throw" is used after a |:try| but before the
-			first corresponding |:catch|, commands are skipped
-			until the first ":catch" matching {expr1} is reached.
-			If there is no such ":catch" or if the ":throw" is
-			used after a ":catch" but before the |:finally|, the
-			commands following the ":finally" (if present) up to
-			the matching |:endtry| are executed.  If the ":throw"
-			is after the ":finally", commands up to the ":endtry"
-			are skipped.  At the ":endtry", this process applies
-			again for the next dynamically surrounding ":try"
-			(which may be found in a calling function or sourcing
-			script), until a matching ":catch" has been found.
-			If the exception is not caught, the command processing
-			is terminated.
-			Example: >
+:th[row] {expr1}	{expr1}を評価し、例外として投げる。|:try|と|:catch|の
+			間で":throw"が使われた場合、{expr1}にマッチする最初の
+			|:catch|までのコマンドはスキップされる。そのような
+			":catch"がない場合、または":catch"と|:finally|の間で
+			":throw"が使われた場合、":finally"から|:endtry|までの
+			コマンドが実行される。":throw"が":finally"の後で実行さ
+			れた場合、":endtry"までのコマンドはスキップされる。
+			":endtry"において、動的に囲んでいる次の":try"(これは関
+			数呼び出しやスクリプトsourceも含めて探される)から対応
+			する":catch"までに対しこのプロセスが再び適用される。例
+			外が捕捉されない場合、コマンドの処理は終了する。
+			例: >
 		:try | throw "oops" | catch /^oo/ | echo "caught" | endtry
 < 
 							*:ec* *:echo*
-:ec[ho] {expr1} ..	スペースで区切られ<EOL>で終了する引数{expr1}を表示す
-			る。|:comment|も参照。
+:ec[ho] {expr1} ..	各{expr1}をスペースで区切って表示する。最初の{expr1}の
+			表示は、常に新しい行から始まる。
+			|:comment|も参照。
 			改行が必要な場合"\n"を使用する。カーソルを第1列(カラ
 			ム)に持って行くには"\r"を使用する。
+			色強調を行うにはコマンド|:echohl|を使用する。
 			コメント文を同じ行に続けることはできない。
 			例: >
 		:echo "the value of 'shell' is" &shell
 <							*:echo-redraw*
-			A later redraw may make the message disappear again.
-			And since Vim mostly postpones redrawing until it's
-			finished with a sequence of commands this happens
-			quite often.  To avoid that a command from before the
-			":echo" causes a redraw afterwards (redraws are often
-			postponed until you type something), force a redraw
-			with the |:redraw| command.  Example: >
+			後で再描画を行うとこのメッセージが消えてしまう。そして
+			Vimはコマンド列が完了するまで再描画を後回しにするので
+			この現象はよく起きる。":echo"の前に実行したコマンドが
+			後で再描画を引き起こす(再描画はしばしばユーザが何か入
+			力するまで後回しにされる)というこの問題を避けるには、
+			|:redraw|コマンドにより再描画を強制すること。例: >
 		:new | redraw | echo "there is a new window"
 <
 
 							*:echon*
 :echon {expr1} ..	改行を付けずに、{expr1}を表示する。|:comment|も参照。
+			色強調を行うにはコマンド|:echohl|を使用する。
 			コメント文を同じ行に続けることはできない。
-			例:
->		:echon "the value of 'shell' is " &shell
-
+			例: >
+				:echon "the value of 'shell' is " &shell
+<
 			Vimコマンドの":echo"と、外部のシェルコマンドである
-			":!echo"との違いに注意:
->		:!echo %		--> filename
-			":!"の引数は展開される。|:_%|を参照。
->		:!echo "%"		--> filename or "filename"
-			前の例のように働く。ダブルクォートが表示されるかどうか
-			は、使用している'shell'に依存する。
->		:echo %			--> 何も表示されない
-			'%'は式として不当な文字である。
->		:echo "%"		--> %
-			単に文字'%'を表示する。
->		:echo expand("%")	--> filename
-			'%'を展開するために関数expand()を呼び出している。
+			":!echo"との違いに注意: >
+		:!echo %		--> filename
+<			":!"の引数は展開される。|:_%|を参照。 >
+		:!echo "%"		--> filename or "filename"
+<			前の例のように働く。ダブルクォートが表示されるかどうか
+			は、使用している'shell'に依存する。 >
+		:echo %			--> 何も表示されない
+<			'%'は式として不当な文字である。 >
+		:echo "%"		--> %
+<			単に文字'%'を表示する。 >
+		:echo expand("%")	--> filename
+<			'%'を展開するために関数expand()を呼び出している。
 
 							*:echoh* *:echohl*
-:echoh[l] {name}	次の":echo[n]"コマンドから、ハイライトグループ{name}を
-			適用する。例:
->		:echohl WarningMsg | echo "Don't panic!" | echohl None
-			使用した後にはグループを"None"に戻すことを忘れないよう
+:echoh[l] {name}	次の|:echo|, |:echon|, |:echomsg|"コマンドから、ハイラ
+			イトグループ{name}を適用する。|input()|のプロンプトに
+			対しても適用される。例: >
+		:echohl WarningMsg | echo "Don't panic!" | echohl None
+<			使用した後にはグループを"None"に戻すことを忘れないよう
 			に。さもないとそれ以降のechoの表示総てがハイライトされ
 			てしまう。
 
 							*:echom* *:echomsg*
-:echom[sg] {expr1} ..	Echo the expression(s) as a true message, saving the
-			message in the |message-history|.
-			Spaces are placed between the arguments as with the
-			|:echo| command.  But unprintable characters are
-			displayed, not interpreted.
-			The parsing works slightly different from |:echo|,
-			more like |:execute|.  All the expressions are first
-			evaluated and concatenated before echoing anything.
-			The expressions must evaluate to a Number or String, a
-			Dictionary or List causes an error.
-			Uses the highlighting set by the |:echohl| command.
-			Example: >
+:echom[sg] {expr1} ..	式を本当のメッセージとして表示し、そのメッセージをメッ
+			セージ履歴|message-history|に保存する。
+			|:echo|コマンド同様に、引数の間にスペースが挿入される。
+			しかし印字不可能な文字は解釈されずに表示される。
+			|:echo|とはかなり異なり、むしろ|:execute|に近い方法で
+			解析がされる。なんらかを表示する前に、まず最初に全ての
+			式が評価し、連結する。式を評価した値は数値か文字列でな
+			ければならない。辞書やリストはエラーとなる。
+			強調を行うには|:echohl|コマンドを使う。
+			例: >
 		:echomsg "It's a Zizzer Zazzer Zuzz, as you can plainly see."
-<			See |:echo-redraw| to avoid the message disappearing
-			when the screen is redrawn.
+<			画面を再描画したときメッセージが消去されてしまうのを避
+			ける方法については|:echo-redraw|を参照。
 							*:echoe* *:echoerr*
-:echoe[rr] {expr1} ..	Echo the expression(s) as an error message, saving the
-			message in the |message-history|.  When used in a
-			script or function the line number will be added.
-			Spaces are placed between the arguments as with the
-			:echo command.  When used inside a try conditional,
-			the message is raised as an error exception instead
-			(see |try-echoerr|).
-			Example: >
+:echoe[rr] {expr1} ..	式をエラーメッセージとして表示し、そのメッセージを
+			メッセージ履歴|message-history|に保存する。スクリプト
+			や関数の中で使用されたときは行番号が付け加えられる。
+			|:echo|コマンドと同様に引数の間にスペースが挿入される。
+			try条件文の中で使用されたときは、このメッセージがエラ
+			ー例外として投げられる。(|try-echoerr|を参照)
+			例: >
 		:echoerr "This script just failed!"
-<			If you just want a highlighted message use |:echohl|.
-			And to get a beep: >
+<			
+			単にメッセージを強調させたい場合には|:echohl|を使うこ
+			と。ビープを鳴らしたいときには次のようにする: >
 		:exe "normal \<Esc>"
 <
 							*:exe* *:execute*
 :exe[cute] {expr1} ..	{expr1}の評価結果の文字列をExコマンドとして実行する。
-			スペースで区切られた複数の引数は連結される。
+			複数の引数は連結され、間にスペースが挿入される。
+			{expr1}は処理されたコマンドとして扱われ、コマンドライ
+			ン編集用のキーは認識されない。
 			コメント文を同じ行に続けることはできない。
-			例:
->		:execute "buffer " nextbuf
->		:execute "normal " count . "w"
-
-			Executeは'|'を受けつけないコマンドに、次のコマンドを続
-			けて実行させるのにも使用できる。例:
->		:execute '!ls' | echo "theend"
-			(訳注:普通の使い方では":!ls"の後には'|'を使って、Exコ
+			例: >
+		:execute "buffer " nextbuf
+		:execute "normal " count . "w"
+<
+			":execute"は'|'を受けつけないコマンドに、次のコマンドを
+			続けて実行させるのにも使用できる。例: >
+		:execute '!ls' | echo "theend"
+<			(訳注:普通の使い方では":!ls"の後には'|'を使って、Exコ
 			マンドを続けることはできない)
+			また":execute"は、Vimスクリプト内でコマンド":normal"の
+			引数に制御文字を書くことを避けるために役に立つ。 >
+		:execute "normal ixxx\<Esc>"
+<			これで<Esc>文字を表す。|expr-string|を参照。
 
 			注意:executeに渡す文字列としては、"while"や"if"系のコ
 			マンドが始まったり終ったりするだけのようなものは不適格
-			である。よって次のような例は認められない:
-			Note: The executed string may be any command-line, but
-			you cannot start or end a "while" or "if" command.
-			Thus this is illegal:
->		:execute 'while i > 5'
->		:execute 'echo "test" | break'
-
+			である。よって次のような例は認められない: >
+		:execute 'while i > 5'
+		:execute 'echo "test" | break'
+<
 			文字列の中に完全な"while"や"if"コマンドが含まれること
-			が求められる:
->		:execute 'while i < 5 | echo i | let i = i + 1 | endwhile'
-
+			が求められる: >
+		:execute 'while i < 5 | echo i | let i = i + 1 | endwhile'
+<
 
 							*:comment*
 			":execute"や":echo"そして":echon"は、同一行に直接コメ
 			ントを続けることはできない。何故ならそれらのコマンドに
 			とって'"'は文字列の始まりに見えてしまうからである。し
-			かし'|'の後にコメントを書くことは可能である。例:
->		:echo "foo" | "this is a comment
+			かし'|'の後にコメントを書くことは可能である。例: >
+		:echo "foo" | "this is a comment
 
 ==============================================================================
 8. 例外処理					*exception-handling*
@@ -6609,14 +6574,14 @@ finally節におけるエラーにより、割り込みが正しく動作しな�
 	:catch /^Vim\((\a\+)\)\=:E\d\+:/
 <
 							*catch-text*
-NOTE: エラーメッセージのテキスト自身を捕捉してはならない >
+NOTE: エラーメッセージの本文によって捕捉しようとしてはならない >
 	:catch /No such variable/
 こうすると英語の環境では動作するが、コマンド |:language|により他の言語を使って
 いるユーザの環境では動作しなくなる。しかし、コメントとしてメッセージテキストを
 引用することは役に立つ: >
 	:catch /^Vim(\a\+):E108:/   " No such variable
 
-IGNORING ERRORS						*ignore-errors*
+エラーを無視する					*ignore-errors*
 
 特定のコマンドで発生したエラーを捕捉すれば、エラーを無視することができる: >
 
@@ -6973,7 +6938,7 @@ Vimのエラー例外は失敗したコマンドの名前(わかっているな�
 いている。|catch-errors|を参照。
 
 
-PECULIARITIES
+変わった特性
 							*except-compat*
 例外制御のコンセプトは、例外を引き起こしたコマンドは即座に異常終了し、制御が
 finally節またはcatch節に移るという前提に基づいている。
