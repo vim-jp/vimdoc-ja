@@ -5231,110 +5231,88 @@ Don't forget that "^" will only match at the first character of the String and
 ==============================================================================
 5. 関数定義						*user-functions*
 
-新しい関数を定義することができる。これらは組込み関数と同様に呼び出すことができ
-る。関数は一連のExコマンドを実行する。ノーマルモードコマンドはコマンド
-|:normal|によって実行できる。
+ユーザは自分で新しい関数を定義することができる。その関数は組込み関数とまったく
+同じように呼び出せる。関数は一連のExコマンドを実行する。ノーマルモードコマンド
+はコマンド|:normal|によって実行できる。
 
 関数名は組込み関数との混同を避ける為、大文字で始まらなければならない。他のスク
 リプトで同じ関数名を使用してしまうことを避ける為に、露骨に短い名前は避けるべき
 である。関数名を例えば"HTMLcolor()"のように、スクリプトの名前から始めるという
 のは良い習慣である。
 
-It's also possible to use curly braces, see |curly-braces-names|.  And the
-|autoload| facility is useful to define a function only when it's called.
+波括弧変数というものもある(|curly-braces-names|を参照)。また、オートロード
+|autoload|機構を使うと、関数が呼ばれたときだけ定義することができる。
 
 							*local-function*
-A function local to a script must start with "s:".  A local script function
-can only be called from within the script and from functions, user commands
-and autocommands defined in the script.  It is also possible to call the
-function from a mappings defined in the script, but then |<SID>| must be used
-instead of "s:" when the mapping is expanded outside of the script.
+スクリプトローカルな関数の名前は"s:"で始めなければならない。スクリプトローカル
+な関数は、そのスクリプトの中の関数から、またはそのスクリプト内で定義されたユー
+ザ定義コマンド、オートコマンドからしか呼ぶことができない。そのスクリプト内で定
+義されたマッピングにより呼ぶこともできるが、スクリプトの外部でマッピングが展開
+された場合は"s:"の代わりに|<SID>|をつけなければならない。
 
 					*:fu* *:function* *E128* *E129* *E123*
 :fu[nction]		総ての関数と、その引数を表示する。
 
-:fu[nction] {name}	関数{name}を表示する。
-			{name} can also be a |Dictionary| entry that is a
-			|Funcref|: >
+:fu[nction] {name}	関数{name}の定義を表示する。
+			{name}は辞書|Dictionary|の要素の|Funcref|であってもよ
+			い: >
 				:function dict.init
 
-:fu[nction] /{pattern}	List functions with a name matching {pattern}.
-			Example that lists all functions ending with "File": >
+:fu[nction] /{pattern}	{pattern}にマッチする名前の関数を表示する。"File"で終
+			わる関数を全て表示する例: >
 				:function /File$
 <
 							*:function-verbose*
-When 'verbose' is non-zero, listing a function will also display where it was
-last defined. Example: >
+'verbose'が 0 でないとき、これらのコマンドで関数を表示すると、それがどこで定義
+されたかも表示する。例: >
 
     :verbose function SetFileTypeSH
 	function SetFileTypeSH(name)
 	    Last set from /usr/share/vim/vim-7.0/filetype.vim
 <
-See |:verbose-cmd| for more information.
+より詳しくは|:verbose-cmd|を参照。
 
 							*E124* *E125*
 :fu[nction][!] {name}([arguments]) [range] [abort] [dict]
 			{name}という名前で新しい関数を定義する。関数名はアル
-			ファベットと数字と'_'からなり、アルファベットの大文字
-			で始まらなければならない。
-			引数は、与えられた名前によって定義される。関数のなかで
-			は"a:name"("a:"を引数に接頭)のようにして参照することが
-			できる。
-			引数はカンマで区切ることで、最大20まで与えることができ
-			る。最後の引数を"..."にすることで、可変長の引数を使用
-			できる。関数の中では"a:1"や"a:2"のようにして可変長の引
-			数にアクセスできる。"a:0"は可変長引数が幾つあるかを示
-			している(0であること、つまり引数がそれ以上ないこともあ
-			る)。
-			"..."が使われていない時は、引数の数は名前付きの引数の
-			個数を示す。"..."を使った時には引数の数は大きくなるだ
-			ろう。
-			関数を引数無しで定義することも可能である。その時でも()
-			は付けなければならない。
-			関数の本体は、宣言の次の行から始まり、対応する
-			|:endfunction|までになる。関数の中で別の関数を定義する
-			ことも可能である。
+			ファベットと数字と'_'からなり、通常の関数はアルファベッ
+			トの大文字、スクリプトローカル関数は"s:"で始まらなけれ
+			ばならない。
+
+			{name}は辞書|Dictionary|の要素の|Funcref|であってもよ
+			い: >
+				:function dict.init(arg)
+<			"dict"は既に定義されている辞書でなければならない。その
+			要素"init"がまだ存在しないならば追加される。存在する場
+			合は、既存の関数を上書きするためには[!]をつけなければ
+			ならない。この値は番号つきの関数を指す|Funcref|である。
+			この関数は|Funcref|を通してのみ呼ぶことができ、そこへの
+			参照がなくなると削除される。
+								*E127* *E122*
 			この名前で定義される関数が既に定義済みで[!]が使用され
 			なかった場合、エラーとなる。[!]が使用されていれば、そ
 			れまで存在していた関数は、速やかに新しいものへ置換えら
 			れる。
-			引数[range]を追加した場合、関数は「領域」を管理するこ
-			とができる。「領域」は"a:firstline"と"a:lastline"に
-			よって渡される。[range]がなかった場合、":call"が「領
-			域」を指定されて実行されると、1行1行について、カーソル
-			をその行の先頭に置いた状態で関数を呼び出すことになる。
-			|function-range-example|を参照。
-			引数[abort]を追加すると、関数の実行中にエラーに遭遇し
-			次第、即関数は中断される。
-			関数の実行によって、最後に使用されたサーチパターン、及
-			びredoコマンドの"."の内容は変更されない。
 
-								*E127* *E122*
-			When a function by this name already exists and [!] is
-			not used an error message is given.  When [!] is used,
-			an existing function is silently replaced.  Unless it
-			is currently being executed, that is an error.
-
-			For the {arguments} see |function-argument|.
+			引数{arguments}については|function-argument|を参照。
 
 						*a:firstline* *a:lastline*
-			When the [range] argument is added, the function is
-			expected to take care of a range itself.  The range is
-			passed as "a:firstline" and "a:lastline".  If [range]
-			is excluded, ":{range}call" will call the function for
-			each line in the range, with the cursor on the start
-			of each line.  See |function-range-example|.
+			引数[range]を追加した場合、関数は「範囲」を管理するこ
+			とができる。「範囲」は"a:firstline"と"a:lastline"に
+			よって渡される。[range]がなかった場合、":{range}call"
+			が「範囲」を指定されて実行されると、1行1行について、カー
+			ソルをその行の先頭に置いた状態で関数を呼び出すことにな
+			る。|function-range-example|を参照。
 
-			When the [abort] argument is added, the function will
-			abort as soon as an error is detected.
+			引数[abort]を追加すると、関数の実行中にエラーに遭遇し
+			次第、即関数は中断される。
 
-			When the [dict] argument is added, the function must
-			be invoked through an entry in a |Dictionary|.  The
-			local variable "self" will then be set to the
-			dictionary.  See |Dictionary-function|.
+			引数[dict]を追加すると、この関数は辞書|Dictionary|の要
+			素を通してしか呼べなくなる。そしてその辞書にローカル変
+			数"self"が定義される。|Dictionary-function|を参照。
 
-			The last used search pattern and the redo command "."
-			will not be changed by the function.
+			関数の実行によって、最後に使用されたサーチパターン、及
+			びredoコマンドの"."の内容は変更されない。
 
 					*:endf* *:endfunction* *E126* *E193*
 :endf[unction]		関数定義の終了。このコマンド1つで1行とすること。他のコ
@@ -5342,12 +5320,11 @@ See |:verbose-cmd| for more information.
 
 					*:delf* *:delfunction* *E130* *E131*
 :delf[unction] {name}	関数{name}を削除する。
-			{name} can also be a |Dictionary| entry that is a
-			|Funcref|: >
+			{name}は辞書|Dictionary|の要素の|Funcref|であってもよ
+			い: >
 				:delfunc dict.init
-<			This will remove the "init" entry from "dict".  The
-			function is deleted if there are no more references to
-			it.
+<			この例は"dict"から要素"init"を削除する。この関数への参
+			照がなくなると、関数は削除される。
 							*:retu* *:return* *E133*
 :retu[rn] [expr]	関数から戻る。"[expr]"が与えられた場合、それは評価され
 			関数の戻り値として呼出し側に渡される。"[expr]"が与えら
@@ -5356,38 +5333,34 @@ See |:verbose-cmd| for more information.
 			いことに留意すること。つまり、たとえ":return"命令の後
 			に何か命令があったとしても、警告も何も与えられない。
 
-			If the ":return" is used after a |:try| but before the
-			matching |:finally| (if present), the commands
-			following the ":finally" up to the matching |:endtry|
-			are executed first.  This process applies to all
-			nested ":try"s inside the function.  The function
-			returns at the outermost ":endtry".
+			|:try|と|:finally|の間で":return"が実行された場合、
+			":finally"から対応する|:endtry|までのコマンドがまず実
+			行される。":try"がネストしている場合、それらの全てに対
+			してこのプロセスが適用される。そして最も外側の
+			":endtry"にて関数を抜ける。
 
 						*function-argument* *a:var*
-An argument can be defined by giving its name.  In the function this can then
-be used as "a:name" ("a:" for argument).
+引数は、与えられた名前によって定義される。関数のなかでは"a:name"("a:"を引数に
+接頭)のようにして参照することができる。
 					*a:0* *a:1* *a:000* *E740* *...*
-Up to 20 arguments can be given, separated by commas.  After the named
-arguments an argument "..." can be specified, which means that more arguments
-may optionally be following.  In the function the extra arguments can be used
-as "a:1", "a:2", etc.  "a:0" is set to the number of extra arguments (which
-can be 0).  "a:000" is set to a |List| that contains these arguments.  Note
-that "a:1" is the same as "a:000[0]".
+引数はカンマで区切ることで、最大20まで与えることができる。最後の引数を"..."に
+することで、可変長の引数を使用できる。関数の中では"a:1"や"a:2"のようにして可変
+長の引数にアクセスできる。"a:0"は可変長引数が幾つあるかを示している(0であるこ
+と、つまり引数がそれ以上ないこともある)。"a:000"は全引数を持つリスト|List|を示
+している。Note "a:1"は"a:000[0]"と同じである。
 								*E742*
-The a: scope and the variables in it cannot be changed, they are fixed.
-However, if a |List| or |Dictionary| is used, you can changes their contents.
-Thus you can pass a |List| to a function and have the function add an item to
-it.  If you want to make sure the function cannot change a |List| or
-|Dictionary| use |:lockvar|.
+a: のスコープとこの変数は固定されており、変更できない。
+しかしリスト|List|か辞書|Dictionary|の場合は、その要素を変更できる。よって関数
+にリスト|List|を渡し、そこに要素を追加させることができる。関数にリストや辞書を
+変更させたくない場合は|:lockvar|を使うこと。
 
-When not using "...", the number of arguments in a function call must be equal
-to the number of named arguments.  When using "...", the number of arguments
-may be larger.
+"..."が使われていない時は、引数の数は名前付きの引数の個数を示す。"..."を使った
+時には引数の数は大きくなるだろう。
 
-It is also possible to define a function without any arguments.  You must
-still supply the () then.  The body of the function follows in the next lines,
-until the matching |:endfunction|.  It is allowed to define another function
-inside a function body.
+関数を引数無しで定義することも可能である。その時でも()は付けなければならない。
+関数の本体は、宣言の次の行から始まり、対応する|:endfunction|までになる。関数の
+中で別の関数を定義することも可能である。
+
 
 							*local-variables*
 関数の中で変数を使うこともできる。これらは関数から戻ると消滅するローカル変数と
@@ -5427,11 +5400,11 @@ inside a function body.
 :[range]cal[l] {name}([arguments])
 		関数を呼び出す。関数の名前と引数は|:function|によって指定され
 		るものである。引数は最大20まで使用可能。戻り値は破棄される。
-		「領域」を受け付ける関数に「領域」を指定しなかった場合、関数は
+		「範囲」を受け付ける関数に「範囲」を指定しなかった場合、関数は
 		カーソルの現在位置について一度だけ呼び出される。
-		「領域」を受け付けない関数に「領域」を指定した場合、その領域の
+		「範囲」を受け付けない関数に「範囲」を指定した場合、その範囲の
 		一行ずつについて関数が呼び出される。その時カーソルは当該行の先
-		頭に設定される。カーソルは「領域」の最下行の左端になる(恐らく
+		頭に設定される。カーソルは「範囲」の最下行の左端になる(恐らく
 		最後の関数呼出しの結果、動いた先である)。引数は各呼出しについ
 		て繰り返し評価される。それは次の例で確かめることができる:
 						*function-range-example*  >
@@ -5440,36 +5413,35 @@ inside a function body.
 	:endfunction
 	:1,5call Mynumber(getline("."))
 <
-		"a:firstline"と"a:lastline"はとにかく定義されるので、「領域」
+		"a:firstline"と"a:lastline"はとにかく定義されるので、「範囲」
 		の最初や最後で何か違った事をするのにも用いることができる。
 
-		「領域」自身を扱っている関数の例:
+		「範囲」自身を扱っている関数の例: >
 
->	:function Cont() range
->	:  execute (a:firstline + 1) . "," . a:lastline . 's/^/\t\\ '
->	:endfunction
->	:4,8call Cont()
-
-		この関数は「領域」の最初の行を除いた総ての行の先頭に、継続のた
+	:function Cont() range
+	:  execute (a:firstline + 1) . "," . a:lastline . 's/^/\t\\ '
+	:endfunction
+	:4,8call Cont()
+< 
+		この関数は「範囲」の最初の行を除いた総ての行の先頭に、継続のた
 		めの文字"\"を挿入する。
 
-
-		When the function returns a composite value it can be further
-		dereferenced, but the range will not be used then.  Example: >
+		この関数の戻り値からさらに間接参照が行われる場合、その参照先に
+		は範囲が渡されない。例: >
 	:4,8call GetDict().method()
-<		Here GetDict() gets the range but method() does not.
+<		GetDict()には範囲が渡されるが、method()には渡されない。
 
 								*E132*
 関数の再帰的な使用はオプション|'maxfuncdepth'|によって制限することができる。
 
-AUTOMATICALLY LOADING FUNCTIONS ~
+自動的に読み込まれる関数 ~
 							*autoload-functions*
 たくさんの関数または巨大な関数を使うときは、それらが使用されたときだけ自動的に
-定義されるようにすることができる。これには2つの方法がある: 自動コマンドによる
-方法と、'runtimepath'内の"autoload"ディレクトリによる方法である。
+定義されるようにすることができる。これには2つの方法がある: オートコマンドによ
+る方法と、'runtimepath'内の"autoload"ディレクトリによる方法である。
 
 
-自動コマンドを使う方法 ~
+オートコマンドを使う方法 ~
 
 これはユーザマニュアルのセクション|41.14|で説明されている。
 
@@ -5487,12 +5459,12 @@ FuncUndefinedを使う。例: >
 |FuncUndefined|も参照。
 
 
-自動ロードスクリプトの使い方 ~
+オートロードスクリプトの使い方 ~
 							*autoload* *E746*
 これはユーザマニュアルのセクション|41.15|で説明されている。
 
 "autoload"ディレクトリのスクリプトを使う方法はより簡単である。しかし完全に正し
-いファイル名を使う必要がある。自動ロードされる関数は次のような名前を持つ: >
+いファイル名を使う必要がある。オートロードされる関数は次のような名前を持つ: >
 
 	:call filename#funcname()
 
@@ -5515,30 +5487,30 @@ FuncUndefinedを使う。例: >
 
 Vimは'runtimepath'からファイル"autoload/foo/bar.vim"を探す。
 
-This also works when reading a variable that has not been set yet: >
+これはまだ定義されていない変数を参照するときにも使える: >
 
 	:let l = foo#bar#lvar
 
-However, when the autoload script was already loaded it won't be loaded again
-for an unknown variable.
+しかしこのオートロードスクリプトがすでに読み込まれている場合、未知の変数があっ
+てもこのスクリプトは再読み込みされない。
 
-When assigning a value to such a variable nothing special happens.  This can
-be used to pass settings to the autoload script before it's loaded: >
+この変数に値を代入するときは、何も特別なことはない。この方法は、オートロードス
+クリプトが読み込まれる前に設定を渡すために使うことができる: >
 
 	:let foo#bar#toggle = 1
 	:call foo#bar#func()
 
-Note that when you make a mistake and call a function that is supposed to be
-defined in an autoload script, but the script doesn't actually define the
-function, the script will be sourced every time you try to call the function.
-And you will get an error message every time.
+オートロードスクリプト内で定義されるはずの関数を呼んだがスクリプト内で関数が定
+義されなかった場合、その関数を呼ぶたびにそのスクリプトがsourceされる。そして毎
+回エラーメッセージが表示される。
 
-Also note that if you have two script files, and one calls a function in the
-other and vise versa, before the used function is defined, it won't work.
-Avoid using the autoload functionality at the toplevel.
+また、2つのスクリプト間で、互いに自分が定義される前に相手を呼ぶような関数があ
+ると、これは動作しない。
+トップレベルでオートロード機能を使うのは避けること。
 
-Hint: If you distribute a bunch of scripts you can pack them together with the
-|vimball| utility.  Also read the user manual |distribute-script|.
+Hint: たくさんのファイルからなるスクリプトを配布する場合には、|vimball|ユーティ
+リティを使うとそれらをまとめることができる。ユーザマニュアルの
+|distribute-script|も参照。
 
 ==============================================================================
 6. 波括弧変数						*curly-braces-names*
@@ -7087,10 +7059,10 @@ try条件文の中のエラー例外の値は次になる: >
 
 scanf() の代替 ~
 							*sscanf*
-Vimにはsscanf()に相当する関数が無い。もしも行の一部を取り出す必要があるのなら
-ば、matchstr()やsubstitute()を使って行なうことができる。この例は"foobar.txt,
-123, 45"のような行から、どうやってファイル名と行番号とカラム番号を取り出すかを
-示している。 >
+Vimにはsscanf()に相当する関数が無い。行の一部を取り出す必要がある場合には、
+matchstr()やsubstitute()を使えば実現できる。以下の例は、"foobar.txt, 123, 45"
+というような行から、ファイル名と行番号とカラム番号を取り出す方法を示している。
+>
    :" 正規表現を設定
    :let mx='\(\f\+\),\s*\(\d\+\),\s*\(\d\+\)'
    :" 正規表現全体にマッチする部分を取り出す
@@ -7100,8 +7072,8 @@ Vimにはsscanf()に相当する関数が無い。もしも行の一部を取り
    :let lnum = substitute(l, mx, '\2', '')
    :let col = substitute(l, mx, '\3', '')
 
-入力は変数"line"、結果は"file"と"lnum"と"col"に格納される(アイデアはMichael
-Geddesによる)。
+入力は変数"line"、結果は"file"と"lnum"と"col"に格納される(このアイデアは
+Michael Geddesによる)。
 
 
 辞書からscriptnamesを取り出す ~
@@ -7141,7 +7113,7 @@ Geddesによる)。
 グが可能である。しかし必ず行の先頭に書かれている必要がある。":else"コマンドは
 認識されない。
 
-|+eval|機能が存在しなかった場合、どのようにコマンドが実行を免れるかの例:
+|+eval|機能が存在しなかった場合、どのようにコマンドが実行を免れるかの例: >
 
 	:if 1
 	:  echo "Expression evaluation is compiled in"
@@ -7168,8 +7140,8 @@ Geddesによる)。
 	- ファイルの読み書き
 	- 他のバッファへの移動・ファイルを開く
 	- Python, Perl等のコマンドの実行
-これは100%安全と保証されているものではない。しかしある種の攻撃を防ぐ事ができる
-はずである。
+これは100%安全と保証するものではない。しかし、ある種の攻撃を防ぐ事はできるはずで
+ある。
 
 							*:san* *:sandbox*
 :san[dbox] {cmd}	サンドボックス内で{cmd}を実行する。モードラインから設
@@ -7191,11 +7163,11 @@ Note サンドボックス内でオプションの値を退避し、それから
 ==============================================================================
 12. テキストロック						*textlock*
 
-いくつか状況において、バッファを変更する・他のウィンドウへジャンプするなどVim
-の現在の処理を混乱させたり破壊してしまうような動作は禁止される。これはvimが実
-際に他の何かをしているときに起こることに対して当てはまる。例えば、
+いくつか状況においては、バッファを変更する・他のウィンドウへジャンプするなど、
+Vimの現在の処理を混乱させたり破壊してしまうような動作は禁止される。これはVimが
+実際に他の何かをしているときに起こることに対して当てはまる。例えば、
 'balloonexpr'の評価は、マウスカーソルがある位置に留まっているどんなときにでも
-起こる。
+起こりうる。
 
 テキストロックが有効になっているときは、以下の事が禁止される:
 	- バッファの変更
