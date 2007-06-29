@@ -20,8 +20,8 @@ function! MakeHtmlAll()
     new
   endif
   let s:log = []
-  let files = split(glob('*.??[tx]'), '\n')
   call MakeTagsFile()
+  let files = split(glob('*.??[tx]'), '\n')
   for i in range(len(files))
     call append('$', printf("%d/%d %s -> %s", i+1, len(files), files[i], s:HtmlName(files[i])))
   endfor
@@ -40,8 +40,8 @@ function! MakeHtmlAll()
 endfunction
 
 function! MakeHtmlAllBatch()
-  let files = split(glob('*.??[tx]'), '\n')
   call MakeTagsFile()
+  let files = split(glob('*.??[tx]'), '\n')
   for i in range(len(files))
     call MakeHtml(files[i])
   endfor
