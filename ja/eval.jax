@@ -102,40 +102,37 @@ equivalent though.  Consider this sequence of commands: >
 	:let l = [1, 2, 3]	" error!
 
 
-1.2 Function references ~
+1.2 関数への参照 ~
 					*Funcref* *E695* *E718*
-A Funcref variable is obtained with the |function()| function.  It can be used
-in an expression in the place of a function name, before the parenthesis
-around the arguments, to invoke the function it refers to.  Example: >
+関数|function()|は関数への参照を返す。関数への参照は、式の中で関数名が要求され
+る場所で使うと参照先の関数を呼び出す。例: >
 
 	:let Fn = function("MyFunc")
 	:echo Fn()
 <							*E704* *E705* *E707*
-A Funcref variable must start with a capital, "s:", "w:", "t:" or "b:".  You
-cannot have both a Funcref variable and a function with the same name.
+関数参照の変数名は、大文字、"s:"、"w:"、"t:"、"b:"のいずれかで始めなければなら
+ない。関数参照と参照先の関数の名前を同じにすることはできない。
 
-A special case is defining a function and directly assigning its Funcref to a
-Dictionary entry.  Example: >
+関数を定義して、それへの参照を直接辞書に入れるための特別な形式がある。例: >
 	:function dict.init() dict
 	:   let self.val = 0
 	:endfunction
 
-The key of the Dictionary can start with a lower case letter.  The actual
-function name is not used here.  Also see |numbered-function|.
+この辞書のキーは小文字で始めなければならない。実際の関数名はここでは使われない。
+|numbered-function|も参照。
 
-A Funcref can also be used with the |:call| command: >
+|:call|コマンドでも関数参照を使うことができる: >
 	:call Fn()
 	:call dict.init()
 
-The name of the referenced function can be obtained with |string()|. >
+参照先の関数名は|string()|で得られる。 >
 	:let func = string(Fn)
 
-You can use |call()| to invoke a Funcref and use a list variable for the
-arguments: >
+関数参照を呼び出すには|call()|を使い、引数にはリスト型の変数を使う: >
 	:let r = call(Fn, mylist)
 
 
-1.3 Lists ~
+1.3 リスト ~
 							*List* *Lists* *E686*
 A List is an ordered sequence of items.  An item can be of any type.  Items
 can be accessed by their index number.  Items can be added and removed at any
@@ -1039,8 +1036,8 @@ function(expr1, ...)	関数呼出
 |function-argument|  a:	  関数の引数(関数内のみ)
 |vim-variable|       v:	  グローバル、Vimがあらかじめ定義
 
-The scope name by itself can be used as a |Dictionary|.  For example, to
-delete all script-local variables: >
+これらのスコープそのものに辞書を通じてアクセスできる。例えば、全てのスクリプト
+ローカル変数を削除するには次のようにする: >
 	:for k in keys(s:)
 	:    unlet s:[k]
 	:endfor
@@ -1063,13 +1060,13 @@ b:changedtick	現在のバッファに対する総変更の回数。変更を行
 		    :endif
 <
 						*window-variable* *w:var*
-"w:"で始まる変数名は、カレントウィンドウに局所的な変数を意味する。これはウィン
-ドウを閉じるときに破棄される。
+"w:"で始まる変数名は、カレントウィンドウにローカルな変数を意味する。これはウィ
+ンドウを閉じるときに破棄される。
 
 						*tabpage-variable* *t:var*
-A variable name that is preceded with "t:" is local to the current tab page,
-It is deleted when the tab page is closed. {not available when compiled
-without the +windows feature}
+"t:"で始まる変数名は、カレントタブページにローカルな変数を意味する。これはタブ
+ページを閉じるときに破棄される。{+windows 機能つきでコンパイルしたときのみ利用
+可能}
 
 						*global-variable* *g:var*
 関数の中からグローバル変数へアクセスするには、"g:"を付けた名前を使用する。これ
@@ -1077,31 +1074,29 @@ without the +windows feature}
 でも使うことができる。
 
 						*local-variable* *l:var*
-関数の中からそのローカル変数にアクセスするには何も前置しなければ良い。しかし明
-示的に"l:"を付けることも可能。However, without prepending "l:"
-you may run into reserved variable names.  For example "count".  By itself it
-refers to "v:count".  Using "l:count" you can have a local variable with the
-same name.
-
+関数の中からそのローカル変数にアクセスするには何も前置しなければ良い。明示的に
+"l:"を付けることも可能である。ただし"l:"をつけないと予約されている変数名と衝突
+してしまうことがある。例: "count"とすると"v:count"を参照してしまう。"l:count"
+とすればローカル変数countを参照できる。
 
 						*script-variable* *s:var*
-In a Vim script variables starting with "s:" can be used.  They cannot be
-accessed from outside of the scripts, thus are local to the script.
+Vimスクリプト内では"s:"で始まる変数名を使うことができる。これはスクリプトにつ
+いてローカルであり、スクリプトの外部からはアクセスできない。
 
-They can be used in:
-- commands executed while the script is sourced
-- functions defined in the script
-- autocommands defined in the script
-- functions and autocommands defined in functions and autocommands which were
-  defined in the script (recursively)
-- user defined commands defined in the script
-Thus not in:
-- other scripts sourced from this one
-- mappings
-- etc.
+スクリプトローカル関数は次の中で使われる:
+- そのスクリプトをsourceしている間に実行されるコマンド
+- そのスクリプト内で定義される関数
+- そのスクリプト内で定義されるオートコマンド
+- そのスクリプト内で定義される関数やオートコマンドで定義される関数やオートコマ
+  ンド(再帰的)
+- そのスクリプト内で定義されるユーザ定義コマンド
+次の場面では使えない:
+- そのスクリプトからsourceされる他のスクリプト
+- マッピング
+- など。
 
-script variables can be used to avoid conflicts with global variable names.
-Take this example: >
+グローバル変数との衝突を避けるにはスクリプト変数を使う。
+次の例を参照: >
 
 	let s:counter = 0
 	function MyCounter()
@@ -1110,21 +1105,19 @@ Take this example: >
 	endfunction
 	command Tick call MyCounter()
 
-You can now invoke "Tick" from any script, and the "s:counter" variable in
-that script will not be changed, only the "s:counter" in the script where
-"Tick" was defined is used.
+ここで他のスクリプトから"Tick"を実行してみると、そのスクリプト内の変数
+"s:counter"は変化せず、"Tick"が定義されたスクリプト内の"s:counter"だけが変化す
+る。
 
-Another example that does the same: >
+これと同じことをするもう1つの例: >
 
 	let s:counter = 0
 	command Tick let s:counter = s:counter + 1 | echo s:counter
 
-When calling a function and invoking a user-defined command, the context for
-script varialbes is set to the script where the function or command was
-defined.
+関数呼び出しやユーザ定義コマンドを実行するとき、スクリプト変数のコンテキストは
+その関数、コマンドが定義されたスクリプトとなる。
 
-The script variables are also available when a function is defined inside a
-function that is defined in a script.  Example: >
+関数の中で関数を定義した場合、スクリプト変数も共有される。例: >
 
 	let s:counter = 0
 	function StartCounting(incr)
@@ -1139,13 +1132,12 @@ function that is defined in a script.  Example: >
 	  endif
 	endfunction
 
-This defines the MyCounter() function either for counting up or counting down
-when calling StartCounting().  It doesn't matter from where StartCounting() is
-called, the s:counter variable will be accessible in MyCounter().
+このStartCounting()を呼ぶと、カウントアップかカウントダウンのどちらかを行う関
+数MyCounter()を定義する。StartCounting()がどこで呼ばれたかに関係なく、
+MyCounter()の中では変数s:counterにアクセスできる。
 
-When the same script is sourced again it will use the same script variables.
-They will remain valid as long as Vim is running.  This can be used to
-maintain a counter: >
+同じスクリプトが再度読み込まれた場合、同一のスクリプト変数が使われる。スクリプ
+ト変数はVimが終了するまで存続する。以下の例はカウンタを保持する: >
 
 	if !exists("s:counter")
 	  let s:counter = 1
@@ -1155,69 +1147,69 @@ maintain a counter: >
 	  echo "script executed " . s:counter . " times now"
 	endif
 
-Note that this means that filetype plugins don't get a different set of script
-variables for each buffer.  Use local buffer variables instead |b:var|.
+Note これはつまり、ファイルタイププラグインはバッファごとにスクリプト変数を1セッ
+ト持つのではないということを意味する。そのような目的にはバッファローカル変数
+|b:var|を使うこと。
 
 
 Vimの定義済変数:				*vim-variable* *v:var*
 
 					*v:beval_col* *beval_col-variable*
-v:beval_col	The number of the column, over which the mouse pointer is.
-		This is the byte index in the |v:beval_lnum| line.
-		Only valid while evaluating the 'balloonexpr' option.
+v:beval_col	マウスポインタがある桁の桁番号。|v:beval_lnum|行目のバイトイン
+		デックスである。オプション'balloonexpr'を評価している最中のみ
+		有効。
 
 					*v:beval_bufnr* *beval_bufnr-variable*
-v:beval_bufnr	The number of the buffer, over which the mouse pointer is. Only
-		valid while evaluating the 'balloonexpr' option.
+v:beval_bufnr	マウスポインタがあるバッファの番号。オプション'balloonexpr'を
+		評価している最中のみ有効。
 
 					*v:beval_lnum* *beval_lnum-variable*
-v:beval_lnum	The number of the line, over which the mouse pointer is. Only
-		valid while evaluating the 'balloonexpr' option.
+v:beval_lnum	マウスポインタがある行の行番号。オプション'balloonexpr'を
+		評価している最中のみ有効。
 
 					*v:beval_text* *beval_text-variable*
-v:beval_text	The text under or after the mouse pointer.  Usually a word as
-		it is useful for debugging a C program.  'iskeyword' applies,
-		but a dot and "->" before the position is included.  When on a
-		']' the text before it is used, including the matching '[' and
-		word before it.  When on a Visual area within one line the
-		highlighted text is used.
-		Only valid while evaluating the 'balloonexpr' option.
+v:beval_text	マウスポインタの下もしくは後ろにあるテキスト。Cプログラムのデ
+		バッグのために有用。'iskeyword'が適用されるが、マウスポインタ
+		の下より前にあるドットと"->"は含まれる。マウスポインタが']'の
+		上にあるときは、そこから対応する'['とその前にあるテキストまで
+		が含まれる。マウスポインタが1行に収まるビジュアル領域の上にあ
+		るときはその選択領域となる。オプション'balloonexpr'を評価して
+		いる最中のみ有効。
 
 					*v:beval_winnr* *beval_winnr-variable*
-v:beval_winnr	The number of the window, over which the mouse pointer is. Only
-		valid while evaluating the 'balloonexpr' option.
+v:beval_winnr	マウスポインタがあるウィンドウの番号。オプション'balloonexpr'を評価して
+		いる最中のみ有効。
 
 					*v:char* *char-variable*
-v:char		Argument for evaluating 'formatexpr'.
+v:char		'formatexpr'を評価しているときの引数。
 
 			*v:charconvert_from* *charconvert_from-variable*
 v:charconvert_from
-		The name of the character encoding of a file to be converted.
-		Only valid while evaluating the 'charconvert' option.
+		変換しようとしているファイルの文字エンコーディング名。オプショ
+		ン'charconvert'を評価している最中のみ有効。
 
 			*v:charconvert_to* *charconvert_to-variable*
 v:charconvert_to
-		The name of the character encoding of a file after conversion.
-		Only valid while evaluating the 'charconvert' option.
+		変換後のファイルの文字エンコーディング名。オプション
+		'charconvert'を評価している最中のみ有効。
 
 					*v:cmdarg* *cmdarg-variable*
-v:cmdarg	This variable is used for two purposes:
-		1. The extra arguments given to a file read/write command.
-		   Currently these are "++enc=" and "++ff=".  This variable is
-		   set before an autocommand event for a file read/write
-		   command is triggered.  There is a leading space to make it
-		   possible to append this variable directly after the
-		   read/write command.  Note: The "+cmd" argument isn't
-		   included here, because it will be executed anyway.
-		2. When printing a PostScript file with ":hardcopy" this is
-		   the argument for the ":hardcopy" command.  This can be used
-		   in 'printexpr'.
+v:cmdarg	2つの目的のために使われる:
+		1. ファイルの読み書きコマンドに与えられる余分な引数。現在のと
+		   ころ"++enc="と"++ff="がそれである。読み書きコマンドに対する
+		   オートコマンドイベントが発生する前にこの変数が代入される。
+		   その読み書きコマンドの後に直接この変数を連結できるように、
+		   先頭にスペースがついている。Note: ここには"+cmd"引数は含ま
+		   れていない。どちらにしろそれは実行されるからである。
+		2. ":hardcopy"でPostScriptファイルを印刷するとき、これが
+		   ":hardcopy"への引数になる。'printexpr'の中で使うことができ
+		   る。
 
 					*v:cmdbang* *cmdbang-variable*
-v:cmdbang	Set like v:cmdarg for a file read/write command.  When a "!"
-		was used the value is 1, otherwise it is 0.  Note that this
-		can only be used in autocommands.  For user commands |<bang>|
-		can be used.
+v:cmdbang	v:cmdargと同じく読み書きコマンドを実行したとき設定される。読み
+		書きコマンドに"!"が使われたときは1となり、使われていなければ0
+		となる。Note オートコマンドの中でのみ利用可能なことに注意。ユー
+		ザ定義コマンドでは|<bang>|を使えば同じことができる。
 
  					*v:count* *count-variable*
 v:count		最後に実行されたノーマルモードコマンドに渡されたコマンドの実行
@@ -1233,24 +1225,23 @@ v:count1	"v:count"と同じように、しかしカウントが指定されな�
 		略値として存在する。
 
 						*v:ctype* *ctype-variable*
-v:ctype		The current locale setting for characters of the runtime
-		environment.  This allows Vim scripts to be aware of the
-		current locale encoding.  Technical: it's the value of
-		LC_CTYPE.  When not using a locale the value is "C".
-		This variable can not be set directly, use the |:language|
-		command.
-		See |multi-lang|.
+v:ctype		文字に関する実行環境の現在のロケール設定。これを使えばVim
+		スクリプト内で現在のロケール設定に対応できるようになる。技術的
+		な詳細: LC_CTYPEに等しい。ロケールを使用していないときは"C"に
+		なる。
+		この変数を設定するには|:language|コマンドを使うこと。直接設定
+		することはできない。
+		|multi-lang|を参照。
 
 					*v:dying* *dying-variable*
-v:dying		Normally zero.  When a deadly signal is caught it's set to
-		one.  When multiple signals are caught the number increases.
-		Can be used in an autocommand to check if Vim didn't
-		terminate normally. {only works on Unix}
-		Example: >
+v:dying		通常時は0。致命的なシグナルを受信したとき1が代入される。複数
+		のシグナルを受信すると値が増加していく。オートコマンド内でVim
+		が正常に終了するかチェックするために使える。{Unix でのみ動作}
+		例: >
 	:au VimLeave * if v:dying | echo "\nAAAAaaaarrrggghhhh!!!\n" | endif
 <
 					*v:errmsg* *errmsg-variable*
-v:errmsg	最後に表示されたエラーメッセージ。この変数はセットすることが許
+v:errmsg	最後に表示されたエラーメッセージ。この変数は代入することが許
 		されている。例: >
 	:let errmsg = ""
 	:next
@@ -1259,171 +1250,170 @@ v:errmsg	最後に表示されたエラーメッセージ。この変数はセ�
 <		また"errmsg"は、以前の版のVimとの互換性の為に動作する。
 
 					*v:exception* *exception-variable*
-v:exception	The value of the exception most recently caught and not
-		finished.  See also |v:throwpoint| and |throw-variables|.
-		Example: >
+v:exception	最も直近に捕捉され、まだ終了していない例外の値。
+		|v:throwpoint|と|throw-variables|を参照。
+		例: >
 	:try
 	:  throw "oops"
 	:catch /.*/
 	:  echo "caught" v:exception
 	:endtry
-<		Output: "caught oops".
+<		出力: "caught oops".
 
 					*v:fcs_reason* *fcs_reason-variable*
-v:fcs_reason	The reason why the |FileChangedShell| event was triggered.
-		Can be used in an autocommand to decide what to do and/or what
-		to set v:fcs_choice to.  Possible values:
-			deleted		file no longer exists
-			conflict	file contents, mode or timestamp was
-					changed and buffer is modified
-			changed		file contents has changed
-			mode		mode of file changed
-			time		only file timestamp changed
+v:fcs_reason	|FileChangedShell|イベントが発生した理由。オートコマンドの中で
+		何をすべきかやv:fcs_choiceに何を代入すべきかを決めるために使う。
+		値は次のどれかとなる:
+			deleted		もはやファイルが存在しない
+			conflict	ファイルの内容、モード、タイムスタンプ
+					が変化しており、バッファが変更されてい
+					る状態。
+			changed		ファイルの内容が変化している
+			mode		ファイルのモードが変化している
+			time		タイムスタンプだけが変化している
 
 					*v:fcs_choice* *fcs_choice-variable*
-v:fcs_choice	What should happen after a |FileChangedShell| event was
-		triggered.  Can be used in an autocommand to tell Vim what to
-		do with the affected buffer:
-			reload		Reload the buffer (does not work if
-					the file was deleted).
-			ask		Ask the user what to do, as if there
-					was no autocommand.  Except that when
-					only the timestamp changed nothing
-					will happen.
-			<empty>		Nothing, the autocommand should do
-					everything that needs to be done.
-		The default is empty.  If another (invalid) value is used then
-		Vim behaves like it is empty, there is no warning message.
+v:fcs_choice	|FileChangedShell|イベントが発生した後に何をすべきかを表す。
+		オートコマンドの中で、そのバッファに対して何をすべきかを指示す
+		るために使う。
+			reload		バッファを読み直す(バッファが削除され
+					ている場合には効果がない)。
+			ask		何をすべきかをユーザに問い合わせる。こ
+					れはこのオートコマンドがない場合と同じ
+					である。ただしタイムスタンプだけが変化
+					しているときは何もしない。
+			<empty>		何もしない。オートコマンドの中だけで必
+					要なことは全て行ってしまっているという
+					場合にこの値を代入する。
+		既定値は<empty>。これら意外の(無効な)値が代入されたときは空の
+		ときと同じ動作になり、警告メッセージは表示されない。
 
 					*v:fname_in* *fname_in-variable*
-v:fname_in	The name of the input file.  Only valid while evaluating:
-			option		used for ~
-			'charconvert'	file to be converted
-			'diffexpr'	original file
-			'patchexpr'	original file
-			'printexpr'	file to be printed
-		And set to the swap file name for |SwapExists|.
+v:fname_in	入力ファイルの名前。以下のオプションを評価している最中のみ
+		有効:
+			オプション	このファイル名の意味 ~
+			'charconvert'	変換するファイル
+			'diffexpr'	元のファイル
+			'patchexpr'	元のファイル
+			'printexpr'	印刷するファイル
+		また、オートコマンドイベント|SwapExists|が発生したときスワップ
+		ファイル名が代入される。
 
 					*v:fname_out* *fname_out-variable*
-v:fname_out	The name of the output file.  Only valid while
-		evaluating:
-			option		used for ~
-			'charconvert'	resulting converted file (*)
-			'diffexpr'	output of diff
-			'patchexpr'	resulting patched file
-		(*) When doing conversion for a write command (e.g., ":w
-		file") it will be equal to v:fname_in.  When doing conversion
-		for a read command (e.g., ":e file") it will be a temporary
-		file and different from v:fname_in.
+v:fname_out	出力ファイルの名前。以下のオプションを評価している最中のみ
+		有効:
+			オプション	このファイル名の意味 ~
+			'charconvert'	変換した結果のファイル (*)
+			'diffexpr'	diffの出力
+			'patchexpr'	パッチを当てた結果のファイル
+		(*) 書き込みコマンド(":w file"など)を実行する際の変換では
+		v:fname_inと同じになる。読み込みコマンド(":e file"など)を実行
+		する際の変換では一時ファイル名になり、v:fname_inと異なる。
 
 					*v:fname_new* *fname_new-variable*
-v:fname_new	The name of the new version of the file.  Only valid while
-		evaluating 'diffexpr'.
+v:fname_new	新しい方のファイル名。'diffexpr'を評価している最中のみ有効。
 
 					*v:fname_diff* *fname_diff-variable*
-v:fname_diff	The name of the diff (patch) file.  Only valid while
-		evaluating 'patchexpr'.
+v:fname_diff	diff(patch)ファイルの名前。'patchexpr'を評価している最中のみ有
+		効。
 
 					*v:folddashes* *folddashes-variable*
-v:folddashes	Used for 'foldtext': dashes representing foldlevel of a closed
-		fold.
-		Read-only in the |sandbox|. |fold-foldtext|
+v:folddashes	'foldtext'用。閉じた折り畳みのレベルを表すダッシュ。
+		サンドボックス|sandbox|の中では読出し専用。|fold-foldtext|
 
 					*v:foldlevel* *foldlevel-variable*
-v:foldlevel	Used for 'foldtext': foldlevel of closed fold.
-		Read-only in the |sandbox|. |fold-foldtext|
+v:foldlevel	'foldtext'用。閉じた折り畳みのレベル。
+		サンドボックス|sandbox|の中では読出し専用。|fold-foldtext|
 
 					*v:foldend* *foldend-variable*
-v:foldend	Used for 'foldtext': last line of closed fold.
-		Read-only in the |sandbox|. |fold-foldtext|
+v:foldend	'foldtext'用。閉じた折り畳みの最後の行。
+		サンドボックス|sandbox|の中では読出し専用。|fold-foldtext|
 
 					*v:foldstart* *foldstart-variable*
-v:foldstart	Used for 'foldtext': first line of closed fold.
-		Read-only in the |sandbox|. |fold-foldtext|
+v:foldstart	'foldtext'用。閉じた折り畳みの最初の行。
+		サンドボックス|sandbox|の中では読出し専用。|fold-foldtext|
 
 					*v:insertmode* *insertmode-variable*
-v:insertmode	Used for the |InsertEnter| and |InsertChange| autocommand
-		events.  Values:
-			i	Insert mode
-			r	Replace mode
-			v	Virtual Replace mode
+v:insertmode	オートコマンドイベント|InsertEnter|と|InsertChange|用。
+		値は次のどれか:
+			i	インサートモード
+			r	置換モード
+			v	ビジュアル置換モード
 
 						*v:key* *key-variable*
-v:key		Key of the current item of a |Dictionary|.  Only valid while
-		evaluating the expression used with |map()| and |filter()|.
-		Read-only.
+v:key		辞書|Dictionary|の現在の要素のキー。|map()|と|filter()|で使わ
+		れる式を評価している最中のみ有効。
+		読出し専用。
 
 						*v:lang* *lang-variable*
-v:lang		The current locale setting for messages of the runtime
-		environment.  This allows Vim scripts to be aware of the
-		current language.  Technical: it's the value of LC_MESSAGES.
-		The value is system dependent.
-		This variable can not be set directly, use the |:language|
-		command.
-		It can be different from |v:ctype| when messages are desired
-		in a different language than what is used for character
-		encoding.  See |multi-lang|.
+v:lang		メッセージに関する実行環境の現在のロケール設定。これを使えば
+		Vimスクリプト内で現在のロケール設定に対応できるようになる。
+		技術的な詳細: LC_MESSAGESに等しい。この値はシステムに依存する。
+		この変数を設定するには|:language|コマンドを使うこと。直接設定
+		することはできない。
+		文字エンコーディングに使うのと違う言語でメッセージを表示させた
+		い場合は|v:ctype|と異なる値でもよい。|multi-lang|を参照。
 
 						*v:lc_time* *lc_time-variable*
-v:lc_time	The current locale setting for time messages of the runtime
-		environment.  This allows Vim scripts to be aware of the
-		current language.  Technical: it's the value of LC_TIME.
-		This variable can not be set directly, use the |:language|
-		command.  See |multi-lang|.
+v:lc_time	時刻のメッセージに関する実行環境の現在のロケール設定。これを使
+		えばVimスクリプト内で現在のロケール設定に対応できるようになる。
+		技術的な詳細: LC_TIMEに等しい。この値はシステムに依存する。こ
+		の変数を設定するには|:language|コマンドを使うこと。直接設定す
+		ることはできない。
 
 						*v:lnum* *lnum-variable*
-v:lnum		Line number for the 'foldexpr' |fold-expr| and 'indentexpr'
-		expressions, tab page number for 'guitablabel' and
-		'guitabtooltip'.  Only valid while one of these expressions is
-		being evaluated.  Read-only when in the |sandbox|.  
+v:lnum		'foldexpr'と'indentexpr'に使うための行番号。また'guitablabel'
+		と'guitabtooltip'の文脈ではタブページ番号になる。これらの式のど
+		れかを評価しているときのみ有効。サンドボックス|sandbox|の中で
+		は読出し専用。
 
 					*v:mouse_win* *mouse_win-variable*
-v:mouse_win	Window number for a mouse click obtained with |getchar()|.
-		First window has number 1, like with |winnr()|.  The value is
-		zero when there was no mouse button click.
+v:mouse_win	|getchar()|でマウスクリックイベントを取得したとき、この変数に
+		ウィンドウ番号が代入されている。|winnr()|と同じく番号は1から始
+		まる。マウスがクリックされなかったときは0となる。
 
 					*v:mouse_lnum* *mouse_lnum-variable*
-v:mouse_lnum	Line number for a mouse click obtained with |getchar()|.
-		This is the text line number, not the screen line number.  The
-		value is zero when there was no mouse button click.
+v:mouse_lnum	|getchar()|でマウスクリックイベントを取得したとき、この変数に
+		行番号が代入されている。物理行ではなく論理行。マウスがクリック
+		されていないときは0となる。
 
 					*v:mouse_col* *mouse_col-variable*
-v:mouse_col	Column number for a mouse click obtained with |getchar()|.
-		This is the screen column number, like with |virtcol()|.  The
-		value is zero when there was no mouse button click.
+v:mouse_col	|getchar()|でマウスクリックイベントを取得したとき、この変数に
+		桁番号が代入されている。|virtcol()|と同じく画面上の桁番号。マ
+		ウスがクリックされていないときは0となる。
 
 					*v:prevcount* *prevcount-variable*
-v:prevcount	The count given for the last but one Normal mode command.
-		This is the v:count value of the previous command.  Useful if
-		you want to cancel Visual mode and then use the count. >
+v:prevcount	最後のノーマルモードコマンドに与えられたカウントの値。前のコマ
+		ンドのv:countの値である。ビジュアルモードをキャンセルし、その
+		後にカウントを使う場合に便利である。例: >
 			:vmap % <Esc>:call MyFilter(v:prevcount)<CR>
-<		Read-only.
+<		読出し専用。
 
 					*v:profiling* *profiling-variable*
-v:profiling	Normally zero.  Set to one after using ":profile start".
-		See |profiling|.
+v:profiling	通常時は0。":profile start"を実行すると1が代入される。
+		|profiling|を参照。
 
 					*v:progname* *progname-variable*
-v:progname	Contains the name (with path removed) with which Vim was
-		invoked.  Allows you to do special initialisations for "view",
-		"evim" etc., or any other name you might symlink to Vim.
-		Read-only.
+v:progname	Vimを起動したときのプログラム名(パスは除かれる)。"view"、
+		"evim"などの名前やシンボリックリンクなどで起動した場合に特別な
+		初期化を行うのに便利。
+		読出し専用。
 
 					*v:register* *register-variable*
-v:register	The name of the register supplied to the last normal mode
-		command.  Empty if none were supplied. |getreg()| |setreg()|
+v:register	最後のノーマルモードコマンドに指定されたレジスタの名前。レジス
+		タが指定されなかったときは空。|getreg()| |setreg()|
 
 					*v:scrollstart* *scrollstart-variable*
-v:scrollstart	String describing the script or function that caused the
-		screen to scroll up.  It's only set when it is empty, thus the
-		first reason is remembered.  It is set to "Unknown" for a
-		typed command.
-		This can be used to find out why your script causes the
-		hit-enter prompt.
+v:scrollstart	画面のスクロールの原因となったスクリプトや関数を説明する
+		文字列。空であるときのみ代入される。よってこの変数には最初の原
+		因だけが記録されている。原因がキーボードから入力されたコマンド
+		の場合は"Unknown"が代入される。
+		スクリプトを実行したとき現れたhit-enterプロンプトの原因を探る
+		ために便利。
 
 					*v:servername* *servername-variable*
-v:servername	The resulting registered |x11-clientserver| name if any.
-		Read-only.
+v:servername	|x11-clientserver|に登録されている名前。
+		読出し専用。
 
 			    		*v:shell_error* *shell_error-variable*
 v:shell_error	最後に実行したシェルコマンドの結果。シェルコマンドの実行時にな
@@ -1439,70 +1429,68 @@ v:shell_error	最後に実行したシェルコマンドの結果。シェルコ
 <		また"shell_error"は、以前の版のVimとの互換性の為に動作する。
 
 					*v:statusmsg* *statusmsg-variable*
-v:statusmsg	最後に表示されたステータスメッセージ。この変数はセットすること
+v:statusmsg	最後に表示されたステータスメッセージ。この変数は代入すること
 		が許されている。
 
 					*v:swapname* *swapname-variable*
-v:swapname	Only valid when executing |SwapExists| autocommands: Name of
-		the swap file found.  Read-only.
+v:swapname	オートコマンド|SwapExists|を実行している最中のみ有効。見つかっ
+		たスワップファイルの名前。読出し専用。
 
 					*v:swapchoice* *swapchoice-variable*
-v:swapchoice	|SwapExists| autocommands can set this to the selected choice
-		for handling an existing swap file:
-			'o'	Open read-only
-			'e'	Edit anyway
-			'r'	Recover
-			'd'	Delete swapfile
-			'q'	Quit
-			'a'	Abort
-		The value should be a single-character string.  An empty value
-		results in the user being asked, as would happen when there is
-		no SwapExists autocommand.  The default is empty.
+v:swapchoice	イベント|SwapExists|により実行されたオートコマンドが、見つかっ
+		たスワップファイルをどう処理するかをこの変数に代入する。
+			'o'	読込専用で開く
+			'e'	とにかく編集する
+			'r'	復活させる
+			'd'	スワップファイルを削除する
+			'q'	終了する
+			'a'	中止する
+		この変数の値は1文字の文字列でなければならない。値が空のときは
+		オートコマンドSwapExistsが存在しないときと同じようにユーザに問
+		い合わせる。既定値は空。
 
 					*v:swapcommand* *swapcommand-variable*
-v:swapcommand	Normal mode command to be executed after a file has been
-		opened.  Can be used for a |SwapExists| autocommand to have
-		another Vim open the file and jump to the right place.  For
-		example, when jumping to a tag the value is ":tag tagname\r".
-		For ":edit +cmd file" the value is ":cmd\r".
+v:swapcommand	ファイルを開いた後に実行するノーマルモードコマンド。オートコマ
+		ンド|SwapExists|で、他のVimインスタンスにファイルを開かせ、指
+		定位置までジャンプするために使うことができる。例えば、あるタグ
+		へジャンプするには、この変数に":tag tagname\r"という値を代入す
+		る。":edit +cmd file"を実行させるには":cmd\r"を代入する。
 
 				*v:termresponse* *termresponse-variable*
-v:termresponse	The escape sequence returned by the terminal for the |t_RV|
-		termcap entry.  It is set when Vim receives an escape sequence
-		that starts with ESC [ or CSI and ends in a 'c', with only
-		digits, ';' and '.' in between.
-		When this option is set, the TermResponse autocommand event is
-		fired, so that you can react to the response from the
-		terminal.
-		The response from a new xterm is: "<Esc>[ Pp ; Pv ; Pc c".  Pp
-		is the terminal type: 0 for vt100 and 1 for vt220.  Pv is the
-		patch level (since this was introduced in patch 95, it's
-		always 95 or bigger).  Pc is always zero.
-		{only when compiled with |+termresponse| feature}
+v:termresponse	termcapのエントリ|t_RV|で端末から返されるエスケープシーケン
+		ス。ESC [またはCSIで始まり、途中数字と';'と'.'だけから構成され
+		'c'で終わるエスケープシーケンスを受け取ったとき代入される。
+		このオプションがセットされるとオートコマンドイベント
+		TermResponseが発生し、端末からの応答に反応することができる。
+		新しいxtermからの応答は次の形式である:
+		 "<Esc>[ Pp ; Pv ; Pc c"。ここでPpは端末のタイプ: 0ならvt100、
+		 1ならvt220。Pvはパッチレベル(パッチ95で導入されたため常
+		 に95以上)。Pcは常に0。
+		{Vi mが|+termresponse|機能付きでコンパイルされたときのみ有効}
 
 				*v:this_session* *this_session-variable*
 v:this_session	最後にロードされたか、セーブされたセッションファイルの完全な
-		ファイル名。|:mksession|を参照。この変数はセットすることが許さ
+		ファイル名。|:mksession|を参照。この変数は代入することが許さ
 		れている。それ以前にセーブされたセッションがなければ、この変数
 		は空となる。
 		また"this_session"は、以前の版のVimとの互換性の為に動作する。
 
 					*v:throwpoint* *throwpoint-variable*
-v:throwpoint	The point where the exception most recently caught and not
-		finished was thrown.  Not set when commands are typed.  See
-		also |v:exception| and |throw-variables|.
-		Example: >
+v:throwpoint	最も直近に捕捉されてまだ終了していない例外が発生した位置。キー
+		ボードから入力されたコマンドは記録されていない。|v:exception|
+		と|throw-variables|も参照。
+		例: >
 	:try
 	:  throw "oops"
 	:catch /.*/
 	:  echo "Exception from" v:throwpoint
 	:endtry
-<		Output: "Exception from test.vim, line 2"
+<		出力: "Exception from test.vim, line 2"
 
 						*v:val* *val-variable*
-v:val		Value of the current item of a |List| or |Dictionary|.  Only
-		valid while evaluating the expression used with |map()| and
-		|filter()|.  Read-only.
+v:val		辞書|Dictionary|の現在の要素の値。|map()|と|filter()|で使わ
+		れる式を評価している最中のみ有効。
+		読出し専用。
 
 				*v:version* *version-variable*
 v:version	Vimのバージョン番号。メジャーバージョン番号は100倍され、マイ
@@ -1515,8 +1503,8 @@ v:version	Vimのバージョン番号。メジャーバージョン番号は100�
 		えば番号は同じでもパッチの内容は全く異なっている。
 
 					*v:warningmsg* *warningmsg-variable*
-v:warningmsg	最後に表示された警告メッセージ。この変数はセットすることが許さ
-		れている。
+v:warningmsg	最後に表示された警告メッセージ。この変数は代入することが許され
+		ている。
 
 ==============================================================================
 4. 組み込み関数						*functions*
@@ -1784,7 +1772,7 @@ winline()			数値	カーソル位置のウィンドウ行
 winnr()				数値	現在のウィンドウの番号
 winrestcmd()			文字列	ウィンドウサイズを復元するコマンド
 winrestview({dict})		なし	現在のウィンドウのビューを復元
-winsaveview()			Dict	現在のウィンドウのビューを保存
+winsaveview()			辞書	現在のウィンドウのビューを保存
 winwidth( {nr})			数値	ウィンドウ{nr}の幅を取得
 writefile({list}, {fname} [, {binary}])
 				数値	行のリストをファイル{fname}に書き込む
