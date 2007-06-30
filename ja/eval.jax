@@ -710,31 +710,30 @@ expr5 {cmp} expr5
 同一のインスタンス	is
 異なるインスタンス	isnot
 
-Examples:
+例:
 "abc" ==# "Abc"	  0と評価される
 "abc" ==? "Abc"	  1と評価される
 "abc" == "Abc"	  'ignorecase'が設定されていれば1と、でなければ0と評価
 
 							*E691* *E692*
-A |List| can only be compared with a |List| and only "equal", "not equal" and
-"is" can be used.  This compares the values of the list, recursively.
-Ignoring case means case is ignored when comparing item values.
+リスト|List|はリストとだけ比較可能で、==系、!=系、is、isnotのみ利用できる。
+これらはそれぞれのリストの値を再帰的に比較する。大文字小文字無視にすると要素を
+比較するときに大文字小文字を無視する。
 
 							*E735* *E736*
-A |Dictionary| can only be compared with a |Dictionary| and only "equal", "not
-equal" and "is" can be used.  This compares the key/values of the |Dictionary|
-recursively.  Ignoring case means case is ignored when comparing item values.
+辞書|Dictionary|は辞書とだけ比較可能で、==系、!=系、is、isnotのみ利用できる。
+これらは辞書のキー/値を再帰的に比較する。大文字小文字無視にすると要素を
+比較するときに大文字小文字を無視する。
 
 							*E693* *E694*
-A |Funcref| can only be compared with a |Funcref| and only "equal" and "not
-equal" can be used.  Case is never ignored.
+|Funcref|は|Funcref|とだけ比較可能で、"equal"と"not equal"のみ利用できる。大文
+字小文字は常に区別される。
 
-When using "is" or "isnot" with a |List| this checks if the expressions are
-referring to the same |List| instance.  A copy of a |List| is different from
-the original |List|.  When using "is" without a |List| it is equivalent to
-using "equal", using "isnot" equivalent to using "not equal".  Except that a
-different type means the values are different.  "4 == '4'" is true, "4 is '4'"
-is false.
+リスト|List|に対して"is"や"isnot"を使うと、それらの式が同じリストのインスタン
+スを参照しているか判定される。リストのコピーと元のリストは異なると判定される。
+リスト以外に対して"is"は"equal"と同じで、"isnot"は"not equal"と同じである。た
+だし"is"、"isnot"は型が異なると値が等しくない点が"=="とは異なる。「4 == '4'」
+は真で、「4 is '4'」は偽である。
 
 文字列と数値を比較した場合、文字列が数値に変換され、数値として比較される。これ
 は"0 == 'x'"が、'x'が数値としては0であることから、真となることを意味する。
@@ -824,72 +823,67 @@ expr8が数値か文字列ならば、これの結果は文字列expr8のexpr1�
 数のインデックスを指定すると、結果は常に空文字列になる(後方互換性のため)。
 最後のバイトを得るには[-1:]を使うこと。
 
-If expr8 is a |List| then it results the item at index expr1.  See |list-index|
-for possible index values.  If the index is out of range this results in an
-error.  Example: >
-	:let item = mylist[-1]		" get last item
+expr8がリスト|List|ならばインデックスexpr1の要素が返る。取りうるインデックスの
+値については|list-index|を参照。インデックスが範囲を超えている場合はエラーとな
+る。例: >
+	:let item = mylist[-1]		" 最後の要素を取得
 
-Generally, if a |List| index is equal to or higher than the length of the
-|List|, or more negative than the length of the |List|, this results in an
-error.
-
-
-expr8[expr1a : expr1b]	substring or sublist		*expr-[:]*
-
-If expr8 is a Number or String this results in the substring with the bytes
-from expr1a to and including expr1b.  expr8 is used as a String, expr1a and
-expr1b are used as a Number.  Note that this doesn't recognize multi-byte
-encodings.
-
-If expr1a is omitted zero is used.  If expr1b is omitted the length of the
-string minus one is used.
-
-A negative number can be used to measure from the end of the string.  -1 is
-the last character, -2 the last but one, etc.
-
-If an index goes out of range for the string characters are omitted.  If
-expr1b is smaller than expr1a the result is an empty string.
-
-Examples: >
-	:let c = name[-1:]		" last byte of a string
-	:let c = name[-2:-2]		" last but one byte of a string
-	:let s = line(".")[4:]		" from the fifth byte to the end
-	:let s = s[:-3]			" remove last two bytes
-
-If expr8 is a |List| this results in a new |List| with the items indicated by
-the indexes expr1a and expr1b.  This works like with a String, as explained
-just above, except that indexes out of range cause an error.  Examples: >
-	:let l = mylist[:3]		" first four items
-	:let l = mylist[4:4]		" List with one item
-	:let l = mylist[:]		" shallow copy of a List
-
-Using expr8[expr1] or expr8[expr1a : expr1b] on a |Funcref| results in an
-error.
+一般的には、インデックスが正でリストの長さ以上または、負でリストの長さ×-1より
+小さいときエラーとなる。
 
 
-expr8.name		entry in a |Dictionary|		*expr-entry*
+expr8[expr1a : expr1b]	部分文字列または部分リスト	*expr-[:]*
 
-If expr8 is a |Dictionary| and it is followed by a dot, then the following
-name will be used as a key in the |Dictionary|.  This is just like:
-expr8[name].
+expr8が数値か文字列ならば、expr1aバイトからexpr1bバイトまでの部分文字列となる
+(両端を含む)。expr8は文字列として扱われ、expr1aとexpr1bは数値として扱われる。
+Note マルチバイトのエンコーディングは認識しない。
 
-The name must consist of alphanumeric characters, just like a variable name,
-but it may start with a number.  Curly braces cannot be used.
+expr1aが省略されたときは0となる。expr1bが省略されたときは文字列の長さ-1となる。
 
-There must not be white space before or after the dot.
+負数のインデックスを使うことによって文字列の末尾から取り出すことができる。-1は
+最後の文字、-2は最後から2文字目…を表す。
 
-Examples: >
+インデックスがその文字の範囲外に出てしまったときは、その文字は省かれる。expr1b
+がexpr1aより小さいときは空文字列となる。
+
+例: >
+	:let c = name[-1:]		" 文字列の最後のバイト
+	:let c = name[-2:-2]		" 文字列の最後から2バイト目
+	:let s = line(".")[4:]		" 5バイト目から末尾まで
+	:let s = s[:-3]			" 最後の2文字を削除する
+
+expr8がリストならば、インデックスexpr1aとexpr1bの間の要素からなる新しいリスト
+となる。上で説明した文字列の場合と同様だが、インデックスが範囲を超えるとエラー
+になる。例: >
+	:let l = mylist[:3]		" 最初の4個の要素
+	:let l = mylist[4:4]		" 1個の要素からなるリスト
+	:let l = mylist[:]		" リストの浅いコピー
+
+|Funcref|に対してexpr8[expr1]やexpr8[expr1a : expr1b]を使うとエラーになる。
+
+
+expr8.name		辞書|Dictionary|の要素		*expr-entry*
+
+expr8が辞書|Dictionary|のとき、ドットをつけるとその後に書かれた名前が辞書のキ
+ーと見なされる。例: expr8[name]。
+
+名前は変数名と同じようにアルファベットと数字だけから構成されなければならない
+が、数字で始まってもよい。波括弧は使えない。
+
+ドットの前後に空白があってはならない。
+
+例: >
 	:let dict = {"one": 1, 2: "two"}
 	:echo dict.one
 	:echo dict .2
 
-Note that the dot is also used for String concatenation.  To avoid confusion
-always put spaces around the dot for String concatenation.
+Note ドットは文字列連結にも使われる。混乱を避けるために、文字列連結のドットの
+周りには必ずスペースを入れること。
 
 
-expr8(expr1, ...)	|Funcref| function call
+expr8(expr1, ...)	|Funcref| 関数呼び出し
 
-When expr8 is a |Funcref| type variable, invoke the function it refers to.
+expr8が|Funcref|型の変数のとき、その参照する関数を呼び出す。
 
 
 
@@ -926,11 +920,10 @@ number			数定数			*expr-number*
 \t	タブ <Tab>
 \\	円記号(バックスラッシュ)
 \"	ダブルクォート
-\<xxx>	"xxx"というなの特別キー。 例 "\<C-W>" は CTRL-W.
+\<xxx>	"xxx"という名の特殊キー。 例 "\<C-W>" は CTRL-W.
 
-Note that "\xff" is stored as the byte 255, which may be invalid in some
-encodings.  Use "\u00ff" to store character 255 according to the current value
-of 'encoding'.
+Note "\xff"は値255の1バイトとなる。これはエンコーディングによっては無効な値か
+もしれない。現在の'encoding'の値に応じた文字255を得るには"\u00ff"を使う。
 
 Note "\000"と"\x00"は強制的に文字列の終端として扱われる。
 
@@ -945,8 +938,8 @@ Note シングルクォートが使われていることに注意。
 意味を持ったりもしない。唯一の例外は、2つのシングルクォートで1つのシングルクォ
 ートになることである。
 
-Single quoted strings are useful for patterns, so that backslashes do not need
-to be doubled.  These two commands are equivalent: >
+シングルクォートの文字列は、バックスラッシュを2重にしなくてよいため、正規表現
+パターンを表すのに便利である。以下の2つのコマンドは同値である: >
 	if a =~ "\\s*"
 	if a =~ '\s*'
 
@@ -970,12 +963,12 @@ to be doubled.  These two commands are equivalent: >
 --------
 @r			レジスタ'r'の値
 
-結果は、名前付けられたレジスタの内容が単一の文字列として与えられる。必要なとこ
-ろには改行文字が挿入されている。無名レジスタの内容を取得するためには@"か@@を使
-う。どのようなレジスタがあるのかは、|registers|を参照。
+名前付きレジスタの中身を1つの文字列として得る。必要なところには改行文字が挿入
+されている。無名レジスタの中身を取得するには@"か@@を使う。利用可能なレジスタの
+説明については|registers|を参照。
 
-When using the '=' register you get the expression itself, not what it
-evaluates to.  Use |eval()| to evaluate it.
+レジスタ'='を使うと、式の値でなく式そのものを得る。それを評価するには|eval()|
+を使う。
 
 
 入れ子							*expr-nesting* *E110*
@@ -996,7 +989,7 @@ Note $VARを直接使用した場合とexpand("$VAR")を使用した場合では
 れは遅くはなるが、シェルの知りうる総ての変数を展開することができる。例: >
 	:echo $version
 	:echo expand("$version")
-最初の一つは恐らく何も帰ってこず、2つ目は$versionの値が帰ってくるだろう(貴方の
+最初の一つは恐らく何も返ってこず、2つ目は$versionの値が返ってくるだろう(貴方の
 シェルがサポートしていたとして)
 
 
@@ -5433,12 +5426,12 @@ a: のスコープとこの変数は固定されており、変更できない�
 
 これはユーザマニュアルのセクション|41.14|で説明されている。
 
-自動コマンドは、長いVimスクリプトファイルのプラグインに対して有用である。自動
+オートコマンドは、長いVimスクリプトファイルのプラグインに対して有用である。自動
 コマンドを定義し、すぐに|:finish|でそのスクリプトを抜ける。こうするとVimの起動
-が速くなる。その後自動コマンドにより|:finish|コマンドをスキップする変数を定義
+が速くなる。その後オートコマンドにより|:finish|コマンドをスキップする変数を定義
 し、そのファイルが再び読み込まれる。
 
-定義すべき関数名にマッチするパターンを指定して自動コマンドイベント
+定義すべき関数名にマッチするパターンを指定してオートコマンドイベント
 FuncUndefinedを使う。例: >
 
 	:au FuncUndefined BufNet* source ~/vim/bufnetfuncs.vim
@@ -5850,8 +5843,8 @@ Vimはこれを見つけると、まず波括弧の中の式を評価し、そ�
 
 :try				*:try* *:endt* *:endtry* *E600* *E601* *E602*
 :endt[ry]		":try"と":endtry"の間のコマンド(":source"コマンド、関
-			数呼び出し、自動コマンド実行を含めた全てのコマンド実行)
-			のエラー制御を変更する。
+			数呼び出し、オートコマンド実行を含めた全てのコマンド実
+			行)のエラー制御を変更する。
 
 			エラーや割り込みが検出された場合、後に|:finally|コマン
 			ドがあるならば、":finally"の後から実行が継続される。そ
@@ -6557,9 +6550,9 @@ NOTE: エラーメッセージの本文によって捕捉しようとしては�
 	:au BufWritePre * unlet novar
 
 このようなエラーの中には、スクリプトの作者が責任を追わないものもある: つまり、
-スクリプトのユーザがそのような自動コマンドを定義している場合である。その場合、
-上の例のようにすると、ユーザからエラーを隠してしまうことになる。エラーを無視す
-るには、次のようにした方がよい >
+スクリプトのユーザがそのようなオートコマンドを定義している場合である。その
+場合、上の例のようにすると、ユーザからエラーを隠してしまうことになる。エラーを
+無視するには、次のようにした方がよい >
 
 	:try
 	:  write
@@ -6569,7 +6562,7 @@ NOTE: エラーメッセージの本文によって捕捉しようとしては�
 これは書き込みエラーだけを捕捉する。つまり、あなたが意図的に無視したいエラーだ
 けである。
 
-自動コマンドを発生させないような1つのコマンドに対しては、":silent!"を使えば
+オートコマンドを発生させないような1つのコマンドに対しては、":silent!"を使えば
 エラーを例外に変換すること自体を抑制させることができる: >
 	:silent! nunmap k
 これはtry条件文が有効なときも機能する。
@@ -6610,7 +6603,7 @@ NOTE: エラーメッセージの本文によって捕捉しようとしては�
 	:  endtry
 	:endwhile
 
-ここでCTRL-Cを押すとタスクに割り込むことができる。するとスクリプトは新しいコマ
+ここでCTRL-Cを押すとタスクに割り込むことができる。その後スクリプトは新しいコマ
 ンドを要求する。プロンプトでCTRL-Cを押すとスクリプトが終了する。
 
 スクリプト中の特定の行でCTRL-Cが押されたとき何が起こるかをテストするにはデバッ
@@ -6620,15 +6613,15 @@ NOTE: エラーメッセージの本文によって捕捉しようとしては�
 
 全てを捕捉する						*catch-all*
 
-次のコマンドは >
+次のコマンド >
 
 	:catch /.*/
 	:catch //
 	:catch
 
-全てをエラー例外・割り込み例外・|:throw|コマンドにより明示的に投げられた例外の
-捕捉する。これはスクリプトのトップレベルで予期しないことを捕捉するために役に立
-つ。
+は全てをエラー例外・割り込み例外・|:throw|コマンドにより明示的に投げられた例外
+の捕捉する。これは、スクリプトのトップレベルで、予期しないことを捕捉するために
+役に立つ。
    例: >
 
 	:try
@@ -6650,8 +6643,8 @@ NOTE: エラーメッセージの本文によって捕捉しようとしては�
 Note: 全てを捕捉すると、期待していた以上のものを捕捉してしまうかもしれない。そ
 れゆえ、":catch"コマンドの引数に正規表現を指定することにより、自分が本当に制御
 できる問題だけを捕捉することが強く推奨されている。
-例: 全てを捕捉してしまうと、CTRL-Cを押してスクリプトを中断することがほぼ不可能
-になってしまうかも知れない: >
+全てを捕捉してしまうと、CTRL-Cを押してスクリプトを中断することがほぼ不可能になっ
+てしまうことがある。その例: >
 
 	:while 1
 	:  try
@@ -6661,9 +6654,9 @@ Note: 全てを捕捉すると、期待していた以上のものを捕捉し�
 	:endwhile
 
 
-例外と自動コマンド				*except-autocmd*
+例外とオートコマンド				*except-autocmd*
 
-自動コマンドの実行中に例外を使うこともできる。例: >
+オートコマンドの実行中に例外を使うこともできる。例: >
 
 	:autocmd User x try
 	:autocmd User x   throw "Oops!"
@@ -6682,10 +6675,10 @@ Note: 全てを捕捉すると、期待していた以上のものを捕捉し�
 上の例を実行すると"Oops!"と"Arrgh!"が表示される。
 
 							*except-autocmd-Pre*
-いくつかのコマンドでは、それ自身が実行される前に自動コマンドが実行される。
-例外が発生し、それが一連の自動コマンドの中で捕捉されない場合、一連の自動コマン
-ドと、その引き金となったコマンドは破棄され、例外がそのコマンドを呼んだ位置へ伝
-播する。
+いくつかのコマンドでは、それ自身が実行される前にオートコマンドが実行される。
+例外が発生し、それが一連のオートコマンドの中で捕捉されない場合、一連の自動コマ
+ンドと、その引き金となったコマンドは破棄され、例外がそのコマンドを呼んだ位置へ
+伝播する。
    例: >
 
 	:autocmd BufWritePre * throw "FAIL"
@@ -6698,16 +6691,16 @@ Note: 全てを捕捉すると、期待していた以上のものを捕捉し�
 	:endtry
 
 ここで":write"コマンドは現在編集しているファイルを書き込まない('modified'を確
-認すればわかる)。BufWritePreの自動コマンドで発生した例外により、":write"が破棄
-されたためである。そしてその例外は捕捉され、次を表示する: >
+認すればわかる)。BufWritePreのオートコマンドで発生した例外により、":write"が破
+棄されたためである。そしてその例外は捕捉され、次を表示する: >
 
 	Caught: FAIL from BufWrite Auto commands for "*"
 <
 							*except-autocmd-Post*
-いくつかのコマンドでは、それ自身が実行された後で自動コマンドが実行される。引き
-金となったコマンド自身が失敗して、それが有効なtry条件文の内側にあった場合、自
-動コマンドはスキップされ、エラー例外が発生する。その例外は、コマンドを呼んだ位
-置で捕捉することができる。
+いくつかのコマンドでは、それ自身が実行された後でオートコマンドが実行される。引
+き金となったコマンド自身が失敗して、それが有効なtry条件文の内側にあった場合、
+自動コマンドはスキップされ、エラー例外が発生する。その例外は、コマンドを呼んだ
+位置で捕捉することができる。
    例: >
 
 	:autocmd BufWritePost * echo "File successfully written!"
@@ -6722,8 +6715,8 @@ Note: 全てを捕捉すると、期待していた以上のものを捕捉し�
 
 	Vim(write):E212: Can't open file for writing (/i/m/p/o/s/s/i/b/l/e)
 
-引き金となったコマンドが失敗したときでさえも自動コマンドを実行したいという場合
-は、catch節の中でそのイベントを引き起こすことできる。
+引き金となったコマンドが失敗したときでさえもオートコマンドを実行したいという場
+合は、catch節の中でそのイベントを引き起こすことできる。
    例: >
 
 	:autocmd BufWritePre  * set noreadonly
@@ -6750,8 +6743,8 @@ Note: 全てを捕捉すると、期待していた以上のものを捕捉し�
 
 上の例は"after fail"を表示する。
 
-引き金となったコマンドが失敗しなかった場合、自動コマンドから発生した例外は、元
-のコマンドを呼んだ位置から捕捉できる: >
+引き金となったコマンドが失敗しなかった場合、オートコマンドから発生した例外は、
+元のコマンドを呼んだ位置から捕捉できる: >
 
 	:autocmd BufWritePost * throw ":-("
 	:autocmd BufWritePost * echo "Should not be displayed"
@@ -6763,8 +6756,8 @@ Note: 全てを捕捉すると、期待していた以上のものを捕捉し�
 	:endtry
 <
 							*except-autocmd-Cmd*
-いくつかのコマンドでは、通常の処理を一連の自動コマンドで置き換えることができる。
-そのコマンド列で発生した例外は元のコマンドの呼び出し位置で捕捉できる。
+いくつかのコマンドでは、通常の処理を一連のオートコマンドで置き換えることができ
+る。そのコマンド列で発生した例外は元のコマンドの呼び出し位置で捕捉できる。
    例: ":write"コマンドでは、例外が発生したとき、呼び出し側は実際にファイルが
 書き込まれたのかどうかを知ることができない。これを教える必要があるときは、なん
 らかの手段を使わねばならない。 >
@@ -6807,8 +6800,8 @@ Note: 全てを捕捉すると、期待していた以上のものを捕捉し�
 以下同様。
 
 							*except-autocmd-ill*
-異なるイベントに対する自動コマンドにわたってtry条件文を展開することはできない。
-以下のコードは不正である: >
+異なるイベントに対するオートコマンドにわたってtry条件文を展開することはできな
+い。以下のコードは不正である: >
 
 	:autocmd BufWritePre  * try
 	:
@@ -7121,7 +7114,7 @@ Michael Geddesによる)。
 
 サンドボックス内では以下の事が禁止される:
 	- バッファの変更
-	- マッピング、自動コマンド、関数、ユーザ定義コマンドの定義・変更
+	- マッピング、オートコマンド、関数、ユーザ定義コマンドの定義・変更
 	- ある種のオプションの設定 (|option-summary|を参照)
 	- ある種のVim定義済変数(v:)の設定 (|v:var|を参照)  *E794*
 	- シェルコマンドの実行
