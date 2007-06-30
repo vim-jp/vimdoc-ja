@@ -91,15 +91,14 @@ Note 次のコマンドをみると >
 strlen()を使用して次のようにする。 >
 	:if strlen("foo")
 <				*E745* *E728* *E703* *E729* *E730* *E731*
-List, Dictionary and Funcref types are not automatically converted.
+リスト、辞書、Funcrefは自動的に変換されない。
 
 								*E706*
-You will get an error if you try to change the type of a variable.  You need
-to |:unlet| it first to avoid this error.  String and Number are considered
-equivalent though.  Consider this sequence of commands: >
+変数の型を変えようとするとエラーになる。このエラーを避けるには、まず|:unlet|す
+る必要がある。しかし文字列と数値は同値であると見なされる。例: >
 	:let l = "string"
-	:let l = 44		" changes type from String to Number
-	:let l = [1, 2, 3]	" error!
+	:let l = 44		" 型が文字列から数値に変わる
+	:let l = [1, 2, 3]	" エラー!
 
 
 1.2 関数への参照 ~
@@ -134,95 +133,93 @@ equivalent though.  Consider this sequence of commands: >
 
 1.3 リスト ~
 							*List* *Lists* *E686*
-A List is an ordered sequence of items.  An item can be of any type.  Items
-can be accessed by their index number.  Items can be added and removed at any
-position in the sequence.
+リストとは順序を保つ要素の列である。要素はどんな型でもよい。要素へはインデック
+ス番号を使ってアクセスする。列の任意の位置に要素を追加したり削除することができ
+る。
 
 
-List creation ~
+リストの作成 ~
 							*E696* *E697*
-A List is created with a comma separated list of items in square brackets.
-Examples: >
+リストを作るには、[]の中にコンマで区切って要素を書く。
+例: >
 	:let mylist = [1, two, 3, "four"]
 	:let emptylist = []
 
-An item can be any expression.  Using a List for an item creates a
-List of Lists: >
+要素はどんな式でもよい。要素としてリストを指定すると、リストのリストができる:
+>
 	:let nestlist = [[11, 12], [21, 22], [31, 32]]
 
-An extra comma after the last item is ignored.
+最後の要素の後に余分なコンマがあると無視される。
 
 
-List index ~
+リストのインデックス ~
 							*list-index* *E684*
-An item in the List can be accessed by putting the index in square brackets
-after the List.  Indexes are zero-based, thus the first item has index zero. >
-	:let item = mylist[0]		" get the first item: 1
-	:let item = mylist[2]		" get the third item: 3
+リストの要素にアクセスするには、リスト名の後に[]を書き、その中にインデックスを
+書く。インデックスは0基点(つまり最初の要素のインデックスは0)である。 >
+	:let item = mylist[0]		" 最初の要素(1)を取得
+	:let item = mylist[2]		" 3番目の要素(3)を取得
 
 When the resulting item is a list this can be repeated: >
-	:let item = nestlist[0][1]	" get the first list, second item: 12
+取得した要素がリストならば、これを続けて書くことができる: >
+	:let item = nestlist[0][1]	" 最初のリストの2番目の要素(12)を取得
 <
-A negative index is counted from the end.  Index -1 refers to the last item in
-the List, -2 to the last but one item, etc. >
-	:let last = mylist[-1]		" get the last item: "four"
+負のインデックスを指定すると、リストの末尾から数えられる。インデックス-1は最後
+の要素を示し、-2は最後から2番目を指す >
+	:let last = mylist[-1]		" 最後の要素("four")を取得
 
-To avoid an error for an invalid index use the |get()| function.  When an item
-is not available it returns zero or the default value you specify: >
+無効なインデックスによるエラーを回避するには関数|get()|を使う。するとインデッ
+クスが無効な場合は、0かまたは自分で指定した既定値が返る: >
 	:echo get(mylist, idx)
 	:echo get(mylist, idx, "NONE")
 
 
-List concatenation ~
+リストの連結 ~
 
-Two lists can be concatenated with the "+" operator: >
+2つのリストを連結するには演算子"+"を使う: >
 	:let longlist = mylist + [5, 6]
 	:let mylist += [7, 8]
 
-To prepend or append an item turn the item into a list by putting [] around
-it.  To change a list in-place see |list-modification| below.
+1個の要素を先頭または末尾に付け加えるには、[]で囲んでリストにして連結する。リ
+ストの特定の要素を変更するには後述の|list-modification|を参照。
 
 
-Sublist ~
+部分リスト ~
 
-A part of the List can be obtained by specifying the first and last index,
-separated by a colon in square brackets: >
-	:let shortlist = mylist[2:-1]	" get List [3, "four"]
+リストの一部分を取り出すには、[]の中に始点と終点のインデックスを書き、コロンで
+区切る: >
+	:let shortlist = mylist[2:-1]	" リスト[3, "four"]を得る
 
-Omitting the first index is similar to zero.  Omitting the last index is
-similar to -1. >
-	:let endlist = mylist[2:]	" from item 2 to the end: [3, "four"]
-	:let shortlist = mylist[2:2]	" List with one item: [3]
-	:let otherlist = mylist[:]	" make a copy of the List
+始点のインデックスを省略すると0となる。終点のインデックスを省略すると-1となる >
+	:let endlist = mylist[2:]	" 2番目から最後まで: [3, "four"]
+	:let shortlist = mylist[2:2]	" 1個の要素からなるリスト: [3]
+	:let otherlist = mylist[:]	" リストのコピーを作る
 
-If the first index is beyond the last item of the List or the second item is
-before the first item, the result is an empty list.  There is no error
-message.
+終点のインデックスが始点のインデックスよりも前になってしまった場合は空リストと
+なる。エラーメッセージは表示されない。
 
-If the second index is equal to or greater than the length of the list the
-length minus one is used: >
+終点のインデックスがリストの長さより大きい場合は、長さ-1を指定したときと同じに
+なる: >
 	:let mylist = [0, 1, 2, 3]
-	:echo mylist[2:8]		" result: [2, 3]
+	:echo mylist[2:8]		" 結果: [2, 3]
 
-NOTE: mylist[s:e] means using the variable "s:e" as index.  Watch out for
-using a single letter variable before the ":".  Insert a space when needed:
-mylist[s : e].
+NOTE: mylist[s:e]と書くと変数"s:e"をインデックスとして使ったと解釈される。":"
+の前に1文字の変数を使うときは十分注意すること。必要ならこのようにスペースを入
+れるとよい: mylist[s : e].
 
 
-List identity ~
+リストの同一性 ~
 							*list-identity*
-When variable "aa" is a list and you assign it to another variable "bb", both
-variables refer to the same list.  Thus changing the list "aa" will also
-change "bb": >
+変数"aa"がリストであり、それを別の変数"bb"に代入したとすると、両方とも同じ変数
+を参照するようになる。よってリスト"aa"を変更すると"bb"も変更される: >
 	:let aa = [1, 2, 3]
 	:let bb = aa
 	:call add(aa, 4)
 	:echo bb
 <	[1, 2, 3, 4]
 
-Making a copy of a list is done with the |copy()| function.  Using [:] also
-works, as explained above.  This creates a shallow copy of the list: Changing
-a list item in the list will also change the item in the copied list: >
+リストのコピーを作るには関数|copy()|を使う。前述の通り[:]を使ってもできる。こ
+れは浅いコピーである。つまりリストの要素であるリストに変更を加えると、コピーさ
+れたリスト内の同じ要素も変更される: >
 	:let aa = [[1, 'a'], 2, 3]
 	:let bb = copy(aa)
 	:call add(aa, 4)
@@ -232,12 +229,11 @@ a list item in the list will also change the item in the copied list: >
 	:echo bb
 <	[[1, aaa], 2, 3]
 
-To make a completely independent list use |deepcopy()|.  This also makes a
-copy of the values in the list, recursively.  Up to a hundred levels deep.
+完全に独立したコピーを作るには|deepcopy()|を使う。これは再帰的にリストの要素の
+コピーを作る。ただし深さは100レベルまでである。
 
-The operator "is" can be used to check if two variables refer to the same
-List.  "isnot" does the opposite.  In contrast "==" compares if two lists have
-the same value. >
+2つの変数が同じリストを指しているかは演算子"is"で判定できる。"isnot"はその逆で
+ある。一方、"=="は2つのリストが同じ値を持っているかを判定する。 >
 	:let alist = [1, 2, 3]
 	:let blist = [1, 2, 3]
 	:echo alist is blist
@@ -245,18 +241,17 @@ the same value. >
 	:echo alist == blist
 <	1
 
-Note about comparing lists: Two lists are considered equal if they have the
-same length and all items compare equal, as with using "==".  There is one
-exception: When comparing a number with a string they are considered
-different.  There is no automatic type conversion, as with using "==" on
-variables.  Example: >
+Note リストの比較について注意: 2つのリストは、同じ長さを持ち、全要素が"=="の意
+味で等しいとき、等しいとみなされる。ただ、1つ例外がある: 数値と文字列を比較す
+るとそれらは異なるとみなされる。変数に対して"=="で比較したときに行われるような
+自動的な型変換は行われない。例: >
 	echo 4 == "4"
 <	1 >
 	echo [4] == ["4"]
 <	0
 
-Thus comparing Lists is more strict than comparing numbers and strings.  You
-can compare simple values this way too by putting them in a string: >
+つまり、リストの比較は数値や文字列の比較よりも厳格である。単純な値もリストに入
+れることによりこの方法で比較することができる: >
 
 	:let a = 5
 	:let b = "5"
@@ -266,63 +261,61 @@ can compare simple values this way too by putting them in a string: >
 <	0
 
 
-List unpack ~
+リストのアンパック ~
 
-To unpack the items in a list to individual variables, put the variables in
-square brackets, like list items: >
+リストの要素を個々の変数としてアンパックするには、[]の中に変数を書く: >
 	:let [var1, var2] = mylist
 
-When the number of variables does not match the number of items in the list
-this produces an error.  To handle any extra items from the list append ";"
-and a variable name: >
+変数の個数とリストの要素数が一致しないときはエラーになる。リストにある余分な要
+素をまとめて受け取るには、";"と受け取る変数名を書いておく: >
 	:let [var1, var2; rest] = mylist
 
-This works like: >
+上の例は次とほぼ同じである: >
 	:let var1 = mylist[0]
 	:let var2 = mylist[1]
 	:let rest = mylist[2:]
 
-Except that there is no error if there are only two items.  "rest" will be an
-empty list then.
+ただし、要素が2つしかないときエラーにならないところが異なる。"rest"は空リスト
+になる。
+訳注: どちらの場合もエラーにはならないようだ。
 
 
-List modification ~
+リストの変更 ~
 							*list-modification*
-To change a specific item of a list use |:let| this way: >
+リストの中の特定の要素を変更するには次のように|:let|を使う: >
 	:let list[4] = "four"
 	:let listlist[0][3] = item
 
-To change part of a list you can specify the first and last item to be
-modified.  The value must at least have the number of items in the range: >
+始点と終点を指定してリストの一部分を変更することができる。代入する値は、少なく
+とも削除する範囲の要素数と同じ数だけ必要である: >
 	:let list[3:5] = [3, 4, 5]
 
-Adding and removing items from a list is done with functions.  Here are a few
-examples: >
-	:call insert(list, 'a')		" prepend item 'a'
-	:call insert(list, 'a', 3)	" insert item 'a' before list[3]
-	:call add(list, "new")		" append String item
-	:call add(list, [1, 2])		" append a List as one new item
-	:call extend(list, [1, 2])	" extend the list with two more items
-	:let i = remove(list, 3)	" remove item 3
-	:unlet list[3]			" idem
-	:let l = remove(list, 3, -1)	" remove items 3 to last item
-	:unlet list[3 : ]		" idem
-	:call filter(list, 'v:val !~ "x"')  " remove items with an 'x'
+リストに要素を追加したり削除するには関数を使う。いくつか例を示す: >
+	:call insert(list, 'a')		" 先頭に要素'a'を挿入する
+	:call insert(list, 'a', 3)	" 要素'a'をlist[3]の前に挿入する
+	:call add(list, "new")		" 文字列の要素を最後に追加する
+	:call add(list, [1, 2])		" 1個の要素としてリストをを追加する
+	:call extend(list, [1, 2])	" 2個の要素からなるリストを連結する
+	:let i = remove(list, 3)	" 要素3を削除する
+	:unlet list[3]			" 同上
+	:let l = remove(list, 3, -1)	" 要素3から最後までを削除する
+	:unlet list[3 : ]		" 同上
+	:call filter(list, 'v:val !~ "x"')  " 要素'x'を削除
 
-Changing the order of items in a list: >
-	:call sort(list)		" sort a list alphabetically
-	:call reverse(list)		" reverse the order of items
+要素の順番を変更する: >
+	:call sort(list)		" リストをアルファベット順にソート
+	:call reverse(list)		" 要素の順序を反転させる
 
 
-For loop ~
+for ループ ~
 
-The |:for| loop executes commands for each item in a list.  A variable is set
-to each item in the list in sequence.  Example: >
+|:for|ループは、1つの変数に対してリストの各要素を順番に代入し、コマンドを実行
+していく。例: >
 	:for item in mylist
 	:   call Doit(item)
 	:endfor
 
-This works like: >
+上の例は次と同じ: >
 	:let index = 0
 	:while index < len(mylist)
 	:   let item = mylist[index]
@@ -330,23 +323,22 @@ This works like: >
 	:   let index = index + 1
 	:endwhile
 
-Note that all items in the list should be of the same type, otherwise this
-results in error |E706|.  To avoid this |:unlet| the variable at the end of
-the loop.
+Note リストの全要素が同じ型でなければならない。そうでないとエラー|E706|にな
+る。ループの最後でループ変数を|:unlet|すれば、異なる型でも扱える。
 
-If all you want to do is modify each item in the list then the |map()|
-function will be a simpler method than a for loop.
+やりたいことがリストの各要素を変更するだけなら、forループを使うより関数|map()|
+を使った方がよりシンプルになる。
 
-Just like the |:let| command, |:for| also accepts a list of variables.  This
-requires the argument to be a list of lists. >
+|:let|コマンドと同じように、|:for|は変数のリストをループ変数にすることができる。
+この場合、引数はリストのリストでなければならない。 >
 	:for [lnum, col] in [[1, 3], [2, 8], [3, 0]]
 	:   call Doit(lnum, col)
 	:endfor
 
-This works like a |:let| command is done for each list item.  Again, the types
-must remain the same to avoid an error.
+これはリストの各要素に対して|:let|コマンドを実行するかのように実行される。また
+この場合も引数の型は全て同じでないとエラーになる。
 
-It is also possible to put remaining items in a List variable: >
+引数の残りを1個のリスト変数に代入することもできる: >
 	:for [i, j; rest] in listlist
 	:   call Doit(i, j)
 	:   if !empty(rest)
@@ -355,184 +347,179 @@ It is also possible to put remaining items in a List variable: >
 	:endfor
 
 
-List functions ~
+リスト操作関数 ~
 						*E714*
-Functions that are useful with a List: >
-	:let r = call(funcname, list)	" call a function with an argument list
-	:if empty(list)			" check if list is empty
-	:let l = len(list)		" number of items in list
-	:let big = max(list)		" maximum value in list
-	:let small = min(list)		" minimum value in list
-	:let xs = count(list, 'x')	" count nr of times 'x' appears in list
-	:let i = index(list, 'x')	" index of first 'x' in list
-	:let lines = getline(1, 10)	" get ten text lines from buffer
-	:call append('$', lines)	" append text lines in buffer
-	:let list = split("a b c")	" create list from items in a string
-	:let string = join(list, ', ')	" create string from list items
-	:let s = string(list)		" String representation of list
-	:call map(list, '">> " . v:val')  " prepend ">> " to each item
+以下はリスト操作に使える関数である: >
+	:let r = call(funcname, list)	" 引数リストをつけて関数を呼び出す
+	:if empty(list)			" リストが空かどうか判定する
+	:let l = len(list)		" リストの要素数
+	:let big = max(list)		" リスト中の最大値
+	:let small = min(list)		" リスト中の最小値
+	:let xs = count(list, 'x')	" 'x'の出現回数を数える
+	:let i = index(list, 'x')	" 最初に'x'が現れる位置のインデックス
+	:let lines = getline(1, 10)	" バッファから10行を取得
+	:call append('$', lines)	" バッファに行を追加する
+	:let list = split("a b c")	" 文字列を分割してリストにする
+	:let string = join(list, ', ')	" リストの要素を連結して文字列にする
+	:let s = string(list)		" リストの文字列表現
+	:call map(list, '">> " . v:val')  " 各要素の前に">> "をつける
 
-Don't forget that a combination of features can make things simple.  For
-example, to add up all the numbers in a list: >
+機能を組み合わせると、処理を単純に記述できることを覚えておくとよい。例えば、リ
+スト中の全ての数値の和を求める例: >
 	:exe 'let sum = ' . join(nrlist, '+')
 
 
-1.4 Dictionaries ~
+1.4 辞書 ~
 						*Dictionaries* *Dictionary*
-A Dictionary is an associative array: Each entry has a key and a value.  The
-entry can be located with the key.  The entries are stored without a specific
-ordering.
+辞書とは連想配列である。各要素はキーと値を持つ。要素はキーによって特定できる。
+要素は特に順序を持たずに保持される。
 
 
-Dictionary creation ~
+辞書の作成 ~
 						*E720* *E721* *E722* *E723*
-A Dictionary is created with a comma separated list of entries in curly
-braces.  Each entry has a key and a value, separated by a colon.  Each key can
-only appear once.  Examples: >
+辞書を作るには、{}の中にコンマで区切って要素を書く。各要素のキーと値はコロンで
+区切る。それぞれのキーは1度しか現れてはならない。例: >
 	:let mydict = {1: 'one', 2: 'two', 3: 'three'}
 	:let emptydict = {}
 <							*E713* *E716* *E717*
-A key is always a String.  You can use a Number, it will be converted to a
-String automatically.  Thus the String '4' and the number 4 will find the same
-entry.  Note that the String '04' and the Number 04 are different, since the
-Number will be converted to the String '4'.
+キーは必ず文字列である。数値を使うこともできるが、自動的に文字列に変換される。
+よって文字列'4'のキーと数値4のキーは同一の要素を参照する。
+entry.  Note 文字列'04'と数値04は異なることに注意。なぜなら数値04は文字列'4'に
+変換されるからである。
 
-A value can be any expression.  Using a Dictionary for a value creates a
-nested Dictionary: >
+値はどんな式でもよい。辞書を値にすると、ネストした辞書ができる: >
 	:let nestdict = {1: {11: 'a', 12: 'b'}, 2: {21: 'c'}}
 
-An extra comma after the last entry is ignored.
+最後の要素の後に余分なコンマがあると無視される。
 
 
-Accessing entries ~
+要素にアクセスする ~
 
-The normal way to access an entry is by putting the key in square brackets: >
+通常、要素にアクセスするには[]の中にキーを書く: >
 	:let val = mydict["one"]
 	:let mydict["four"] = 4
 
-You can add new entries to an existing Dictionary this way, unlike Lists.
+また、この書き方で既存の辞書に要素を追加できる。この点はリストと異なる。
 
-For keys that consist entirely of letters, digits and underscore the following
-form can be used |expr-entry|: >
+キー名がアルファベット、数字、アンダースコアだけからなる場合は、以下の形式が使
+える|expr-entry|: >
 	:let val = mydict.one
 	:let mydict.four = 4
 
-Since an entry can be any type, also a List and a Dictionary, the indexing and
-key lookup can be repeated: >
+要素はリストや辞書を含むどんな型でもよいため、インデックス参照とキー参照を続け
+て書くことができる: >
 	:echo dict.key[idx].key
 
 
-Dictionary to List conversion ~
+辞書からリストへの変換 ~
 
-You may want to loop over the entries in a dictionary.  For this you need to
-turn the Dictionary into a List and pass it to |:for|.
+辞書の全要素に対してループを行いたい場合がある。そのためには辞書をリストに変換
+し、そのリストに対して|:for|ループを行う。
 
-Most often you want to loop over the keys, using the |keys()| function: >
+多くの場合はキーに対してループを行う。これには関数|keys()|を使う: >
 	:for key in keys(mydict)
 	:   echo key . ': ' . mydict[key]
 	:endfor
 
-The List of keys is unsorted.  You may want to sort them first: >
+このキーのリストはソートされていない。ソートさせるには関数|sort()|を使う: >
 	:for key in sort(keys(mydict))
 
-To loop over the values use the |values()| function:  >
+値に対してループを行うには関数|values()|を使う: >
 	:for v in values(mydict)
 	:   echo "value: " . v
 	:endfor
 
-If you want both the key and the value use the |items()| function.  It returns
-a List in which each item is a  List with two items, the key and the value: >
+キーと値両方を得るには関数|items()|を使う。この関数は、キーと値の2個の要素から
+なるリストのリストを返す: >
 	:for [key, value] in items(mydict)
 	:   echo key . ': ' . value
 	:endfor
 
 
-Dictionary identity ~
+辞書の同一性 ~
 							*dict-identity*
-Just like Lists you need to use |copy()| and |deepcopy()| to make a copy of a
-Dictionary.  Otherwise, assignment results in referring to the same
-Dictionary: >
+ここまで
+辞書のコピーを作るにはリストと同様に|copy()|と|deepcopy()|を使う必要がある。そ
+うでなく代入を行うと同一の辞書を参照するようになる: >
 	:let onedict = {'a': 1, 'b': 2}
 	:let adict = onedict
 	:let adict['a'] = 11
 	:echo onedict['a']
 	11
 
-Two Dictionaries compare equal if all the key-value pairs compare equal.  For
-more info see |list-identity|.
+2つの辞書は、全てのキー・値のペアが等しいとき等しいとみなされる。より詳しくは
+|list-identity|を参照。
 
 
-Dictionary modification ~
+辞書の変更 ~
 							*dict-modification*
-To change an already existing entry of a Dictionary, or to add a new entry,
-use |:let| this way: >
+辞書の要素を変更したり、新しい要素を追加するには|:let|を使う: >
 	:let dict[4] = "four"
 	:let dict['one'] = item
 
-Removing an entry from a Dictionary is done with |remove()| or |:unlet|.
-Three ways to remove the entry with key "aaa" from dict: >
+辞書から要素を取り除くには|remove()|か|:unlet|を使う。以下のように辞書からキー
+"aaa"を取り除くには3つの方法がある: >
 	:let i = remove(dict, 'aaa')
 	:unlet dict.aaa
 	:unlet dict['aaa']
 
-Merging a Dictionary with another is done with |extend()|: >
+2つの辞書を併合させるには|extend()|を使う: >
 	:call extend(adict, bdict)
-This extends adict with all entries from bdict.  Duplicate keys cause entries
-in adict to be overwritten.  An optional third argument can change this.
-Note that the order of entries in a Dictionary is irrelevant, thus don't
-expect ":echo adict" to show the items from bdict after the older entries in
-adict.
+上のコマンドはbdictの全ての要素をadictに追加する。キーが重複した要素はbdictの
+要素により上書きされる。この動作は3番目の引数により変更できる。
+Note 辞書の要素間に順序は定まっていない。そのため":echo adict"としたとき、もと
+もとadictにあった要素が先に、bdictから追加された要素が後に表示されると考えては
+ならない。
 
-Weeding out entries from a Dictionary can be done with |filter()|: >
+辞書から条件を指定して要素を取り除くには|filter()|が使える: >
 	:call filter(dict, 'v:val =~ "x"')
-This removes all entries from "dict" with a value not matching 'x'.
+このコマンドは"dict"から'x'にマッチしない要素を全て取り除く。
 
 
-Dictionary function ~
+関数を辞書に入れる ~
 					*Dictionary-function* *self* *E725*
-When a function is defined with the "dict" attribute it can be used in a
-special way with a dictionary.  Example: >
+関数が"dict"属性つきで定義されると、特殊な方法で呼び出すことができる。例: >
 	:function Mylen() dict
 	:   return len(self.data)
 	:endfunction
 	:let mydict = {'data': [0, 1, 2, 3], 'len': function("Mylen")}
 	:echo mydict.len()
 
-This is like a method in object oriented programming.  The entry in the
-Dictionary is a |Funcref|.  The local variable "self" refers to the dictionary
-the function was invoked from.
+これはオブジェクト指向プログラミングのメソッドに似ている。この辞書の要素は
+|Funcref|である。暗黙に定義されるローカル変数"self"は、この関数を呼び出した辞
+書を参照している。
 
-It is also possible to add a function without the "dict" attribute as a
-Funcref to a Dictionary, but the "self" variable is not available then.
-
+"dict"属性をつけないでFuncrefを辞書に入れることもできる。しかしその場合、変数
+"self"は定義されない。
+ここまで
 				*numbered-function* *anonymous-function*
-To avoid the extra name for the function it can be defined and directly
-assigned to a Dictionary in this way: >
+関数に名前をつける必要をなくすために、関数を定義して直接辞書に代入することがで
+きる: >
 	:let mydict = {'data': [0, 1, 2, 3]}
 	:function mydict.len() dict
 	:   return len(self.data)
 	:endfunction
 	:echo mydict.len()
 
-The function will then get a number and the value of dict.len is a |Funcref|
-that references this function.  The function can only be used through a
-|Funcref|.  It will automatically be deleted when there is no |Funcref|
-remaining that refers to it.
+こうすると関数に番号がふられ、dict.lenがこの関数を参照する|Funcref|となる。こ
+の関数は|Funcref|を通してのみ呼び出せる。参照している|Funcref|がなくなると、こ
+の関数は自動的に削除される。
 
-It is not necessary to use the "dict" attribute for a numbered function.
+番号つき関数に必ずしも"dict"属性は必要ではない。
+訳注: It is not necessary to use the "dict" attribute for a numbered function.
 
 
-Functions for Dictionaries ~
+辞書操作関数 ~
 							*E715*
-Functions that can be used with a Dictionary: >
-	:if has_key(dict, 'foo')	" TRUE if dict has entry with key "foo"
-	:if empty(dict)			" TRUE if dict is empty
-	:let l = len(dict)		" number of items in dict
-	:let big = max(dict)		" maximum value in dict
-	:let small = min(dict)		" minimum value in dict
-	:let xs = count(dict, 'x')	" count nr of times 'x' appears in dict
-	:let s = string(dict)		" String representation of dict
-	:call map(dict, '">> " . v:val')  " prepend ">> " to each item
+以下は辞書操作に使える関数である: >
+	:if has_key(dict, 'foo')	" 辞書がキー"foo"の要素を持つなら真
+	:if empty(dict)			" 辞書が空なら真
+	:let l = len(dict)		" 辞書の要素数
+	:let big = max(dict)		" 辞書中の最大値
+	:let small = min(dict)		" 辞書中の最小値
+	:let xs = count(dict, 'x')	" 'x'の出現回数を数える
+	:let s = string(dict)		" 辞書の文字列表現
+	:call map(dict, '">> " . v:val')  " 各要素の前に">> "をつける
 
 
 1.5 変数について補足 ~
@@ -1772,40 +1759,45 @@ writefile({list}, {fname} [, {binary}])
 
 
 add({list}, {expr})					*add()*
-		Append the item {expr} to |List| {list}.  Returns the
-		resulting |List|.  Examples: >
+		リスト|List|{list}の末尾に要素{expr}を追加する。結果のリストを
+		返す。例: >
 			:let alist = add([1, 2, 3], item)
 			:call add(mylist, "woodstock")
-<		Note that when {expr} is a |List| it is appended as a single
-		item.  Use |extend()| to concatenate |Lists|.
-		Use |insert()| to add an item at another position.
+<		Note {expr}がリストのときは、1個の要素として追加される。リスト
+		を連結するには|extend()|を使う。
+		他の位置に要素を追加するには|insert()|を使う。
 
 
 append({lnum}, {expr})					*append()*
-		When {expr} is a |List|: Append each item of the |List| as a
-		text line below line {lnum} in the current buffer.
-		Otherwise append {expr} as one text line below line {lnum} in
-		the current buffer.
-		{lnum} can be zero to insert a line before the first one.
-		Returns 1 for failure ({lnum} out of range or out of memory),
-		0 for success.  Example: >
+		{expr}がリスト|List|のときは、各要素をカレントバッファの{lnum}
+		行目以降にテキストとして追加する。
+		リストでないときは、{expr}をテキストとしてカレントバッファの{lnum}
+		行目以降にテキストとして追加する。
+		{lnum}は0でもよく、その場合は1行目の前に行を挿入する。
+		失敗した場合は0を返す({lnum}が不正な範囲であるか、メモリ不足)。
+		成功なら0を返す。例: >
 			:let failed = append(line('$'), "# THE END")
 			:let failed = append(0, ["Chapter 1", "the beginning"])
-
+<
 							*argc()*
-argc()		結果は引数のリスト内の、ファイルの数。|arglist|を参照。
+argc()		カレントウィンドウの引数リスト内の、ファイルの数を返す。
+		|arglist|を参照。
+
+							*argidx()*
+argidx()	引数リスト内の現在のインデックスを返す。最初のファイルは0とな
+		る。argc() - 1が最後のファイルとなる。|arglist|を参照。
 
 							*argv()*
 argv([{nr}])	結果は引数リスト内の、{nr}番目のファイル。|arglist|を参照。
-		"argv(0)"は一番最初のファイルを示す。例:
->	let i = 0
->	while i < argc()
->	  let f = substitute(argv(i), '\([. ]\)', '\\&', 'g')
->	  exe 'amenu Arg.' . f . ' :e ' . f . '<CR>'
->	  let i = i + 1
->	endwhile
-<		Without the {nr} argument a |List| with the whole |arglist| is
-		returned.
+		"argv(0)"は一番最初のファイルを示す。例: >
+	:let i = 0
+	:while i < argc()
+	:  let f = escape(argv(i), '. ')
+	:  exe 'amenu Arg.' . f . ' :e ' . f . '<CR>'
+	:  let i = i + 1
+	:endwhile
+<		引数{nr}が指定されなかった場合は、引数リスト|arglist|全体を
+		返す。
 
 							*browse()*
 browse({save}, {title}, {initdir}, {default})
@@ -2247,10 +2239,10 @@ eval({string})	Evaluate {string} and return the result.  Especially useful to
 		Also works for |Funcref|s that refer to existing functions.
 
 eventhandler()						*eventhandler()*
-		Returns 1 when inside an event handler.  That is that Vim got
-		interrupted while waiting for the user to type a character,
-		e.g., when dropping a file on Vim.  This means interactive
-		commands cannot be used.  Otherwise zero is returned.
+		イベントハンドラの中では1を返す。つまり、ユーザの文字入力を待っ
+		ている間に、ファイルをドラッグ＆ドロップするなど割り込みされた
+		ことを表す。このときは対話的なコマンドは使えない。イベントハン
+		ドラの中でないときは0を返す。
 
 executable({expr})					*executable()*
 		This function checks if an executable with the name {expr}
@@ -2587,13 +2579,13 @@ foldtextresult({lnum})					*foldtextresult()*
 		{not available when compiled without the |+folding| feature}
 
 							*foreground()*
-foreground()	Move the Vim window to the foreground.  Useful when sent from
-		a client to a Vim server. |remote_send()|
-		On Win32 systems this might not work, the OS does not always
-		allow a window to bring itself to the foreground.  Use
-		|remote_foreground()| instead.
-		{only in the Win32, Athena, Motif and GTK GUI versions and the
-		Win32 console version}
+foreground()	Vimのウィンドウを前面に移動する。この関数はクライアントからVim
+		サーバへ送ると便利である。|remote_send()|
+		Win32では自分自身のウィンドウを前面に持ってくることが必ずしも
+		許可されていないので、動作しないかもしれない。そのときは代わり
+		に|remote_foreground()|を使うこと。
+		{Win32, Athena, Motif, GTKいずれかのGUI版とWin32コンソール版で
+		のみ利用できる}
 
 
 function({name})					*function()* *E700*
@@ -2714,19 +2706,17 @@ getchar([expr])						*getchar()*
 			:endfunction
 
 getcharmod()						*getcharmod()*
-		The result is a Number which is the state of the modifiers for
-		the last obtained character with getchar() or in another way.
-		These values are added together:
+		最後にgetchar()などで得た文字に対する修飾キーの状態を表す数値
+		を返す。以下の値の和となる:
 			2	shift
 			4	control
 			8	alt (meta)
-			16	mouse double click
-			32	mouse triple click
-			64	mouse quadruple click
-			128	Macintosh only: command
-		Only the modifiers that have not been included in the
-		character itself are obtained.  Thus Shift-a results in "A"
-		with no modifier.
+			16	マウスダブルクリック
+			32	マウストリプルクリック
+			64	マウスクアドラプルクリック
+			128	Macintoshのみで: command
+		文字自身に含まれていない修飾キーのみ取得できる。つまり、
+		Shift-aは修飾キーなしの"A"となる。
 
 getcmdline()						*getcmdline()*
 		Return the current command-line.  Only works when the command
