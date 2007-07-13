@@ -438,7 +438,6 @@ entry.  Note 文字列'04'と数値04は異なることに注意。なぜなら�
 
 辞書の同一性 ~
 							*dict-identity*
-ここまで
 辞書のコピーを作るにはリストと同様に|copy()|と|deepcopy()|を使う必要がある。そ
 うでなく代入を行うと同一の辞書を参照するようになる: >
 	:let onedict = {'a': 1, 'b': 2}
@@ -491,7 +490,7 @@ Note 辞書の要素間に順序は定まっていない。そのため":echo ad
 
 "dict"属性をつけないでFuncrefを辞書に入れることもできる。しかしその場合、変数
 "self"は定義されない。
-ここまで
+
 				*numbered-function* *anonymous-function*
 関数に名前をつける必要をなくすために、関数を定義して直接辞書に代入することがで
 きる: >
@@ -1801,8 +1800,8 @@ argv([{nr}])	結果は引数リスト内の、{nr}番目のファイル。|argli
 
 							*browse()*
 browse({save}, {title}, {initdir}, {default})
-		ファイル選択ダイアログを起動。これは"has("browser")"が、非零を
-		返す時(幾つかのGUIバージョンに限定)にだけ働く。
+		ファイル選択ダイアログを起動。"has("browser")"が非零を返すとき
+		(幾つかのGUIバージョンに限定)だけ利用可能。
 		入力フィールドの意味は:
 		    {save}	非零ならば書込み用ファイルの選択
 		    {title}	ダイアログのタイトル
@@ -1813,34 +1812,31 @@ browse({save}, {title}, {initdir}, {default})
 
 							*browsedir()*
 browsedir({title}, {initdir})
-		Put up a directory requester.  This only works when
-		"has("browse")" returns non-zero (only in some GUI versions).
-		On systems where a directory browser is not supported a file
-		browser is used.  In that case: select a file in the directory
-		to be used.
-		The input fields are:
-		    {title}	title for the requester
-		    {initdir}	directory to start browsing in
-		When the "Cancel" button is hit, something went wrong, or
-		browsing is not possible, an empty string is returned.
+		ディレクトリ選択ダイアログを起動。"has("browse")"が非零を返す
+		とき(幾つかのGUIバージョンに限定)だけ利用可能。
+		ディレクトリ選択ダイアログがないシステムにおいてはファイル選択
+		ダイアログが使われる。その場合は、指定したいディレクトリの中の
+		ファイルを選択すること。
+		入力フィールドの意味は:
+		    {title}	ダイアログのタイトル
+		    {initdir}	ダイアログの始まるディレクトリ
+		ダイアログがキャンセルされるか、何かエラーがあるか、もしくはブ
+		ラウジングが不可能ならば、空文字列が戻ってくる。
 
 							*bufexists()*
 bufexists({expr})
 		結果は数値で、{expr}と呼ばれるバッファが存在すれば非零となる。
-		If the {expr} argument is a number, buffer numbers are used.
-		{expr}が文字列だった場合、バッファ名に正確にマッチしなければな
-		らない。The name can be:
-		- Relative to the current directory.
-		- A full path.
-		- The name of a buffer with 'filetype' set to "nofile".
-		- A URL name.
-		Unlisted buffers will be found.
-		Note that help files are listed by their short name in the
-		output of |:buffers|, but bufexists() requires using their
-		long name to be able to find them.
-		Use "bufexists(0)" to test for the existence of an alternate
-		file name.
-
+		{expr}が数値の場合、バッファ番号とみなされる。
+		{expr}が文字列の場合、バッファ名に正確にマッチしなければな
+		らない。名前として以下のものが許される:
+		- カレントディレクトリからの相対パス。
+		- フルパス。
+		- 'buftype'が"nofile"であるバッファの名前
+		- URL名。
+		バッファリストにないバッファも検索される。
+		Note |:buffers|の出力で、ヘルプファイルは短い名前でリストされ
+		ているが、bufexists()は長い名前でないと見つけることができない。
+		代替ファイル名が存在するかを判定するには"bufexists(0)"を使う。
 							*buffer_exists()*
 		以前の名前: buffer_exists().
 
@@ -1856,44 +1852,45 @@ bufname({expr})
 		戻り値はバッファの名前。バッファ名はコマンド":ls"で表示される
 		ものと同様。
 		{expr}が数値ならば、その番号のバッファ名が返される。0は現在の
-		ウィンドウの裏バッファを意味する。{expr}が文字列ならば、バッ
-		ファ名に対して正規表現マッチングを行なうパターンとなる。この
-		マッチングは常に、'magic'をセットし'cpoptions'を空にした状態で
-		行なわれる。複数マッチしてしまった場合には空文字列が返される。
-		""や"%"は現在のバッファを意味し、"#"は裏バッファを意味する。
-		A full match is preferred, otherwise a match at the start, end
-		or middle of the buffer name is accepted.  If you only want a
-		full match then put "^" at the start and "$" at the end of the
-		pattern.
-		Listed buffers are found first.  If there is a single match
-		with a listed buffer, that one is returned.  Next unlisted
-		buffers are searched for.
+		ウィンドウの裏バッファを意味する。{expr}が文字列ならば、バッファ
+		名に対してファイル名マッチング|file-pattern|を行なうパターンと
+		なる。このマッチングは常に、'magic'をセットし'cpoptions'を空に
+		した状態で行なわれる。複数マッチしてしまった場合には空文字列が
+		返される。""や"%"は現在のバッファを意味し、"#"は裏バッファを意
+		味する。
+		完全マッチのものが優先され、完全マッチがなければ、バッファ名の
+		先頭でのマッチ、末尾でのマッチ、中間でのマッチが探される。完全
+		マッチのみを探すには、パターン先頭に"^"を、末尾に"$"をつける。
+		まずバッファリストにあるバッファが探される。そこで1個だけマッ
+		チが見つかればそれを返す。次にバッファリストにないものが探され
+		る。
 		{expr}が文字列のときに、それをバッファ番号として使いたいなら
-		ば、0を足すことによって強制的に数値にすることができる:
->			echo bufname("3" + 0)
-		バッファが存在しないか名前を持っていない場合には、空文字列が返
-		される。
->  bufname("#")			alternate buffer name
->  bufname(3)			name of buffer 3
->  bufname("%")			name of current buffer
->  bufname("file2")		name of buffer where "file2" matches.
-							*buffer_name()*
+		ば、0を足すことによって強制的に数値にすることができる: >
+			echo bufname("3" + 0)
+<		バッファが存在しないか名前を持っていない場合には、空文字列が返
+		される。 >
+  bufname("#")			alternate buffer name
+  bufname(3)			name of buffer 3
+  bufname("%")			name of current buffer
+  bufname("file2")		name of buffer where "file2" matches.
+<							*buffer_name()*
 		以前の名前: buffer_name().
 
 							*bufnr()*
 bufnr({expr} [, {create}])
 		結果はバッファの番号。バッファ番号はコマンド":ls"で表示される
 		ものと同様。{expr}の使い方は前述のbufname()を参照。バッファが
-		存在しない場合-1が返される。  Or, if the
-		{create} argument is present and not zero, a new, unlisted,
-		buffer is created and its number is returned.
-		bufnr("$")は最後のバッファを意味する:
->  :let last_buffer = bufnr("$")
-		結果は存在しているバッファのうちで、もっとも大きなバッファ番号
+		存在しない場合-1が返される。ただし、{create}が与えられて0でな
+		いときは、バッファリストに載せない新しいバッファを作成しその番
+		号を返す。
+		bufnr("$")は最後のバッファを意味する: >
+  :let last_buffer = bufnr("$")
+<		結果は存在しているバッファのうちで、もっとも大きなバッファ番号
 		となる。 Note そのバッファ番号より小さいバッファ番号を持つ(ハ
 		ズの)バッファが、必ずしも総て存在するとは限らない。なぜなら
-		":bdel"がバッファを消すことができるからだ。バッファが存在する
-		かテストするにはbufexists()を使う。
+		":bwipeout"がバッファを消すことができるからだ。バッファが存在
+		するかテストするにはbufexists()を使う。
+							*buffer_number()*
 		以前の名前: buffer_number().
 							*last_buffer_nr()*
 		bufnr("$")の以前の名前: last_buffer_nr().
@@ -1901,150 +1898,134 @@ bufnr({expr} [, {create}])
 							*bufwinnr()*
 bufwinnr({expr})
 		結果は数値で、バッファ{expr}に関連付けられた最初のウィンドウの
-		番号。{expr}の使い方は前述のbufname()を参照。バッファ{expr}が
-		存在しないか、ウィンドウが無い場合には-1が返される。例: >
+		番号。{expr}の使い方は前述の|bufname()|を参照。バッファ{expr}
+		が存在しないか、ウィンドウが無い場合には-1を返す。例: >
 
 	echo "A window containing buffer 1 is " . (bufwinnr(1))
 
-<		The number can be used with |CTRL-W_w| and ":wincmd w"
-		|:wincmd|.
-		Only deals with the current tab page.
+<		この番号は|CTRL-W_w|や":wincmd w"|:wincmd|で使える。
+		カレントタブページ内のウィンドウだけを探す。
 							*byte2line()*
 byte2line({byte})
-		現在のバッファの先頭から{byte}番目のキャラクタが、何行目に含ま
-		れるかを返す。これには現在のバッファの'fileformat'に依存した、
-		改行文字も含まれる。先頭の文字にはバイトカウント1が与えられ
-		る。
+		カレントバッファの先頭から{byte}番目の文字が、何行目に含まれる
+		かを返す。これにはカレントバッファの'fileformat'に依存した、改
+		行文字も含まれる。先頭の文字にはバイトカウント1が与えられる。
 		|line2byte()|と|go|と|:goto|も参照。
-		{|+byte_offset|機能を有効にしてコンパイルしなければ利用できな
-		い}
+		{|+byte_offset|機能付きでコンパイルされたときのみ有効}
 
 byteidx({expr}, {nr})					*byteidx()*
-		Return byte index of the {nr}'th character in the string
-		{expr}.  Use zero for the first character, it returns zero.
-		This function is only useful when there are multibyte
-		characters, otherwise the returned value is equal to {nr}.
-		Composing characters are counted as a separate character.
-		Example : >
+		文字列{expr}の{nr}番目の文字のバイトインデックスを返す。
+		最初の文字の{nr}は0であり、戻り値は0となる。この関数はマルチバ
+		イト文字が存在するときのみ有用であり、そうでなければこの関数が
+		返す値は{nr}に等しい。合成文字は別々の文字と数えられる。
+		例 : >
 			echo matchstr(str, ".", byteidx(str, 3))
-<		will display the fourth character.  Another way to do the
-		same: >
+<		は4文字目を表示する。次も同じことをする: >
 			let s = strpart(str, byteidx(str, 3))
 			echo strpart(s, 0, byteidx(s, 1))
-<		If there are less than {nr} characters -1 is returned.
-		If there are exactly {nr} characters the length of the string
-		is returned.
+<		{expr}が{nr}文字以下の場合は-1を返す。
+		{expr}がちょうど{nr}文字の場合は文字列の長さ(バイト単位)を返す。
 
 call({func}, {arglist} [, {dict}])			*call()* *E699*
-		Call function {func} with the items in |List| {arglist} as
-		arguments.
-		{func} can either be a |Funcref| or the name of a function.
-		a:firstline and a:lastline are set to the cursor line.
-		Returns the return value of the called function.
-		{dict} is for functions with the "dict" attribute.  It will be
-		used to set the local variable "self". |Dictionary-function|
+		リスト|List|{arglist}の要素を引数として関数{func}を呼ぶ。
+		{func}は|Funcref|でも関数の名前でもよい。
+		a:firstlineとa:lastlineにはカレント行が代入される。
+		呼び出した関数の戻り値を返す。
+		{dict}は"dict"属性つきの関数用で、これがローカル変数"self"に代
+		入される。|Dictionary-function|を参照。
 
 changenr()						*changenr()*
-		Return the number of the most recent change.  This is the same
-		number as what is displayed with |:undolist| and can be used
-		with the |:undo| command.
-		When a change was made it is the number of that change.  After
-		redo it is the number of the redone change.  After undo it is
-		one less than the number of the undone change.
+		最も最近の変更の番号を返す。|:undolist|で表示される番号と同じ
+		であり、|:undo|コマンドの引数として使うことができる。
+		変更を行った直後ではその変更の番号となる。redoを行った直後は
+		redoされた変更の番号となる。undoを行った直後はundoされた変更よ
+		り1小さい番号になる。
 
 							*char2nr()*
 char2nr({expr})
-		{expr}の最初の文字のASCIIコードを返す。例:
->			char2nr(" ")		returns 32
->			char2nr("ABC")		returns 65
-<		The current 'encoding' is used.  Example for "utf-8": >
-			char2nr("á")		returns 225
-			char2nr("á"[0])		returns 195
-<		nr2char() does the opposite.
+		{expr}の最初の文字のASCIIコードを返す。例: >
+			char2nr(" ")		returns 32
+			char2nr("ABC")		returns 65
+<		現在の'encoding'の値が適用される。"utf-8"のときの例: >
+			char2nr("á")	 	returns 225
+			char2nr("á"[0])	returns 195
+<		nr2char()はこの逆を行う。
 
 cindent({lnum})						*cindent()*
-		Get the amount of indent for line {lnum} according the C
-		indenting rules, as with 'cindent'.
-		The indent is counted in spaces, the value of 'tabstop' is
-		relevant.  {lnum} is used just like in |getline()|.
-		When {lnum} is invalid or Vim was not compiled the |+cindent|
-		feature, -1 is returned.
-		See |C-indenting|.
+		'cindent'で使われるのと同じC言語用のインデント規則に従った場合
+		の{lnum}行目のインデント量を返す。
+		インデント量はスペースで数えられ、'tabstop'の値は関係ない。
+		{lnum}は|getline()|の場合と同様に扱われる。
+		{lnum}が無効な値のときや|+cindent|機能なしでコンパイルされてい
+		るときは-1を返す。
+		|C-indenting|を参照。
 
 							*col()*
 col({expr})	
-		戻り値は数値で、{expr}で与えられるファイル上でのカラム番号。有
-		効な位置は:
+		戻り値は数値で、{expr}で与えられる位置の桁番号(バイトインデッ
+		クス)。有効な位置は:
 		    .	    現在の位置
-		    $	    the end of the cursor line (the result is the
-			    number of characters in the cursor line plus one)
+		    $	    カレント行の末尾(カレント行のバイト数+1を返す)
 		    'x	    マークxの位置(マークが設定されていない場合0)
-		To get the line number use |line()|.  To get both use
-		|getpos()|.
-		For the screen column position use |virtcol()|.
+		行番号を取得するには|line()|を使う。行番号と桁番号両方を取得す
+		るには|getpos()|を使う。
+		画面上の桁番号を取得するには|virtcol()|を使う。
 		Note 現在のファイルのマークしか使えないことに注意。
-		例:
->			col(".")		カーソルのカラム
-			col("$")		length of cursor line plus one
->			col("'t")		マークtのカラム
->			col("'" . markname)	マークmarknameのカラム
-		先頭のカラムは1になる。返された0はエラーを示す。
-		For an uppercase mark the column may actually be in another
-		buffer.
-		For the cursor position, when 'virtualedit' is active, the
-		column is one higher if the cursor is after the end of the
-		line.  This can be used to obtain the column in Insert mode: >
+		例: >
+			col(".")		カーソルの桁
+			col("$")		カレント行の長さ+1
+			col("'t")		マークtの桁
+			col("'" . markname)	マークmarknameの桁
+<		先頭の桁は1になる。戻り値0はエラーを意味する。
+		大文字のマークは他のバッファを指しているかもしれない。
+		'virtualedit'が有効なとき、カーソルが行末を越えていると、桁番
+		号は行の長さより1大きい値を返す。インサートモードで桁番号を取
+		得するには次のマップが使える: >
 			:imap <F2> <C-O>:let save_ve = &ve<CR>
 				\<C-O>:set ve=all<CR>
 				\<C-O>:echo col(".") . "\n" <Bar>
 				\let &ve = save_ve<CR>
 <
 complete({startcol}, {matches})			*complete()* *E785*
-		Set the matches for Insert mode completion.
-		Can only be used in Insert mode.  You need to use a mapping
-		with CTRL-R = |i_CTRL-R|.  It does not work after CTRL-O or
-		with an expression mapping.
-		{startcol} is the byte offset in the line where the completed
-		text start.  The text up to the cursor is the original text
-		that will be replaced by the matches.  Use col('.') for an
-		empty string.  "col('.') - 1" will replace one character by a
-		match.
-		{matches} must be a |List|.  Each |List| item is one match.
-		See |complete-items| for the kind of items that are possible.
-		Note that the after calling this function you need to avoid
-		inserting anything that would completion to stop.
-		The match can be selected with CTRL-N and CTRL-P as usual with
-		Insert mode completion.  The popup menu will appear if
-		specified, see |ins-completion-menu|.
-		Example: >
+		インサートモード補完の候補を設定する。
+		インサートモードでのみ使用できる。CTRL-R = |i_CTRL-R|と組み合
+		わせてマッピングを作る必要がある。CTRL-Oの後や、<expr>マッピン
+		グの中では正しく動作しない。
+		{startcol}は補完すべき単語の開始位置を示す、行内のバイトオフセッ
+		トである。その位置からカーソルまでのテキストが補完すべき単語と
+		なる。
+		{matches}はリスト|List|でなければならない。リストの各要素が1つ
+		の候補となる。この要素として許される値については
+		|complete-items|を参照。
+		Note この関数を呼んだ後は補完を停止させるようなテキストの挿入
+		をしないように注意しなければならない。
+		この関数で設定した候補は普通のインサートモード補完と同じ様に
+		CTRL-NとCTRL-Pで選択できる。設定されていればポップアップメニュー
+		が表示される。|ins-completion-menu|を参照。
+		例: >
 	inoremap <F5> <C-R>=ListMonths()<CR>
-
 	func! ListMonths()
 	  call complete(col('.'), ['January', 'February', 'March',
 		\ 'April', 'May', 'June', 'July', 'August', 'September',
 		\ 'October', 'November', 'December'])
 	  return ''
 	endfunc
-<		This isn't very useful, but it shows how it works.  Note that
-		an empty string is returned to avoid a zero being inserted.
+<		この例はそれほど役には立たないが、使い方を示している。Note 0が
+		挿入されてしまわないように空文字列を返していることに注意。
 
 complete_add({expr})				*complete_add()*
-		Add {expr} to the list of matches.  Only to be used by the
-		function specified with the 'completefunc' option.
-		Returns 0 for failure (empty string or out of memory),
-		1 when the match was added, 2 when the match was already in
-		the list.
-		See |complete-functions| for an explanation of {expr}.  It is
-		the same as one item in the list that 'omnifunc' would return.
+		候補のリストに{expr}を追加する。'completefunc'で指定された関数
+		の中でのみ使われる。
+		失敗したときは0を返す(空文字列かメモリ不足)。候補が追加された
+		ときは1を返し、その候補が既にリストに存在するときは2を返す。
+		{expr}の説明については|complete-functions|を参照。'omnifunc'が
+		返すリストと同じである。
 
 complete_check()				*complete_check()*
-		Check for a key typed while looking for completion matches.
-		This is to be used when looking for matches takes some time.
-		Returns non-zero when searching for matches is to be aborted,
-		zero otherwise.
-		Only to be used by the function specified with the
-		'completefunc' option.
-
+		補完候補を探している間にキーがタイプされたかどうか確認する。補
+		完の検索に時間がかかる場合に使われる。候補の検索を中断しようと
+		しているときは0以外を返す。そうでないときは0を返す。
+		'completefunc'で指定された関数の中でのみ使われる。
 
 							*confirm()*
 confirm({msg}, {choices} [, {default} [, {type}]])
@@ -2053,22 +2034,24 @@ confirm({msg}, {choices} [, {default} [, {type}]])
 		Note: confirm()は、ダイアログサポートを有効にしてコンパイルし
 		た時にだけ動作する。|+dialog_con|と|+dialog_gui|を参照。
 		ダイアログには{msg}に加えて{choices}の選択肢が表示される。
+		{choices}が指定されない、または空の場合は選択肢"&OK"が表示され
+		る(使用している言語に翻訳される)。
 		{msg}は文字列で'\n'を改行として使用できる。幾つかのシステムで
 		は、長すぎる行は自動的に折り返される。
 		{choices}は文字列で、個々の選択肢は'\n'によって区切られる。
-		例:
->			confirm("Save changes?", "&Yes\n&No\n&Cancel")
-		'&'の後の文字は選択肢のショートカットキーになる。この場合
+		例: >
+			confirm("Save changes?", "&Yes\n&No\n&Cancel")
+<		'&'の後の文字は選択肢のショートカットキーになる。この場合
 		"Cancel"を選択するのに'c'をタイプすることができる。ショート
-		カットキーは最初の文字である必要は無い:
->			confirm("file has been modified", "&Save\nSave &All")
-		コンソールでは、デフォルトのショートカットキーとして、各選択肢
+		カットキーは最初の文字である必要は無い: >
+			confirm("file has been modified", "&Save\nSave &All")
+<		コンソールでは、デフォルトのショートカットキーとして、各選択肢
 		の最初の文字が使われる。
-		オプションの引数{default}は<CR>キーを叩いた時に選択される選択
-		肢の番号を指定する。最初の選択肢をデフォルトにするならば1を使
-		用する。デフォルトを設定したくないのならば0を使用する。
+		省略可能な引数{default}は<CR>キーを叩いた時に選択される選択肢
+		の番号を指定する。最初の選択肢をデフォルトにするならば1を使用
+		する。デフォルトを設定したくないのならば0を使用する。
 		{default}を省略した場合、0が使用される。
-		オプションの引数{type}はダイアログのタイプを与える。これは
+		省略可能な引数{type}はダイアログの種類を指定する。これは
 		Win32 GUI版でアイコンを指定するのに使う。"Error", "Question",
 		"Info", "Warning", "Generic"のうちどれか一つを指定する。以上の
 		うちの先頭の文字だけで指定できる。{type}が省略された場合、
@@ -2076,69 +2059,66 @@ confirm({msg}, {choices} [, {default} [, {type}]])
 		ユーザが<Esc>やCTRL-Cや、その他の割りこみキーでダイアログを中
 		断した場合、confirm()は0を返す。
 
-		例:
->   :let choice = confirm("What do you want?", "&Apples\n&Oranges\n&Bananas", 2)
->   :if choice == 0
->   :	echo "make up your mind!"
->   :elseif choice == 3
->   :	echo "tasteful"
->   :else
->   :	echo "I prefer bananas myself."
->   :endif
-		GUIのダイアログではボタンが使用される。ボタンの配置は
+		例: >
+   :let choice = confirm("What do you want?", "&Apples\n&Oranges\n&Bananas", 2)
+   :if choice == 0
+   :	echo "make up your mind!"
+   :elseif choice == 3
+   :	echo "tasteful"
+   :else
+   :	echo "I prefer bananas myself."
+   :endif
+<		GUIのダイアログではボタンが使用される。ボタンの配置は
 		'guioptions'の'v'フラグに依存する。もしも'v'フラグが含まれてい
 		るのなら、ボタンは常に垂直に配置される。そうでなければ水平に配
 		置しようと試みられる。水平配置がうまくマッチしない場合は、垂直
 		配置が使われる。幾つかのシステムでは常に水平配置が使われる。
 
 							*copy()*
-copy({expr})	Make a copy of {expr}.  For Numbers and Strings this isn't
-		different from using {expr} directly.
-		When {expr} is a |List| a shallow copy is created.  This means
-		that the original |List| can be changed without changing the
-		copy, and vise versa.  But the items are identical, thus
-		changing an item changes the contents of both |Lists|.  Also
-		see |deepcopy()|.
+copy({expr})	{expr}のコピーを作る。数値と文字列の場合は、{expr}そのものとコ
+		ピーの間に違いはない。
+		{expr}がリスト|List|の場合は浅いコピーを作る。つまり元のリスト
+		を変更してもコピーは変更されず、逆も同じである。しかし要素は共
+		通で、片方の要素に対し変更を加えると、もう一方の要素も変更され
+		る。|deepcopy()|も参照。
 
 count({comp}, {expr} [, {ic} [, {start}]])			*count()*
-		Return the number of times an item with value {expr} appears
-		in |List| or |Dictionary| {comp}.
-		If {start} is given then start with the item with this index.
-		{start} can only be used with a |List|.
-		When {ic} is given and it's non-zero then case is ignored.
+		リスト|List|または辞書|Dictionary| {comp}の中に値{expr}が何回
+		現れるかを返す。
+		{start}が指定されたときはそのインデックスの要素から検索を開始
+		する。{start}は{comp}がリストの場合のみ使用できる。
+		{ic}が指定され、0でない場合は大文字・小文字は区別されない。
 
 
 							*cscope_connection()*
 cscope_connection([{num} , {dbpath} [, {prepend}]])
-		Checks for the existence of a |cscope| connection.  If no
-		parameters are specified, then the function returns:
-			0, if cscope was not available (not compiled in), or
-			   if there are no cscope connections;
-			1, if there is at least one cscope connection.
+		|cscope|接続が存在するかどうか判定する。引数が1個も指定されな
+		かった場合、戻り値は以下のようになる:
+			0, cscopeが利用できない(コンパイル時に無効化されている)
+			   またはcscope接続が存在しない場合
+			1, 1個以上のcscope接続が存在する場合
 
-		If parameters are specified, then the value of {num}
-		determines how existence of a cscope connection is checked:
+		引数が与えられた場合は次のようになる。{num}は、接続の存在を確
+		認する際のマッチング方法を指定する。
 
-		{num}	Description of existence check
+		{num}	存在確認の方法
 		-----	------------------------------
-		0	Same as no parameters (e.g., "cscope_connection()").
-		1	Ignore {prepend}, and use partial string matches for
-			{dbpath}.
-		2	Ignore {prepend}, and use exact string matches for
-			{dbpath}.
-		3	Use {prepend}, use partial string matches for both
-			{dbpath} and {prepend}.
-		4	Use {prepend}, use exact string matches for both
-			{dbpath} and {prepend}.
+		0	引数なしの場合と同じ (例: "cscope_connection()").
+		1	{prepend}を無視し、{dbpath}に部分マッチを行う。
+		2	{prepend}を無視し、{dbpath}に部分マッチを行う。
+		3	{prepend}を使用し、{dbpath}と{prepend}に部分マッチを行
+			う。
+		4	{prepend}を使用し、{dbpath}と{prepend}に完全マッチを行
+			う。
 
-		Note: All string comparisons are case sensitive!
+		Note: 以上のどの場合も文字列の比較は大文字・小文字を区別する。
 
-		Examples.  Suppose we had the following (from ":cs show"): >
+		例: ":cs show"の表示が以下のようになったとする: >
 
   # pid    database name			prepend path
   0 27664  cscope.out				/usr/local
 <
-		Invocation					Return Val ~
+		実行						戻り値 ~
 		----------					---------- >
 		cscope_connection()					1
 		cscope_connection(1, "out")				1
@@ -2151,92 +2131,86 @@ cscope_connection([{num} , {dbpath} [, {prepend}]])
 <
 cursor({lnum}, {col} [, {off}])				*cursor()*
 cursor({list})
-		Positions the cursor at the column (byte count) {col} in the
-		line {lnum}.  The first column is one.
-		When there is one argument {list} this is used as a |List|
-		with two or three items {lnum}, {col} and {off}.  This is like
-		the return value of |getpos()|, but without the first item.
-		Does not change the jumplist.
-		If {lnum} is greater than the number of lines in the buffer,
-		the cursor will be positioned at the last line in the buffer.
-		If {lnum} is zero, the cursor will stay in the current line.
-		If {col} is greater than the number of bytes in the line,
-		the cursor will be positioned at the last character in the
-		line.
-		If {col} is zero, the cursor will stay in the current column.
-		When 'virtualedit' is used {off} specifies the offset in
-		screen columns from the start of the character.  E.g., a
-		position within a <Tab> or after the last character.
-
+		{lnum}行目の{col}桁目(バイトで数える)にカーソルを移動させる。
+		桁番号{col}は1から始まる。
+		引数が1個の場合は、{lnum}, {col}, {off}からなる、2個または3個
+		の要素を持つリスト|List|でなければならない。これは|getpos()|の
+		戻り値と似ているが、1個目の要素がない点が異なる。
+		この関数を呼んでもジャンプリストは変更されない。
+		{lnum}がバッファの行数よりも大きい場合は、最後の行へ移動する。
+		{lnum}が0の場合はカレント行に留まる。
+		{col}がその行のバイト数より大きい場合は、その行の最後の文字へ
+		移動する。
+		{col}が0の場合は、カレント桁に留まる。
+		'virtualedit'が有効のとき、{off}は文字の先頭からの画面上のオフ
+		セットを指定する。例えば、<Tab>の中の位置や最後の文字より後な
+		どへも移動できる。
 
 deepcopy({expr}[, {noref}])				*deepcopy()* *E698*
-		Make a copy of {expr}.  For Numbers and Strings this isn't
-		different from using {expr} directly.
-		When {expr} is a |List| a full copy is created.  This means
-		that the original |List| can be changed without changing the
-		copy, and vise versa.  When an item is a |List|, a copy for it
-		is made, recursively.  Thus changing an item in the copy does
-		not change the contents of the original |List|.
-		When {noref} is omitted or zero a contained |List| or
-		|Dictionary| is only copied once.  All references point to
-		this single copy.  With {noref} set to 1 every occurrence of a
-		|List| or |Dictionary| results in a new copy.  This also means
-		that a cyclic reference causes deepcopy() to fail.
+		{expr}のコピーを作る。数値と文字列の場合は、{expr}そのものとコ
+		ピーの間に違いはない。
+		{expr}がリスト|List|の場合は完全なコピーを作る。つまり元のリス
+		トを変更してもコピーは変更されず、逆も同じである。要素の1つが
+		リストであるときは、再帰的にコピーが作成される。よってコピーの
+		要素に変更を加えても元のリストの要素は変更を受けない。
+		{noref}が省略された、または0のとき、含まれているリストや辞書は
+		1度だけコピーされる。全ての参照はこのただ1つのコピーを指す。
+		{noref}が1の場合、リストや辞書は現れるたびに新しいコピーが作ら
+		れる。そのため循環参照があるとdeepcopy()は失敗する。
 								*E724*
-		Nesting is possible up to 100 levels.  When there is an item
-		that refers back to a higher level making a deep copy with
-		{noref} set to 1 will fail.
-		Also see |copy()|.
+		ネストは100レベルまで可能である。それ以上参照を繰り返している
+		要素があると、{noref}が1の場合は失敗する。
+		|copy()|も参照。
 
 							*delete()*
 delete({fname})	{fname}という名前のファイルを削除する。戻り値は数値で、削除に
 		成功したら0、失敗したら1が返る。
-		Use |remove()| to delete an item from a |List|.
+		リスト|List|から要素を削除するには|remove()|を使う。
 
 							*did_filetype()*
 did_filetype()	autocommandが実行されFileTypeイベントが一度でも起こっていれ
 		ば、非零が返る。スクリプトのFileTypeイベントが、複数回呼び出さ
 		れるのを回避するのに使える。 |FileType|
+		他のファイルへ移動すると、このカウンタはリセットされる。よって
+		実際は、カレントバッファに対してFileTypeイベントが発生したかど
+		うかを判定する。他のバッファを開くオートコマンドの中でこの関数
+		を使って'filetype'を設定し、構文ファイルを読み込むために使える。
 
 diff_filler({lnum})					*diff_filler()*
-		Returns the number of filler lines above line {lnum}.
-		These are the lines that were inserted at this point in
-		another diff'ed window.  These filler lines are shown in the
-		display but don't exist in the buffer.
-		{lnum} is used like with |getline()|.  Thus "." is the current
-		line, "'m" mark m, etc.
-		Returns 0 if the current window is not in diff mode.
+		{lnum}行目より上にある削除行の数を返す。削除行とは、diffモード
+		で他方のウィンドウにテキストが挿入されていることを表す行のこと
+		である。削除行は表示はされているが、実際にはバッファに存在しな
+		い。
+		{lnum}は|getline()|と同様に扱われる。つまり"."はカレント行とな
+		り、"'m"はマークmを表す。
+		カレントウィンドウがdiffモードでないときは0を返す。
 
 diff_hlID({lnum}, {col})				*diff_hlID()*
-		Returns the highlight ID for diff mode at line {lnum} column
-		{col} (byte index).  When the current line does not have a
-		diff change zero is returned.
-		{lnum} is used like with |getline()|.  Thus "." is the current
-		line, "'m" mark m, etc.
-		{col} is 1 for the leftmost column, {lnum} is 1 for the first
-		line.
-		The highlight ID can be used with |synIDattr()| to obtain
-		syntax information about the highlighting.
+		diffモードで{lnum}行{col}桁(バイト単位)の位置のハイライトIDを
+		返す。カレント行に変更がないときは0を返す。
+		{lnum}は|getline()|と同様に扱われる。つまり"."はカレント行とな
+		り、"'m"はマークmを表す。
+		先頭の桁の{col}は1となり、最初の行の{lnum}は1となる。
+		ハイライトIDは|synIDattr()|を使って構文情報を得るために使える。
 
 empty({expr})						*empty()*
-		Return the Number 1 if {expr} is empty, zero otherwise.
-		A |List| or |Dictionary| is empty when it does not have any
-		items.  A Number is empty when its value is zero.
-		For a long |List| this is much faster then comparing the
-		length with zero.
+		{expr}が空なら1を、そうでなければ0を返す。
+		リスト|List|または辞書|Dictionary|は要素を1個も持たないとき空
+		とみなされる。数値は値が0のとき空とみなされる。
+		長いリストに対しては長さを0と比較するよりこちらの方がずっと高
+		速である。
 
 escape({string}, {chars})				*escape()*
-		{string}内に現れる{chars}のキャラクタをバックスラッシュでエス
-		ケープする。例:
->			:echo escape('c:\program files\vim', ' \')
-		結果:
->			c:\\program\ files\\vim
+		{string}内に現れる{chars}の文字をバックスラッシュでエスケープ
+		する。例: >
+			:echo escape('c:\program files\vim', ' \')
+<		結果: >
+			c:\\program\ files\\vim
 
 <							*eval()*
-eval({string})	Evaluate {string} and return the result.  Especially useful to
-		turn the result of |string()| back into the original value.
-		This works for Numbers, Strings and composites of them.
-		Also works for |Funcref|s that refer to existing functions.
+eval({string})	{string}を評価し、値を返す。|string()|の戻り値を元の値に戻すの
+		に非常に便利である。数値、文字列、それらの複合に対して動作する。
+		実際に存在する関数への|Funcref|に対しても動作する。
 
 eventhandler()						*eventhandler()*
 		イベントハンドラの中では1を返す。つまり、ユーザの文字入力を待っ
@@ -2245,71 +2219,71 @@ eventhandler()						*eventhandler()*
 		ドラの中でないときは0を返す。
 
 executable({expr})					*executable()*
-		This function checks if an executable with the name {expr}
-		exists.  {expr} must be the name of the program without any
-		arguments.
-		executable() uses the value of $PATH and/or the normal
-		searchpath for programs.		*PATHEXT*
-		On MS-DOS and MS-Windows the ".exe", ".bat", etc. can
-		optionally be included.  Then the extensions in $PATHEXT are
-		tried.  Thus if "foo.exe" does not exist, "foo.exe.bat" can be
-		found.  If $PATHEXT is not set then ".exe;.com;.bat;.cmd" is
-		used.  A dot by itself can be used in $PATHEXT to try using
-		the name without an extension.  When 'shell' looks like a
-		Unix shell, then the name is also tried without adding an
-		extension.
-		On MS-DOS and MS-Windows it only checks if the file exists and
-		is not a directory, not if it's really executable.
-		On MS-Windows an executable in the same directory as Vim is
-		always found.  Since this directory is added to $PATH it
-		should also work to execute it |win32-PATH|.
-		The result is a Number:
-			1	exists
-			0	does not exist
-			-1	not implemented on this system
+		{expr}という名前の実行可能ファイルが存在するかどうか判定する。
+		{expr}は引数を何もつけないプログラム名でなければならない。
+		executable()は$PATHと通常のプログラム検索ディレクトリを参照す
+		る。					*PATHEXT*
+		MS-DOSとMS-Windowsでは".exe"、".bat"などの拡張子は含めても含め
+		なくてもよい。省略された場合は$PATHEXTの拡張子を検索する。よっ
+		て"foo.exe"が存在しなければ"foo.exe.bat"が見つかることもありう
+		る。$PATHEXTが存在しなければ".exe;.com;.bat;.cmd"が使われる。
+		$PATHEXTにドットだけを含めると拡張子なしの名前を検索することが
+		できる。'shell'がUnixシェルのように思われるときは、{expr}の後
+		に拡張子をつけない名前も検索される。
+		MS-DOSとMS-Windowsではファイルが存在するかどうかだけを判定し、
+		それがディレクトリでないことや、それが本当に実行可能であるかど
+		うかは判定されない。
+		MS-WindowsではVimと同じディレクトリにある実行ファイルは必ず発
+		見できる。Vimがこのディレクトリを$PATHに加えるためである。
+		|win32-PATH|。
+		戻り値は数値:
+			1	存在する
+			0	存在しない
+			-1	このシステム上では実装されていない
 
 							*exists()*
 exists({expr})	結果は数値で、変数{expr}が存在すれば1となり、そうでなければ0と
 		なる。引数{expr}は文字列で次のうちいずれかである。
-			&option-name	Vimオプション
-			$ENVNAME	環境変数(空文字列と比較することで、判
-					定が成される)
+			&option-name	Vimオプション(存在するかだけを判定し、
+					本当に動作するかは判定しない)
+			+option-name	動作するVimオプション
+			$ENVNAME	環境変数(空文字列と比較することでも判
+					定できる)
 			*funcname	組み込み関数(|functions|参照)かユーザ
 					が定義した関数(|user-functions|参照)
 			varname		内部変数(|internal-variables|)
-					Also works
-					for |curly-braces-names|, |Dictionary|
-					entries, |List| items, etc.  Beware
-					that this may cause functions to be
-					invoked cause an error message for an
-					invalid expression.  
-			:cmdname	Ex command: built-in command, user
-					command or command modifier |:command|.
-					Returns:
-					1  for match with start of a command
-					2  full match with a command
-					3  matches several user commands
-					To check for a supported command
-					always check the return value to be 2.
-			:2match		The |:2match| command.
-			:3match		The |:3match| command.
-			#event		autocommand defined for this event
-			#event#pattern	autocommand defined for this event and
-					pattern (the pattern is taken
-					literally and compared to the
-					autocommand patterns character by
-					character)
-			#group		autocommand group exists
-			#group#event	autocommand defined for this group and
-					event.
+					|curly-braces-names|, |Dictionary|の要
+					素、|List|の要素などに対しても動作する。
+					これを使うと関数を呼び出し、無効な式に
+					よりエラーメッセージが出る可能性がある
+					ことに注意。
+			:cmdname	exコマンド: 組み込みコマンド、ユーザ定
+					義コマンド、コマンド修飾子|:command|。
+					戻り値:
+					1  コマンド名の先頭に一致
+					2  コマンド名に完全一致
+					3  複数のユーザ定義コマンドに一致
+					コマンドが定義されているかどうかを判定
+					するには、必ず戻り値が2であるかを確認
+					すること。
+			:2match		|:2match|のコマンド。
+			:3match		|:3match|のコマンド。
+			#event		このイベントに対するオートコマンド定義
+			#event#pattern	このイベントとパターンに対するオートコ
+					マンド定義(パターンは文字そのままに解
+					釈され、オートコマンドのパターンと1文
+					字ずつ比較される)
+			#group		オートコマンドグループが存在するか
+			#group#event	このグループとイベントに対してオートコ
+					マンドが定義されているか
 			#group#event#pattern
-					autocommand defined for this group,
-					event and pattern.
-			##event		autocommand for this event is
-					supported.
-		For checking for a supported feature use |has()|.
+					このグループ、イベント、パターンに対す
+					るオートコマンド定義
+			##event		このイベントに対するオートコマンドがサ
+					ポートされているか
+		ある機能がサポートされているか判定するには|has()|を使う。
 
-		例:
+		例: >
 			exists("&shortname")
 			exists("$HOSTNAME")
 			exists("*strftime")
@@ -2322,19 +2296,21 @@ exists({expr})	結果は数値で、変数{expr}が存在すれば1となり、�
 			exists("#filetypeindent#FileType")
 			exists("#filetypeindent#FileType#*")
 			exists("##ColorScheme")
-		シンボルである&/$/*と名前の間には、空白文字があってはならな
-		い。That may become more strict in
-		the future, thus don't count on it!
-		Working example: >
+<		シンボルである&/$/*と名前の間には、空白文字があってはならな
+		い。
+		ある少数の場合では無視されるが、名前の後に余計な文字があっては
+		ならない。将来はもっと厳格になる可能性があるので、現在許される
+		からといって頼ってはならない。
+		正しい例: >
 			exists(":make")
-<		NOT working example: >
+<		正しくない例: >
 			exists(":make install")
 
-<		Note that the argument must be a string, not the name of the
-		variable itself.  For example: >
+<		Note 引数は変数そのものではなく、文字列でなければならない。例
+		えば、次は動作しない: >
 			exists(bufcount)
-<		This doesn't check for existence of the "bufcount" variable,
-		but gets the value of "bufcount", and checks if that exists.
+<		これは変数"bufcount"の存在を判定するのではなく、bufcountの値を
+		渡し、それが存在するかどうか判定してしまう。
 
 							*expand()*
 expand({expr} [, {flag}])
@@ -2361,6 +2337,8 @@ expand({expr} [, {flag}])
 			<sfile>		取り込み(source)中のファイル名
 			<cword>		カーソル下の単語(word)
 			<cWORD>		カーソル下の単語(WORD)
+			<client>	最後に受け取ったメッセージの{clientid}
+					|server2client()|
 		変換子:
 			:p		フルパス名を展開
 			:h		ヘッド(ディレクトリ)
@@ -2368,91 +2346,93 @@ expand({expr} [, {flag}])
 			:r		拡張子が削除される
 			:e		拡張子だけ
 
-		例:
->			:let &tags = expand("%:p:h") . "/tags"
-		'%'や'#'や'<'で始まる文字列を展開する時には、それに続くテキス
-		トは無視されることに注意。従ってこれは正しくない:
->			:let doesntwork = expand("%:h.bak")
-		こうすると良い:
->			:let doeswork = expand("%:h") . ".bak"
-		"<cfile>"やそれらを展開する時には、戻り値が完全な展開をされな
+		例: >
+			:let &tags = expand("%:p:h") . "/tags"
+<		'%'や'#'や'<'で始まる文字列を展開する時には、それに続くテキス
+		トは無視されることに注意。従ってこれは正しくない: >
+			:let doesntwork = expand("%:h.bak")
+<		こうすると良い: >
+			:let doeswork = expand("%:h") . ".bak"
+<		"<cfile>"やそれらを展開する時には、戻り値が完全な展開をされな
 		い参照名であることにも注意が必要。もしも"<cfile>"が"~/.cshrc"
 		であった場合、"~/"を展開してホームディレクトリにするために、も
-		う一度expand()を呼び出す必要がある:
->			:echo expand(expand("<cfile>"))
-
+		う一度expand()を呼び出す必要がある: >
+			:echo expand(expand("<cfile>"))
+<
 		変数と変換子の間には空白文字があってはならない。関数
 		|fnamemodify()|が通常のファイル名の変換には使用可能である。
 
-		'%'や'#'を名前が未定義の現在や裏バッファのファイルに適用した場
-		合、空文字列が使用される。"%:p"を名無しのバッファに使用した場
-		合、結果はカレントディレクトリに'/'が付加されたものになる。
+		カレントバッファや裏バッファの名前が未定義のときに'%'や'#'を使
+		うと空文字列になる。"%:p"を名無しのバッファに使用した場合、結
+		果はカレントディレクトリに'/'が付加されたものになる。
 
 		'%'や'#'や'<'で始まらない{expr}は、コマンドラインのファイル名
 		と同じように展開される。オプションの{flag}が使用され、その値が
-		非ゼロでない時以外は'suffixes'と'wildignore'が使用される。
-		The "**" item can be used to
-		search in a directory tree.  For example, to find all "README"
-		files in the current directory and below: >
+		非ゼロでない時以外は'suffixes'と'wildignore'が使用される。存在
+		しないファイルの名前も結果の文字列に含まれる。"**"を使うとディ
+		レクトリツリーを検索できる。例えば、カレントディレクトリ以下に
+		ある全ての"README"を見つけるには次のようにする: >
 			:echo expand("**/README")
 < 
-		Expand()は、シェルの持っている変数や環境変数を展開することがで
-		きる。しかしシェルが起動されなければならないので、遅くなる。
-		|expr-env-expand|を参照。
+		expand()は、シェルの持っている変数や環境変数を展開することがで
+		きる。しかしシェルを起動しなければならないので、遅くなる。
+		|expr-env-expand|を参照。展開された変数はファイル名のリストの
+		ように扱われる。環境変数を展開できないときはそのままになる。よっ
+		て":echo expand('$FOOBAR')"の結果は"$FOOBAR"となる。
 
 		存在するファイルを探すには|glob()|を参照。外部コマンドの「生
 		の」実行結果を扱うには|system()|を参照。
 
 extend({expr1}, {expr2} [, {expr3}])			*extend()*
-		{expr1} and {expr2} must be both |Lists| or both
-		|Dictionaries|.
+		{expr1}と{expr2}は両方ともリスト|List|であるか、両方とも辞書
+		|Dictionaries|でなければならない。
 
-		If they are |Lists|: Append {expr2} to {expr1}.
-		If {expr3} is given insert the items of {expr2} before item
-		{expr3} in {expr1}.  When {expr3} is zero insert before the
-		first item.  When {expr3} is equal to len({expr1}) then
-		{expr2} is appended.
-		Examples: >
+		両方ともリストであるなら、{expr2}を{expr1}に付け加える。
+		{expr3}が指定された場合は{expr1}の中の要素{expr1}の前に
+		{expr2}の要素を挿入する。{expr3}が0のときは最初の要素の前に挿
+		入する。{expr3}がlen({expr1})に等しいときは末尾に{expr2}が付け
+		加えられる。
+		例: >
 			:echo sort(extend(mylist, [7, 5]))
 			:call extend(mylist, [2, 3], 1)
-<		Use |add()| to concatenate one item to a list.  To concatenate
-		two lists into a new list use the + operator: >
+<		リストに1個の要素を加えるには|add()|を使う。2つのリストを連結
+		して新しいリストを作るには演算子+を使う: >
 			:let newlist = [1, 2, 3] + [4, 5]
 <
-		If they are |Dictionaries|:
-		Add all entries from {expr2} to {expr1}.
-		If a key exists in both {expr1} and {expr2} then {expr3} is
-		used to decide what to do:
-		{expr3} = "keep": keep the value of {expr1}
-		{expr3} = "force": use the value of {expr2}
-		{expr3} = "error": give an error message		*E737*
-		When {expr3} is omitted then "force" is assumed.
+		両方とも辞書である場合:
+		{expr2}の全要素を{expr1}に加える。
+		{expr1}と{expr2}で共通のキーがある場合は、{expr3}によって動作
+		が決まる:
+		{expr3} = "keep"の場合: {expr1}の値そのままにする
+		{expr3} = "force"の場合: use the value of {expr2}
+		{expr3} = "error"の場合: エラーメッセージを表示する	*E737*
+		{expr3}が省略された場合は"force"と同じになる。
 
-		{expr1} is changed when {expr2} is not empty.  If necessary
-		make a copy of {expr1} first.
-		{expr2} remains unchanged.
-		Returns {expr1}.
+		{expr2}が空でないならば{expr1}が変更される。必要ならば最初に
+		{expr1}のコピーを作ること。
+		{expr2}は変更されない。
+		{expr1}を返す。
 
 
 feedkeys({string} [, {mode}])				*feedkeys()*
-		Characters in {string} are queued for processing as if they
-		come from a mapping or were typed by the user.  They are added
-		to the end of the typeahead buffer, thus if a mapping is still
-		being executed these characters come after them.
-		The function does not wait for processing of keys contained in
-		{string}.
-		To include special keys into {string}, use double-quotes
-		and "\..." notation |expr-quote|. For example,
-		feedkeys("\<CR>") simulates pressing of the <Enter> key. But
-		feedkeys('\<CR>') pushes 5 characters.
-		If {mode} is absent, keys are remapped.
-		{mode} is a String, which can contain these character flags:
-		'm'	Remap keys. This is default.
-		'n'	Do not remap keys.
-		't'	Handle keys as if typed; otherwise they are handled as
-			if coming from a mapping.  This matters for undo,
-			opening folds, etc.
-		Return value is always 0.
+		{string}中の各文字を、あたかもマッピングまたはユーザによってタ
+		イプされたかのように、処理キューに入れる。 これらの文字は先行
+		入力バッファの末尾に付け足される。そのためマッピングを展開して
+		いる途中であれば、これらの文字はマッピングを展開した後に来るこ
+		とになる。
+		この関数は、{string}中の文字が処理されるまでは待たない。
+		特殊なキーを{string}に含めるにはダブルクォートと"\..."記法を使
+		う(|expr-quote|を参照)。例えば、feedkeys("\<CR>")は<Enter>キー
+		の押下をシミュレートする。しかしfeedkeys('\<CR>')とすると、こ
+		の文字の通り5文字を挿入する。
+		{mode}が省略されたときは、挿入されたキーはマップ展開の対象にな
+		る。{mode}は以下の文字フラグを含む文字列:
+		'm'	キーをマップ展開する。これが既定である。
+		'n'	キーをマップ展開しない。
+		't'	キーをタイプされたかのように扱う。そうでない場合は
+			マッピングから展開されたかのように扱われる。これは
+			undoや折り畳みの展開などで違いが現れる。
+		戻り値は常に0。
 
 							*filereadable()*
 filereadable({file})
@@ -2460,123 +2440,125 @@ filereadable({file})
 		ならばTRUEとなる。ファイル{file}が存在しないかディレクトリだっ
 		た場合には、結果はFALSEとなる。引数{file}は文字列として使えれ
 		ばどのような表現でもよい。
-		If you don't care about the file being readable you can use
-		|glob()|.
+		ファイルが読み込み可能でなくてもよい場合には|glob()|を使う。
 							*file_readable()*
 		以前の名前: file_readable().
 
 filewritable({file})					*filewritable()*
-		The result is a Number, which is 1 when a file with the
-		name {file} exists, and can be written.  If {file} doesn't
-		exist, or is not writable, the result is 0.  If (file) is a
-		directory, and we can write to it, the result is 2.
+		結果は数値で、{file}というファイルが存在し、書き込むことが可能
+		ならば1となる。ファイル{file}が存在しないか書き込み不可能であ
+		る場合には、結果は0となる。{file}がディレクトリであり、書き込
+		み可能な場合、結果は2となる。
 
 
 filter({expr}, {string})					*filter()*
-		{expr} must be a |List| or a |Dictionary|.
-		For each item in {expr} evaluate {string} and when the result
-		is zero remove the item from the |List| or |Dictionary|.
-		Inside {string} |v:val| has the value of the current item.
-		For a |Dictionary| |v:key| has the key of the current item.
-		Examples: >
+		{expr}はリスト|List|または辞書|Dictionary|でなければならない。
+		{expr}の各要素に対して{string}を評価し、その結果が0ならばリス
+		トまたは辞書からその要素を削除する。{string}の内部では|v:val|
+		が現在の要素の値を保持している。
+		辞書の場合は|v:key|が現在の要素のキーを保持している。
+		例: >
 			:call filter(mylist, 'v:val !~ "OLD"')
-<		Removes the items where "OLD" appears. >
+<		は要素"OLD"を削除する。 >
 			:call filter(mydict, 'v:key >= 8')
-<		Removes the items with a key below 8. >
+<		は8未満のキーを持つ要素を削除する。 >
 			:call filter(var, 0)
-<		Removes all the items, thus clears the |List| or |Dictionary|.
+<		は全要素を削除する。つまりリストまたは辞書をクリアする。
 
-		Note that {string} is the result of expression and is then
-		used as an expression again.  Often it is good to use a
-		|literal-string| to avoid having to double backslashes.
+		Note {string}は式を表す文字列である。バックスラッシュを二重に
+		しなくても済むように|literal-string|を使うとよいだろう。
 
-		The operation is done in-place.  If you want a |List| or
-		|Dictionary| to remain unmodified make a copy first: >
+		この操作はその場で(in-place)行われる。リストや辞書を変更したく
+		ない場合は最初にコピーを作ること: >
 			:let l = filter(copy(mylist), 'v:val =~ "KEEP"')
 
-<		Returns {expr}, the |List| or |Dictionary| that was filtered.
-		When an error is encountered while evaluating {string} no
-		further items in {expr} are processed.
+<		フィルタされたリストまたは辞書を返す。{string}を評価している最
+		中にエラーが発生した場合は、それ以降の要素の処理は行われない。
 
 
 finddir({name}[, {path}[, {count}]])				*finddir()*
-		Find directory {name} in {path}.  Supports both downwards and
-		upwards recursive directory searches.  See |file-searching|
-		for the syntax of {path}.
-		Returns the path of the first found match.  When the found
-		directory is below the current directory a relative path is
-		returned.  Otherwise a full path is returned.
-		If {path} is omitted or empty then 'path' is used.
-		If the optional {count} is given, find {count}'s occurrence of
-		{name} in {path} instead of the first one.
-		When {count} is negative return all the matches in a |List|.
-		This is quite similar to the ex-command |:find|.
-		{only available when compiled with the +file_in_path feature}
+		{path}から{name}という名前のディレクトリを探す。ディレクトリを
+		上方・下方のどちらにも再帰的に検索できる。{path}の記法について
+		は|file-searching|を参照。
+		最初に見つかったディレクトリのパスを返す。そのディレクトリがカ
+		レントディレクトリの下にある場合は相対パスを返す。そうでなけれ
+		ば絶対パスを返す。
+		{path}が省略されたとき、または空のときはオプション'path'の値が
+		使われる。
+		省略可能な引数{count}が指定されたときは、最初に見つかったディ
+		レクトリでなく、{count}番目に見つかったディレクトリを返す。
+		{count}が負の場合は、見つかったディレクトリ全てのリスト|List|
+		を返す。これはexコマンド|:find|によく似ている。
+		{+file_in_path機能付きでコンパイルされたときのみ利用可能}
 
 findfile({name}[, {path}[, {count}]])				*findfile()*
-		Just like |finddir()|, but find a file instead of a directory.
-		Uses 'suffixesadd'.
-		Example: >
+		|finddir()|とほぼ同様だが、ディレクトリでなくファイルを検索す
+		る。
+		'suffixesadd'が適用される。
+		例: >
 			:echo findfile("tags.vim", ".;")
-<		Searches from the directory of the current file upwards until
-		it finds the file "tags.vim".
+<		この例は、カレントファイルのディレクトリから上方に"tags.vim"を
+		見つけるまで再帰的に検索する。
 
 							*fnamemodify()*
 fnamemodify({fname}, {mods})
 		ファイル名{fname}を{mods}にしたがって変更する。{mods}はコマン
 		ドラインで使われるのと同様な文字列である。詳細は
 		|filename-modifiers|を参照。
-		例:
->			:echo fnamemodify("main.c", ":p:h")
-		結果:
->			/home/mool/vim/vim/src/
-<		Note: Environment variables and "~" don't work in {fname}, use
-		|expand()| first then.
-
+		例: >
+			:echo fnamemodify("main.c", ":p:h")
+<		結果: >
+			/home/mool/vim/vim/src/
+<		Note: {fname}の中の環境変数と"~"は展開されない。これらを展開さ
+		せるには、最初に|expand()|を使うこと。
+		訳注: 環境変数は展開されないが、"~"は使えるようだ？
+		訳注: echo fnamemodify("~/.vimrc", ":p:h")
+		訳注: => "/home/myname"
+		訳注: echo fnamemodify("$HOME/.vimrc", ":p:h")
+		訳注: => "$HOME" 
 
 foldclosed({lnum})					*foldclosed()*
-		The result is a Number.  If the line {lnum} is in a closed
-		fold, the result is the number of the first line in that fold.
-		If the line {lnum} is not in a closed fold, -1 is returned.
+		結果は数値。{lnum}行目が閉じた折り畳みの中にあるなら、その折り
+		畳みを構成する最初の行の行番号を返す。{lnum}行目が閉じた折り畳
+		みに入っていないなら-1を返す。
 
 foldclosedend({lnum})					*foldclosedend()*
-		The result is a Number.  If the line {lnum} is in a closed
-		fold, the result is the number of the last line in that fold.
-		If the line {lnum} is not in a closed fold, -1 is returned.
+		結果は数値。{lnum}行目が閉じた折り畳みの中にあるなら、その折り
+		畳みを構成する最後の行の行番号を返す。{lnum}行目が閉じた折り畳
+		みに入っていないなら-1を返す。
 
 foldlevel({lnum})					*foldlevel()*
-		The result is a Number, which is the foldlevel of line {lnum}
-		in the current buffer.  For nested folds the deepest level is
-		returned.  If there is no fold at line {lnum}, zero is
-		returned.  It doesn't matter if the folds are open or closed.
-		When used while updating folds (from 'foldexpr') -1 is
-		returned for lines where folds are still to be updated and the
-		foldlevel is unknown.  As a special case the level of the
-		previous line is usually available.
+		カレントバッファの{lnum}行目の折り畳みレベルを表す数値を返す。
+		折り畳みがネストしているときは一番下のレベルを返す。{lnum}行目
+		に折り畳みがまったくないときは0を返す。折り畳みが開いているか
+		閉じているかは関係ない。('foldexpr'の中で)折り畳みを更新してい
+		る最中に呼ぶと、まだ折り畳みを更新していなく、折り畳みレベルが
+		未知の行に対しては-1を返す。特別な場合として、普通は1行前のレ
+		ベルは取得できる。
 
 							*foldtext()*
-foldtext()	Returns a String, to be displayed for a closed fold.  This is
-		the default function used for the 'foldtext' option and should
-		only be called from evaluating 'foldtext'.  It uses the
-		|v:foldstart|, |v:foldend| and |v:folddashes| variables.
-		The returned string looks like this: >
+foldtext()	閉じた折り畳みに表示する文字列を返す。これはオプション
+		'foldtext'のデフォルトの関数であり、'foldtext'を評価していると
+		きにだけ呼ぶようにすべきである。この関数は変数|v:foldstart|,
+		|v:foldend|, |v:folddashes|を使用する。
+		戻り値の文字列は次のようになる: >
 			+-- 45 lines: abcdef
-<		The number of dashes depends on the foldlevel.  The "45" is
-		the number of lines in the fold.  "abcdef" is the text in the
-		first non-blank line of the fold.  Leading white space, "//"
-		or "/*" and the text from the 'foldmarker' and 'commentstring'
-		options is removed.
-		{not available when compiled without the |+folding| feature}
+<		
+		ダッシュ(-)の数は折り畳みレベルによって決まる。"45"はその折り
+		畳みに含まれている行数である。"abcdef"はその折り畳みの中の最初
+		の空行でない行のテキストである。行頭の空白と、"//"や/*"、
+		'foldmarker'と'commentstring'に設定されている文字列は削除され
+		る。
+		{|+folding|機能付きでコンパイルされたときのみ利用可能}
 
 foldtextresult({lnum})					*foldtextresult()*
-		Returns the text that is displayed for the closed fold at line
-		{lnum}.  Evaluates 'foldtext' in the appropriate context.
-		When there is no closed fold at {lnum} an empty string is
-		returned.
-		{lnum} is used like with |getline()|.  Thus "." is the current
-		line, "'m" mark m, etc.
-		Useful when exporting folded text, e.g., to HTML.
-		{not available when compiled without the |+folding| feature}
+		{lnum}行目の閉じた折り畳みに表示される文字列を返す。'foldtext'
+		を適切なコンテキストの中で評価する。{lnum}行目に閉じた折り畳み
+		がないときは空文字列を返す。
+		{lnum}は|getline()|のときと同様に扱われる。つまり"."はカレント
+		行、"'m"はマークmを表す。
+		折り畳まれたテキストをHTMLなどにエクスポートするときに有用。
+		{|+folding|機能付きでコンパイルされたときのみ利用可能}
 
 							*foreground()*
 foreground()	Vimのウィンドウを前面に移動する。この関数はクライアントからVim
@@ -2589,95 +2571,90 @@ foreground()	Vimのウィンドウを前面に移動する。この関数はク�
 
 
 function({name})					*function()* *E700*
-		Return a |Funcref| variable that refers to function {name}.
-		{name} can be a user defined function or an internal function.
+		関数{name}を参照する|Funcref|の変数を返す。{name}はユーザ定義
+		関数でも組み込み関数でもよい。
 
 
 garbagecollect()					*garbagecollect()*
-		Cleanup unused |Lists| and |Dictionaries| that have circular
-		references.  There is hardly ever a need to invoke this
-		function, as it is automatically done when Vim runs out of
-		memory or is waiting for the user to press a key after
-		'updatetime'.  Items without circular references are always
-		freed when they become unused.
-		This is useful if you have deleted a very big |List| and/or
-		|Dictionary| with circular references in a script that runs
-		for a long time.
+		循環参照を持ち、使われていないリスト|List|と辞書|Dictionaries|
+		をクリーンアップする。これはメモリ不足に陥ったときや、
+		'updatetime'経過後ユーザのキー入力を待っているときに自動的に行
+		われるので、この関数を呼ぶ必要があることはほとんどない。
+		循環参照を持たない要素は、使われなくなったとき必ず開放される。
+		長時間実行されるスクリプトの中で循環参照を持つ非常に大きなリス
+		トや辞書を削除したときに有用である。
 
 get({list}, {idx} [, {default}])			*get()*
-		Get item {idx} from |List| {list}.  When this item is not
-		available return {default}.  Return zero when {default} is
-		omitted.
+		リスト|List| {list}から{idx}番目の要素を取得する。この要素を取
+		得できないときは{default}を返す。{default}が省略されたときは0
+		を返す。
 get({dict}, {key} [, {default}])
-		Get item with key {key} from |Dictionary| {dict}.  When this
-		item is not available return {default}.  Return zero when
-		{default} is omitted.
+		辞書|Dictionary| {dict}からキー{key}に関連づけられた値を取得す
+		る。この要素を取得できないときは{default}を返す。{default}が省
+		略されたときは0を返す。
 
 							*getbufline()*
 getbufline({expr}, {lnum} [, {end}])
-		Return a |List| with the lines starting from {lnum} to {end}
-		(inclusive) in the buffer {expr}.  If {end} is omitted, a
-		|List| with only the line {lnum} is returned.
+		バッファ{expr}の{lnum}行目から{end}行目まで(両端含む)の行から
+		なるリスト|List|を返す。{end}が省略されたときは{lnum}行目だけ
+		からなるリストを返す。
 
-		For the use of {expr}, see |bufname()| above.
+		{expr}の指定の仕方については|bufname()|を参照。
 
-		For {lnum} and {end} "$" can be used for the last line of the
-		buffer.  Otherwise a number must be used.
+		{lnum}と{end}では"$"でバッファの最後の行を表すことができる。そ
+		れ以外は数値でなければならない。
 
-		When {lnum} is smaller than 1 or bigger than the number of
-		lines in the buffer, an empty |List| is returned.
+		{lnum}が1より小さいときや、バッファの行数より大きいときは空リ
+		ストを返す。
 
-		When {end} is greater than the number of lines in the buffer,
-		it is treated as {end} is set to the number of lines in the
-		buffer.  When {end} is before {lnum} an empty |List| is
-		returned.
+		{end}がバッファの行数より大きいときは、バッファの行数が設定さ
+		れたものとして扱う。{end}が{lnum}行目より前に設定された場合は
+		空リストを返す。
 
-		This function works only for loaded buffers.  For unloaded and
-		non-existing buffers, an empty |List| is returned.
+		この関数は読み込まれているバッファに対してのみ動作する。既にア
+		ンロードされているバッファや存在しないバッファに対しては空リス
+		トを返す。
 
-		Example: >
+		例: >
 			:let lines = getbufline(bufnr("myfile"), 1, "$")
 
 getbufvar({expr}, {varname})				*getbufvar()*
-		The result is the value of option or local buffer variable
-		{varname} in buffer {expr}.  Note that the name without "b:"
-		must be used.
-		This also works for a global or buffer-local option, but it
-		doesn't work for a global variable, window-local variable or
-		window-local option.
-		For the use of {expr}, see |bufname()| above.
-		When the buffer or variable doesn't exist an empty string is
-		returned, there is no error message.
-		Examples: >
+		バッファ{expr}のオプションの値やバッファローカル変数{varname}
+		の値を返す。Note "b:"をつけない変数名を指定すること。
+		グローバルオプション、バッファローカルオプションのどちらに対し
+		ても動作するが、グローバル変数、ウィンドウローカル変数、ウィン
+		ドウローカルオプションに対しては動作しない。
+		{expr}の指定の仕方については|bufname()|を参照。
+		バッファや変数が存在しないときは空文字列を返し、エラーメッセー
+		ジは表示されない。
+		例: >
 			:let bufmodified = getbufvar(1, "&mod")
 			:echo "todo myvar = " . getbufvar("todo", "myvar")
 <
 getchar([expr])						*getchar()*
-		Get a single character from the user or input stream.
-		If [expr] is omitted, wait until a character is available.
-		If [expr] is 0, only get a character when one is available.
-			Return zero otherwise.
-		If [expr] is 1, only check if a character is available, it is
-			not consumed.  Return zero if no character available.
+		ユーザまたは入力ストリームから1文字を取得する。
+		[expr]が省略されたときは1文字を取得できるまで待つ。
+		[expr]が0のときは1文字を取得できる場合のみ取得する。取得できな
+		ければ0を返す。
+		[expr]が1のときは1文字を取得できるか判定し、実際には取得しない。
+		取得できないときは0を返す。
 
-		Without {expr} and when {expr} is 0 a whole character or
-		special key is returned.  If it is an 8-bit character, the
-		result is a number.  Use nr2char() to convert it to a String.
-		Otherwise a String is returned with the encoded character.
-		For a special key it's a sequence of bytes starting with 0x80
-		(decimal: 128).  This is the same value as the string
-		"\<Key>", e.g., "\<Left>".  The returned value is also a
-		String when a modifier (shift, control, alt) was used that is
-		not included in the character.
+		{expr}が省略されたときや{expr}が0のときは、文字全体または特殊
+		キーを返す。それが8ビット文字なら戻り値は数値である。これを文
+		字列に戻すにはnr2char()を使う。8ビット文字でないならばエンコー
+		ドして文字列にして返す。
+		特殊キーとは0x80(10進数で128)で始まるバイト列である。これは
+		文字列"\<Key>"と同じ値である(例: "\<Left>")。戻り値は文字列で
+		あり、修飾キー(shift, contro, alt)は含まれない。
 
-		When {expr} is 1 only the first byte is returned.  For a
-		one-byte character it is the character itself as a number.
-		Use nr2char() to convert it to a String.
+		{expr}が1のときは最初のバイトだけを返す。1バイト文字の場合、こ
+		れはその文字そのものを表す数値である。これを文字列に変換するに
+		はnr2char()を使う。
 
-		When the user clicks a mouse button, the mouse event will be
-		returned.  The position can then be found in |v:mouse_col|,
-		|v:mouse_lnum| and |v:mouse_win|.  This example positions the
-		mouse as it would normally happen: >
+		ユーザがマウスをクリックしたときはマウスイベントを返す。クリッ
+		クした位置は|v:mouse_col|, |v:mouse_lnum|, |v:mouse_win|で得ら
+		れる。以下の例は、普通にマウスがクリックされたときと同じように
+		カーソルを移動させる。 >
 			let c = getchar()
 		  	if c == "\<LeftMouse>" && v:mouse_win > 0
 			  exe v:mouse_win . "wincmd w"
@@ -2685,15 +2662,16 @@ getchar([expr])						*getchar()*
 			  exe "normal " . v:mouse_col . "|"
 			endif
 <
-		There is no prompt, you will somehow have to make clear to the
-		user that a character has to be typed.
-		There is no mapping for the character.
-		Key codes are replaced, thus when the user presses the <Del>
-		key you get the code for the <Del> key, not the raw character
-		sequence.  Examples: >
+		この関数を呼んだときプロンプトは表示されない。文字入力を待って
+		いることをなんらかの方法でユーザがわかるようにしなければならな
+		いだろう。
+		入力された文字に対してマッピングは適用されない。
+		キーコードは置換される。つまりユーザが<Del>を押した場合、「生
+		の」文字シーケンスでなく<Del>キーに対応するコードが得られる。
+		例: >
 			getchar() == "\<Del>"
 			getchar() == "\<S-Left>"
-<		This example redefines "f" to ignore case: >
+<		以下の例は大文字・小文字を区別しないように"f"を再定義する: >
 			:nmap f :call FindChar()<CR>
 			:function FindChar()
 			:  let c = nr2char(getchar())
@@ -2714,197 +2692,188 @@ getcharmod()						*getcharmod()*
 			16	マウスダブルクリック
 			32	マウストリプルクリック
 			64	マウスクアドラプルクリック
-			128	Macintoshのみで: command
+			128	Macintoshのみ: command
 		文字自身に含まれていない修飾キーのみ取得できる。つまり、
 		Shift-aは修飾キーなしの"A"となる。
 
 getcmdline()						*getcmdline()*
-		Return the current command-line.  Only works when the command
-		line is being edited, thus requires use of |c_CTRL-\_e| or
-		|c_CTRL-R_=|.
-		Example: >
+		現在のコマンドラインの内容を取得する。コマンドラインを編集して
+		いるときのみ動作する。つまり|c_CTRL-\_e|または|c_CTRL-R_=|を使っ
+		ているときのみ有効。
+		例: >
 			:cmap <F7> <C-\>eescape(getcmdline(), ' \')<CR>
-<		Also see |getcmdtype()|, |getcmdpos()| and |setcmdpos()|.
+<		|getcmdtype()|, |getcmdpos()|, |setcmdpos()|も参照。
 
 getcmdpos()						*getcmdpos()*
-		Return the position of the cursor in the command line as a
-		byte count.  The first column is 1.
-		Only works when editing the command line, thus requires use of
-		|c_CTRL-\_e| or |c_CTRL-R_=|.  Returns 0 otherwise.
-		Also see |getcmdtype()|, |setcmdpos()| and |getcmdline()|.
+		コマンドラインにおけるカーソル位置をバイト単位で取得する。最初
+		の桁は1となる。コマンドラインを編集しているときのみ動作する。
+		つまり|c_CTRL-\_e|または|c_CTRL-R_=|を使っているときのみ有効。
+		|getcmdtype()|, |setcmdpos()|, |getcmdline()|も参照。
 
 getcmdtype()						*getcmdtype()*
-		Return the current command-line type. Possible return values
-		are:
-		    :	normal Ex command
-		    >	debug mode command |debug-mode|
-		    /	forward search command
-		    ?	backward search command
-		    @	|input()| command
-		    -	|:insert| or |:append| command
-		Only works when editing the command line, thus requires use of
-		|c_CTRL-\_e| or |c_CTRL-R_=|.  Returns an empty string
-		otherwise.
-		Also see |getcmdpos()|, |setcmdpos()| and |getcmdline()|.
+		現在のコマンドラインの種類を返す。戻り値は次のいずれか:
+		    :	通常のexコマンド
+		    >	デバッグモードコマンド |debug-mode|
+		    /	前方検索コマンド
+		    ?	後方検索コマンド
+		    @	|input()| コマンド
+		    -	|:insert| または |:append| コマンド
+		コマンドラインを編集しているときのみ動作する。つまり
+		|c_CTRL-\_e|または|c_CTRL-R_=|を使っているときのみ有効。そうで
+		ないときは空文字列を返す。
+		|getcmdpos()|, |setcmdpos()|, |getcmdline()|も参照。
 
 							*getcwd()*
 getcwd()	結果は文字列で、現在のディレクトリ名。
 
 getfsize({fname})					*getfsize()*
-		The result is a Number, which is the size in bytes of the
-		given file {fname}.
-		If {fname} is a directory, 0 is returned.
-		If the file {fname} can't be found, -1 is returned.
+		結果は数値で、{fname}で指定されるファイルのサイズをバイト単位
+		で返す。
+		{fname}がディレクトリのときは0を返す。
+		ファイル{fname}が見つからないときは-1を返す。
 
 getfontname([{name}])					*getfontname()*
-		Without an argument returns the name of the normal font being
-		used.  Like what is used for the Normal highlight group
-		|hl-Normal|.
-		With an argument a check is done whether {name} is a valid
-		font name.  If not then an empty string is returned.
-		Otherwise the actual font name is returned, or {name} if the
-		GUI does not support obtaining the real name.
-		Only works when the GUI is running, thus not in your vimrc or
-		gvimrc file.  Use the |GUIEnter| autocommand to use this
-		function just after the GUI has started.
-		Note that the GTK 2 GUI accepts any font name, thus checking
-		for a valid name does not work.
+		引数なしで使われた場合には現在の通常のフォント名を返す。ハイラ
+		イトグループNormalに対して使われるものと同様|hl-Normal|。
+		引数が指定された場合には{name}が有効なフォント名であるか判定さ
+		れる。有効でないときは空文字列を返す。
+		有効なときは実際のフォント名を返す。またはGUIが実際の名前の取
+		得をサポートしていないときは{name}をそのまま返す。
+		GUIモードで実行しているときのみ動作する。よってvimrcやgvimrcの
+		中では使えない。GUIモードが起動した直後にこの関数を呼ぶには、
+		オートコマンド|GUIEnter|を使うこと。
+		Note GTK 2のGUIはどんなフォント名でも受け付けてしまうため、名
+		前が有効であるかのチェックは動作しない。
 
 getfperm({fname})					*getfperm()*
-		The result is a String, which is the read, write, and execute
-		permissions of the given file {fname}.
-		If {fname} does not exist or its directory cannot be read, an
-		empty string is returned.
-		The result is of the form "rwxrwxrwx", where each group of
-		"rwx" flags represent, in turn, the permissions of the owner
-		of the file, the group the file belongs to, and other users.
-		If a user does not have a given permission the flag for this
-		is replaced with the string "-".  Example: >
+		{fname}で指定されたファイルの読み込み、書き込み、実行の許可属
+		性を示す文字列を返す。
+		{fname}が存在しない、またはそのディレクトリが読み込み不可能な
+		ときは空文字列を返す。
+		戻り値は"rwxrwxrwx"の形で、"rwx"フラグの各グループは順にファイ
+		ルの所有者、ファイルが所属するグループ、その他のユーザを表す。
+		許可属性が与えられていないフラグは"-"で置き換えられる。例: >
 			:echo getfperm("/etc/passwd")
-<		This will hopefully (from a security point of view) display
-		the string "rw-r--r--" or even "rw-------".
+<		この例は、(セキュリティの観点から望ましい設定がされているなら
+		ば)"rw-r--r--"あるいは"rw-------"と表示する。
 
 							*getftime()*
 getftime({fname})
 		結果は{fname}で与えられたファイルの、最終更新時間を示す数値。
-		1970年1月1日からの経過時間(病)で、strftime()に渡すことができる
+		1970年1月1日からの経過時間(秒)で、strftime()に渡すことができる
 		だろう。|localtime()|と|strftime()|も参照。
 		ファイル{fname}が見つからなかった場合には-1を返す。
 
 getftype({fname})					*getftype()*
-		The result is a String, which is a description of the kind of
-		file of the given file {fname}.
-		If {fname} does not exist an empty string is returned.
-		Here is a table over different kinds of files and their
-		results:
-			Normal file		"file"
-			Directory		"dir"
-			Symbolic link		"link"
-			Block device		"bdev"
-			Character device	"cdev"
-			Socket			"socket"
+		{fname}で指定されたファイルの種別を示す文字列を返す。
+		{fname}が存在しないときは空文字列を返す。
+		ファイルの種別とそれらの結果の表を以下に示す:
+			通常ファイル		"file"
+			ディレクトリ		"dir"
+			シンボリックリンク	"link"
+			ブロックデバイス	"bdev"
+			キャラクタデバイス	"cdev"
+			ソケット		"socket"
 			FIFO			"fifo"
-			All other		"other"
-		Example: >
+			それ以外		"other"
+		例: >
 			getftype("/home")
-<		Note that a type such as "link" will only be returned on
-		systems that support it.  On some systems only "dir" and
-		"file" are returned.
+<		Note "link"などの種別はそれをサポートしているシステムでのみ返
+		される。"dir"と"file"しか返らないシステムもある。
 
 							*getline()*
 getline({lnum} [, {end}])
-		結果は現在のバッファの{lnum}行目の内容(文字列)。例:
->			getline(1)
-		{lnum}が数字ではない文字で始まる文字列であった場合、line()に
+		{end}が指定されない場合は、カレントバッファの{lnum}行目の内容
+		を文字列にして返す。例: >
+			getline(1)
+<		{lnum}が数字ではない文字で始まる文字列であった場合、line()に
 		よってその文字列が数字に変換される。よって、カーソルのある行の
-		文字列を取得するには:
->			getline(".")
-		{lnum}が1より小さいかバッファの行数よりも大きい数値の場合、空
+		文字列を取得するには: >
+			getline(".")
+<		{lnum}が1より小さいかバッファの行数よりも大きい数値の場合、空
 		文字列が返される。
 
-		When {end} is given the result is a |List| where each item is
-		a line from the current buffer in the range {lnum} to {end},
-		including line {end}.
-		{end} is used in the same way as {lnum}.
-		Non-existing lines are silently omitted.
-		When {end} is before {lnum} an empty |List| is returned.
-		Example: >
+		{end}が指定された場合は、カレントバッファの{lnum}行目から
+		{end}行目までを要素とするリスト|List|を返す。
+		{end}は{lnum}と同様に解釈される。
+		存在しない行は省略され、エラーメッセージは表示されない。
+		{end}が{lnum}より前になる場合は空リストを返す。
+		例: >
 			:let start = line('.')
 			:let end = search("^$") - 1
 			:let lines = getline(start, end)
 
-<		To get lines from another buffer see |getbufline()|
+<		他のバッファの行を取得するには|getbufline()|を参照。
 
 getloclist({nr})					*getloclist()*
-		Returns a list with all the entries in the location list for
-		window {nr}. When {nr} is zero the current window is used.
-		For a location list window, the displayed location list is
-		returned.  For an invalid window number {nr}, an empty list is
-		returned. Otherwise, same as getqflist().
+		ウィンドウ{nr}のロケーションリストの全項目からなるリストを返す。
+		{nr}に0を指定するとカレントウィンドウになる。ロケーションリス
+		トウィンドウに対して使用すると、そこに表示されているロケーショ
+		ンリストが返る。ウィンドウ番号{nr}が無効な場合は、空リストが返
+		る。それ以外はgetqflist()と同じ。
 
 getqflist()						*getqflist()*
-		Returns a list with all the current quickfix errors.  Each
-		list item is a dictionary with these entries:
-			bufnr	number of buffer that has the file name, use
-				bufname() to get the name
-			lnum	line number in the buffer (first line is 1)
-			col	column number (first column is 1)
-			vcol	non-zero: "col" is visual column
-				zero: "col" is byte index
-			nr	error number
-			pattern	search pattern used to locate the error
-			text	description of the error
-			type	type of the error, 'E', '1', etc.
-			valid	non-zero: recognized error message
+		現在の全quickfixエラーのリストを返す。リストの各要素は辞書で、
+		以下の要素を持つ:
+			bufnr	ファイル名を持つバッファの番号。その名前を取得
+				するにはbufname()を使う。
+			lnum	バッファ中の行番号(最初の行は1)
+			col	桁番号(最初の桁は1)
+			vcol	0以外: "col"は画面上の桁
+				0: "col"はバイトインデックス
+			nr	エラー番号
+			pattern	エラーの位置を特定するために使う検索パターン
+			text	エラーの説明
+			type	エラーメッセージの種類。'E', '1'など。
+			valid	0以外: エラーメッセージが認識されている
 
-		When there is no error list or it's empty an empty list is
-		returned. Quickfix list entries with non-existing buffer
-		number are returned with "bufnr" set to zero.
+		エラーリストがまったくないか、空であるときは空リストを返す。
+		存在しないバッファ番号を持つquickfixリストの項目は"bufnr"を0に
+		して返される。
 
-		Useful application: Find pattern matches in multiple files and
-		do something with them: >
+		役に立つ応用例: 複数のファイルから正規表現検索を行い、見つかっ
+		たものに対してなんらかの操作をする: >
 			:vimgrep /theword/jg *.c
 			:for d in getqflist()
 			:   echo bufname(d.bufnr) ':' d.lnum '=' d.text
 			:endfor
 
 getreg([{regname} [, 1]])				*getreg()*
-		The result is a String, which is the contents of register
-		{regname}.  Example: >
+		レジスタ{regname}の中身を文字列にして返す。例: >
 			:let cliptext = getreg('*')
-<		getreg('=') returns the last evaluated value of the expression
-		register.  (For use in maps.)
-		getreg('=', 1) returns the expression itself, so that it can
-		be restored with |setreg()|.  For other registers the extra
-		argument is ignored, thus you can always give it.
-		If {regname} is not specified, |v:register| is used.
+<		getreg('=')は最後に評価した式レジスタの値を返す。(マップの中で
+		使用する)。
+		getreg('=', 1)はその式そのものを返す。これを使って|setreg()|で
+		復元することができる。他のレジスタの場合は、この引数は無視され
+		るので、常に指定していても害はない。
+		{regname}を指定しないときは|v:register|が使われる。
 
 
 getregtype([{regname}])					*getregtype()*
-		The result is a String, which is type of register {regname}.
-		The value will be one of:
-		    "v"			for |characterwise| text
-		    "V"			for |linewise| text
-		    "<CTRL-V>{width}"	for |blockwise-visual| text
-		    0			for an empty or unknown register
-		<CTRL-V> is one character with value 0x16.
-		If {regname} is not specified, |v:register| is used.
+		レジスタ{regname}の種類を表す文字列を返す。
+		戻り値は次のいずれかとなる:
+		    "v"			文字指向|characterwise|の場合
+		    "V"			行指向|linewise|の場合
+		    "<CTRL-V>{width}"	矩形指向|blockwise-visual|の場合
+		    0			空、または未知のレジスタの場合
+		<CTRL-V>は値0x16の1文字である。
+		{regname}を指定しないときは|v:register|が使われる。
 
 gettabwinvar({tabnr}, {winnr}, {varname})		*gettabwinvar()*
-		Get the value of window-local variable {varname} in window
-		{winnr} in tab page {tabnr}.
-		When {varname} starts with "&" get the value of a window-local
-		option.
-		Tabs are numbered starting with one.  For the current tabpage
-		use |getwinvar()|.
-		When {winnr} is zero the current window is used.
-		This also works for a global option, buffer-local option and
-		window-local option, but it doesn't work for a global variable
-		or buffer-local variable.
-		When {varname} is empty a dictionary with all window-local
-		variables is returned.
-		Note that {varname} must be the name without "w:".
-		Examples: >
+		タブページ{tabnr}内のウィンドウ{winnr}のウィンドウローカル変数
+		{varname}の値を取得する。
+		{varname}が文字"&"で始まるときはウィンドウローカルオプションの
+		値を取得する。
+		タブページ番号は1から始まる。カレントタブページを指定するには
+		|getwinvar()|を指定する。
+		{winnr}が0のときはカレントウィンドウとなる。
+		グローバルオプション、バッファローカルオプション、ウィンドウロ
+		ーカルオプションに対しても動作するが、グローバル変数やバッファ
+		ローカル変数に対しては動作しない。
+		{varname}が空のときは全ウィンドウローカル変数からなる辞書を返
+		す。
+		Note {varname}は"w:"をつけずに指定しなければならない。
+		例: >
 			:let list_is_on = gettabwinvar(1, 2, '&list')
 			:echo "myvar = " . gettabwinvar(3, 1, 'myvar')
 <
@@ -2918,112 +2887,114 @@ getwinposy()	結果はGUIのVimウィンドウの上端の、デスクトップ�
 		値)。情報が存在しない(コンソールの)場合は-1となる。
 
 getwinvar({winnr}, {varname})				*getwinvar()*
-		Like |gettabwinvar()| for the current tabpage.
-		Examples: >
+		カレントタブページに対する|gettabwinvar()|と同様。
+		例: >
 			:let list_is_on = getwinvar(2, '&list')
 			:echo "myvar = " . getwinvar(1, 'myvar')
 
 							*glob()*
-glob({expr})	Expand the file wildcards in {expr}.  See |wildcards| for the
-		use of special characters.
-		The result is a String.
-		{expr}内のファイル名のワイルドカードを展開する。結果は文字列。
+glob({expr})	
+		{expr}内のファイル名のワイルドカードを展開する。特殊文字につい
+		ては|wildcards|を参照。結果は文字列。
 		結果が複数存在する場合、各々が文字<NL>によって区切られる。
 		展開が失敗した場合、結果は空文字列。結果には、存在しないファイ
 		ル名は含まれない。
 
-		多くのシステムではbackticks(「`」という文字のこと)を、外部コマ
-		ンドの実行結果からファイル名を取得するために使用できる。例:
->			:let tagfiles = glob("`find . -name tags -print`")
->			:let &tags = substitute(tagfiles, "\n", ",", "g")
-		backticks内のプログラムの実行結果は、一行に一つずつの項目が含
-		まれてなければならない。項目内のスペースは許容される。
+		多くのシステムではバッククォート(「`」という文字のこと)を、外部コマ
+		ンドの実行結果からファイル名を取得するために使用できる。例: >
+			:let tagfiles = glob("`find . -name tags -print`")
+			:let &tags = substitute(tagfiles, "\n", ",", "g")
+<		バッククォート内のプログラムの実行結果は、一行に一つずつの項目
+		が含まれてなければならない。項目内のスペースは許容される。
 		
 		特殊なVimの変数を展開するためには|expand()|を参照。外部コマン
 		ドの生の出力を得るためには|system()|を参照。
 
 globpath({path}, {expr})				*globpath()*
-		Perform glob() on all directories in {path} and concatenate
-		the results.  Example: >
+		{path}の中の全ディレクトリに対してglob()を実行し、結果を連結す
+		る。例: >
 			:echo globpath(&rtp, "syntax/c.vim")
-<		{path} is a comma-separated list of directory names.  Each
-		directory name is prepended to {expr} and expanded like with
-		glob().  A path separator is inserted when needed.
-		To add a comma inside a directory name escape it with a
-		backslash.  Note that on MS-Windows a directory may have a
-		trailing backslash, remove it if you put a comma after it.
-		If the expansion fails for one of the directories, there is no
-		error message.
-		The 'wildignore' option applies: Names matching one of the
-		patterns in 'wildignore' will be skipped.
+<		{path}はコンマ区切りのディレクトリのリスト。各ディレクトリを
+		{expr}の前に付加し、glob()と同様にそれを展開する。必要に応じて
+		パスの区切り文字が挿入される。
+		ディレクトリ名の中にコンマを含めるには、バックスラッシュでエス
+		ケープすること。Note MS-Windowsではディレクトリ名の末尾にバッ
+		クスラッシュがつくことがある。その後に区切りのコンマを書くとエ
+		スケープと見なされてしまうので、バックスラッシュは削除すること。
+		どれかのディレクトリに対して展開が失敗してもエラーメッセージは
+		表示されない。
+		オプション'wildignore'が適用される。つまり、'wildignore'のパター
+		ンにマッチする名前はスキップされる。
 
-		The "**" item can be used to search in a directory tree.
-		For example, to find all "README.txt" files in the directories
-		in 'runtimepath' and below: >
+		"**"を使ってディレクトリツリーを再帰的に検索することができる。
+		例えば、'runtimepath'とそれ以下のディレクトリから全ての
+		"README.txt"を探すには次のようにする: >
 			:echo globpath(&rtp, "**/README.txt")
-<
+< 
 							*has()*
 has({feature})	結果は機能{feature}がサポートされる場合1、されない場合0とな
 		る。引数{feature}は文字列。下記の|feature-list|を参照。
+		|exists()|も参照。
 
 has_key({dict}, {key})					*has_key()*
-		The result is a Number, which is 1 if |Dictionary| {dict} has
-		an entry with key {key}.  Zero otherwise.
+		結果は数値で、辞書|Dictionary| {dict}がキー{key}の要素を持つな
+		ら1、持たないなら0となる。
 
 haslocaldir()						*haslocaldir()*
-		The result is a Number, which is 1 when the current
-                window has set a local path via |:lcd|, and 0 otherwise.
+		結果は数値でカレントウィンドウが|:lcd|によってローカルなカレン
+		トディレクトリを持つようセットされているなら1、そうでないなら
+		0となる。
 
 hasmapto({what} [, {mode} [, {abbr}]])			*hasmapto()*
-		The result is a Number, which is 1 if there is a mapping that
-		contains {what} in somewhere in the rhs (what it is mapped to)
-		and this mapping exists in one of the modes indicated by
-		{mode}.
-		When {abbr} is there and it is non-zero use abbreviations
-		instead of mappings.  Don't forget to specify Insert and/or
-		Command-line mode.
-		Both the global mappings and the mappings local to the current
-		buffer are checked for a match.
-		If no matching mapping is found 0 is returned.
-		The following characters are recognized in {mode}:
-			n	Normal mode
-			v	Visual mode
-			o	Operator-pending mode
-			i	Insert mode
-			l	Language-Argument ("r", "f", "t", etc.)
-			c	Command-line mode
-		When {mode} is omitted, "nvo" is used.
+		結果は数値。右辺側(マップした先)の一部分に{what}を含むマッピン
+		グが存在し、それが{mode}で指定されたモードのいずれかで定義され
+		ているなら1を返す。
+		{abbr}が指定されていて0でないときはマッピングでなく短縮入力の
+		存在を判定する。インサートモードまたはコマンドモードを指定する
+		ことを忘れないように。
+		グローバルマップとバッファローカルマップの両方をチェックする。
+		マッピングが1個も見つからなかったときは0を返す。
+		{mode}に対しては以下の文字が利用できる:
+			n	ノーマルモード
+			v	ビジュアルモード
+			o	モーション待ちモード (Operator-pending)
+			i	インサートモード
+			l	Language-Argumentモード ("r", "f", "t"など)
+			c	コマンドラインモード
+		{mode}が省略されたときは"nvo"となる。
 
-		This function is useful to check if a mapping already exists
-		to a function in a Vim script.  Example: >
+		この関数はVimスクリプトの中で、ある関数へのマッピングが既に存
+		在するか判定するために有用である。例: >
 			:if !hasmapto('\ABCdoit')
 			:   map <Leader>d \ABCdoit
 			:endif
-<		This installs the mapping to "\ABCdoit" only if there isn't
-		already a mapping to "\ABCdoit".
-							*histadd()*
-histadd({history}, {item})
+<		この例は、"\ABCdoit"へのマッピングが存在しないときだけ
+		"\ABCdoit"へのマッピングを作成する。
+
+histadd({history}, {item})				*histadd()*
 		文字列{item}を履歴{history}に追加する。履歴{history}は以下のう
 		ちどれか一つから選択:			*hist-names*
 			"cmd"	 or ":"	  コマンドライン履歴
 			"search" or "/"   検索パターン履歴
-			"expr"   or "="   タイプされた表現の履歴
+			"expr"   or "="   タイプされた式の履歴
 			"input"  or "@"	  input()の履歴
 		{item}が履歴内に既に存在する場合、それが最新の項目の位置へシフ
 		トされる。結果は数値:操作が成功した場合1、そうでなければ0
 
-		例:
->			:call histadd("input", strftime("%Y %b %d"))
->			:let date=input("Enter date: ")
+		例: >
+			:call histadd("input", strftime("%Y %b %d"))
+			:let date=input("Enter date: ")
+<		サンドボックス|sandbox|の中では利用できない。
 
-							*histdel()*
-histdel({history} [, {item}])
+histdel({history} [, {item}])				*histdel()*
 		{history}の内容を削除する。例えば総てのエントリを消すこともで
 		きる。{history}の部分に可能な値は|hist-names|を参照。
 
 		パラメータ{item}が文字列として与えられた場合、これは正規表現と
 		して扱われる。その表現にマッチする総てのエントリがhistoryから
 		削除される(複数あっても)。
+		"\c"をつけない場合、大文字・小文字が一致しなければならない。
+		|/\c|。
 		{item}が数値ならば、インデックスとして解釈される。インデックス
 		については|:history-indexing|を参照。関連するエントリ(訳注:The
 		respective entry)も、存在すれば削除される。
@@ -3031,25 +3002,23 @@ histdel({history} [, {item}])
 		結果は数値: 削除に成功すれば1を、そうでなければ0が返る。
 
 		例:
-		式レジスタの履歴を削除する:
->			:call histdel("expr")
-
-		検索履歴から、"*"で始まるエントリを総て削除する:
->			:call histdel("/", '^\*')
-
-		次の3つは等価である:
->			:call histdel("search", histnr("search"))
->			:call histdel("search", -1)
->			:call histdel("search", '^'.histget("search", -1).'$')
-
+		式レジスタの履歴を削除する: >
+			:call histdel("expr")
+<
+		検索履歴から、"*"で始まるエントリを総て削除する: >
+			:call histdel("/", '^\*')
+<
+		次の3つは等価である: >
+			:call histdel("search", histnr("search"))
+			:call histdel("search", -1)
+			:call histdel("search", '^'.histget("search", -1).'$')
+<
 		最後の検索パターンを削除し、一つ前のパターンを"n"コマンド(次の
-		マッチへ移動)と'hlsearch'の為に設定する:
->			:call histdel("search", -1)
->			:let @/ = histget("search", -1)
+		マッチへ移動)と'hlsearch'の為に設定する: >
+			:call histdel("search", -1)
+			:let @/ = histget("search", -1) 
 
-
-							*histget()*
-histget({history} [, {index}])
+histget({history} [, {index}])				*histget()*
 		結果は{history}の第{index}エントリーを表わす文字列。{history}
 		の部分に可能な値は|hist-names|を、{index}については
 		|:history-indexing|を参照。指定されたエントリが存在しない場合
@@ -3057,24 +3026,22 @@ histget({history} [, {index}])
 		新のエントリが戻り値として使用される。
 
 		例:
-			2つ前に行なわれた検索をやり直す:
->			:execute '/' . histget("search", -2)
+		2つ前に行なわれた検索をやり直す: >
+			:execute '/' . histget("search", -2)
 
-			|:history|によって出力される{num}番目のエントリを、再
-			度実行するための":H {num}"というコマンドを定義する。
->			:command -nargs=1 H execute histget("cmd",0+<args>)
-
-							*histnr()*
-histnr({history})
+<		|:history|によって出力される{num}番目のエントリを、再
+		度実行するための":H {num}"というコマンドを定義する。 >
+			:command -nargs=1 H execute histget("cmd",0+<args>)
+<
+histnr({history})					*histnr()*
 		結果は数値で{history}の現在のエントリー数。{history}の部分に可
 		能な値は|hist-names|を参照。エラーが起こった場合、-1が返され
 		る。
 
-		例:
->			:let inp_index = histnr("expr")
-
-							*hlexists()*
-hlexists({name})
+		例: >
+			:let inp_index = histnr("expr")
+<
+hlexists({name})					*hlexists()*
 		結果は数値で、{name}という名のハイライトグループが存在すれば、
 		非ゼロの値が返される。これはなんらかの方法でそのグループが既に
 		定義されている時にのみ起こる。これの為に実際に何らかのハイライ
@@ -3088,126 +3055,160 @@ hlID({name})	結果は数値で、{name}という名前のハイライトグル�
 		のハイライトグループが存在しない場合は0が返される。
 		これはハイライトグループについての情報を獲得するために使用され
 		る。例えば"Comment"グループの背景色を取得するにはこのようにす
-		る:
->	:echo synIDattr(synIDtrans(hlID("Comment")), "bg")
-							*highlightID()*
+		る: >
+	:echo synIDattr(synIDtrans(hlID("Comment")), "bg")
+<							*highlightID()*
 		以前の名前: highlightID()
 
-							*hostname()*
-hostname()
+hostname()						*hostname()*
 		結果は文字列で、現在Vimが実行されているマシンの名前。名前が256
 		文字を超える場合、超えた部分は切り捨てられる。
 
 iconv({expr}, {from}, {to})				*iconv()*
-		The result is a String, which is the text {expr} converted
-		from encoding {from} to encoding {to}.
-		When the conversion fails an empty string is returned.
-		The encoding names are whatever the iconv() library function
-		can accept, see ":!man 3 iconv".
-		Most conversions require Vim to be compiled with the |+iconv|
-		feature.  Otherwise only UTF-8 to latin1 conversion and back
-		can be done.
-		This can be used to display messages with special characters,
-		no matter what 'encoding' is set to.  Write the message in
-		UTF-8 and use: >
+		文字列{expr}をエンコーディング{from}からエンコーディング{to}に
+		変換した文字列を返す。
+		変換が失敗したときは空文字列を返す。
+		エンコーディング名はライブラリ関数iconv()が受け付けるものなら
+		なんでもよい。":!man 3 iconv"を参照。
+		ほとんどの変換は、Vimが|+iconv|機能つきでコンパイルされている
+		ときのみ利用可能。|+iconv|つきでないときもUTF-8からlatin1への
+		変換とその逆は行える。
+		オプション'encoding'の値に関係なく、特殊な文字を含むメッセージ
+		を表示するために使える。UTF-8でエンコードされたメッセージを表
+		示するには次のようにする: >
 			echo iconv(utf8_str, "utf-8", &enc)
-<		Note that Vim uses UTF-8 for all Unicode encodings, conversion
-		from/to UCS-2 is automatically changed to use UTF-8.  You
-		cannot use UCS-2 in a string anyway, because of the NUL bytes.
-		{only available when compiled with the +multi_byte feature}
+<		Note Vimは全てのUnicodeエンコーディングに対してUTF-8を使う。UCS-2
+		との変換を行おうとしても、自動的にUTF-8との変換に変更される。
+		いずれにせよ、UCS-2はNULバイトを含むため、文字列にUCS-2を使う
+		ことはできない。
+		{+multi_byte機能付きでコンパイルされたときのみ利用可能}
 
 							*indent()*
-indent({lnum})	The result is a Number, which is indent of line {lnum} in the
-		current buffer.  The indent is counted in spaces, the value
-		of 'tabstop' is relevant.  {lnum} is used just like in
-		|getline()|.
-		When {lnum} is invalid -1 is returned.
+indent({lnum})	結果は数値で、カレントバッファの{lnum}行目のインデント量。この
+		インデント量はスペース単位で数えられ、'tabstop'の値は関係ない。
+		{lnum}は|getline()|の場合と同様に扱われる。
+		{lnum}が無効なときは-1を返す。
 
 
 index({list}, {expr} [, {start} [, {ic}]])			*index()*
-		Return the lowest index in |List| {list} where the item has a
-		value equal to {expr}.
-		If {start} is given then start looking at the item with index
-		{start} (may be negative for an item relative to the end).
-		When {ic} is given and it is non-zero, ignore case.  Otherwise
-		case must match.
-		-1 is returned when {expr} is not found in {list}.
-		Example: >
+		リスト|List| {list}の中で、{expr}に等しい要素の最小のインデッ
+		クスを返す。
+		{start}が指定された場合はインデックス{start}から要素の検索を始
+		める(負数を指定すると末尾からの相対位置となる)。
+		{ic}に0でない値が指定された場合、大文字・小文字は区別されない。
+		そうでない場合は区別される。
+		{list}の中に{expr}が見つからない場合は-1を返す。
+		例: >
 			:let idx = index(words, "the")
 			:if index(numbers, 123) >= 0
 
-
 input({prompt} [, {text} [, {completion}]])		*input()*
-		結果は文字列で、ユーザがコマンドラインに入力したものが返され
-		る。引数はプロンプト用文字列であり、プロンプトが必要なければ空
-		文字列でかまわない。新しい行から入力させるために'\n'をプロンプ
-		トに使用することができる。ハイライトセット|:echohl|はプロンプ
-		トにも適用される。入力はコマンドラインと同様に行え、幾つかの編
-		集コマンドやキーマップもそのまま使用できる。input()に入力され
-		た文字列には、他の履歴とは独立した履歴が与えられる。
+		結果は文字列で、ユーザがコマンドラインに入力したものが返される。
+		引数はプロンプト用文字列であり、プロンプトが必要なければ空文字
+		列でかまわない。新しい行から入力させるために'\n'をプロンプトに
+		使用することができる。|:echohl|によるハイライトの設定がプロン
+		プトに適用される。入力はコマンドラインと同様に行え、同じ編集コ
+		マンドやキーマップが使用できる。input()に入力された文字列には、
+		他の履歴とは独立した履歴が与えられる。
+		例: >
+			:if input("Coffee or beer? ") == "beer"
+			:  echo "Cheers!"
+			:endif
+<
+		省略可能な引数{text}が与えられ、空でないならば、それが入力の初
+		期値として、ユーザが入力したのと同じ様に表示される。例: >
+			:let color = input("Color? ", "white")
+
+<		省略可能な引数{completion}はこの入力において利用できる補完の種
+		類を指定する。この引数がないときは補完は行われない。対応してい
+		る補完の種類は、ユーザ定義コマンドにおいて引数"-complete="で指
+		定するものと同じである。詳しくは|:command-completion|を参照。
+		例: >
+			let fname = input("File: ", "", "file")
+<
 		NOTE: この関数はGUIモードしか持たないバージョン(例、Win32 GUI)
 		のVimでは、スタートアップファイルの中で使用することはできな
 		い。
+		NOTE: マッピングの中からinput()を呼ぶと、そのマッピングの残り
+		の文字が消費される。マッピングは、その文字が入力されたときと同
+		じように処理されるためである。
+		これを避けるには、input()の前に|inputsave()|を呼び、input()の
+		後に|inputrestore()|を呼ぶ。もう1つの対策は、|:execute|や
+		|:normal|を使うなどして、そのマッピングでそれ以上文字を続けな
+		いようにすることである。
 
-		例:
->	:if input("Coffee or beer? ") == "beer"
->	:  echo "Cheers!"
->	:endif
+		マッピングと同時に使う例: >
+			:nmap \x :call GetFoo()<CR>:exe "/" . Foo<CR>
+			:function GetFoo()
+			:  call inputsave()
+			:  let g:Foo = input("enter search pattern: ")
+			:  call inputrestore()
+			:endfunction
+
+inputdialog({prompt} [, {text} [, {cancelreturn}]])		*inputdialog()*
+		input()と同様。GUIで動作していて、テキストダイアログがサポート
+		されている場合はダイアログを表示してテキストを入力させる。
+		例: >
+			:let n = inputdialog("value for shiftwidth", &sw)
+			:if n != ""
+			:  let &sw = n
+			:endif
+<		ダイアログがキャンセルされたときは{cancelreturn}を返す。
+		{cancelreturn}が省略されているときは空文字列を返す。
+		<Enter>を押すとOKボタンを押すのと同じ動作になる。<Esc>を押すと
+		キャンセルボタンを押すのと同じ動作になる。
+		NOTE: コマンドライン補完は対応していない。
 
 inputlist({textlist})					*inputlist()*
-		{textlist} must be a |List| of strings.  This |List| is
-		displayed, one string per line.  The user will be prompted to
-		enter a number, which is returned.
-		The user can also select an item by clicking on it with the
-		mouse.  For the first string 0 is returned.  When clicking
-		above the first item a negative number is returned.  When
-		clicking on the prompt one more than the length of {textlist}
-		is returned.
-		Make sure {textlist} has less then 'lines' entries, otherwise
-		it won't work.  It's a good idea to put the entry number at
-		the start of the string.  And put a prompt in the first item.
-		Example: >
+		{textlist}は文字列のリスト|List|でなければならない。1行につき
+		リストの要素を1個表示し、ユーザに数字を入力するよう促す。入力
+		された数字を返す。
+		ユーザはマウスで文字列をクリックすることでも選択できる。最初の
+		文字列を選択すると0が返る。最初の文字列より上をクリックすると
+		負数が返る。プロンプト自身をクリックすると{textlist}の長さ+1が
+		返る。
+		{textlist}の要素数はオプション'lines'の値より少なくなければな
+		らない。そうでないと動作しない。最初の要素にメッセージを書き、
+		各文字列の先頭に番号をつけておくとよい。
+		例: >
 			let color = inputlist(['Select color:', '1. red',
 				\ '2. green', '3. blue'])
 
 inputrestore()						*inputrestore()*
-		Restore typeahead that was saved with a previous inputsave().
-		Should be called the same number of times inputsave() is
-		called.  Calling it more often is harmless though.
-		Returns 1 when there is nothing to restore, 0 otherwise.
+		前回のinputsave()で保存しておいた先行入力を復元する。
+		inputsave()と同じ回数だけ呼ぶようにしなければならない。しかし
+		多く呼びすぎても害はない。復元するものがなければ1を、そうでな
+		ければ0を返す。
 
 inputsave()						*inputsave()*
-		Preserve typeahead (also from mappings) and clear it, so that
-		a following prompt gets input from the user.  Should be
-		followed by a matching inputrestore() after the prompt.  Can
-		be used several times, in which case there must be just as
-		many inputrestore() calls.
-		Returns 1 when out of memory, 0 otherwise.
+		先行入力(マッピングにより入力された文字も含む)を保存し、クリア
+		することにより、これ以降のプロンプトがユーザからの入力を得るよ
+		うにする。プロンプトの後で、対応するinputrestore()を呼び出さね
+		ばならない。複数回呼ぶこともできる。ただしその場合は同じ回数だ
+		けinputrestore()を呼ばなくてはならない。
+		メモリ不足のときは1を、そうでなければ0を返す。
 
 inputsecret({prompt} [, {text}])			*inputsecret()*
-		This function acts much like the |input()| function with but
-		two exceptions:
-		a) the user's response will be displayed as a sequence of
-		asterisks ("*") thereby keeping the entry secret, and
-		b) the user's response will not be recorded on the input
-		|history| stack.
-		The result is a String, which is whatever the user actually
-		typed on the command-line in response to the issued prompt.
-		NOTE: Command-line completion is not supported.
+		|input()|とほぼ同じだが、以下の2点が異なる:
+		a) ユーザの入力をアスタリスク("*")の列として表示し、入力内容を
+		読めないようにする。
+		b) ユーザの入力が入力履歴|history|に残らない。
+		ユーザの入力内容を文字列として返す。
+		NOTE: コマンドライン補完には対応していない。
 
 insert({list}, {item} [, {idx}])			*insert()*
-		Insert {item} at the start of |List| {list}.
-		If {idx} is specified insert {item} before the item with index
-		{idx}.  If {idx} is zero it goes before the first item, just
-		like omitting {idx}.  A negative {idx} is also possible, see
-		|list-index|.  -1 inserts just before the last item.
-		Returns the resulting |List|.  Examples: >
+		リスト|List| {list}の初めに{item}を挿入する。
+		{idx}が指定されたときはインデックス{idx}の要素の前に{item}を挿
+		入する。{idx}が0のときは{idx}を省略した場合と同じ様に最初の要
+		素の前に挿入する。{idx}は負数でもよい(|list-index|参照)。-1を
+		指定すると最後の要素の前に挿入する。
+		挿入した結果のリストを返す。例: >
 			:let mylist = insert([2, 3, 5], 1)
 			:call insert(mylist, 4, -1)
 			:call insert(mylist, 6, len(mylist))
-<		The last example can be done simpler with |add()|.
-		Note that when {item} is a |List| it is inserted as a single
-		item.  Use |extend()| to concatenate |Lists|.
+<		最後の例は|add()|を使うともっと簡単に書ける。
+		Note {item}がリストの場合は、1個の要素として追加される。リスト
+		を連結するには|extend()|を使うこと。
 
 							*isdirectory()*
 isdirectory({directory})
@@ -3218,63 +3219,64 @@ isdirectory({directory})
 		わない。
 
 islocked({expr})					*islocked()* *E786*
-		The result is a Number, which is non-zero when {expr} is the
-		name of a locked variable.
-		{expr} must be the name of a variable, |List| item or
-		|Dictionary| entry, not the variable itself!  Example: >
+		結果は数値で、{expr}がロックされている変数の名前ならば非0を返
+		す。
+		{expr}は変数の名前、リストの要素、辞書の要素のいずれかでなけれ
+		ばならない。変数そのものを指定しないように注意。例: >
 			:let alist = [0, ['a', 'b'], 2, 3]
 			:lockvar 1 alist
 			:echo islocked('alist')		" 1
 			:echo islocked('alist[1]')	" 0
 
-<		When {expr} is a variable that does not exist you get an error
-		message.  Use |exists()| to check for existence.
+<		{expr}が存在しない変数のときはエラーメッセージが表示される。変
+		数の存在を確認するには|exist()|を使う。
 
 items({dict})						*items()*
-		Return a |List| with all the key-value pairs of {dict}.  Each
-		|List| item is a list with two items: the key of a {dict}
-		entry and the value of this entry.  The |List| is in arbitrary
-		order.
+		{dict}の全要素のキー・値のペアからなるリストを返す。戻り値の各
+		要素はリストであり、キーと値の2個の要素を持つ。戻り値のリスト
+		の要素の順序は不定である。
 
 
 join({list} [, {sep}])					*join()*
-		Join the items in {list} together into one String.
-		When {sep} is specified it is put in between the items.  If
-		{sep} is omitted a single space is used.
-		Note that {sep} is not added at the end.  You might want to
-		add it there too: >
+		リスト{list}の要素を連結し、1個の文字列にして返す。
+		{sep}が指定されたときは、要素の間にそれを挿入する。{sep}が指定
+		されたときは1個のスペースが使われる。
+		Note 末尾には{sep}がつかない。末尾にもつけたければ以下のように
+		する: >
 			let lines = join(mylist, "\n") . "\n"
-<		String items are used as-is.  |Lists| and |Dictionaries| are
-		converted into a string like with |string()|.
-		The opposite function is |split()|.
+<		{list}の要素が文字列なら、そのまま使われる。リストと辞書は
+		|string()|を使ったときと同じようにして文字列に変換される。
+		この逆を行う関数は|split()|である。
 
 keys({dict})						*keys()*
-		Return a |List| with all the keys of {dict}.  The |List| is in
-		arbitrary order.
+		{dict}の全キーからなるリストを返す。リストの順序は不定である。
 
 							*len()* *E701*
-len({expr})	The result is a Number, which is the length of the argument.
-		When {expr} is a String or a Number the length in bytes is
-		used, as with |strlen()|.
-		When {expr} is a |List| the number of items in the |List| is
-		returned.
-		When {expr} is a |Dictionary| the number of entries in the
-		|Dictionary| is returned.
-		Otherwise an error is given.
+len({expr})	結果は数値で、引数{expr}の長さ。{expr}が文字列または数値のとき
+		は|strlen()|と同じようにバイト単位での長さを返す。
+		{expr}がリストのときは要素数を返す。
+		{expr}が辞書のときは要素数を返す。
+		それ以外のときはエラーとなる。
 
 							*libcall()*
 libcall({libname}, {funcname}, {argument})
 		ランタイムライブラリ{libname}の関数{funcname}を、引数
-		{argument}として呼び出す。結果には、呼び出した関数から返された
-		文字列が返される。もしも引数が数値ならば、関数にはint型の引数
-		が1つ渡される。引数が文字列の場合には、関数にはヌル終端記号を
-		持つ文字列が引数として渡される。呼び出した関数がNULLを返した場
-		合には、Vimには空文字列""が戻される。
+		{argument}として呼び出す。
+		Vimで使うように特別に作ったライブラリの関数を呼ぶために使われ
+		る。引数は1個しか指定できないため、普通のライブラリ関数を呼ぶ
+		にはかなり制限がある。
+		結果には、呼び出した関数から返された文字列が返される。呼び出し
+		た関数がNULLを返した場合には、Vimには空文字列""が戻される。
+		関数の戻り値が数値である場合には|libcallnr()|を使うこと。
+		もしも引数が数値ならば、関数にはint型の引数が1つ渡される。引数
+		が文字列の場合には、関数にはヌル終端記号を持つ文字列が引数とし
+		て渡される。
+		|restrict-mode|の中で呼ぶと失敗する。
 
-		libcall()によってVimを最コンパイルすることなく'plug-in'と呼ば
-		れる独自の拡張を行なうことができる用になる。それは(直接)システ
-		ムの関数を呼ぶ、ということではない。システム関数を呼んだらVim
-		がクラッシュするかもしれない。
+		libcall()によってVimを再コンパイルすることなく'plug-in'と呼ば
+		れる独自の拡張を行なうことができるようになる。それは(直接)シス
+		テムの関数を呼ぶ、ということではない。システム関数を呼ぶとおそ
+		らくVimがクラッシュするだろう。
 
 		Win32では、あなたが書いた関数をDLLに置かなければならず、また通
 		常のC呼出し規約を使用しなければならない(WindowsのシステムDLLが
@@ -3293,15 +3295,18 @@ libcall({libname}, {funcname}, {argument})
 		Win32のシステムでは、{libname}はDLLのファイル名の拡張子".DLL"
 		を付けてはならない。通常の(パスの通った)場所にDLLがない場合に
 		は、フルパスで指定する必要がある。
-		{Win32バージョン限定の機能}
-
+		Unixでは、独自のプラグインをコンパイルするときはオブジェクトコー
+		ドを位置独立('PIC')としてコンパイルしなければならない。
+		{Win32と、|+libcall|機能が有効になっているUnixでのみ利用可能}
+		例: >
+			:echo libcall("libc.so", "getenv", "HOME")
+			:echo libcallnr("/usr/lib/libc.so", "getpid", "")
+< 
 							*libcallnr()*
 libcallnr({libname}, {funcname}, {argument})
-		Just like libcall(), but used for a function that returns an
-		int instead of a string.
-		{only in Win32 on some Unix versions, when the |+libcall|
-		feature is present}
-		Example (not very useful...): >
+		libcall()とほぼ同様だが、文字列でなくintを返す関数に使う。
+		{Win32と、|+libcall|機能が有効になっているUnixでのみ利用可能}
+		例 (あまり役に立たないが…): >
 			:call libcallnr("libc.so", "printf", "Hello World!\n")
 			:call libcallnr("libc.so", "sleep", 10)
 <
@@ -3312,21 +3317,21 @@ line({expr})	結果は数値で、{expr}で与えられた位置のファイル�
 		    $	    現在のバッファの最後の位置
 		    'x	    マークxの位置(マークが設定されていない場合、0が返
 			    る)
-		    w0	    first line visible in current window
-		    w$	    last line visible in current window
-		Note that a mark in another file can be used.  The line number
-		then applies to another buffer.
-		To get the column number use |col()|.  To get both use
-		|getpos()|.
-		例:
->			line(".")		カーソルの行番号
->			line("'t")		マークtの位置の行番号
->			line("'" . marker)	マークmarkerの位置の行番号
-							*last-position-jump*
-		このautocommandはファイルを開いた時に、最後に開かれていた時の
-		行へ自動的にジャンプするものである。これは'"マークがセットされ
-		ている時にのみ有効である:
->	:au BufReadPost * if line("'\"") | exe "normal '\"" | endif
+		    w0	    カレントウィンドウの最上行
+		    w$	    カレントウィンドウの最下行
+		Note 他のファイルのマークも使える。その場合、戻り値はそのファ
+		イルの行番号となる。
+		桁番号を取得するには|col()|を使う。両方を取得するには
+		|getpos()|を使う。
+		例: >
+			line(".")		カーソルの行番号
+			line("'t")		マークtの位置の行番号
+			line("'" . marker)	マークmarkerの位置の行番号
+<							*last-position-jump*
+		このオートコマンドはファイルを開いた時に、最後に開かれていた時
+		の行へ自動的にジャンプするものである。これは'"マークがセットさ
+		れている時にのみ有効である: >
+	:au BufReadPost * if line("'\"") | exe "normal '\"" | endif
 
 							*line2byte()*
 line2byte({lnum})
@@ -3334,20 +3339,20 @@ line2byte({lnum})
 		在のバッファのオプション'fileformat'に従った、end-of-line(行終
 		端)文字も含まれている。最初の行においては1が返る。
 		次のようにすることで最終行を含むバイトサイズを獲得することがで
-		きる:
->			line2byte(line("$") + 1)
-		これはファイルの大きさプラス1になる。
+		きる: >
+			line2byte(line("$") + 1)
+<		これはファイルの大きさプラス1になる。
 		{lnum}が無効であるか、|+byte_offset|機能がコンパイル時に無効に
 		されている場合、-1が返される。
 		|byte2line()|、|go|及び|:goto|も参照。
 
 lispindent({lnum})					*lispindent()*
-		Get the amount of indent for line {lnum} according the lisp
-		indenting rules, as with 'lisp'.
-		The indent is counted in spaces, the value of 'tabstop' is
-		relevant.  {lnum} is used just like in |getline()|.
-		When {lnum} is invalid or Vim was not compiled the
-		|+lispindent| feature, -1 is returned.
+		'lisp'をオンにしたときと同じlisp用のインデント規則に従った場合
+		の{lnum}行目のインデント量を返す。
+		インデント量はスペースで数えられ、'tabstop'の値は関係ない。
+		{lnum}は|getline()|の場合と同様に扱われる。
+		{lnum}が無効な値のときや|+lispindent|機能なしでコンパイルされ
+		ているときは-1を返す。
 
 							*localtime()*
 localtime()
@@ -3355,27 +3360,24 @@ localtime()
 		|getftime()|も参照。
 
 map({expr}, {string})					*map()*
-		{expr} must be a |List| or a |Dictionary|.
-		Replace each item in {expr} with the result of evaluating
-		{string}.
-		Inside {string} |v:val| has the value of the current item.
-		For a |Dictionary| |v:key| has the key of the current item.
-		Example: >
+		{expr}はリスト|List|または辞書|Dictionary|。
+		{expr}の各要素を、{string}を評価した結果で置き換える。
+		{string}の中では|v:val|が現在の要素の値を保持している。
+		辞書の場合は|v:key|が現在の要素のキーを保持している。
+		例: >
 			:call map(mylist, '"> " . v:val . " <"')
-<		This puts "> " before and " <" after each item in "mylist".
+<		これは"mylist"の各要素の前に"> "をつけ、後に" <"をつける。
 
-		Note that {string} is the result of an expression and is then
-		used as an expression again.  Often it is good to use a
-		|literal-string| to avoid having to double backslashes.  You
-		still have to double ' quotes
+		Note {string}は式を表す文字列である。バックスラッシュを二重に
+		しなくても済むように|literal-string|を使うとよいだろう。ただし
+		その場合はシングルクォートを2重にしなければならない。
 
-		The operation is done in-place.  If you want a |List| or
-		|Dictionary| to remain unmodified make a copy first: >
+		この操作はその場で(in-place)行われる。リストや辞書を変更したく
+		ない場合は最初にコピーを作ること: >
 			:let tlist = map(copy(mylist), ' & . "\t"')
 
-<		Returns {expr}, the |List| or |Dictionary| that was filtered.
-		When an error is encountered while evaluating {string} no
-		further items in {expr} are processed.
+<		式を適用した結果の{expr}を返す。{string}を評価している最中にエ
+		ラーが発生した場合は、それ以降の要素は処理されない。
 
 
 maparg({name}[, {mode} [, {abbr}]])			*maparg()*
@@ -3387,122 +3389,137 @@ maparg({name}[, {mode} [, {abbr}]])			*maparg()*
 			"o"	モーション待ち (Operator-pending)
 			"i"	インサート
 			"c"	コマンドライン
+			"l"	langmap |language-mapping|
 			""	ノーマル、ビジュアル、及びモーション待ち
 		{mode}が省略された場合、""が使用される。
-		When {abbr} is there and it is non-zero use abbreviations
-		instead of mappings.
+		{abbr}が指定され、0でない場合はマッピングでなく短縮入力を対象
+		とする。
 		{name}には":map"コマンドで使用可能な、特殊なキー名が指定でき
 		る。結果の文字列内の特殊文字は、":map"コマンドでリスト表示した
 		時のように変換される。
-		The mappings local to the current buffer are checked first,
-		then the global mappings.  
-		This function can be used to map a key even when it's already
-		mapped, and have it do the original mapping too.  Sketch: >
+		まずカレントバッファにローカルなマッピングを探し、次のグローバ
+		ルマッピングを探す。
+		この関数を使うと、あるキーに対して既にマップがされているとき、
+		その動作を行いつつ、再マップすることができる。概要: >
 			exe 'nnoremap <Tab> ==' . maparg('<Tab>', 'n')
-
 
 mapcheck({name}[, {mode} [, {abbr}]])			*mapcheck()*
 		モード{mode}におけるキーマップ{name}が存在するかチェックする。
 		{name}に指定できる特殊文字は|maparg()|を参照。
-		When {abbr} is there and it is non-zero use abbreviations
-		instead of mappings.
-		{name}に対応するキーマップが存在しない時には、空文字列が返され
-		る。結果が一つならばマップされたrhsが返される。複数見つかった
-		場合には、それらのうちどれか一つのrhsが返される。
-		この関数はマッピングが曖昧にならないかチェックするために使うこ
-		とができる。例:
->	if mapcheck("_vv") == ""
->	   map _vv :set guifont=7x13<CR>
->	endif
-		"_vv"というマッピングは"_v"とか"_vvv"といったマッピングと衝突
-		する可能性がある。
+		{abbr}が指定され、0でない場合はマッピングでなく短縮入力を対象
+		とする。
+		マッピングが{name}で始まるとき、またはマッピングが{name}のはじ
+		めに等しいときマッチすると見なされる。
 
+			マッチするか    "a"     "ab"    "abc" ~
+		   mapcheck("a")	yes	yes	 yes
+		   mapcheck("abc")	yes	yes	 yes
+		   mapcheck("ax")	yes	no	 no
+		   mapcheck("b")	no	no	 no
+
+		maparg()との違いは、mapcheck()は{name}にマッチするマップを見つ
+		けるが、maparg()はぴったり{name}に一致するマッピングのみを見つ
+		ける。
+		{name}にマッチするキーマップが存在しない時には、空文字列が返さ
+		れる。結果が一つならばマップされたrhsが返される。複数見つかっ
+		た場合には、それらのうちどれか一つのrhsが返される。
+		まずカレントバッファにローカルなマッピングを探し、次のグローバ
+		ルマッピングを探す。
+		この関数はマッピングが曖昧にならないかチェックするために使うこ
+		とができる。例: >
+	:if mapcheck("_vv") == ""
+	:   map _vv :set guifont=7x13<CR>
+	:endif
+<		これは、"_vv"というマッピングが"_v"とか"_vvv"といったマッピン
+		グと衝突しないように事前にチェックしている。
 
 match({expr}, {pat}[, {start}[, {count}]])			*match()*
-		When {expr} is a |List| then this returns the index of the
-		first item where {pat} matches.  Each item is used as a
-		String, |Lists| and |Dictionaries| are used as echoed.
-		Otherwise, {expr} is used as a String.  The result is a
-		Number, which gives the index (byte offset) in {expr} where
-		{pat} matches.
-		A match at the first character or |List| item returns zero.
-		If there is no match -1 is returned.
-		Example: >
-			:echo match("testing", "ing")	" results in 4
-			:echo match([1, 'x'], '\a')	" results in 1
-<		See |string-match| for how {pat} is used.
+		{expr}がリストの場合は、{pat}にマッチする最初の要素のインデッ
+		クスを返す。各要素は文字列として扱われる。リストと辞書はechoし
+		たときと同じように文字列表現に変換される。
+		それ以外の場合は、{expr}は文字列として扱われる。{expr}の中で
+		{pat}にマッチするインデックス(バイト単位のオフセット)を表す数
+		値を返す。
+		最初の文字またはリストの最初の要素にマッチしたときは0を返す。
+		マッチがないときは-1を返す。
+		例: >
+			:echo match("testing", "ing")	" 結果は 4
+			:echo match([1, 'x'], '\a')	" 結果は 1
+<		{pat}の扱われ方については|string-match|を参照。
 								*strpbrk()*
-		Vim doesn't have a strpbrk() function.  But you can do: >
+		strpbrk()に相当する関数はVimに存在しない。しかし同じことを次の
+		ようにしてできる: >
 			:let sepidx = match(line, '[.,;: \t]')
 <								*strcasestr()*
-		Vim doesn't have a strcasestr() function.  But you can add
-		"\c" to the pattern to ignore case: >
+		strcasestr()に相当する関数はVimに存在しない。しかし正規表現に
+		"\c"をつければ大文字・小文字の違いを無視できる: >
 			:let idx = match(haystack, '\cneedle')
 <
-		If {start} is given, the search starts from byte index
-		{start} in a String or item {start} in a |List|.
-		The result, however, is still the index counted from the
-		first character/item.  Example: >
+		{start}が指定されたときは、文字列のバイトインデックス{start}の
+		位置、またはリストの{start}の要素から検索を始める。
+		その場合も戻り値は最初の文字/要素から数えたインデックスである
+		ことに注意。例: >
 			:echo match("testing", "ing", 2)
-<		result is again "4". >
+<		の結果は"4"。 >
 			:echo match("testing", "ing", 4)
-<		result is again "4". >
+<		の結果は"4"。 >
 			:echo match("testing", "t", 2)
-<		result is "3".
-		For a String, if {start} > 0 then it is like the string starts
-		{start} bytes later, thus "^" will match at {start}.  Except
-		when {count} is given, then it's like matches before the
-		{start} byte are ignored (this is a bit complicated to keep it
-		backwards compatible).
-		For a String, if {start} < 0, it will be set to 0.  For a list
-		the index is counted from the end.
-		If {start} is out of range ({start} > strlen({expr}) for a
-		String or {start} > len({expr}) for a |List|) -1 is returned.
+<		の結果は"3"。
+		文字列の場合、{start} > 0のときは、その文字列が{start}バイト後
+		から始まるかのように扱われる。そのため、"^"は{start}の位置にマッ
+		チする。ただし{count}が指定されたときは、{start}より前における
+		マッチを無視しているかのように振る舞う(これは後方互換性を保つ
+		のを少々複雑にしている)。
+		文字列の場合、{start} < 0のときは{start}に0をセットする。リス
+		トの場合は、末尾からインデックスを数えるという意味になる。
+		{start}が範囲外の場合(文字列で{start} > strlen({expr})となった
+		場合、リストで{start} > len({expr})となった場合)は-1を返す。
 
-		When {count} is given use the {count}'th match.  When a match
-		is found in a String the search for the next one starts one
-		character further.  Thus this example results in 1: >
+		{count}が指定されたときは{count}番目のマッチ位置を返す。文字列
+		でマッチが見つかったとき、次のマッチングは1文字先から行われる。
+		よって次の例は1を返す: >
 			echo match("testing", "..", 0, 2)
-<		In a |List| the search continues in the next item.
-		Note that when {count} is added the way {start} works changes,
-		see above.
+<		リストの場合は次の要素から検索を続ける。
+		Note {count}を指定すると、{start}の扱い方が変わってしまう。
+		前の段落を参照。
 
-		See |pattern| for the patterns that are accepted.
-		The 'ignorecase' option is used to set the ignore-caseness of
-		the pattern.  'smartcase' is NOT used.  The matching is always
-		done like 'magic' is set and 'cpoptions' is empty.
+		受け付ける正規表現については|pattern|を参照。
+		オプション'ignorecase'により、大文字・小文字を区別するかどうか
+		を設定できる。'smartcase'は適用されない。マッチングは常に
+		'magic'をオン、'cpoptions'を空にした状態で行われる。
 
 
 matcharg({nr})							*matcharg()*
-		Selects the {nr} match item, as set with a |:match|,
-		|:2match| or |:3match| command.
-		Return a |List| with two elements:
-			The name of the highlight group used
-			The pattern used.
-		When {nr} is not 1, 2 or 3 returns an empty |List|.
-		When there is no match item set returns ['', ''].
-		This is usef to save and restore a |:match|.
+		|:match|、|:2match|、|:3match|によって設定されているマッチパター
+		ンの情報を返す。{nr}が1のときは|:match|の情報、2のときは
+		|:2match|の情報、3のときは|:3match|の情報を返す。
+		戻り値は次の2個の要素を持つリストである:
+			引数で指定したハイライトグループ名
+			引数で指定した検索パターン
+		{nr}が1、2、3のどれでもないときは空リストを返す。
+		マッチパターンがセットされていないときは['', '']を返す。
+		|:match|を保存し、復元するために使われる。
 
 
 							*matchend()*
 matchend({expr}, {pat})
 		match()と同じだが、返されるのはマッチした部分文字列の終了後の
-		インデックスである。例:
->			:echo matchend("testing", "ing")
-		結果は"7"。
+		インデックスである。例: >
+			:echo matchend("testing", "ing")
+<		結果は"7"。
 							*strspn()* *strcspn()*
-		Vim doesn't have a strspn() or strcspn() function, but you can
-		do it with matchend(): >
+		Vimにはstrspn()やstrcspn()に相当する関数はないが、matchend()を
+		使えば同じことができる: >
 			:let span = matchend(line, '[a-zA-Z]')
 			:let span = matchend(line, '[^a-zA-Z]')
-<		Except that -1 is returned when there are no matches.
+<		ただしマッチがないときには-1を返すところが異なる。
 
-		The {start}, if given, has the same meaning as for match(). >
+		{start}はmatch()の場合と同じ意味を持つ。 >
 			:echo matchend("testing", "ing", 2)
-<		results in "7". >
+<		結果は"7"。 >
 			:echo matchend("testing", "ing", 5)
-<		result is "-1".
-		When {expr} is a |List| the result is equal to match().
+<		結果は"-1"。
+		{expr}がリストの場合、戻り値はmatch()と等しくなる。
 
 matchlist({expr}, {pat}[, {start}[, {count}]])			*matchlist()*
 		Same as match(), but return a |List|.  The first item in the
@@ -4820,14 +4837,12 @@ tempname()
 >			exe "redir > " . tmpfile
 
 tolower({expr})						*tolower()*
-		The result is a copy of the String given, with all uppercase
-		characters turned into lowercase (just like applying |gu| to
-		the string).
+		引数の文字列の大文字を小文字に変換してできた文字列を返す(文字
+		列に|gu|を適用するのとちょうど同じ)。
 
 toupper({expr})						*toupper()*
-		The result is a copy of the String given, with all lowercase
-		characters turned into uppercase (just like applying |gU| to
-		the string).
+		引数の文字列の小文字を大文字に変換してできた文字列を返す(文字
+		列に|gU|を適用するのとちょうど同じ)。
 
 tr({src}, {fromstr}, {tostr})				*tr()*
 		The result is a copy of the {src} string with all characters
@@ -4844,13 +4859,13 @@ tr({src}, {fromstr}, {tostr})				*tr()*
 <		returns "{blob}"
 
 							*type()*
-type({expr})	The result is a Number, depending on the type of {expr}:
-			Number:	    0
-			String:	    1
+type({expr})	{expr}の型を示す数値を返す:
+			数値:	    0
+			文字列:	    1
 			Funcref:    2
-			List:	    3
-			Dictionary: 4
-		To avoid the magic numbers it should be used this way: >
+			リスト:	    3
+			辞書:	    4
+		マジックナンバーを使わず次のように使うべきである: >
 			:if type(myvar) == type(0)
 			:if type(myvar) == type("")
 			:if type(myvar) == type(function("tr"))
@@ -4858,6 +4873,7 @@ type({expr})	The result is a Number, depending on the type of {expr}:
 			:if type(myvar) == type({})
 
 values({dict})						*values()*
+
 		Return a |List| with all the values of {dict}.  The |List| is
 		in arbitrary order.
 
