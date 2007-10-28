@@ -69,7 +69,7 @@ for my $infile (@INFILES)
 	my $mod_in = (stat($infile))[9];
 	if ($mod_out >= $mod_in and $mod_out >= $MOD_SCRIPT)
 	{
-	    print STDERR "Skip newer: $infile\n" if $VERBOSE > 0; 
+	    print STDERR "Skip newer: $infile\n" if $VERBOSE >= 2; 
 	    next;
 	}
     }
@@ -84,7 +84,7 @@ for my $infile (@INFILES)
 	next;
     }
     open IN, $infile;
-    print STDERR "Filter: $infile -> $outfile\n" if $VERBOSE > 0;
+    print STDERR "Updated: $infile\n" if $VERBOSE >= 1;
     &filter_file($infile, $outfile, \*IN, \*OUT);
     close IN;
     close OUT;
