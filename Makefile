@@ -3,6 +3,7 @@ TARGET_LANG=ja
 
 all: $(OUTDIR)/runtime others
 	@perl tools/doc_maker.pl -v -p -d $(OUTDIR)/runtime/doc -e jax $(TARGET_LANG)/*.$(TARGET_LANG)x
+	@perl tools/status_table.pl -i ja > $(OUTDIR)/status_ja.html
 
 clean:
 	rm -rf $(OUTDIR)/runtime
