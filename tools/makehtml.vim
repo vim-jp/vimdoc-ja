@@ -87,9 +87,7 @@ function! MakeHtml(fname)
     endfor
   endif
 
-  call s:WorkAroundToAvoidSyntaxBug1()
   TOhtml
-  call s:WorkAroundToAvoidSyntaxBug2()
 
   let lang = s:GetLang(a:fname)
   silent %s@<span class="\(helpHyperTextEntry\|helpHyperTextJump\|helpOption\)">\([^<]*\)</span>@\=s:MakeLink(lang, submatch(1), submatch(2))@ge
@@ -259,24 +257,5 @@ function! s:Log(fmt, ...)
       call add(s:log, call("printf", [a:fmt] + a:000))
     endif
   endif
-endfunction
-
-function! s:WorkAroundToAvoidSyntaxBug1()
-  " |:syn-pattern-offset| can't handle multi-byte character.
-  g/^./call s:_Sub()
-endfunction
-
-function! s:_Sub()
-  let c = matchstr(getline('.'), '.')
-  if len(c) != 1
-    if synID(line('.'), 1, 1) != synID(line('.'), len(c), 1)
-      " put single byte character to avoid bug
-      silent s@^@#$%@
-    endif
-  endif
-endfunction
-
-function! s:WorkAroundToAvoidSyntaxBug2()
-  silent %s@^#$%@@ge
 endfunction
 
