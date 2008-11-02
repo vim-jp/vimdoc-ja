@@ -1,4 +1,4 @@
-*pattern.txt*   For Vim version 7.0.  Last change: 2006 Apr 30
+*pattern.txt*   For Vim version 7.2.  Last change: 2008 Sep 05
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -32,12 +32,13 @@ explanations are in chapter 27 |usr_27.txt|.
 			|linewise|.
 
 							*/<CR>*
-/<CR>			Search forward for the [count]'th latest used
-			pattern |last-pattern| with latest used |{offset}|.
+/<CR>			Search forward for the [count]'th occurrence of the
+			latest used pattern |last-pattern| with latest used
+			|{offset}|.
 
-//{offset}<CR>		Search forward for the [count]'th latest used
-			pattern |last-pattern| with new |{offset}|.  If
-			{offset} is empty no offset is used.
+//{offset}<CR>		Search forward for the [count]'th occurrence of the
+			latest used pattern |last-pattern| with new
+			|{offset}|.  If {offset} is empty no offset is used.
 
 							*?*
 ?{pattern}[?]<CR>	Search backward for the [count]'th previous
@@ -48,12 +49,13 @@ explanations are in chapter 27 |usr_27.txt|.
 			down |linewise|.
 
 							*?<CR>*
-?<CR>			Search backward for the [count]'th latest used
-			pattern |last-pattern| with latest used |{offset}|.
+?<CR>			Search backward for the [count]'th occurrence of the
+			latest used pattern |last-pattern| with latest used
+			|{offset}|.
 
-??{offset}<CR>		Search backward for the [count]'th latest used
-			pattern |last-pattern| with new |{offset}|.  If
-			{offset} is empty no offset is used.
+??{offset}<CR>		Search backward for the [count]'th occurrence of the
+			latest used pattern |last-pattern| with new
+			|{offset}|.  If {offset} is empty no offset is used.
 
 							*n*
 n			Repeat the latest "/" or "?" [count] times.
@@ -138,6 +140,7 @@ CTRL-C			Interrupt current (search) command.  Use CTRL-Break on
 			This command doesn't work in an autocommand, because
 			the highlighting state is saved and restored when
 			executing autocommands |autocmd-searchpat|.
+			Same thing for when invoking a user function.
 
 While typing the search pattern the current match will be shown if the
 'incsearch' option is on.  Remember that you still have to finish the search
@@ -497,8 +500,8 @@ Character classes {not in Vi}:				*/character-classes*
 |/[]|	[]	\[]	any character specified inside the []
 |/\%[]| \%[]	\%[]	a sequence of optionally matched atoms
 
-|/\c|	\c	\c	ignore case
-|/\C|	\C	\C	match case
+|/\c|	\c	\c	ignore case, do not use the 'ignorecase' option
+|/\C|	\C	\C	match case, do not use the 'ignorecase' option
 |/\m|	\m	\m	'magic' on for the following chars in the pattern
 |/\M|	\M	\M	'magic' off for the following chars in the pattern
 |/\v|	\v	\v	the following chars in the pattern are "very magic"
@@ -506,7 +509,7 @@ Character classes {not in Vi}:				*/character-classes*
 |/\Z|	\Z	\Z	ignore differences in Unicode "combining characters".
 			Useful when searching voweled Hebrew or Arabic text.
 
-|/\%d|	\%d	\%d	match specified decimal character (eg \%d123
+|/\%d|	\%d	\%d	match specified decimal character (eg \%d123)
 |/\%x|	\%x	\%x	match specified hex character (eg \%x2a)
 |/\%o|	\%o	\%o	match specified octal character (eg \%o040)
 |/\%u|	\%u	\%u	match specified multibyte character (eg \%u20ac)
@@ -587,7 +590,7 @@ overview.
 	{Vi does not have any of these}
 
 	n and m are positive decimal numbers or zero
-
+								*non-greedy*
 	If a "-" appears immediately after the "{", then a shortest match
 	first algorithm is used (see example below).  In particular, "\{-}" is
 	the same as "*" but uses the shortest match first algorithm.  BUT: A
@@ -596,9 +599,9 @@ overview.
 
 	Example			matches ~
 	ab\{2,3}c		"abbc" or "abbbc"
-	a\{5}			"aaaaa".
-	ab\{2,}c		"abbc", "abbbc", "abbbbc", etc
-	ab\{,3}c		"ac", "abc", "abbc" or "abbbc".
+	a\{5}			"aaaaa"
+	ab\{2,}c		"abbc", "abbbc", "abbbbc", etc.
+	ab\{,3}c		"ac", "abc", "abbc" or "abbbc"
 	a[bc]\{3}d		"abbbd", "abbcd", "acbcd", "acccd", etc.
 	a\(bc\)\{1,2}d		"abcd" or "abcbcd"
 	a[bc]\{-}[cd]		"abc" in "abcd"
@@ -681,11 +684,11 @@ overview.
 	for a match).
 	Example			matches ~
 	\(foo\)\@<!bar		any "bar" that's not in "foobar"
-	\(\/\/.*\)\@\<!in	"in" which is not after "//"
+	\(\/\/.*\)\@<!in	"in" which is not after "//"
 
 							*/\@>*
 \@>	Matches the preceding atom like matching a whole pattern. {not in Vi}
-	Like '(?>pattern)" in Perl.
+	Like "(?>pattern)" in Perl.
 	Example		matches ~
 	\(a*\)\@>a	nothing (the "a*" takes all the "a"'s, there can't be
 			another one following)
@@ -720,7 +723,7 @@ An ordinary atom can be:
 			start-of-line
 
 							*/$*
-$	At end of pattern or in front of "\|" or "\)" ("|" or ")" after "\v"):
+$	At end of pattern or in front of "\|", "\)" or "\n" ('magic' on):
 	matches end-of-line <EOL>; at other positions, matches literal '$'.
 	|/zero-width|
 
@@ -793,7 +796,11 @@ $	At end of pattern or in front of "\|" or "\)" ("|" or ")" after "\v"):
 						*/\%V*
 \%V	Match inside the Visual area.  When Visual mode has already been
 	stopped match in the area that |gv| would reselect.
-	Only works for the current buffer.
+	This is a |/zero-width| match.  To make sure the whole pattern is
+	inside the Visual area put it at the start and end of the pattern,
+	e.g.: >
+		/\%Vfoo.*bar\%V
+<	Only works for the current buffer.
 
 						*/\%#* *cursor-position*
 \%#	Matches with the cursor position.  Only works when matching in a
@@ -865,12 +872,12 @@ $	At end of pattern or in front of "\|" or "\)" ("|" or ")" after "\v"):
 	values of the current window are used (e.g., 'tabstop').
 	The "23" can be any column number.  The first column is 1.
 	Note that some virtual column positions will never match, because they
-	are halfway a Tab or other character that occupies more than one
-	screen character.  {not in Vi}
+	are halfway through a tab or other character that occupies more than
+	one screen character.  {not in Vi}
 	WARNING: When inserting or deleting text Vim does not automatically
 	update highlighted matches.  This means Syntax highlighting quickly
 	becomes wrong.
-	Example, to highlight the all characters after virtual column 72: >
+	Example, to highlight all the characters after virtual column 72: >
 		/\%>72v.*
 <	When 'hlsearch' is set and you move the cursor around and make changes
 	this will clearly show when the match is updated or not.
@@ -969,7 +976,7 @@ x	A single character, with no special meaning, matches itself
 	[xyz]		any 'x', 'y' or 'z'
 	[a-zA-Z]$	any alphabetic character at the end of a line
 	\c[a-z]$	same
-
+								*/[\n]*
 	With "\_" prepended the collection also includes the end-of-line.
 	The same can be done by including "\n" in the collection.  The
 	end-of-line is also matched when the collection starts with "^"!  Thus
@@ -1042,6 +1049,7 @@ x	A single character, with no special meaning, matches itself
 		\t	<Tab>
 		\r	<CR>	(NOT end-of-line!)
 		\b	<BS>
+		\n	line break, see above |/[\n]|
 		\d123	decimal number of character
 		\o40	octal number of character up to 0377
 		\x20	hexadecimal number of character up to 0xff
@@ -1068,6 +1076,11 @@ x	A single character, with no special meaning, matches itself
 	You don't often have to use it, but it is possible.  Example: >
 		/\<r\%[[eo]ad]\>
 <	Matches the words "r", "re", "ro", "rea", "roa", "read" and "road".
+	There can be no \(\), \%(\) or \z(\) items inside the [] and \%[] does
+	not nest.
+	To include a "[" use "[[]" and for "]" use []]", e.g.,: >
+		/index\%[[[]0[]]]
+<	matches "index" "index[", "index[0" and "index[0]".
 	{not available when compiled without the +syntax feature}
 
 				*/\%d* */\%x* */\%o* */\%u* */\%U* *E678*
@@ -1115,7 +1128,7 @@ in the file.  {Vi cannot handle <Nul> characters in the file at all}
 
 						*CR-used-for-NL*
 When 'fileformat' is "mac", <NL> characters in the file are stored as <CR>
-characters internally.  In the display they are shown as "^M".  Otherwise this
+characters internally.  In the text they are shown as "^J".  Otherwise this
 works similar to the usage of <NL> for a <Nul>.
 
 When working with expression evaluation, a <NL> character in the pattern
@@ -1145,7 +1158,7 @@ composing character by itself, except that it doesn't matter what comes before
 this.
 
 The order of composing characters matters, even though changing the order
-doen't change what a character looks like.  This may change in the future.
+doesn't change what a character looks like.  This may change in the future.
 
 ==============================================================================
 9. Compare with Perl patterns				*perl-patterns*
@@ -1209,7 +1222,10 @@ Finally, these constructs are unique to Perl:
 		{group} must exist at the moment this command is executed.
 
 		The {group} highlighting still applies when a character is
-		to be highlighted for 'hlsearch'.
+		to be highlighted for 'hlsearch', as the highlighting for
+		matches is given higher priority than that of 'hlsearch'.
+		Syntax highlighting (see 'syntax') is also overruled by
+		matches.
 
 		Note that highlighting the last used search pattern with
 		'hlsearch' is used in all windows, while the pattern defined
@@ -1219,8 +1235,22 @@ Finally, these constructs are unique to Perl:
 		'ignorecase' does not apply, use |/\c| in the pattern to
 		ignore case.  Otherwise case is not ignored.
 
-		Also see |matcharg()|, it returns the highlight group and
-		pattern of a previous :match command.
+		'redrawtime' defines the maximum time searched for pattern
+		matches.
+
+		When matching end-of-line and Vim redraws only part of the
+		display you may get unexpected results.  That is because Vim
+		looks for a match in the line where redrawing starts.
+
+		Also see |matcharg()| and |getmatches()|. The former returns
+		the highlight group and pattern of a previous |:match|
+		command.  The latter returns a list with highlight groups and
+		patterns defined by both |matchadd()| and |:match|.
+
+		Highlighting matches using |:match| are limited to three
+		matches (aside from |:match|, |:2match| and |:3match|are
+		available). |matchadd()| does not have this limitation and in
+		addition makes it possible to prioritize matches.
 
 		Another example, which highlights all characters in virtual
 		column 72 and more: >
