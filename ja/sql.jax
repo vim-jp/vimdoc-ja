@@ -1,8 +1,8 @@
 COMMENT: SQL ファイルタイププラグイン
-STATUS: finished 7.1
+STATUS: finished 7.2
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*sql.txt*	For Vim version 7.1.  Last change: Wed Apr 26 2006 3:05:33 PM
+*sql.txt*	For Vim バージョン 7.2.  Last change: 2009 Nov 03
 
 by David Fishburn
 
@@ -19,7 +19,8 @@ Structured Query Language (SQL) はリレーショナルデータベースと対
     1.4 マクロ					|sql-macros|
 2. SQL の方言					|sql-dialects|
     2.1 SQLSetType				|SQLSetType|
-    2.2 SQL 方言の既定値			|sql-type-default|
+    2.2 SQLGetType				|SQLGetType|
+    2.3 SQL 方言の既定値			|sql-type-default|
 3. SQL 方言を追加する				|sql-adding-dialects|
 4. SQL オムニ補完				|sql-completion|
     4.1 static モード				|sql-completion-static|
@@ -207,7 +208,7 @@ Vim の機能に対応しています: >
 						*sqlanywhere*
 						*oracle* *plsql* *sqlj*
 						*sqlserver*
-						*mysql* *postgres* *psql*
+						*mysql* *postgress* *psql*
 						*informix*
 
 すべてのリレーショナルデータベースは SQL に対応しています。SQL の一部分はベン
@@ -259,7 +260,17 @@ ftplugin/sql.vim では次のコマンドが定義されています: >
     :SQL<Tab><space><Tab>
 
 
-2.2 SQL 方言の既定値				*sql-type-default*
+2.2 SQLGetType					*sqlgettype* *SQLGetType*
+--------------
+現在、どのSQL の方言が使われているかを調べるには、コマンド SQLGetType を使い
+ます。ftplugin/sql.vim で次のコマンドが定義されています: >
+    SQLGetType
+
+このコマンドを使うと、以下のような文字列がエコー表示されます: >
+    Current SQL dialect in use:sqlanywhere
+
+
+2.3 SQL 方言の既定値				*sql-type-default*
 -----------------------
 すでに述べたように、Vim の既定の構文ルールは Oracle (PL/SQL) に基づいています。
 これを上書きするには、次のうちどれかを |vimrc| に書きます: >
@@ -327,6 +338,11 @@ static ポップアップはファイルタイプが SQL のファイルを編�
     imap <buffer> <C-C>o <C-\><C-O>:call sqlcomplete#Map('sqlOption')<CR><C-X><C-O>
     imap <buffer> <C-C>T <C-\><C-O>:call sqlcomplete#Map('sqlType')<CR><C-X><C-O>
     imap <buffer> <C-C>s <C-\><C-O>:call sqlcomplete#Map('sqlStatement')<CR><C-X><C-O>
+
+"<C-C>" のキーは環境によっては動作しないかもしれません。そこで、以下の行を
+|.vimrc| に書くことで "<C-C>" を他のキーに変更できます: >
+    let g:ftplugin_sql_omni_key = '<C-C>'
+>
 
 static マップ(構文強調グループに基づいている)は以下の形式で定義されています: >
     imap <buffer> <C-C>k <C-\><C-O>:call sqlcomplete#Map('sqlKeyword')<CR><C-X><C-O>
@@ -402,14 +418,18 @@ dbext を使うと SQL 補完プラグインがテーブル、プロシージャ
      ビューリスト	    - <C-C>v
      カラムリスト	    - <C-C>c
 
-     Windows のみ	    - テーブルリストのポップアップウィンドウを表示中
-			      に <C-Right> を押すと現在選択されているテーブル 
+     ドリルイン／アウト     - テーブルリストのポップアップウィンドウを表示中
+			      に <Right> を押すと現在選択されているテーブル 
 			      のカラムリストの表示に切り替わります。
 			    - カラムリストのポップアップウィンドウを表示中に
-			      <C-Left> を押すとテーブルリスト表示に切り替わり
+			      <Left> を押すとテーブルリスト表示に切り替わり
 			      ます。
 			    - これを使えばテーブルリストとカラムリストの表示を
 			      素早く切り替えることができます。
+			    - <Right> と <Left> のキーも |.vimrc| により変更で
+			      きます >
+                                let g:ftplugin_sql_omni_key_right = '<Right>'
+                                let g:ftplugin_sql_omni_key_left  = '<Left>'
 
 SQL 補完プラグインはポップアップウィンドウに表示されるリストをキャッシュしてお
 きます。これによってリストの再表示がとても高速になります。データベースに新しい
@@ -485,28 +505,23 @@ NOTE: SQL 補完ポップアップはすべてキーマップの前のプリフ�
 SQL 補完プラグインは特定のテーブルのカラムのリストを表示することもできます。 
 このカラム補完は <C-C>c で起動できます。
 
-NOTE: 以下の例ではポップアップウィンドウの表示中に <C-Right> でカラムリストを
-表示しています。しかしこのマップは Windows でのみ有効であり、*nix では CTRL と
-カー ソル右キーの同時押しは認識されません。*nix でこの機能を利用にするにはキ 
-ーを選び、以下のマップのどれかを作ってください(どこでのこの imap を作るかにつ 
-いてより詳しくは |sql-completion-maps| を参照してください): >
-    imap <buffer> <your_keystroke> <C-R>=sqlcomplete#DrillIntoTable()<CR>
-    imap <buffer> <your_keystroke> <C-Y><C-\><C-O>:call sqlcomplete#Map('column')<CR><C-X><C-O>
+NOTE: 以下の例ではポップアップウィンドウの表示中に <Right> でカラムリストを
+表示しています。
 
 カラム補完を使用している様子の例:
      - もう一度 <C-C>t を押すとテーブルのリストが表示されます。
-     - 補完ウィンドウにリストが表示されているとき <C-Right> を押すとテーブル
+     - 補完ウィンドウにリストが表示されているとき <Right> を押すとテーブル
        のリストが消え、途中まで 入力されたテーブルに含まれるカラムのリスト表 
        示に切り替わります(すこし時間がかかります)。
-     - <C-Left> を押すとカラムリストからテーブルリストに切り替わります。これに
+     - <Left> を押すとカラムリストからテーブルリストに切り替わります。これに
        よってテーブルリストとカラムリストをとても素早く切り替えられます。
-     - 同じテーブルに対してもう一度 <C-Right> を押すと、今度はカラムリストがキ
+     - 同じテーブルに対してもう一度 <Right> を押すと、今度はカラムリストがキ
        ャッシュされているため時間がかからないことに気づくでしょう。キャッシュ 
        しているテーブルのスキーマが変更されたときは <C-C>R を押します。すると
        SQL 補完のキャッシュがクリアされます。
-     - NOTE: <C-Right> と <C-Left> は補完ウィンドウがアクティブな状態で動作す
+     - NOTE: <Right> と <Left> は補完ウィンドウがアクティブな状態で動作す
        るよう設計されています。補完のポップアップウィンドウがアクティブでない
-       場合はノーマルモードでの <C-Right> と <C-Left> の動作になります。
+       場合はノーマルモードでの <Right> と <Left> の動作になります。
 
 SQL 文を動的に組み立てる方法を見ていきましょう。select 文にはカラムのリストが
 必要です。SQL 補完プラグインを使ってカラムのリストを組み立てる方法は 2 通りあ
@@ -514,7 +529,7 @@ SQL 文を動的に組み立てる方法を見ていきましょう。select 文
     一度に 1 カラムを挿入する方法:
 <       1. SELECT を入力した後に <C-c>t を押してテーブルリストを表示します。
 	2. リストからテーブルを選択します。
-	3. <C-Right> を押してカラムリストを表示します。
+	3. <Right> を押してカラムリストを表示します。
 	4. リストからカラムを選択してエンターを押します。
 	5. "," を入力して <C-c>c を押します。通常、カラムリストを生成するには
 	   カーソルをテーブル名の上に置かねばなりません。プラグインはその名前
@@ -663,13 +678,13 @@ dynamic モードのマップ
     <C-C>L
 <       - 指定テーブルのカラムのリストをカンマ区切りで表示します。
 	  補完ウィンドウがアクティブなときだけ使用できます。 >
-    <C-Right>
+    <Right>
 <	- 現在補完リストでカーソルが指しているテーブルのカラムリストを表示しま
-	  す。ほとんどの Unix システムでは <C-Right> を認識できないため、この
+	  す。ほとんどの Unix システムでは <Right> を認識できないため、この
 	  マップは Windows でのみ定義されます。同じ機能を Unix でも利用するに
 	  は他のキーを選んで自分の vimrc で同じマップを定義してください。 >
-    <C-Left>
-<	- テーブルのリストを表示します。ほとんどの Unix システムでは <C-Left> 
+    <Left>
+<	- テーブルのリストを表示します。ほとんどの Unix システムでは <Left> 
 	  を認識できないため、このマップは Windows でのみ定義されます。同じ機
 	  能を Unix でも利用するには他のキーを選んで自分の vimrc で同じマップ
 	  を定義してください。
