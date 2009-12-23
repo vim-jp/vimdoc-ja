@@ -1,4 +1,4 @@
-*repeat.txt*    For Vim version 7.0.  Last change: 2006 Apr 30
+*repeat.txt*    For Vim version 7.2.  Last change: 2009 Nov 04
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -53,6 +53,13 @@ selection, the same SIZE of area is used, see |visual-repeat|.
 :[range]v[global]/{pattern}/[cmd]
 			Same as :g!.
 
+Instead of the '/' which surrounds the {pattern}, you can use any other
+single byte character, but not an alphanumeric character, '\', '"' or '|'.
+This is useful if you want to include a '/' in the search pattern or
+replacement string.
+
+For the definition of a pattern, see |pattern|.
+
 The global commands work by first scanning through the [range] lines and
 marking each line where a match occurs (for a multi-line pattern, only the
 start of the match matters).
@@ -82,10 +89,11 @@ This replaces all occurrences of "pat" with "PAT".  The same can be done with:
 	:%s/pat/PAT/g
 Which is two characters shorter!
 
-A special case is using ":visual" as a command.  This will move to a matching
-line, go to Normal mode to let you execute commands there until you use |Q| to
-return to Ex mode.  This will be repeated for each matching line.  While doing
-this you cannot use ":global".
+When using "global" in Ex mode, a special case is using ":visual" as a
+command.  This will move to a matching line, go to Normal mode to let you
+execute commands there until you use |Q| to return to Ex mode.  This will be
+repeated for each matching line.  While doing this you cannot use ":global".
+To abort this type CTRL-C twice.
 
 ==============================================================================
 3. Complex repeats					*complex-repeat*
@@ -323,6 +331,12 @@ All leading whitespace characters in the line before a backslash are ignored.
 Note however that trailing whitespace in the line before it cannot be
 inserted freely; it depends on the position where a command is split up
 whether additional whitespace is allowed or not.
+
+When a space is required it's best to put it right after the backslash.  A
+space at the end of a line is hard to see and may be accidentally deleted. >
+	:syn match Comment
+		\ "very long regexp"
+		\ keepend
 
 There is a problem with the ":append" and ":insert" commands: >
    :1append
@@ -655,5 +669,8 @@ mind there are various things that may clobber the results:
 <
 - Profiling may give weird results on multi-processor systems, when sleep
   mode kicks in or the processor frequency is reduced to save power.
+
+- The "self" time is wrong when a function is used recursively.
+
 
  vim:tw=78:ts=8:ft=help:norl:

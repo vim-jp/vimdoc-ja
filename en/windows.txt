@@ -1,4 +1,4 @@
-*windows.txt*   For Vim version 7.1.  Last change: 2007 Mar 17
+*windows.txt*   For Vim version 7.2.  Last change: 2009 Sep 23
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -34,6 +34,11 @@ disabled at compile time}
 
 ==============================================================================
 1. Introduction					*windows-intro* *window*
+
+Summary:
+   A buffer is the in-memory text of a file.
+   A window is a viewport on a buffer.
+   A tab page is a collection of windows.
 
 A window is a viewport onto a buffer.  You can use multiple windows on one
 buffer, or several windows on different buffers.
@@ -132,7 +137,8 @@ CTRL-W CTRL-S						*CTRL-W_CTRL-S*
 		the same file.  Make new window N high (default is to use half
 		the height of the current window).  Reduces the current window
 		height to create room (and others, if the 'equalalways' option
-		is set and 'eadirection' isn't "hor").
+		is set, 'eadirection' isn't "hor", and one of them is higher
+		than the current or the new window).
 		Note: CTRL-S does not work on all terminals and might block
 		further input, use CTRL-Q to get going again.
 		Also see |++opt| and |+cmd|.
@@ -140,9 +146,13 @@ CTRL-W CTRL-S						*CTRL-W_CTRL-S*
 CTRL-W CTRL-V						*CTRL-W_CTRL-V*
 CTRL-W v						*CTRL-W_v*
 :[N]vs[plit] [++opt] [+cmd] [file]			*:vs* *:vsplit*
-		Like |:split|, but split vertically.  If 'equalalways' is set
-		and 'eadirection' isn't "ver" the windows will be spread out
-		horizontally, unless a width was specified.
+		Like |:split|, but split vertically.  The windows will be
+		spread out horizontally if
+		1. a width was not specified,
+		2. 'equalalways' is set,
+		3. 'eadirection' isn't "ver", and
+		4. one of the other windows is wider than the current or new
+		   window.
 		Note: In other places CTRL-Q does the same as CTRL-V, but here
 		it doesn't!
 
@@ -185,8 +195,8 @@ CTRL-W CTRL_N						*CTRL-W_CTRL-N*
 		Same as ":split", but set 'readonly' option for this buffer.
 
 :[N]sf[ind] [++opt] [+cmd] {file}		*:sf* *:sfind* *splitfind*
-		Same as ":split", but search for {file} in 'path'.  Doesn't
-		split if {file} is not found.
+		Same as ":split", but search for {file} in 'path' like in
+		|:find|.  Doesn't split if {file} is not found.
 
 CTRL-W CTRL-^					*CTRL-W_CTRL-^* *CTRL-W_^*
 CTRL-W ^	Does ":split #", split window in two and edit alternate file.
@@ -337,13 +347,13 @@ CTRL-W CTRL-W	Without count: move cursor to window below/right of the
 		top-left window.
 		With count: go to Nth window (windows are numbered from
 		top-left to bottom-right).  To obtain the window number see
-		|bufwinnr()| and |winnr()|.
+		|bufwinnr()| and |winnr()|.  When N is larger than the number
+		of windows go to the last window.
 
 						*CTRL-W_W*
 CTRL-W W	Without count: move cursor to window above/left of current
 		one.  If there is no window above or left, go to bottom-right
-		window.  With count: go to Nth window (windows are numbered
-		from top-left to bottom-right).
+		window.  With count: go to Nth window, like with CTRL-W w.
 
 CTRL-W t					*CTRL-W_t* *CTRL-W_CTRL-T*
 CTRL-W CTRL-T	Move cursor to top-left window.
@@ -622,7 +632,7 @@ can also get to them with the buffer list commands, like ":bnext".
 		not split.  Also see |++opt| and |+cmd|.
 
 						*:dr* *:drop*
-:dr[op] {file} ..
+:dr[op] [++opt] [+cmd] {file} ..
 		Edit the first {file} in a window.
 		- If the file is already open in a window change to that
 		  window.
@@ -634,6 +644,7 @@ can also get to them with the buffer list commands, like ":bnext".
 		program that wants Vim to edit another file, e.g., a debugger.
 		When using the |:tab| modifier each argument is opened in a
 		tab page.  The last window is used if it's empty.
+		Also see |++opt| and |+cmd|.
 		{only available when compiled with the +gui feature}
 
 ==============================================================================
@@ -1028,8 +1039,8 @@ list of buffers. |unlisted-buffer|
 		[!].  This will also edit a buffer that is not in the buffer
 		list, without setting the 'buflisted' flag.
 
-:[N]b[uffer][!] {filename}
-		Edit buffer for {filename} from the buffer list.  See
+:[N]b[uffer][!] {bufname}
+		Edit buffer for {bufname} from the buffer list.  See
 		|:buffer-!| for [!].  This will also edit a buffer that is not
 		in the buffer list, without setting the 'buflisted' flag.
 
@@ -1040,8 +1051,8 @@ list of buffers. |unlisted-buffer|
 		also edit a buffer that is not in the buffer list, without
 		setting the 'buflisted' flag.
 
-:[N]sb[uffer] {filename}
-		Split window and edit buffer for {filename} from the buffer
+:[N]sb[uffer] {bufname}
+		Split window and edit buffer for {bufname} from the buffer
 		list.  This will also edit a buffer that is not in the buffer
 		list, without setting the 'buflisted' flag.
 		Note: If what you want to do is split the buffer, make a copy
@@ -1169,7 +1180,8 @@ scratch		Contains text that can be discarded at any time.  It is kept
 			:setlocal buftype=nofile
 			:setlocal bufhidden=hide
 			:setlocal noswapfile
-<		The buffer name can be used to identify the buffer.
+<		The buffer name can be used to identify the buffer, if you
+		give it a meaningful name.
 
 						*unlisted-buffer*
 unlisted	The buffer is not in the buffer list.  It is not used for
