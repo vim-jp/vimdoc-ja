@@ -1,4 +1,4 @@
-*index.txt*     For Vim version 7.0.  Last change: 2006 Apr 30
+*index.txt*     For Vim version 7.2.  Last change: 2009 Jul 01
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -467,6 +467,7 @@ tag		command		   action in Normal mode	~
 |v_ab|		ab		   "a block" from "[(" to "])" (with braces)
 |v_ap|		ap		   "a paragraph" (with white space)
 |v_as|		as		   "a sentence" (with white space)
+|v_at|		at		   "a tag block" (with white space)
 |v_aw|		aw		   "a word" (with white space)
 |v_a{|		a{		   same as aB
 |v_a}|		a}		   same as aB
@@ -484,6 +485,7 @@ tag		command		   action in Normal mode	~
 |v_ib|		ib		   "inner block" from "[(" to "])"
 |v_ip|		ip		   "inner paragraph"
 |v_is|		is		   "inner sentence"
+|v_it|		it		   "inner tag block"
 |v_iw|		iw		   "inner word"
 |v_i{|		i{		   same as iB
 |v_i}|		i}		   same as iB
@@ -520,7 +522,7 @@ tag		command		   action in Normal mode	~
 |CTRL-W_+|	CTRL-W +	   increase current window height N lines
 |CTRL-W_-|	CTRL-W -	   decrease current window height N lines
 |CTRL-W_<|	CTRL-W <	   decrease current window width N columns
-|CTRL-W_=|	CTRL-W =	   make all windows the same height
+|CTRL-W_=|	CTRL-W =	   make all windows the same height & width
 |CTRL-W_>|	CTRL-W >	   increase current window width N columns
 |CTRL-W_H|	CTRL-W H	   move current window to the far left
 |CTRL-W_J|	CTRL-W J	   move current window to the very bottom
@@ -570,7 +572,7 @@ tag		command		   action in Normal mode	~
 				   window N lines high
 |CTRL-W_t|	CTRL-W t	   go to top window
 |CTRL-W_v|	CTRL-W v	   split current window vertically, new window
-				   N lines wide
+				   N columns wide
 |CTRL-W_w|	CTRL-W w	   go to N next window (wrap around)
 |CTRL-W_x|	CTRL-W x	   exchange current window with window N
 				   (default: next window)
@@ -624,9 +626,10 @@ tag		char	      note action in Normal mode	~
 				   included files that contains the word under
 				   the cursor, start searching at beginning of
 				   current file
-|[p|		[p		2  like "P", but adjust indent to current line
 |[m|		[m		1  cursor N times back to start of member
 				   function
+|[p|		[p		2  like "P", but adjust indent to current line
+|[s|		[s		1  move to the previous misspelled word
 |[z|		[z		1  move to start of open fold
 |[{|		[{		1  cursor N times back to unmatched '{'
 |[<MiddleMouse> [<MiddleMouse>	2  same as "[p"
@@ -663,9 +666,10 @@ tag		char	      note action in Normal mode	~
 				   included files that contains the word under
 				   the cursor, start searching at cursor
 				   position
-|]p|		]p		2  like "p", but adjust indent to current line
 |]m|		]m		1  cursor N times forward to end of member
 				   function
+|]p|		]p		2  like "p", but adjust indent to current line
+|]s|		]s		1  move to next misspelled word
 |]z|		]z		1  move to end of open fold
 |]}|		]}		1  cursor N times forward to unmatched '}'
 |]<MiddleMouse> ]<MiddleMouse>	2  same as "]p"
@@ -748,6 +752,8 @@ tag		char	      note action in Normal mode	~
 |gu|		gu{motion}	2  make Nmove text lowercase
 |gv|		gv		   reselect the previous Visual area
 |gw|		gw{motion}	2  format Nmove text and keep cursor
+|netrw-gx|	gx		   execute application for file name under the
+				   cursor (only with |netrw| plugin)
 |g@|		g@{motion}	   call 'operatorfunc'
 |g~|		g~{motion}	2  swap case for Nmove text
 |g<Down>|	g<Down>		1  same as "gj"
@@ -870,6 +876,10 @@ tag		command	      note action in Visual mode	~
 				   mode
 |v_X|		X		2  delete the highlighted lines
 |v_Y|		Y		   yank the highlighted lines
+|v_aquote|	a"		   extend highlighted area with a double
+				   quoted string
+|v_a'|		a'		   extend highlighted area with a single
+				   quoted string
 |v_a(|		a(		   same as ab
 |v_a)|		a)		   same as ab
 |v_a<|		a<		   extend highlighted area with a <> block
@@ -878,9 +888,12 @@ tag		command	      note action in Visual mode	~
 |v_aW|		aW		   extend highlighted area with "a WORD"
 |v_a[|		a[		   extend highlighted area with a [] block
 |v_a]|		a]		   same as a[
+|v_a`|		a`		   extend highlighted area with a backtick
+				   quoted string
 |v_ab|		ab		   extend highlighted area with a () block
 |v_ap|		ap		   extend highlighted area with a paragraph
 |v_as|		as		   extend highlighted area with a sentence
+|v_at|		at		   extend highlighted area with a tag block
 |v_aw|		aw		   extend highlighted area with "a word"
 |v_a{|		a{		   same as aB
 |v_a}|		a}		   same as aB
@@ -891,6 +904,10 @@ tag		command	      note action in Visual mode	~
 |v_gq|		gq		2  format the highlighted lines
 |v_gv|		gv		   exchange current and previous highlighted
 				   area
+|v_iquote|	i"		   extend highlighted area with a double
+				   quoted string (without quotes)
+|v_i'|		i'		   extend highlighted area with a single
+				   quoted string (without quotes)
 |v_i(|		i(		   same as ib
 |v_i)|		i)		   same as ib
 |v_i<|		i<		   extend highlighted area with inner <> block
@@ -899,9 +916,12 @@ tag		command	      note action in Visual mode	~
 |v_iW|		iW		   extend highlighted area with "inner WORD"
 |v_i[|		i[		   extend highlighted area with inner [] block
 |v_i]|		i]		   same as i[
+|v_i`|		i`		   extend highlighted area with a backtick
+				   quoted string (without the backticks)
 |v_ib|		ib		   extend highlighted area with inner () block
 |v_ip|		ip		   extend highlighted area with inner paragraph
 |v_is|		is		   extend highlighted area with inner sentence
+|v_it|		it		   extend highlighted area with inner tag block
 |v_iw|		iw		   extend highlighted area with "inner word"
 |v_i{|		i{		   same as iB
 |v_i}|		i}		   same as iB
@@ -984,7 +1004,7 @@ file names, tags, commands etc. as appropriate.
 				{expr}
 		CTRL-\ f - z	reserved for extensions
 		CTRL-\ others	not used
-		CTRL-]		not used
+|c_CTRL-]|	CTRL-]		trigger abbreviation
 |c_CTRL-^|	CTRL-^		toggle use of |:lmap| mappings
 |c_CTRL-_|	CTRL-_		when 'allowrevins' set: change language
 				(Hebrew, Farsi)
@@ -1319,6 +1339,7 @@ The commands are sorted on the non-optional part of their name.
 |:number|	:nu[mber]	print lines with line number
 |:nunmap|	:nun[map]	like ":unmap" but for Normal mode
 |:nunmenu|	:nunme[nu]	remove menu for Normal mode
+|:oldfiles|	:ol[dfiles]	list files that have marks in the viminfo file
 |:open|		:o[pen]		start open mode (not implemented)
 |:omap|		:om[ap]		like ":map" but for Operator-pending mode
 |:omapclear|	:omapc[lear]	remove all mappings for Operator-pending mode
@@ -1335,16 +1356,14 @@ The commands are sorted on the non-optional part of their name.
 |:print|	:p[rint]	print lines
 |:profdel|	:profd[el]	stop profiling a function or script
 |:profile|	:prof[ile]	profiling functions and scripts
-|:promptfind|	:pro[mtfind]	open GUI dialog for searching
-|:promptrepl|	:promtr[epl]	open GUI dialog for search/replace
+|:promptfind|	:pro[mptfind]	open GUI dialog for searching
+|:promptrepl|	:promptr[epl]	open GUI dialog for search/replace
 |:perldo|	:perld[o]	execute Perl command for each line
 |:pop|		:po[p]		jump to older entry in tag stack
 |:popup|	:pop[up]	popup a menu by name
 |:ppop|		:pp[op]		":pop" in preview window
 |:preserve|	:pre[serve]	write all text to swap file
 |:previous|	:prev[ious]	go to previous file in argument list
-|:promptfind|	:pro[mptfind]	Search dialog
-|:promptrepl|	:promptr[epl]	Search/Replace dialog
 |:psearch|	:ps[earch]	like ":ijump" but shows match in preview window
 |:ptag|		:pt[ag]		show tag in preview window
 |:ptNext|	:ptN[ext]	|:tNext| in preview window
@@ -1418,7 +1437,7 @@ The commands are sorted on the non-optional part of their name.
 |:shell|	:sh[ell]	escape to a shell
 |:simalt|	:sim[alt]	Win32 GUI: simulate Windows ALT key
 |:sign|		:sig[n]		manipulate signs
-|:silent|	:sil[ent]	Run a command silently
+|:silent|	:sil[ent]	run a command silently
 |:sleep|	:sl[eep]	do nothing for a few seconds
 |:slast|	:sla[st]	split window and go to last file in the
 				argument list
@@ -1450,7 +1469,7 @@ The commands are sorted on the non-optional part of their name.
 |:startinsert|	:star[tinsert]	start Insert mode
 |:startgreplace| :startg[replace] start Virtual Replace mode
 |:startreplace|	:startr[eplace]	start Replace mode
-|:stopinsert||	:stopi[nsert]	stop Insert mode
+|:stopinsert|	:stopi[nsert]	stop Insert mode
 |:stjump|	:stj[ump]	do ":tjump" and split window
 |:stselect|	:sts[elect]	do ":tselect" and split window
 |:sunhide|	:sun[hide]	same as ":unhide"
@@ -1507,6 +1526,7 @@ The commands are sorted on the non-optional part of their name.
 |:unlockvar|	:unlo[ckvar]	unlock variables
 |:unmap|	:unm[ap]	remove mapping
 |:unmenu|	:unme[nu]	remove menu
+|:unsilent|	:uns[ilent]	run a command not silently
 |:update|	:up[date]	write buffer if modified
 |:vglobal|	:v[global]	execute commands for not matching lines
 |:version|	:ve[rsion]	print version number and other info
