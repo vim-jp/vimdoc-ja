@@ -1,10 +1,10 @@
 COMMENT: ファイル形式の自動判別
-STATUS: finished 7.1
+STATUS: finished 7.2
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*filetype.txt*  For Vim バージョン 7.1.  Last change: 2007 May 10
+*filetype.txt*  For Vim バージョン 7.2.  Last change: 2008 Jul 15
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -294,8 +294,8 @@ OSによる「形式」を利用するには自動実行コマンドの検出パ
 
 これは以下に適合する:
 
-- ファイル名が`.html'で終了するあらゆるファイル
-- 「形式」が`&faf' か `HTML'である全てのファイル。ただしここでいう「形式」とは
+- ファイル名が".html"で終了するあらゆるファイル
+- 「形式」が"&faf" か "HTML"である全てのファイル。ただしここでいう「形式」とは
   Vimのバージョン(稼動しているOS)によって定義される。未知の形式は適合しないと
   みなされる。
 
@@ -304,7 +304,7 @@ OSによる「形式」を利用するには自動実行コマンドの検出パ
 
 	:au BufRead <&fff>diff*
 
-これは「形式」が`&fff'で名前が`diff'で始まるファイルに適合する。
+これは「形式」が"&fff"で名前が"diff"で始まるファイルに適合する。
 
 |+osfiletype|機能を有効にしてコンパイルしなければ、OSによる「形式」チェックは
 スキップされる。
@@ -483,6 +483,28 @@ g:changelog_date_end_entry_search
 			が使用できる。デフォルトは'^\s*$'で、空白文字のみを含
 			む行または完全な空行を検索する。
 
+b:changelog_name					*b:changelog_name*
+			チェンジログファイルの名前。
+			既定値は 'ChangeLog'。
+
+b:changelog_path
+			カレントバッファに使うチェンジログのパス。
+			既定では空文字列で、カレントバッファと同じディレクトリ
+			から |b:changelog_name| という名前のファイルが検索され
+			る。それが見つからない場合は、カレントバッファの親
+			ディレクトリを検索する。ファイルが見つかるか、それ以上
+			上がれなくなるまで、再帰的にこれが繰り返される。
+
+b:changelog_entry_prefix
+			Name of a function to call to generate a prefix to a
+			new entry.  This function takes no arguments and
+			should return a string containing the prefix.
+			Returning an empty prefix is fine.
+			The default generates the shortest path between the
+			ChangeLog's pathname and the current buffers pathname.
+			In the future, it will also be possible to use other
+			variable contexts for this variable, for example, g:.
+
 チェンジログエントリは適切な位置に挿入される。現在の日付とユーザーを得た後
 に、その日付とユーザーのエントリをファイルから探し、見つかればその下にアイテ
 ムを加える。なければ新しいエントリとアイテムをファイルの先頭に加える。
@@ -499,6 +521,13 @@ g:changelog_date_end_entry_search
 		これにより|gq|でコメントを整形できる。
 fortran_have_tabsについての議論とソース形式の判定法については
 |ft-fortran-syntax|を参照。
+
+
+GIT COMMIT                                              *ft-gitcommit-plugin*
+
+現在のコミットの差分をプレビューウィンドウに表示する :DiffGitCached というコマ
+ンドが提供されている。このコマンドを実行すると、その引数をつけて "git diff
+--cached" が実行される。
 
 
 メール(MAIL)						*ft-mail-plugin*
@@ -546,6 +575,20 @@ CTRL-]		カーソルの下の単語についてのマニュアルページへ移
 CTRL-T		直前のマニュアルページへ戻る。
 
 
+PDF							*ft-pdf-plugin*
+
+PDF ファイル内をジャンプするため、タグスタックをシミュレートする <C-]> と<C-T>
+という2つのマップが提供されている。次のものがタグとして扱われる:
+
+- "startxref" の後から xref テーブルまでのバイトオフセット
+- トレイラー内の /Prev キーから前の xref テーブルへのバイトオフセット
+- xref テーブル内の "0123456789 00000 n" という形式の行
+- PDF 内の任意の位置における "1 0 R" のようなオブジェクト参照
+
+これらのマップは次のコマンドで無効化できる >
+	:let g:no_pdf_maps = 1
+<
+
 RPM SPEC						*ft-spec-plugin*
 
 このプラグインに関する説明は非常に多いので、別のファイル |pi_spec.txt| に記述
@@ -554,7 +597,7 @@ RPM SPEC						*ft-spec-plugin*
 SQL							*ft-sql*
 
 このプラグインについての解説は長くなるので、別のファイルに分割してある:
-|sql.txt|
+|ft_sql.txt|
 
 
 TEX							*ft-tex-plugin*
