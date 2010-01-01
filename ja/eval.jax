@@ -1,9 +1,9 @@
 COMMENT: Vimスクリプト
-STATUS: finished 7.1
+STATUS: finished 7.2
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*eval.txt*      For Vim バージョン 7.1.  Last change: 2007 May 11
+*eval.txt*	For Vim バージョン 7.2.  Last change: 2009 Nov 17
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -42,13 +42,17 @@ Vimスクリプトの利用についてはユーザマニュアルの41章|usr_4
 
 1.1 変数の型 ~
 							*E712*
-変数には5種類の型がある:
+変数には6種類の型がある:
 
-数値		32ビット符合有整数
+数値		32ビット符合有整数  |expr-number| *Number*
 		例: -123 0x10 0177
 
+浮動小数点数	浮動小数点数  |floating-point-format| *Float*
+		{|+float| 機能つきでコンパイルされたときのみ}
+		例: 123.456  1.15e-6  -1.1e3
+
 文字列		終端がNUL文字である8ビットの符号無し文字(バイト)
-		例: "ab\txx\"--"  'x-z''a,c'
+		|expr-string| 例: "ab\txx\"--"  'x-z''a,c'
 
 Funcref		関数への参照 |Funcref|.
 		例: function("strlen")
@@ -93,12 +97,20 @@ strlen()を使用して次のようにする。 >
 <				*E745* *E728* *E703* *E729* *E730* *E731*
 リスト、辞書、Funcrefは自動的に変換されない。
 
-								*E706*
+							*E805* *E806* *E808*
+数値と浮動小数点数をまぜると浮動小数点数になる。それ以外には浮動小数点数への自
+動的な変換は存在しない。文字列から浮動小数点数へは str2float () を使い、浮動小
+数点数から文字列へは printf()を、浮動小数点数から数値へは float2nr() を使う。
+
+						*E706* *sticky-type-checking*
 変数の型を変えようとするとエラーになる。このエラーを避けるには、まず|:unlet|す
-る必要がある。しかし文字列と数値は同値であると見なされる。例: >
+る必要がある。しかし文字列と数値は同値であると見なされる。同じく、浮動小数点数
+と数値も同値であるとみなされる。例: >
 	:let l = "string"
 	:let l = 44		" 型が文字列から数値に変わる
-	:let l = [1, 2, 3]	" エラー!
+	:let l = [1, 2, 3]	" エラー! l はまだ数値である
+	:let l = 4.4		" 型が数値から浮動小数点数に変わる
+	:let l = "string"	" エラー!
 
 
 1.2 関数への参照 ~
@@ -255,9 +267,9 @@ Note リストの比較について注意: 2つのリストは、同じ長さを
 
 	:let a = 5
 	:let b = "5"
-	echo a == b
+	:echo a == b
 <	1 >
-	echo [a] == [b]
+	:echo [a] == [b]
 <	0
 
 
@@ -766,10 +778,31 @@ expr7 %	 expr7 ..	剰余(割った余り)		*expr-%*
 	"123" + "456" = 579
 	"123" . "456" = "123456"
 
+'.' は '+' と '-' と等しい優先順位を持つので、次の式は: >
+	1 . 90 + 90.0
+次のように解釈される: >
+	(1 . 90) + 90.0
+これはエラーにならない。というのは、"190" は自動的に数値 190 に変換さ
+れ、それと浮動小数点数 90.0 との和になる。しかし次の式は: >
+	1 . 90 * 90.0
+次のように解釈される: >
+	1 . (90 * 90.0)
+'.' は '*' より優先順位が低いためである。これはエラーになる。というのは、浮動
+小数点数と文字列を結合することになるからである。
+
+数値をゼロで割った結果は、被除数によって次のようになる:
+	  0 / 0  = -0x80000000	(浮動小数点数の NaN のようなもの)
+	 >0 / 0  =  0x7fffffff	(正の無限大のようなもの)
+	 <0 / 0  = -0x7fffffff	(負の無限大のようなもの)
+	(訳注: >0 は正の数、<0 は負の数の意味)
+	(Vim 7.2 以前では常に 0x7fffffff だった)
+
 '/'の右辺(除数)が0の場合、結果は0x7ffffffになる。
 '%'の右辺(法)が0の場合、結果は0になる。
 
 これらは全て|Funcref|には適用できない。
+
+. と % は浮動小数点数には適用できない。 *E804*
 
 
 expr7							*expr7*
@@ -794,9 +827,11 @@ expr8							*expr8*
 -----
 expr8[expr1]		文字列またはリストの要素	*expr-[]* *E111*
 
-expr8が数値か文字列ならば、これの結果は文字列expr8のexpr1番目の単一のバイトか
-らなる文字列である。expr8は文字列、expr1は数である。ただしマルチバイトエンコー
-ディングの文字列については、単なるバイトコードであることに注意。
+expr8が数値か文字列ならば、この値は文字列 expr8 の第 expr1 番目のバイトからな
+る 1 バイトの文字列となる。expr8は文字列、expr1は数として扱われる。ただし
+expr8 がマルチバイト文字列である場合、この値は単なるバイトコードであり、1文字
+とはならないかもしれないことに注意。マルチバイト文字列に対する代替方法は
+|byteidx()| を参照。
 
 インデックスが0の場合、先頭のキャラクタが得られることに注意。これはC言語のよう
 に働く。注意:カラム番号は1から始まる。例えばカーソルの下の文字を得るためには、
@@ -820,7 +855,8 @@ expr8[expr1a : expr1b]	部分文字列または部分リスト	*expr-[:]*
 
 expr8が数値か文字列ならば、expr1aバイトからexpr1bバイトまでの部分文字列となる
 (両端を含む)。expr8は文字列として扱われ、expr1aとexpr1bは数値として扱われる。
-Note マルチバイトのエンコーディングは認識しない。
+Note マルチバイトのエンコーディングは認識しない。マルチバイト文字列のイン
+デックスを計算する方法については |byteidx()| を参照。
 
 expr1aが省略されたときは0となる。expr1bが省略されたときは文字列の長さ-1となる。
 
@@ -835,7 +871,8 @@ expr1aが省略されたときは0となる。expr1bが省略されたときは�
 	:let c = name[-2:-2]		" 文字列の最後から2バイト目
 	:let s = line(".")[4:]		" 5バイト目から末尾まで
 	:let s = s[:-3]			" 最後の2文字を削除する
-
+<
+							*sublist* *slice*
 expr8がリストならば、インデックスexpr1aとexpr1bの間の要素からなる新しいリスト
 となる。上で説明した文字列の場合と同様だが、インデックスが範囲を超えるとエラー
 になる。例: >
@@ -877,6 +914,55 @@ expr8が|Funcref|型の変数のとき、その参照する関数を呼び出す
 number			数定数			*expr-number*
 
 10進数、16進数(0xか0Xで始まる)、もしくは8進数(0で始まる)の数定数。
+
+						*floating-point-format*
+浮動小数点数は次の2つの形式で書ける:
+
+	[-+]{N}.{M}
+	[-+]{N}.{M}e[-+]{exp}
+
+ここで {N} と {M} は数値である。{N} と{M} の両方とも省略してはなら
+ず、数値のみを含めることができる。
+[-+] は、省略可能なプラスまたはマイナス記号である。
+{exp} は指数で、10 のベキ。
+現在のロカールが何であれ、小数点にはドットのみを使える。コンマは使えない。
+{|+float| 機能つきでコンパイルされたときのみ有効}
+
+例:
+	123.456
+	+0.0001
+	55.0
+	-0.123
+	1.234e03
+	1.0E-6
+	-3.1416e+88
+
+次のものは無効である:
+	3.		empty {M}
+	1e40		missing .{M}
+
+							*float-pi* *float-e*
+コピー＆ペーストしておくのに便利な値: >
+A few useful values to copy&paste: >
+	:let pi = 3.14159265359
+	:let e  = 2.71828182846
+
+論理的根拠:
+浮動小数点数が導入される前は、123.456 と書くと 123 と 456 の2つの数値と解釈
+され、それらが文字列に変換されて結合されて "123456" という文字列になった。
+これは無意味であり、Vim スクリプト内で意図的に使われているものが見つからな
+かったので、浮動小数点数の普通の表記法を用いるため、この後方非互換性は許容され
+た。
+
+						*floating-point-precision*
+浮動小数点数の精度と範囲は、Vim とリンクしたライブラリの "double" の意味によ
+る。実行時にこれを変更することはできない。
+
+浮動小数点数 |Float| は printf("%g, f) とするのと同様に、小数点以下6桁まで表示
+される。表示する桁数は |printf()| を使えば変えられる。例: >
+	:echo printf('%.15e', atan(1))
+<	7.853981633974483e-01
+
 
 
 文字列							*expr-string* *E114*
@@ -1070,6 +1156,7 @@ Vimスクリプト内では"s:"で始まる変数名を使うことができる�
 次の場面では使えない:
 - そのスクリプトからsourceされる他のスクリプト
 - マッピング
+- メニュー
 - など。
 
 グローバル変数との衝突を避けるにはスクリプト変数を使う。
@@ -1158,7 +1245,8 @@ v:beval_winnr	マウスポインタがあるウィンドウの番号。オプシ
 		を評価している最中のみ有効。
 
 					*v:char* *char-variable*
-v:char		'formatexpr'を評価しているときの引数。
+v:char		'formatexpr'を評価しているときの引数。また、短縮入力 |map-<expr>|
+		で <expr> を指定しているとき、タイプされた文字を保持する。
 
 			*v:charconvert_from* *charconvert_from-variable*
 v:charconvert_from
@@ -1194,6 +1282,8 @@ v:count		最後に実行されたノーマルモードコマンドに渡され�
 	:map _x :<C-U>echo "the count is " . count<CR>
 <		Note: <C-U>は、カウントの後に':'をタイプした時に示される、行範
 		囲指定を削除するために必要となる。
+		"3d2w" のようにカウントが2個指定された場合、その数が掛けられる。よって
+		"d6w" となる。
 		オプション'formatexpr'を評価するためにも使われる。
 		また"count"は、以前の版のVimとの互換性の為に動作する。
 
@@ -1359,10 +1449,32 @@ v:mouse_col	|getchar()|でマウスクリックイベントを取得したとき
 		桁番号が代入されている。|virtcol()|と同じく画面上の桁番号。マ
 		ウスがクリックされていないときは0となる。
 
+					*v:oldfiles* *oldfiles-variable*
+v:oldfiles	起動時に |viminfo| から読み込まれたファイルの名前のリスト。
+		これらはマークを記憶しているファイルである。リストの長さの上限はオプショ
+		ン 'viminfo' の引数 ' によって決まる(既定では 100)。
+		|:oldfiles| と |c_#<| を参照。
+		このリストは変更可能であるが、後で |viminfo| ファイルに書き込まれるも
+		のには影響しない。文字列以外の値を使うと問題を引き起こすだろう。
+		{+viminfo 機能つきでコンパイルされたときのみ有効}
+
+					*v:operator* *operator-variable*
+v:operator	ノーマルモードにおいて最後に実行したオペレータコマンド。基本的に
+		1文字である。例外は <g> や <z> で始まるコマンドで、その場合は2文字にな
+		る。|v:prevcount| と |v:register| と組み合わせて使うとよい。オペレータ
+		保留モードをキャンセルして、それからオペレータを使いたいときに便利であ
+		る。例: >
+			:omap O <Esc>:call MyMotion(v:operator)<CR>
+<		この値は他のオペレータが入力されるまでセットされてい
+		る。よって空になると期待してはいけない。
+		|:delete|, |:yank| などの Ex コマンドに対しては v:operator はセットさ
+		れない。
+		読出し専用。
+
 					*v:prevcount* *prevcount-variable*
 v:prevcount	最後のノーマルモードコマンドに与えられたカウントの値。前のコマ
-		ンドのv:countの値である。ビジュアルモードをキャンセルし、その
-		後にカウントを使う場合に便利である。例: >
+		ンドのv:countの値である。ビジュアルモードやオペレータ保留モードをキャ
+		ンセルし、その後にカウントを使う場合に便利である。例: >
 			:vmap % <Esc>:call MyFilter(v:prevcount)<CR>
 <		読出し専用。
 
@@ -1391,6 +1503,14 @@ v:scrollstart	画面のスクロールの原因となったスクリプトや関
 					*v:servername* *servername-variable*
 v:servername	|x11-clientserver|に登録されている名前。
 		読出し専用。
+
+
+v:searchforward			*v:searchforward* *searchforward-variable*
+		検索方向: 前方検索の後なら1、後方検索の後なら0。|quote/| で示す方法に
+		よって最終検索パターンを直接セットしたときは0(前方検索)にセットされる。
+		関数から戻るとき、この値は呼び出し前の値に復元される。
+		|function-search-undo|。
+		読み書き両用。
 
 			    		*v:shell_error* *shell_error-variable*
 v:shell_error	最後に実行したシェルコマンドの結果。シェルコマンドの実行時にな
@@ -1490,12 +1610,14 @@ v:warningmsg	最後に表示された警告メッセージ。この変数は代�
 
 使用法				結果	説明		~
 
+abs( {expr})			浮動小数点数または数値	{expr}の絶対値
 add( {list}, {item})		リスト	{item}をリスト{list}に追加する
 append( {lnum}, {string})	数値	{string}を{lnum}行目に付け加える
 append( {lnum}, {list})		Number	行{list}を{lnum}行目に付け加える
 argc()				数値	引数内のファイルの数
 argv( {nr})			文字列	引数の第{nr}番目
 argv( )				リスト	引数リスト
+atan( {expr})			浮動小数点数	{expr}のアークタンジェント
 browse( {save}, {title}, {initdir}, {default})
 				文字列	ファイル選択ダイアログを表示
 browsedir( {title}, {initdir})  文字列	ディレクトリ選択ダイアログを表示
@@ -1509,16 +1631,20 @@ byte2line( {byte})		数値	{byte}番目のバイトの行番号
 byteidx( {expr}, {nr})		数値	{expr}の{nr}文字目のバイトインデックス
 call( {func}, {arglist} [, {dict}])
 				任意	引数{arglist}をつけて{func}を呼ぶ
+ceil( {expr})			浮動小数点数	{expr} を切り上げる
 changenr()			数値	現在の変更番号
 char2nr( {expr})		数値	{expr}の先頭文字のASCIIコード
 cindent( {lnum})		数値	{lnum}行目のCインデント量
+clearmatches()			なし	全マッチをクリアする
 col( {expr})			数値	カーソルかマークのカラム番号nr
+complete( {startcol}, {matches}) なし	インサートモード補完を設定する
 complete({startcol}, {matches})	文字列  インサートモード補完の結果を設定する
 complete_add( {expr})		数値	補完候補を追加する
 complete_check()		数値	補完中に押されたキーをチェックする
 confirm( {msg}, {choices} [, {default} [, {type}]])
 				数値	ユーザへの選択肢と番号
 copy( {expr})			任意	{expr}の浅いコピーを作る
+cos( {expr})			浮動小数点数	{expr} の余弦(コサイン)
 count( {list}, {expr} [, {start} [, {ic}]])
 				数値	 {list}中に{expr}が何個現れるか数える
 cscope_connection( [{num} , {dbpath} [, {prepend}]])
@@ -1537,9 +1663,9 @@ eval( {string})			任意	{string}を評価し、値を得る
 eventhandler( )			数値	イベントハンドラの内側ならTRUE
 executable( {expr})		数値	実行可能な{expr}が存在するなら1
 exists( {var})			数値	変数{var}が存在したらTRUE
-extend({expr1}, {expr2} [, {expr3}])
+extend( {expr1}, {expr2} [, {expr3}])
 				リスト/辞書 {expr1}に{expr2}の要素を挿入
-expand( {expr})			文字列	{expr}内の特別なキーワードを展開
+expand( {expr} [, {flag}])	文字列	{expr}内の特別なキーワードを展開
 feedkeys( {string} [, {mode}])	数値	先行入力バッファにキーシーケンスを追加
 filereadable( {file})		数値	{file}が読みこみ可能ならTRUE
 filewritable( {file})		Number	{file}が書き込み可能ならTRUE
@@ -1549,6 +1675,9 @@ finddir( {name}[, {path}[, {count}]])
 				文字列	{path}からディレクトリ{name}を探す
 findfile( {name}[, {path}[, {count}]])
 				文字列	{path}からファイル{name}を探す
+float2nr( {expr})		数値	浮動小数点数 {expr} を数値に変換する
+floor( {expr})			浮動小数点数	{expr} を切り捨てる
+fnameescape( {fname})		文字列	{fname} 内のの特殊文字をエスケープする
 fnamemodify( {fname}, {mods})	文字列	ファイル名を変更
 foldclosed( {lnum})		数値	{lnum}の折り畳みの最初の行(閉じている
 					なら)
@@ -1559,7 +1688,7 @@ foldtext( )			文字列	閉じた折り畳みに表示されている行
 foldtextresult( {lnum})		文字列	{lnum}で閉じている折り畳みのテキスト
 foreground( )			数値	Vimウィンドウを前面に移動する
 function( {name})		Funcref 関数{name}への参照を取得
-garbagecollect()		なし	メモリを解放する。循環参照を断ち切る
+garbagecollect( [at_exit])	なし	メモリを解放する。循環参照を断ち切る
 get( {list}, {idx} [, {def}])	任意	{list}や{def}から要素{idx}を取得
 get( {dict}, {key} [, {def}])	任意	{dict}や{def}から要素{key}を取得
 getbufline( {expr}, {lnum} [, {end}])
@@ -1576,7 +1705,9 @@ getftime( {fname})		数値	ファイルの最終更新時間
 getftype( {fname})		文字列	ファイル{fname}の種類の説明
 getline( {lnum})		文字列	現在のバッファから行の内容を取得
 getline( {lnum}, {end})		リスト	カレントバッファの{lnum}から{end}行目
-getloclist({nr})		リスト	ロケーションリストの要素のリスト
+getloclist( {nr})		リスト	ロケーションリストの要素のリスト
+getmatches()			リスト	現在のマッチのリスト
+getpid()			数値	Vim のプロセス ID
 getpos( {expr})			リスト	カーソル・マークなどの位置を取得
 getqflist()			リスト	quickfixリストの要素のリスト
 getreg( [{regname} [, 1]])	文字列	レジスタの中身を取得
@@ -1587,7 +1718,8 @@ getwinposx()			数値	GUI vim windowのX座標
 getwinposy()			数値	GUI vim windowのY座標
 getwinvar( {nr}, {varname})	文字列	ウィンドウ{nr}の変数{varname}
 glob( {expr} [, {flag}])	文字列	{expr}内のfile wildcardを展開
-globpath( {path}, {expr})	文字列	{path}の全ディレクトリに対し
+globpath( {path}, {expr} [, {flag}])
+				文字列	{path}の全ディレクトリに対し
 					glob({expr})を行う
 has( {feature})			数値	機能{feature}がサポートならばTRUE
 has_key( {dict}, {key})		数値	{dict}が要素{key}を持つならTRUE
@@ -1626,7 +1758,11 @@ line( {expr})			数値	行番号の取得
 line2byte( {lnum})		数値	行{lnum}のバイトカウント
 lispindent( {lnum})		数値	{lnum}行目のLispインデント量を取得
 localtime()			数値	現在時刻
+log10( {expr})			浮動小数点数	浮動小数点数 {expr} の 10 を底
+					とする対数
 map( {expr}, {string})		リスト/辞書  {expr}の各要素を{expr}に変える
+matchadd( {group}, {pattern}[, {priority}[, {id}]])
+				数値	{pattern} を {group} で強調表示する
 maparg( {name}[, {mode} [, {abbr}]])
 				文字列	モード{mode}でのマッピング{name}の値
 mapcheck( {name}[, {mode} [, {abbr}]])
@@ -1634,26 +1770,28 @@ mapcheck( {name}[, {mode} [, {abbr}]])
 match( {expr}, {pat}[, {start}[, {count}]])
 				数値	{expr}内で{pat}がマッチする位置
 matcharg( {nr})			リスト	|:match|の引数
+matchdelete( {id})		数値	{id} で指定されるマッチを削除する
 matchend( {expr}, {pat}[, {start}[, {count}]])
 				数値	{expr}内で{pat}が終了する位置
 matchlist( {expr}, {pat}[, {start}[, {count}]])
 				リスト	{expr}内の{pat}のマッチと部分マッチ
 matchstr( {expr}, {pat}[, {start}[, {count}]])
 				文字列	{expr}内の{count}'番目の{pat}のマッチ
-max({list})			数値	{list}内の要素の最大値
-min({list})			数値	{list}内の要素の最小値
-mkdir({name} [, {path} [, {prot}]])
+max( {list})			数値	{list}内の要素の最大値
+min( {list})			数値	{list}内の要素の最小値
+mkdir( {name} [, {path} [, {prot}]])
 				数値	ディレクトリ{name}を作成
-mode()				文字列	現在の編集モード
+mode( [expr])			文字列	現在の編集モード
 nextnonblank( {lnum})		数値	{lnum}行目以降で空行でない行の行番号
 nr2char( {expr})		文字列	ASCIIコード{expr}で示されるキャラクタ
 pathshorten( {expr})		文字列	path内の短縮したディレクトリ名
+pow( {x}, {y})			浮動小数点数	{x} の {y} 乗
 prevnonblank( {lnum})		数値	{lnum}行目以前の空行でない行の行番号
 printf( {fmt}, {expr1}...)	文字列  文字列を組み立てる
 pumvisible()			数値    ポップアップメニューが表示されているか
 range( {expr} [, {max} [, {stride}]])
 				リスト	{expr}から{max}までの要素のリスト
-readfile({fname} [, {binary} [, {max}]])
+readfile( {fname} [, {binary} [, {max}]])
 				リスト	ファイル{fname}から行のリストを取得
 reltime( [{start} [, {end}]])	リスト	時刻の値を取得
 reltimestr( {time})		文字列	時刻の値を文字列に変換
@@ -1671,14 +1809,16 @@ rename({from}, {to})		数値	{file}から{to}へファイル名変更
 repeat( {expr}, {count})	文字列	{expr}を{count}回繰り返す
 resolve( {filename})		文字列	ショートカットが指す先のファイル名
 reverse( {list})		文字列	{list}をその場で反転させる
-search( {pattern} [, {flags}])	数値	{pattern}を検索する
-searchdecl({name} [, {global} [, {thisblock}]])
+round( {expr})			浮動小数点数	{expr} を四捨五入する
+search( {pattern} [, {flags} [, {stopline} [, {timeout}]]])
+				数値	{pattern} を検索する
+searchdecl( {name} [, {global} [, {thisblock}]])
 				数値    変数の宣言を検索
-searchpair( {start}, {middle}, {end} [, {flags} [, {skip} [, {stopline}]]])
+searchpair( {start}, {middle}, {end} [, {flags} [, {skip} [...]]])
 				数値	開始/終端のペアの他方を検索
-searchpairpos( {start}, {middle}, {end} [, {flags} [, {skip} [, {stopline}]]])
+searchpairpos( {start}, {middle}, {end} [, {flags} [, {skip} [...]]])
 				リスト	開始/終端のペアの他方を検索
-searchpos( {pattern} [, {flags} [, {stopline}]])
+searchpos( {pattern} [, {flags} [, {stopline} [, {timeout}]]])
 				リスト	{pattern}を検索
 server2client( {clientid}, {string})
 				数値	返信文字列を送信する
@@ -1689,6 +1829,7 @@ setcmdpos( {pos})		数値	コマンドライン内のカーソル位置を設定
 setline( {lnum}, {line})	数値	行{lnum}に{line}(文字列)をセット
 setloclist( {nr}, {list}[, {action}])
 				数値	{list}を使ってロケーションリストを変更
+setmatches( {list})		数値	マッチのリストを復元する
 setpos( {expr}, {list})		なし	{expr}の位置を{list}にする
 setqflist( {list}[, {action}])	数値	{list}を使ってQuickFixリストを変更
 setreg( {n}, {v}[, {opt}])	数値	レジスタの値とタイプを設定
@@ -1697,9 +1838,11 @@ settabwinvar( {tabnr}, {winnr}, {varname}, {val})  タブページ{tabnr}内の�
 					{winnr} in tab page {tabnr} to {val}
 setwinvar( {nr}, {varname}, {val})	ウィンドウ{nr}の変数{varname}に{val}を
 					セット
-shellescape( {string})		文字列	{string}をシェルコマンド引数として使う
+shellescape( {string} [, {special}])
+		    		文字列	{string}をシェルコマンド引数として使う
 					ためにエスケープする。
 simplify( {filename})		文字列	ファイル名を可能なかぎり簡略化する
+sin( {expr})			浮動小数点数	{expr} の正弦(サイン)
 sort( {list} [, {func}])	リスト	比較に{func}を使って{list}をソートする
 soundfold( {word})		文字列	{word}のsound-fold
 spellbadword()			文字列	カーソル位置のスペルミスした単語
@@ -1707,6 +1850,8 @@ spellsuggest( {word} [, {max} [, {capital}]])
 				リスト	スペリング補完
 split( {expr} [, {pat} [, {keepempty}]])
 				リスト	{expr}を{pat}で区切ってリストを作る
+sqrt( {expr}			浮動小数点数	{expr} の平方根
+str2float( {expr})		浮動小数点数	文字列を浮動小数点数に変換する
 str2nr( {expr} [, {base}])	数値	文字列を数値に変換する
 strftime( {format}[, {time}])	文字列	指定されたフォーマットでの時刻
 stridx( {haystack}, {needle}[, {start}])
@@ -1726,6 +1871,8 @@ synID( {line}, {col}, {trans})	数値	{line}と{col}のsyntax IDを取得
 synIDattr( {synID}, {what} [, {mode}])
 				文字列	syntax ID{synID}の属性{what}を取得
 synIDtrans( {synID})		数値	{synID}の翻訳されたsyntax ID
+synstack( {lnum}, {col})	リスト	{lnum}行{col}列目における構文IDの
+					スタック
 system( {expr} [, {input}])	文字列	シェルコマンド{expr}の出力結果
 tabpagebuflist( [{arg}])	リスト	タブページ内のバッファ番号のリスト
 tabpagenr( [{arg}])		数値	現在または最後のタブページの番号
@@ -1738,6 +1885,8 @@ tolower( {expr})		文字列	文字列{expr}を小文字にする
 toupper( {expr})		文字列	文字列{expr}を大文字にする
 tr( {src}, {fromstr}, {tostr})	文字列	{src}中に現れる文字{fromstr}を{tostr}
 					に変換する。
+trunc( {expr}			浮動小数点数	浮動小数点数 {expr} を切り詰め
+				    	る
 type( {name})			数値	変数{name}の型
 values( {dict})			リスト	{dict}の値のリスト
 virtcol( {expr})		数値	カーソルのスクリーンカラム位置
@@ -1748,12 +1897,26 @@ winheight( {nr})		数値	ウィンドウ{nr}の高さ
 winline()			数値	カーソル位置のウィンドウ行
 winnr()				数値	現在のウィンドウの番号
 winrestcmd()			文字列	ウィンドウサイズを復元するコマンド
-winrestview({dict})		なし	現在のウィンドウのビューを復元
+winrestview( {dict})		なし	現在のウィンドウのビューを復元
 winsaveview()			辞書	現在のウィンドウのビューを保存
 winwidth( {nr})			数値	ウィンドウ{nr}の幅を取得
-writefile({list}, {fname} [, {binary}])
+writefile( {list}, {fname} [, {binary}])
 				数値	行のリストをファイル{fname}に書き込む
 
+
+abs({expr})							*abs()*
+		{expr} の絶対値を返す。{expr} の値が浮動小数点数である場合は浮
+		動小数点数を返す。{expr} が|Number|に変換可能な場合は数値が戻
+		り値になる。それ以外の場合はエラーメッセージを表示し、-1
+		を返す。
+		例: >
+			echo abs(1.456)
+<			1.456  >
+			echo abs(-5.456)
+<			5.456  >
+			echo abs(-4)
+<			4
+		{|+float| 機能を有効にしてコンパイルしたときのみ有効}}
 
 add({list}, {expr})					*add()*
 		リスト|List|{list}の末尾に要素{expr}を追加する。結果のリストを
@@ -1789,12 +1952,23 @@ argv([{nr}])	結果は引数リスト内の、{nr}番目のファイル。|argli
 		"argv(0)"は一番最初のファイルを示す。例: >
 	:let i = 0
 	:while i < argc()
-	:  let f = escape(argv(i), '. ')
+	:  let f = escape(fnameescape(argv(i)), '.')
 	:  exe 'amenu Arg.' . f . ' :e ' . f . '<CR>'
 	:  let i = i + 1
 	:endwhile
 <		引数{nr}が指定されなかった場合は、引数リスト|arglist|全体を
 		返す。
+
+atan({expr})						*atan()*
+		{expr} の逆正接(アークタンジェント)の主値を浮動小数点数
+		|Float| で返す。主値はラジアンで[-pi/2, +pi/2]の範囲内にある。
+		{expr} は |Float| か |Number| に評価されなければならない。
+		例: >
+			:echo atan(100)
+<			1.560797 >
+			:echo atan(-4.01)
+<			-1.326405
+		{|+float| 機能つきでコンパイルされたときのみ有効}
 
 							*browse()*
 browse({save}, {title}, {initdir}, {default})
@@ -1834,6 +2008,10 @@ bufexists({expr})
 		バッファリストにないバッファも検索される。
 		Note |:buffers|の出力で、ヘルプファイルは短い名前でリストされ
 		ているが、bufexists()は長い名前でないと見つけることができない。
+		ある名前を bufexists() に与えて非零になったとしても、その名前
+		をコマンド |:buffer| に与える際には |expand()| を使って展開し
+		なければならない場合がある。特に MS-Windows の "c:\DOCUME~1"
+		という 8.3 名形式において。
 		代替ファイル名が存在するかを判定するには"bufexists(0)"を使う。
 							*buffer_exists()*
 		以前の名前: buffer_exists().
@@ -1850,12 +2028,12 @@ bufname({expr})
 		戻り値はバッファの名前。バッファ名はコマンド":ls"で表示される
 		ものと同様。
 		{expr}が数値ならば、その番号のバッファ名が返される。0は現在の
-		ウィンドウの裏バッファを意味する。{expr}が文字列ならば、バッファ
-		名に対してファイル名マッチング|file-pattern|を行なうパターンと
-		なる。このマッチングは常に、'magic'をセットし'cpoptions'を空に
-		した状態で行なわれる。複数マッチしてしまった場合には空文字列が
-		返される。""や"%"は現在のバッファを意味し、"#"は裏バッファを意
-		味する。
+		ウィンドウの代替バッファを意味する。{expr}が文字列ならば、バッ
+		ファ名に対してファイル名マッチング|file-pattern|を行なうパター
+		ンとなる。このマッチングは常に、'magic'をセットし'cpoptions'を
+		空にした状態で行なわれる。複数マッチしてしまった場合には空文字
+		列が返される。""や"%"は現在のバッファを意味し、"#"は代替バッファ
+		を意味する。
 		完全マッチのものが優先され、完全マッチがなければ、バッファ名の
 		先頭でのマッチ、末尾でのマッチ、中間でのマッチが探される。完全
 		マッチのみを探すには、パターン先頭に"^"を、末尾に"$"をつける。
@@ -1932,6 +2110,19 @@ call({func}, {arglist} [, {dict}])			*call()* *E699*
 		{dict}は"dict"属性つきの関数用で、これがローカル変数"self"に代
 		入される。|Dictionary-function|を参照。
 
+ceil({expr})							*ceil()*
+		{expr} 以上となる最小の整数を浮動小数点数 |Float| で返す
+		(切り上げる)。
+		{expr} は |Float| か |Number| に評価されなければならない。
+		例: >
+			echo ceil(1.456)
+<			2.0  >
+			echo ceil(-5.456)
+<			-5.0  >
+			echo ceil(4.0)
+<			4.0
+		{|+float| 機能つきでコンパイルされたときのみ有効}
+
 changenr()						*changenr()*
 		最も最近の変更の番号を返す。|:undolist|で表示される番号と同じ
 		であり、|:undo|コマンドの引数として使うことができる。
@@ -1947,7 +2138,7 @@ char2nr({expr})
 <		現在の'encoding'の値が適用される。"utf-8"のときの例: >
 			char2nr("á")	 	returns 225
 			char2nr("á"[0])	returns 195
-<		nr2char()はこの逆を行う。
+<		|nr2char()| はこの逆を行う。
 
 cindent({lnum})						*cindent()*
 		'cindent'で使われるのと同じC言語用のインデント規則に従った場合
@@ -1958,6 +2149,10 @@ cindent({lnum})						*cindent()*
 		るときは-1を返す。
 		|C-indenting|を参照。
 
+clearmatches()						*clearmatches()*
+		|matchadd()| と コマンド |:match| により定義されたマッチをすべ
+		て消去する。
+
 							*col()*
 col({expr})	
 		戻り値は数値で、{expr}で与えられる位置の桁番号(バイトインデッ
@@ -1965,6 +2160,10 @@ col({expr})
 		    .	    現在の位置
 		    $	    カレント行の末尾(カレント行のバイト数+1を返す)
 		    'x	    マークxの位置(マークが設定されていない場合0)
+		さらに {expr} は [lnum, col] という行番号と桁番号のリストで
+		あってもよい。col に "$" を指定して、ある行の最後の桁を取得す
+		るのにとても便利である。"lnum" か "col" が範囲外である場合は
+		0 を返す。
 		行番号を取得するには|line()|を使う。行番号と桁番号両方を取得す
 		るには|getpos()|を使う。
 		画面上の桁番号を取得するには|virtcol()|を使う。
@@ -2080,6 +2279,17 @@ copy({expr})	{expr}のコピーを作る。数値と文字列の場合は、{exp
 		通で、片方の要素に対し変更を加えると、もう一方の要素も変更され
 		る。|deepcopy()|も参照。
 
+cos({expr})						*cos()*
+		{expr} の余弦(コサイン)をラジアンで浮動小数点数 |Float| で返す。
+		{expr} は |Float| または |Number| に評価されなければならない。
+		例: >
+			:echo cos(100)
+<			0.862319 >
+			:echo cos(-4.01)
+<			-0.646043
+		{|+float| 機能つきでコンパイルされたときのみ有効}
+		
+
 count({comp}, {expr} [, {ic} [, {start}]])			*count()*
 		リスト|List|または辞書|Dictionary| {comp}の中に値{expr}が何回
 		現れるかを返す。
@@ -2143,6 +2353,7 @@ cursor({list})
 		'virtualedit'が有効のとき、{off}は文字の先頭からの画面上のオフ
 		セットを指定する。例えば、<Tab>の中の位置や最後の文字より後な
 		どへも移動できる。
+		カーソルを移動できたときは 0 を、できなかったときは-1 を返す。
 
 deepcopy({expr}[, {noref}])				*deepcopy()* *E698*
 		{expr}のコピーを作る。数値と文字列の場合は、{expr}そのものとコ
@@ -2204,11 +2415,13 @@ escape({string}, {chars})				*escape()*
 			:echo escape('c:\program files\vim', ' \')
 <		結果: >
 			c:\\program\ files\\vim
+<		|shellescape()| も参照。
 
-<							*eval()*
+							*eval()*
 eval({string})	{string}を評価し、値を返す。|string()|の戻り値を元の値に戻すの
-		に非常に便利である。数値、文字列、それらの複合に対して動作する。
-		実際に存在する関数への|Funcref|に対しても動作する。
+		に非常に便利である。数値、浮動小数点数文字列、それらの複合に対
+		して動作する。実際に存在する関数への|Funcref|に対しても動作す
+		る。
 
 eventhandler()						*eventhandler()*
 		イベントハンドラの中では1を返す。つまり、ユーザの文字入力を待っ
@@ -2252,9 +2465,15 @@ exists({expr})	結果は数値で、変数{expr}が存在すれば1となり、�
 			varname		内部変数(|internal-variables|)
 					|curly-braces-names|, |Dictionary|の要
 					素、|List|の要素などに対しても動作する。
-					これを使うと関数を呼び出し、無効な式に
-					よりエラーメッセージが出る可能性がある
-					ことに注意。
+					インデックスの評価で無効な式であるとエ
+					ラーメッセージが出る可能性があることに
+					注意。例: >
+					   :let l = [1, 2, 3]
+					   :echo exists("l[5]")
+<					   0 >
+					   :echo exists("l[xx]")
+<					   E121: Undefined variable: xx
+					   0
 			:cmdname	exコマンド: 組み込みコマンド、ユーザ定
 					義コマンド、コマンド修飾子|:command|。
 					戻り値:
@@ -2327,8 +2546,8 @@ expand({expr} [, {flag}])
 		る。ここに簡単な概略を示す:
 
 			%		現在のファイル名
-			#		裏バッファのファイル名
-			#n		n番の裏バッファのファイル名
+			#		代替バッファのファイル名
+			#n		n番の代替バッファのファイル名
 			<cfile>		カーソルのしたのファイル名
 			<afile>		autocmdのファイル名
 			<abuf>		autocmdのバッファ名
@@ -2360,9 +2579,9 @@ expand({expr} [, {flag}])
 		変数と変換子の間には空白文字があってはならない。関数
 		|fnamemodify()|が通常のファイル名の変換には使用可能である。
 
-		カレントバッファや裏バッファの名前が未定義のときに'%'や'#'を使
-		うと空文字列になる。"%:p"を名無しのバッファに使用した場合、結
-		果はカレントディレクトリに'/'が付加されたものになる。
+		カレントバッファや代替バッファの名前が未定義のときに'%'や'#'を
+		使うと空文字列になる。"%:p"を名無しのバッファに使用した場合、
+		結果はカレントディレクトリに'/'が付加されたものになる。
 
 		'%'や'#'や'<'で始まらない{expr}は、コマンドラインのファイル名
 		と同じように展開される。オプションの{flag}が使用され、その値が
@@ -2386,14 +2605,18 @@ extend({expr1}, {expr2} [, {expr3}])			*extend()*
 		|Dictionaries|でなければならない。
 
 		両方ともリストであるなら、{expr2}を{expr1}に付け加える。
-		{expr3}が指定された場合は{expr1}の中の要素{expr1}の前に
+		{expr3}が指定された場合は、{expr1}の第{expr3}番目の要素の前に
 		{expr2}の要素を挿入する。{expr3}が0のときは最初の要素の前に挿
 		入する。{expr3}がlen({expr1})に等しいときは末尾に{expr2}が付け
 		加えられる。
 		例: >
 			:echo sort(extend(mylist, [7, 5]))
 			:call extend(mylist, [2, 3], 1)
-<		リストに1個の要素を加えるには|add()|を使う。2つのリストを連結
+<		{expr1} が {expr2} と同じリストである場合、コピーされる要素の
+		数はリストの元の長さと同じである。
+		例として {expr3} が 1 のとき、最初の要素の N 個の新しいコピー
+		が挿入される(ここで N はリストの元の長さ)。
+		リストに1個の要素を加えるには|add()|を使う。2つのリストを連結
 		して新しいリストを作るには演算子+を使う: >
 			:let newlist = [1, 2, 3] + [4, 5]
 <
@@ -2489,6 +2712,54 @@ finddir({name}[, {path}[, {count}]])				*finddir()*
 		を返す。これはexコマンド|:find|によく似ている。
 		{+file_in_path機能付きでコンパイルされたときのみ利用可能}
 
+float2nr({expr})					*float2nr()*
+		{expr} の小数点以下を切り捨てて |Number| に変換する。
+		{expr} は |Float| または |Number| に評価されなければならない。
+		{expr} の値が |Number| の範囲外の場合、結果は 0x7fffffff また
+		は -0x7fffffff になる。NaN は -0x80000000 になる。
+		例: >
+			echo float2nr(3.95)
+<			3  >
+			echo float2nr(-23.45)
+<			-23  >
+			echo float2nr(1.0e100)
+<			2147483647  >
+			echo float2nr(-1.0e150)
+<			-2147483647  >
+			echo float2nr(1.0e-100)
+<			0
+		{|+float| 機能つきでコンパイルされたときのみ有効}
+
+
+floor({expr})							*floor()*
+		{expr} 以下の最大の整数を |Float| で返す(切り捨て)。
+		{expr} は |Float| または |Number| に評価されなければならな
+		い。
+		例: >
+			echo floor(1.856)
+<			1.0  >
+			echo floor(-5.456)
+<			-6.0  >
+			echo floor(4.0)
+<			4.0
+		{|+float| 機能つきでコンパイルされたときのみ有効}
+		
+fnameescape({string})					*fnameescape()*
+		コマンド引数のファイル名として使うために {string} をエスケープ
+		する。'%' や '|' など特別な意味を持つ全ての文字がバックスラッ
+		シュでエスケープされる。
+		特別な文字とは、ほとんどのシステムにおいて
+		" \t\n*?[{`$\\%#'\"|!<" である。ファイル名にバックスラッシュが
+		現れるシステムにおいては 'isfname' の値に依存する。
+		先頭の '+' と '>' もエスケープされる(|:edit| と |:write| の引
+		数では特別な意味を持つ)。{string} が "-" である場合もエスケー
+		プされる(|:cd| の引数では意味を持つ)。
+		例: >
+			:let fname = '+some str%nge|name'
+			:exe "edit " . fnameescape(fname)
+<		上記は次と同じ結果になる: >
+			edit \+some\ str\%nge\|name
+
 findfile({name}[, {path}[, {count}]])				*findfile()*
 		|finddir()|と同様だが、ディレクトリでなくファイルを検索する。
 		'suffixesadd'が適用される。
@@ -2506,13 +2777,8 @@ fnamemodify({fname}, {mods})
 			:echo fnamemodify("main.c", ":p:h")
 <		結果: >
 			/home/mool/vim/vim/src/
-<		Note: {fname}の中の環境変数と"~"は展開されない。これらを展開さ
-		せるには、最初に|expand()|を使うこと。
-		訳注: 環境変数は展開されないが、"~"は使えるようだ？
-		訳注: echo fnamemodify("~/.vimrc", ":p:h")
-		訳注: => "/home/myname"
-		訳注: echo fnamemodify("$HOME/.vimrc", ":p:h")
-		訳注: => "$HOME" 
+<		Note: {fname}の中の環境変数は展開されない。環境変数を展開させ
+		るには|expand()|を使うこと。
 
 foldclosed({lnum})					*foldclosed()*
 		結果は数値。{lnum}行目が閉じた折り畳みの中にあるなら、その折り
@@ -2572,14 +2838,17 @@ function({name})					*function()* *E700*
 		関数でも組み込み関数でもよい。
 
 
-garbagecollect()					*garbagecollect()*
+garbagecollect([at_exit])				*garbagecollect()*
 		循環参照を持ち、使われていないリスト|List|と辞書|Dictionaries|
 		をクリーンアップする。これはメモリ不足に陥ったときや、
 		'updatetime'経過後ユーザのキー入力を待っているときに自動的に行
 		われるので、この関数を呼ぶ必要があることはほとんどない。
-		循環参照を持たない要素は、使われなくなったとき必ず開放される。
+		循環参照を持たない要素は、使われなくなったとき必ず解放される。
 		長時間実行されるスクリプトの中で循環参照を持つ非常に大きなリス
 		トや辞書を削除したときに有用である。
+		省略可能な引数 "at_exit" に 1 を指定すると、Vim を終了するとき
+		にもガベージコレクションが行われる。これはメモリリークを発見す
+		るのに役に立つ。
 
 get({list}, {idx} [, {default}])			*get()*
 		リスト|List| {list}から{idx}番目の要素を取得する。この要素を取
@@ -2618,6 +2887,8 @@ getbufline({expr}, {lnum} [, {end}])
 getbufvar({expr}, {varname})				*getbufvar()*
 		バッファ{expr}のオプションの値やバッファローカル変数{varname}
 		の値を返す。Note "b:"をつけない変数名を指定すること。
+		{varname} が空文字列の場合、全てのバッファローカル変数からなる
+		辞書を返す。
 		グローバルオプション、バッファローカルオプションのどちらに対し
 		ても動作するが、グローバル変数、ウィンドウローカル変数、ウィン
 		ドウローカルオプションに対しては動作しない。
@@ -2728,6 +2999,7 @@ getfsize({fname})					*getfsize()*
 		で返す。
 		{fname}がディレクトリのときは0を返す。
 		ファイル{fname}が見つからないときは-1を返す。
+		{fname} のサイズが |Number| の範囲外の場合は -2 を返す。
 
 getfontname([{name}])					*getfontname()*
 		引数なしで使われた場合には現在の通常のフォント名を返す。ハイラ
@@ -2807,8 +3079,29 @@ getloclist({nr})					*getloclist()*
 		{nr}に0を指定するとカレントウィンドウになる。ロケーションリス
 		トウィンドウに対して使用すると、そこに表示されているロケーショ
 		ンリストが返る。ウィンドウ番号{nr}が無効な場合は、空リストが返
-		る。それ以外はgetqflist()と同じ。
+		る。それ以外は|getqflist()|と同じ。
 
+getmatches()						*getmatches()*
+		|matchadd()| と |:match| により定義された全てのマッチの |List|
+		を返す。|setmatches()| は |getmatches()| で保存されたマッチの
+		リストを復元できるので、|getmatches()| と |setmatches()| は組
+		み合わせて使うと便利である。
+		例: >
+			:echo getmatches()
+<			[{'group': 'MyGroup1', 'pattern': 'TODO',
+			'priority': 10, 'id': 1}, {'group': 'MyGroup2',
+			'pattern': 'FIXME', 'priority': 10, 'id': 2}] >
+			:let m = getmatches()
+			:call clearmatches()
+			:echo getmatches()
+<			[] >
+			:call setmatches(m)
+			:echo getmatches()
+<			[{'group': 'MyGroup1', 'pattern': 'TODO',
+			'priority': 10, 'id': 1}, {'group': 'MyGroup2',
+			'pattern': 'FIXME', 'priority': 10, 'id': 2}] >
+			:unlet m
+<
 getqflist()						*getqflist()*
 		現在の全quickfixエラーのリストを返す。リストの各要素は辞書で、
 		以下の要素を持つ:
@@ -2889,11 +3182,13 @@ getwinvar({winnr}, {varname})				*getwinvar()*
 			:let list_is_on = getwinvar(2, '&list')
 			:echo "myvar = " . getwinvar(1, 'myvar')
 
-							*glob()*
-glob({expr})	
+glob({expr} [, {flag}])					*glob()*
 		{expr}内のファイル名のワイルドカードを展開する。特殊文字につい
 		ては|wildcards|を参照。結果は文字列。
 		結果が複数存在する場合、各々が文字<NL>によって区切られる。
+		{flag} に非零を指定しない限り、'suffixes' と 'wildignore' が適
+		用される。つまり'wildignore' のパターンにマッチする名前はス
+		キップされ、'suffixes' がマッチの順番に影響を与える。
 		展開が失敗した場合、結果は空文字列。結果には、存在しないファイ
 		ル名は含まれない。
 
@@ -2908,9 +3203,9 @@ glob({expr})
 		特殊なVimの変数を展開するためには|expand()|を参照。外部コマン
 		ドの生の出力を得るためには|system()|を参照。
 
-globpath({path}, {expr})				*globpath()*
-		{path}の中の全ディレクトリに対してglob()を実行し、結果を連結す
-		る。例: >
+globpath({path}, {expr} [, {flag}])			*globpath()*
+		{path}の中の全ディレクトリに対して|glob()|を実行し、結果を連結
+		する。例: >
 			:echo globpath(&rtp, "syntax/c.vim")
 <		{path}はコンマ区切りのディレクトリのリスト。各ディレクトリを
 		{expr}の前に付加し、glob()と同様にそれを展開する。必要に応じて
@@ -2921,14 +3216,18 @@ globpath({path}, {expr})				*globpath()*
 		スケープと見なされてしまうので、バックスラッシュは削除すること。
 		どれかのディレクトリに対して展開が失敗してもエラーメッセージは
 		表示されない。
-		オプション'wildignore'が適用される。つまり、'wildignore'の
-		パターンにマッチする名前はスキップされる。
+		{flag} に非零が指定されない限り、オプション'wildignore'が適用
+		される。つまり、'wildignore'のパターンにマッチする名前はスキッ
+		プされる。
 
 		"**"を使ってディレクトリツリーを再帰的に検索することができる。
 		例えば、'runtimepath'とそれ以下のディレクトリから全ての
 		"README.txt"を探すには次のようにする: >
 			:echo globpath(&rtp, "**/README.txt")
-< 
+<		上向き検索と、"**" の深さの限界はサポートされていない。よって
+		オプション 'path' の値をそのまま使うとうまく動かないことが
+		ある。
+
 							*has()*
 has({feature})	結果は機能{feature}がサポートされる場合1、されない場合0とな
 		る。引数{feature}は文字列。下記の|feature-list|を参照。
@@ -2955,7 +3254,7 @@ hasmapto({what} [, {mode} [, {abbr}]])			*hasmapto()*
 		{mode}に対しては以下の文字が利用できる:
 			n	ノーマルモード
 			v	ビジュアルモード
-			o	モーション待ちモード (Operator-pending)
+			o	オペレータ保留モード (Operator-pending)
 			i	インサートモード
 			l	Language-Argumentモード ("r", "f", "t"など)
 			c	コマンドラインモード
@@ -2988,14 +3287,14 @@ histdel({history} [, {item}])				*histdel()*
 		{history}の内容を削除する。例えば総てのエントリを消すこともで
 		きる。{history}の部分に可能な値は|hist-names|を参照。
 
-		パラメータ{item}が文字列として与えられた場合、これは正規表現と
+		パラメータ{item}が文字列に評価される場合、これは正規表現と
 		して扱われる。その表現にマッチする総てのエントリがhistoryから
 		削除される(複数あっても)。
 		"\c"をつけない場合、大文字・小文字が一致しなければならない。
 		|/\c|。
-		{item}が数値ならば、インデックスとして解釈される。インデックス
-		については|:history-indexing|を参照。関連するエントリ(訳注:The
-		respective entry)も、存在すれば削除される。
+		{item}が数値に評価される場合、インデックスとして解釈される。イ
+		ンデックスについては|:history-indexing|を参照。関連するエント
+		リ(訳注:The respective entry)も、存在すれば削除される。
 
 		結果は数値: 削除に成功すれば1を、そうでなければ0が返る。
 
@@ -3043,8 +3342,8 @@ hlexists({name})					*hlexists()*
 		結果は数値で、{name}という名のハイライトグループが存在すれば、
 		非ゼロの値が返される。これはなんらかの方法でそのグループが既に
 		定義されている時にのみ起こる。これの為に実際に何らかのハイライ
-		ティングアイテムが設定されている必要はなく、単にシンタックスの
-		アイテムとしても使われるだろう。
+		ティングアイテムが設定されている必要はなく、単に構文アイテムと
+		しても使われるだろう。
 							*highlight_exists()*
 		以前の名前: highlight_exists().
 
@@ -3065,7 +3364,8 @@ hostname()						*hostname()*
 iconv({expr}, {from}, {to})				*iconv()*
 		文字列{expr}をエンコーディング{from}からエンコーディング{to}に
 		変換した文字列を返す。
-		変換が失敗したときは空文字列を返す。
+		変換が完全に失敗したときは空文字列を返す。一部の文字が変換でき
+		なかった場合、その文字は "?" に置き換わる。
 		エンコーディング名はライブラリ関数iconv()が受け付けるものなら
 		なんでもよい。":!man 3 iconv"を参照。
 		ほとんどの変換は、Vimが|+iconv|機能つきでコンパイルされている
@@ -3090,7 +3390,10 @@ indent({lnum})	カレントバッファの{lnum}行目のインデント量を�
 
 index({list}, {expr} [, {start} [, {ic}]])			*index()*
 		リスト|List| {list}の中で、{expr}に等しい要素の最小のインデッ
-		クスを返す。
+		クスを返す。自動的な変換は行われないので、文字列の "4" は数値
+		の 4 とは異なると判定される。そして数値の 4 は浮動小数点数の
+		4.0 とも異なる。'ignorecase' はここでは適用されず、つねに大文
+		字・小文字は区別される。
 		{start}が指定された場合はインデックス{start}から要素の検索を始
 		める(負数を指定すると末尾からの相対位置となる)。
 		{ic}に0でない値が指定された場合、大文字・小文字は区別されない。
@@ -3102,9 +3405,9 @@ index({list}, {expr} [, {start} [, {ic}]])			*index()*
 
 input({prompt} [, {text} [, {completion}]])		*input()*
 		結果は文字列で、ユーザがコマンドラインに入力したものが返される。
-		引数はプロンプト用文字列であり、プロンプトが必要なければ空文字
-		列でかまわない。新しい行から入力させるために'\n'をプロンプトに
-		使用することができる。|:echohl|によるハイライトの設定がプロン
+		引数 {prompt} にはプロンプト文字列か空文字列を指定する。空文字
+		列の場合はプロンプトなしになる。'\n'を使ってプロンプトに改行を
+		含めることができる。|:echohl|によるハイライトの設定がプロン
 		プトに適用される。入力はコマンドラインと同様に行え、同じ編集コ
 		マンドやキーマップが使用できる。input()に入力された文字列には、
 		他の履歴とは独立した履歴が与えられる。
@@ -3144,8 +3447,8 @@ input({prompt} [, {text} [, {completion}]])		*input()*
 			:endfunction
 
 inputdialog({prompt} [, {text} [, {cancelreturn}]])		*inputdialog()*
-		input()と同様。GUIで動作していて、テキストダイアログがサポート
-		されている場合はダイアログを表示してテキストを入力させる。
+		|input()|と同様。GUIで動作していて、テキストダイアログがサポー
+		トされている場合はダイアログを表示してテキストを入力させる。
 		例: >
 			:let n = inputdialog("value for shiftwidth", &sw)
 			:if n != ""
@@ -3173,7 +3476,7 @@ inputlist({textlist})					*inputlist()*
 				\ '2. green', '3. blue'])
 
 inputrestore()						*inputrestore()*
-		前回のinputsave()で保存しておいた先行入力を復元する。
+		前回の|inputsave()|で保存しておいた先行入力を復元する。
 		inputsave()と同じ回数だけ呼ぶようにしなければならない。しかし
 		多く呼びすぎても害はない。復元するものがなければ1を、そうでな
 		ければ0を返す。
@@ -3298,13 +3601,13 @@ libcall({libname}, {funcname}, {argument})
 		{Win32と、|+libcall|機能が有効になっているUnixでのみ利用可能}
 		例: >
 			:echo libcall("libc.so", "getenv", "HOME")
-			:echo libcallnr("/usr/lib/libc.so", "getpid", "")
 < 
 							*libcallnr()*
 libcallnr({libname}, {funcname}, {argument})
-		libcall()とほぼ同様だが、文字列でなくintを返す関数に使う。
+		|libcall()|とほぼ同様だが、文字列でなくintを返す関数に使う。
 		{Win32と、|+libcall|機能が有効になっているUnixでのみ利用可能}
-		例 (あまり役に立たないが…): >
+		例: >
+			:echo libcallnr("/usr/lib/libc.so", "getpid", "")
 			:call libcallnr("libc.so", "printf", "Hello World!\n")
 			:call libcallnr("libc.so", "sleep", 10)
 <
@@ -3317,6 +3620,9 @@ line({expr})	結果は数値で、{expr}で与えられた位置のファイル�
 			    る)
 		    w0	    カレントウィンドウの最上行
 		    w$	    カレントウィンドウの最下行
+		    v	    ビジュアルモードでは: ビジュアル選択領域の開始行
+			    (カーソルがその端)。ビジュアルモード以外ではカーソ
+			    ル位置を返す。すぐに更新される点が |'<| と違う。
 		Note 他のファイルのマークも使える。その場合、戻り値はそのファ
 		イルの行番号となる。
 		桁番号を取得するには|col()|を使う。両方を取得するには
@@ -3329,7 +3635,7 @@ line({expr})	結果は数値で、{expr}で与えられた位置のファイル�
 		このオートコマンドはファイルを開いた時に、最後に開かれていた時
 		の行へ自動的にジャンプするものである。これは'"マークがセットさ
 		れている時にのみ有効である: >
-	:au BufReadPost * if line("'\"") | exe "normal '\"" | endif
+	:au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
 
 							*line2byte()*
 line2byte({lnum})
@@ -3357,11 +3663,24 @@ localtime()
 		現在の時刻、1970年1月1日からの経過秒数を返す。|strftime()|と
 		|getftime()|も参照。
 
+log10({expr})						*log10()*
+		浮動小数点数 {expr} の 10 を底とする対数を |Float| で返す。
+		{expr} は |Float| または |Number| に評価されなければならな
+		い。
+		例: >
+			:echo log10(1000)
+<			3.0 >
+			:echo log10(0.01)
+<			-2.0
+		{|+float| 機能つきでコンパイルされたときのみ有効}
+		
 map({expr}, {string})					*map()*
 		{expr}はリスト|List|または辞書|Dictionary|。
 		{expr}の各要素を、{string}を評価した結果で置き換える。
 		{string}の中では|v:val|が現在の要素の値を保持している。
 		辞書の場合は|v:key|が現在の要素のキーを保持している。
+		リストの場合は|v:key|が現在の要素のインデックスを保持してい
+		る。
 		例: >
 			:call map(mylist, '"> " . v:val . " <"')
 <		これは"mylist"の各要素の前に"> "をつけ、後に" <"をつける。
@@ -3384,11 +3703,11 @@ maparg({name}[, {mode} [, {abbr}]])			*maparg()*
 		文字が使用可能:
 			"n"	ノーマル
 			"v"	ビジュアル
-			"o"	モーション待ち (Operator-pending)
+			"o"	オペレータ保留 (Operator-pending)
 			"i"	インサート
 			"c"	コマンドライン
 			"l"	langmap |language-mapping|
-			""	ノーマル、ビジュアル、及びモーション待ち
+			""	ノーマル、ビジュアル、及びオペレータ保留
 		{mode}が省略された場合、""が使用される。
 		{abbr}が指定され、0でない場合はマッピングでなく短縮入力を対象
 		とする。
@@ -3486,6 +3805,39 @@ match({expr}, {pat}[, {start}[, {count}]])			*match()*
 		を設定できる。'smartcase'は適用されない。マッチングは常に
 		'magic'をオン、'cpoptions'を空にした状態で行われる。
 
+					*matchadd()* *E798* *E799* *E801*
+matchadd({group}, {pattern}[, {priority}[, {id}]])
+		カレントウィンドウで強調表示するパターンを定義する。このパター
+		ンのことを「マッチ」と呼ぶ。構文グループ {group}で強調する。戻
+		り値は、マッチを識別する ID である。|matchdelete()|でこの ID
+		を指定してマッチを削除することができる。
+
+		省略可能な引数 {priority} はマッチの優先度を指定する。優先度が
+		高いマッチは、より低いマッチの強調を上書きする。優先度は整数で
+		指定する(負の数も可能)。{priority} が指定されない場合は既定の
+		優先度 10 となる。'hlsearch' の優先度はゼロで、したがってゼロ
+		より大きい優先度のマッチはすべてそれを上書きする。構文ハイライ
+		ト('syntax' を参照)は独立したメカニズムであり、優先度がいくつ
+		であろうとマッチは構文ハイライトより優先する。
+
+		{id} は特定のマッチ ID を返すことを要求する。指定された ID が
+		すでに使われていたら、エラーメッセージが表示され、そのマッチは
+		登録されない。ID は正の整数を指定する(ゼロは除く)。ID 1, 2, 3
+		は |:match|, |:2match|, |:3match| 用に予約されている。{id} が
+		指定されないときは、|matchadd()| が自動的に空いている ID を取
+		得する。
+
+		コマンド |:match| と異なり、マッチの個数に上限はない。
+
+		例: >
+			:highlight MyGroup ctermbg=green guibg=green
+			:let m = matchadd("MyGroup", "TODO")
+<		このパターンを削除するには: >
+			:call matchdelete(m)
+
+<		|matchadd()| と |:match| で定義したマッチのリストは
+		|getmatches()| で取得できる。全てのマッチを削除するのは
+		|clearmatches()| 一発でできる。
 
 matcharg({nr})							*matcharg()*
 		|:match|、|:2match|、|:3match|によって設定されているマッチパター
@@ -3496,12 +3848,18 @@ matcharg({nr})							*matcharg()*
 			引数で指定した検索パターン
 		{nr}が1、2、3のどれでもないときは空リストを返す。
 		マッチパターンがセットされていないときは['', '']を返す。
-		|:match|を保存し、復元するために使われる。
+		|:match|を保存し、復元するのに便利である。
+		|:match| を使った強調は 3 個までに限られている。
+		|matchadd()| にはこの制限はない。
 
+matchdelete({id})			       *matchdelete()* *E802* *E803*
+		|matchadd()| または |:match| で定義したマッチの中で ID が {id}
+		であるものを削除する。成功したときは 0、失敗したときは
+		-1 を返す。|matchadd()| の例を参照。すべてのマッチを削除するの
+		は |clearmatches()| 一発でできる。
 
-							*matchend()*
-matchend({expr}, {pat})
-		match()と同じだが、返されるのはマッチした部分文字列の終了後の
+matchend({expr}, {pat}[, {start}[, {count}]])			*matchend()*
+		|match()|と同じだが、返されるのはマッチした部分文字列の終了後の
 		インデックスである。例: >
 			:echo matchend("testing", "ing")
 <		結果は"7"。
@@ -3512,15 +3870,15 @@ matchend({expr}, {pat})
 			:let span = matchend(line, '[^a-zA-Z]')
 <		ただしマッチがないときには-1を返すところが異なる。
 
-		{start}はmatch()の場合と同じ意味を持つ。 >
+		{start}は|match()|の場合と同じ意味を持つ。 >
 			:echo matchend("testing", "ing", 2)
 <		結果は"7"。 >
 			:echo matchend("testing", "ing", 5)
 <		結果は"-1"。
-		{expr}がリストの場合、戻り値はmatch()と等しくなる。
+		{expr}がリストの場合、戻り値は |match()| と等しくなる。
 
 matchlist({expr}, {pat}[, {start}[, {count}]])			*matchlist()*
-		match()と同じだがリストを返す。リストの最初の要素は、
+		|match()| と同じだがリストを返す。リストの最初の要素は、
 		matchstr()が返すのと同じマッチした文字列。それ以降の要素は
 		|:substitute|における"\1"、"\2"のようなサブマッチである。\1か
 		ら\9までの間で、指定されなかったものは空文字列となる。例: >
@@ -3529,11 +3887,11 @@ matchlist({expr}, {pat}[, {start}[, {count}]])			*matchlist()*
 		マッチしなかったときは空リストを返す。
 
 matchstr({expr}, {pat}[, {start}[, {count}]])			*matchstr()*
-		match()と同じだが、マッチした文字列を返す。例: >
+		|match()| と同じだが、マッチした文字列を返す。例: >
 			:echo matchstr("testing", "ing")
 <		結果は"ing"。
 		マッチしなかったときは""を返す。
-		{start}の意味はmatch()の場合と同じ。 >
+		{start}の意味は |match()| の場合と同じ。 >
 			:echo matchstr("testing", "ing", 2)
 <		結果は"ing"。 >
 			:echo matchstr("testing", "ing", 5)
@@ -3561,15 +3919,25 @@ mkdir({name} [, {path} [, {prot}]])
 		そうでないときは""にすること。
 		{prot}は作成するディレクトリの保護ビット。デフォルトは0755
 		(rwxr-xr-x: 所有者は読み書き可能、他の人は読み込み可能)。
-		他の人が読み込めないようにするには0700とすること。
-		|sandbox|の中ではこの関数は使用できない。
+		他の人が読み込めないようにするには0700とすること。{prot} は
+		{name} の最後の部分にのみ適用される。なので、/tmp/foo/bar
+		を作成すると /tmp/foo は 0755 で作成される。
+		例: >
+			:call mkdir($HOME . "/tmp/foo/bar", "p", 0700)
+<		|sandbox|の中ではこの関数は使用できない。
 		システムによっては利用できない場合がある。これを確認するには次
 		のようにする: >
 			:if exists("*mkdir")
 <
 							*mode()*
-mode()		現在のモードを示す文字列を返す。
+mode([expr])		現在のモードを示す文字列を返す。
+			[expr] に 0 でない数値か空でない文字列(|non-zero-arg|)
+			を指定した場合、フルモードが返される。それ以外の場合は
+			最初の一文字だけが返される。" " と "0"はどちらも空文字
+			列ではないことに注意。
+
 			n	ノーマル
+			no	オペレータ保留
 			v	文字指向ビジュアル
 			V	行指向ビジュアル
 			CTRL-V	矩形指向ビジュアル
@@ -3577,11 +3945,19 @@ mode()		現在のモードを示す文字列を返す。
 			S	行指向セレクト
 			CTRL-S	矩形指向セレクト
 			i	インサート
-			R	置換
+			R	置換 |R|
+			Rv	仮想置換 |gR|
 			c	コマンドライン
+			cv	Vim Ex モード |gQ|
+			ce	ノーマル Ex モード |Q|
 			r	Hit-enter プロンプト
-		これらはオプション'statusline'の中で使うと便利である。他のほと
-		んどの場所では"c"または"n"しか返さない。
+			rm	-- more -- プロンプト
+			r?	ある種の |:confirm| 問い合わせ
+			!	シェルまたは外部コマンド実行中
+		これらはオプション'statusline'の中や、|remote_expr()| といっし
+		ょに使うと便利である。他のほとんどの場所では"c"または"n"しか返
+		さない。
+		|visualmode()| も参照。
 
 nextnonblank({lnum})					*nextnonblank()*
 		{lnum}行以降({lnum}行を含む)の最初の非空行の行番号を返す。
@@ -3601,6 +3977,10 @@ nr2char({expr})
 		て保持している。そのため、nr2char(10)とすればNUL文字を指定でき
 		る。nr2char(0)は真のNUL文字(文字列の終端)となるので、空文字列
 		を返す。
+
+							*getpid()*
+getpid()	Vim のプロセス ID を数値で返す。Unix と MS-Windows では Vim が
+		終了するまでこれは一意な数値である。MS-DOS では常にゼロである。
 
 							*getpos()*
 getpos({expr})	{expr}の位置を返す。{expr}として指定できる値については
@@ -3628,6 +4008,18 @@ pathshorten({expr})					*pathshorten()*
 <			~/.v/a/myfile.vim ~
 		パスが実際に存在するかどうかは関係ない。
 
+pow({x}, {y})						*pow()*
+		{x} の {y} 乗を |Float| で返す。{x} と {y} は |Float| または
+		|Number| に評価されなければならない。
+		例: >
+			:echo pow(3, 3)
+<			27.0 >
+			:echo pow(2, 16)
+<			65536.0 >
+			:echo pow(32, 0.20)
+<			2.0
+		{|+float| 機能つきでコンパイルされたときのみ有効}
+		
 prevnonblank({lnum})					*prevnonblank()*
 		{lnum}行以前({lnum}行を含む)の最初の非空行の行番号を返す。
 		例: >
@@ -3654,6 +4046,11 @@ printf({fmt}, {expr1} ...)				*printf()*
 		  %04x  0で埋めて少なくとも4文字にした16進数値
 		  %X    16進数値(大文字)
 		  %o    8進数値
+		  %f	123.456 形式の浮動小数点数
+		  %e	1.234e3 形式の浮動小数点数
+		  %E	1.234E3 形式の浮動小数点数
+		  %g	浮動小数点数。値によって %f または %e となる
+		  %G	浮動小数点数。値によって %f または %E となる
 		  %%    文字 % そのもの
 
 		変換子指示は'%'で始まり、変換文字で終わる。それ以外の全ての文
@@ -3702,6 +4099,7 @@ printf({fmt}, {expr1} ...)				*printf()*
 			数字文字列を省略した場合、精度は0になる。d, o, x, X変
 			換における最低桁数を指定する。また、s変換における最大
 			バイト数を指定する。
+			浮動小数点数の場合は小数点以下の桁数。
 
 		型
 			変換の型を指定する1文字。下記を参照。
@@ -3716,6 +4114,7 @@ printf({fmt}, {expr1} ...)				*printf()*
 
 		変換指示子の意味は以下の通り: 
 
+				*printf-d* *printf-o* *printf-x* *printf-X*
 		doxX    数値の引数を符号付き10進数(d)、符号なし8進数(o)、符号
 			なし16進数(xまたはX)の書式に変換する。xの場合は
 			"abcdef"と小文字を使い、Xのの場合は"ABCDEF"と大文字を
@@ -3726,17 +4125,46 @@ printf({fmt}, {expr1} ...)				*printf()*
 			の幅を切り詰めることは決してない。変換結果がフィールド
 			幅より多くの桁を必要とする場合は、十分な幅に広げられる。
 
+							*printf-c*
 		c	引数の数値を1バイトに変換し、結果の文字列を書き出す。
 
+							*printf-s*
 		s	引数の文字列を出力する。精度を指定した場合、その数値以
 			下のバイト数のみを書き出す。
 
+							*printf-f* *E807*
+		f	Float の引数を 123.456 の形式の文字列に変換する。精度
+			は小数点以下の桁数を指定する。精度が 0 のときは小数点
+			以下は省略される。精度を指定しないときは 6 桁となる。
+			とてつもなく大きい数(範囲外またはゼロによる除算)のとき
+			は "inf" となる。"0.0 / 0.0" は "nan" になる。
+			例: >
+				echo printf("%.2f", 12.115)
+<				12.12
+			丸めはシステムのライブラリに依存する。心配なときは
+			|round()| を使うこと。
+
+							*printf-e* *printf-E*
+		e E	Float の引数を 1.234e+03 という形式('E' のときは
+			1.234E+03)の文字列に変換する。精度は 'f' の場合と同じ
+			く小数点以下の桁数を指定する。
+
+							*printf-g* *printf-G*
+		g G	0.001(を含む)から10000000.0(を除く)の間の場合は 'f' の
+			形式で変換し、この間にない場合は 'g' は'e'、'G' は 'E'
+			の形式によって変換する。精度が指定されないときは余分な
+			ゼロ(小数点の直後のゼロ以外)と '+' 記号は省かれる。よっ
+			て 10000000.0 は 1.0e7 になる。
+
+							*printf-%*
 		%	単一の'%'を書き出す。引数は変換しない。完全な変換指定
 			は"%%"となる。
 
-		各引数には数値か文字列を受け取り、変換指示子に合うように自動的
-		に変換される。引数の型がそれ以外の場合はエラーメッセージが表示
-		される。
+		数値の引数を受け取る変換指示子には文字列を与えることもできる。
+		変換は自動的に行われる。
+		浮動小数点数または文字列の引数を受け取る変換指示子には、数値を
+		与えることもできる。変換は自動的に行われる。
+		それ以外の型の引数を与えるとエラーメッセージが表示される。
 
 							*E766* *E767*
 		{expr1}以降の引数の数と"%"変換指示子の個数がちょうど一致しなけ
@@ -3919,6 +4347,8 @@ rename({from}, {to})					*rename()*
 		ファイルの名前を{from}から{to}へ変える。ファイルシステムを越え
 		てファイルを移動するのにも使用できる。結果は数値で、成功すれば
 		0、失敗すれば非ゼロになる。
+		NOTE: ファイル {to} がすでに存在する場合、警告なしに上書きされ
+		る。
 		|sandbox|の中ではこの関数は利用できない。
 
 repeat({expr}, {count})					*repeat()*
@@ -3948,7 +4378,22 @@ reverse({list})	{list}の要素の順序をその場で(in-place)反転させる
 		リストを変更させないでおくには、最初にコピーを作る: >
 			:let revlist = reverse(copy(mylist))
 
-search({pattern} [, {flags} [, {stopline}]])			*search()*
+round({expr})							*round()*
+		{expr} を最も近い整数に丸め、|Float| を返す。{expr} が二つの整
+		数の真ん中にある場合、大きい方(0 から遠い方)になる。
+		(訳注: つまり四捨五入になる)
+		{expr} は |Float| または |Number| に評価されなければならない。
+		例: >
+			echo round(0.456)
+<			0.0  >
+			echo round(4.5)
+<			5.0 >
+			echo round(-4.5)
+<			-5.0
+		{|+float| 機能つきでコンパイルされたときのみ有効}
+		
+		
+search({pattern} [, {flags} [, {stopline} [, {timeout}]]])	*search()*
 		正規表現パターン{pattern}を検索する。検索はカーソル位置から開
 		始する(検索位置を指定するには|cursor()|を使えばよい)。
 
@@ -3974,6 +4419,14 @@ search({pattern} [, {flags} [, {stopline}]])			*search()*
 			let end = search('END', '', line("w$"))
 <		{stopline}に0でない値が指定されたときは、暗黙にファイルの末尾
 		で循環しなくなる。
+		0 の値は、引数を省略したときと同じになる。
+
+		{timeout} が指定された場合、そのミリ秒が経過したところで検索が
+		停止する。つまり、{timeout} が 500 なら検索は 500 ミリ秒で停止
+		する。
+		この値は負であってはならない。0 の値は、引数を省略したときと同
+		じになる。
+		{|+reltime| 機能つきでコンパイルされたときのみ有効}
 
 		マッチがない場合は0を返し、カーソルは移動しない。エラーメッセ
 		ージは表示されない。
@@ -4036,7 +4489,8 @@ searchdecl({name} [, {global} [, {thisblock}]])			*searchdecl()*
 			endif
 <
 							*searchpair()*
-searchpair({start}, {middle}, {end} [, {flags} [, {skip} [, {stopline}]]])
+searchpair({start}, {middle}, {end} [, {flags} [, {skip}
+				[, {stopline} [, {timeout}]]]])
 		ネストしたstart・endのペアを検索する。これを使うと、"if"に対応
 		する"endif"を見つけることができる。それらの間にある他のif・
 		endifのペアは無視される。
@@ -4056,9 +4510,11 @@ searchpair({start}, {middle}, {end} [, {flags} [, {skip} [, {stopline}]]])
 		{flags}には|search()|と同様に'b', 'c', 'n', 's', 'w', 'W' が使
 		える。それに加えて以下のフラグが利用できる。
 		'r'	それ以上マッチが見つからなくなるまで繰り返す。つまり最
-			も外側のペアを探す。
+			も外側のペアを探す。'W' も自動的にオンになる。
 		'm'	マッチ位置の行番号でなくマッチの個数を返す。'r'を使っ
 			ているときは > 1 となる。
+		Note: ほとんどつねに 'W' を使ってファイルの末尾で循環しないよ
+		うにするのがよい考えである。
 
 		{start}、{middle}、{end}のマッチが見つかると、マッチの開始位置
 		にカーソルを移動し、式{skip}を評価する。このマッチがコメントや
@@ -4068,7 +4524,7 @@ searchpair({start}, {middle}, {end} [, {flags} [, {skip} [, {stopline}]]])
 		{skip}を評価している最中にエラーが発生すると、検索は異常終了し
 		-1を返す。
 
-		{stopline}については|search()|を参照。
+		{stopline} と {timeout} については|search()|を参照。
 
 		'ignorecase'の値が適用される。'magic'の値は無視され、オンのと
 		きと同じ様に動作する。
@@ -4110,8 +4566,9 @@ searchpair({start}, {middle}, {end} [, {flags} [, {skip} [, {stopline}]]])
 	     \ 'synIDattr(synID(line("."), col("."), 0), "name") =~? "string"')
 <
 							*searchpairpos()*
-searchpairpos({start}, {middle}, {end} [, {flags} [, {skip} [, {stopline}]]])
-		searchpair()と同様だが、マッチの行番号と桁番号からなるリスト
+searchpairpos({start}, {middle}, {end} [, {flags} [, {skip}
+				[, {stopline} [, {timeout}]]]])
+		|searchpair()|と同様だが、マッチの行番号と桁番号からなるリスト
 		|List|を返す。このリストの最初の要素は行番号で、次の要素はマッ
 		チの桁位置のバイトインデックスである。マッチが見つからなかった
 		場合は[0, 0]を返す。
@@ -4120,7 +4577,7 @@ searchpairpos({start}, {middle}, {end} [, {flags} [, {skip} [, {stopline}]]])
 <
 		より大規模で役に立つ例に関しては|match-parens|を参照。
 
-searchpos({pattern} [, {flags} [, {stopline}]])		*searchpos()*
+searchpos({pattern} [, {flags} [, {stopline} [, {timeout}]]])	*searchpos()*
 		|search()|と同様だが、マッチの行番号と桁番号からなるリスト
 		|List|を返す。このリストの最初の要素は行番号で、次の要素はマッ
 		チの桁位置のバイトインデックスである。マッチが見つからなかった
@@ -4181,11 +4638,11 @@ setcmdpos({pos})					*setcmdpos()*
 		小さいときの結果は未定義である。
 		成功なら0、コマンドラインを編集しているとき以外には1を返す。
 
-setline({lnum}, {line})					*setline()*
-		カレントバッファの{lnum}行目を{line}にする。
+setline({lnum}, {text})					*setline()*
+		カレントバッファの{lnum}行目を{text}にする。
 		{lnum}は|getline()|のときと同じように解釈される。
-		{lnum}が最後の行の次の行の場合、新規行として{line}を追加する。
-		成功したら0を返す。失敗したら(大抵{lnun}が無効な値のとき)1を返
+		{lnum}が最後の行の次の行の場合、新規行として{text}を追加する。
+		成功したら0を返す。失敗したら(大抵{lnum}が無効な値のとき)1を返
 		す。例: >
 			:call setline(5, strftime("%c"))
 <		{line}がリスト|List|の場合、{lnum}行目とそれ以降の行にリストの
@@ -4202,7 +4659,13 @@ setloclist({nr}, {list} [, {action}])			*setloclist()*
 		{nr}が0のときはカレントウィンドウを対象にする。ロケーションリ
 		ストウィンドウの場合、そこに表示しているロケーションリストが修
 		正される。ウィンドウ番号{nr}が無効な場合、-1を返す。
-		それ以外はsetqflist()と同じ。
+		それ以外は|setqflist()|と同じ。
+		|location-list| も参照。
+
+setmatches({list})					*setmatches()*
+		|getmatches()| で取得したマッチのリストを復元する。成功なら 
+		0、失敗なら -1 を返す。リストを復元するに先立って、現在のマッ
+		チはすべて消去される。|getmatches()| の例を参照。
 
 							*setpos()*
 setpos({expr}, {list})
@@ -4225,6 +4688,9 @@ setpos({expr}, {list})
 		数値"off"は'virtualedit'がオンのときのみ使われ、その文字の開始
 		位置からの画面上の桁のオフセットとなる。例えば、<Tab>の中、ま
 		たは最後の文字より後に設定したいときに使う。
+
+		位置をセットできたときは 0 を、そうでなければ -1 を返す。
+		{expr} が無効なときはエラーメッセージが出る。
 
 		|getpos()|も参照。
 
@@ -4329,7 +4795,7 @@ setwinvar({nr}, {varname}, {val})			*setwinvar()*
 			:call setwinvar(1, "&list", 0)
 			:call setwinvar(2, "myvar", "foobar")
 
-shellescape({string})					*shellescape()*
+shellescape({string} [, {special}])			*shellescape()*
 		シェルコマンドの引数として利用できるように{string}をエスケープ
 		する。
 		MS-WindowsとMS-DOSでは、'shellslash'が設定されていない場合、
@@ -4337,12 +4803,22 @@ shellescape({string})					*shellescape()*
 		全て二重にする。
 		他のシステムでは、{string}をシングルクォートで囲み、"'"を
 		"'\''"で置き換える。
-		例: >
-			:echo shellescape('c:\program files\vim')
-<		結果:
-			"c:\program files\vim" ~
-		使用例: >
-			:call system("chmod +x -- " . shellescape(expand("%")))
+		{special} が指定され、0 でない数値または空でない文字列の場合
+		(|non-zero-arg|)、"!", "%", "#", "<cword>" などの特殊なアイテ
+		ムの前にはバックスラッシュがつく。コマンド |:!| に
+		よってそのバックスラッシュは再び除かれる。
+		'shell' の値の末尾が "csh" である場合、{special} が
+		|non-zero-arg| ならば"!" の文字もエスケープされる。これは、csh
+		と tcsh は シングルクォートの中であっても "!" を履歴置換と解釈
+		するためである。
+		<NL> 文字もエスケープされる。{special} が |non-zero-arg| であ
+		り 'shell' の末尾が "csh" である場合、これは2回エスケープされ
+		る。
+		|:!| コマンドを使う場合の例: >
+		    :exe '!dir ' . shellescape(expand('<cfile>'), 1)
+<		これはカーソル下のファイルを dir コマンドで表示する。
+		|system()| を使う場合の例: >
+		    :call system("chmod +w -- " . shellescape(expand("%")))
 
 
 simplify({filename})					*simplify()*
@@ -4360,6 +4836,17 @@ simplify({filename})					*simplify()*
 		|resolve()|を使う。
 
 
+sin({expr})						*sin()*
+		{expr} の正接(サイン)をラジアンで |Float| で返す。{expr} は
+		|Float| または |Number| に評価されなければならない。
+		例: >
+			:echo sin(100)
+<			-0.506366 >
+			:echo sin(-4.01)
+<			0.763301
+		{|+float| 機能つきでコンパイルされたときのみ有効}
+		
+
 sort({list} [, {func}])					*sort()* *E702*
 		{list}の要素をその場で(in-place)ソートする。{list}を返す。リス
 		トを変更したくない場合は、最初にコピーを作っておくこと: >
@@ -4370,14 +4857,18 @@ sort({list} [, {func}])					*sort()* *E702*
 		{func}に1を指定すると、大文字・小文字を区別しなくなる。
 		{func}に|Funcref|または関数名を指定すると、その関数を使って要
 		素を比較する。その関数は2つの要素を引数として受け取り、それら
-		が等しいときは0、1番目の引数を2番目より後にするなら1、1番目の
-		方を前にするなら-1を返す。例: >
+		が等しいときは0、1番目の引数を2番目より後にするなら1以上、1番
+		目の方を前にするなら-1以下を返す。例: >
 			func MyCompare(i1, i2)
 			   return a:i1 == a:i2 ? 0 : a:i1 > a:i2 ? 1 : -1
 			endfunc
 			let sortedlist = sort(mylist, "MyCompare")
+<		この例の場合、より短く次のように書くことができる。ただしオーバー
+		フローは無視される: >
+			func MyCompare(i1, i2)
+			   return a:i1 - a:i2
+			endfunc
 <
-
 							*soundfold()*
 soundfold({word})
 		{word}と同値でsound-foldされた単語を返す。カレントウィンドウの
@@ -4457,6 +4948,34 @@ split({expr} [, {pattern} [, {keepempty}]])			*split()*
 <		これの逆を行う関数は|join()|である。
 
 
+sqrt({expr})						*sqrt()*
+		浮動小数点数 {expr} の非負平方根を |Float| で返す。
+		{expr} は |Float| または |Number| に評価されなければならな
+		い。{expr} が負の場合、結果は NaN (Not a Number) になる。
+		例: >
+			:echo sqrt(100)
+<			10.0 >
+			:echo sqrt(-4.01)
+<			nan
+		"nan" はシステムのライブラリに依存するので、異なるかもしれな
+		い。
+		{|+float| 機能つきでコンパイルされたときのみ有効}
+		
+
+str2float( {expr})					*str2float()*
+		文字列 {expr} を浮動小数点数に変換する。これは式の中で浮動小数
+		点数を使っているときと同じようにはたらく
+		(|floating-point-format| を参照)。しかしこちらの方がゆるやか
+		である。例えばこちらでは "1e40" も許されるが、式の中では
+		"1.0e+40" と書かなければならない。
+		数値の後ろにある文字列は黙って無視される。
+		小数点数はロカールの設定にかかわらずつねに '.' である。コンマ
+		を発見すると、そこで数値は終りになる。つまり "12,345.67" は
+		12.0 に変換される。3桁ごとのカンマ区切りを取り除くには
+		   |substitute()| が使える: >
+			let f = str2float(substitute(text, ',', '', 'g'))
+<		{|+float| 機能つきでコンパイルされたときのみ有効}
+
 str2nr( {expr} [, {base}])				*str2nr()*
 		文字列{expr}を数値に変換する。
 		{base}は変換の底。8、10、16のいずれか。
@@ -4507,11 +5026,13 @@ stridx({haystack}, {needle} [, {start}])		*stridx()*
 		のときはstrchr()と同じように動作する。
 
 							*string()*
-string({expr})	{expr}を文字列に変換して返す。{expr}が数値、文字列、それらの複
-		合の場合は、この戻り値を|eval()|でパースして復元できる。
+string({expr})	{expr}を文字列に変換して返す。{expr}が数値、浮動小数点数、文字
+		列、それらの複合の場合は、この戻り値を|eval()|でパースして復元
+		できる。
 			{expr} 型	結果 ~
 			文字列		'string'
 			数値		123
+			浮動小数点数	123.123456 or 1.123456e8
 			Funcref		function('name')
 			リスト		[item, item]
 			辞書		{key: value, key: value}
@@ -4604,9 +5125,9 @@ substitute({expr}, {pat}, {sub}, {flags})
 
 synID({lnum}, {col}, {trans})				*synID()*
 		結果は数値で、現在のウィンドウ内での位置{lnum}と{col}の位置の
-		シンタックスID。
-		シンタックスIDは|synIDattr()|と|synIDtrans()|に渡すことで、テ
-		キストについてのシンタックス情報を取得するのに使用できる。
+		構文ID。
+		構文IDは|synIDattr()|と|synIDtrans()|に渡すことで、テキストに
+		ついての構文情報を取得するのに使用できる。
 		
 		最左のカラムを指定するには{col}に1を、最初の行を指定するには
 		{line}に1を指定する。'synmaxcol'が適用され、長すぎる行では0が
@@ -4615,18 +5136,18 @@ synID({lnum}, {col}, {trans})				*synID()*
 		{trans}が非ゼロならば、透過属性のアイテムは省略され、実際に表
 		示されているアイテムが評価対象になる。これは実際に有効になって
 		いるカラーを知りたい時に役に立つ。{trans}がゼロならば、透過属
-		性のアイテムが返される。これはどのシンタックスアイテムが有効に
-		なっているかを知りたい時に役に立つ(例:カッコの中とか)。
+		性のアイテムが返される。これはどのシ構文イテムが有効になってい
+		るかを知りたい時に役に立つ(例:カッコの中とか)。
 		警告: この関数は非常に遅い。ファイルを順方向に走査する時にだけ
 		ベストなスピードが得られる。
 
-		例(カーソルの下のシンタックスアイテムの名前を表示する): >
+		例(カーソルの下の構文アイテムの名前を表示する): >
 			:echo synIDattr(synID(line("."), col("."), 1), "name")
 <
 							*synIDattr()*
 synIDattr({synID}, {what} [, {mode}])
-		結果は文字列で、{synID}の属性{what}の内容を示す。これはシン
-		タックスアイテムの情報を取得するのに使用できる。
+		結果は文字列で、{synID}の属性{what}の内容を示す。これは構文
+		アイテムの情報を取得するのに使用できる。
 		{mode}には取得したいモードの属性に応じて、"gui"か"cterm"か
 		"term"が指定できる。{mode}が省略されるか、無効な値が指定された
 		場合、現在有効になっているハイライトモードが使用される(GUI、
@@ -4634,12 +5155,14 @@ synIDattr({synID}, {what} [, {mode}])
 		ハイライトグループにリンクされた属性を取得するにはsynIDtrans()
 		を使用する。
 		{what}		結果
-		"name"		シンタックスアイテムの名前
+		"name"		構文アイテムの名前
 		"fg"		前景色(GUI:カラー名、cterm:文字列としてのカ
 				ラー番号、term空文字列)
 		"bg"		背景色("fg"同様)
+		"sp"		特殊な色 ("fg"同様) |highlight-guisp|
 		"fg#"		"fg"同様だが、"#RRGGBB"のフォーマットで
 		"bg#"		"bg"同様だが、"#RRGGBB"のフォーマットで
+		"sp#"		"sp"同様だが、"#RRGGBB"のフォーマットで
 		"bold"		太字なら"1"
 		"italic"	斜体なら"1"
 		"reverse"	反転なら"1"
@@ -4647,15 +5170,29 @@ synIDattr({synID}, {what} [, {mode}])
 		"underline"	下線付きなら"1"
 		"undercurl"	波線付きなら"1"
 
-		例(カーソルの下のシンタックスアイテムの名前を表示する): >
+		例(カーソルの下の構文アイテムの名前を表示する): >
 	:echo synIDattr(synIDtrans(synID(line("."), col("."), 1)), "fg")
 <
 							*synIDtrans()*
 synIDtrans({synID})
-		結果は数値で、{synID}をシンタックスIDに変換したもの。キャラク
-		タをハイライト表示しているシンタックスグループのIDである。
+		結果は数値で、{synID}を構文IDに変換したもの。キャラク
+		タをハイライト表示している構文グループのIDである。
 		":highlight link"によって与えられるハイライトのリンクはこれに
 		従っている。
+
+synstack({lnum}, {col})					*synstack()*
+		カレントウィンドウの {lnum}, {col} の位置の構文アイテムのス
+		タックを |List| にして返す。このリストの要素は |synID()|が
+		返すのと同じ種類の ID である。
+		リストの最初の要素が一番外側の領域で、続く要素がその中に内包さ
+		れている。アイテム全体がハイライトされている、または最後の要素
+		が transparent なアイテムである場合を除き、最後の要素が
+		|synID()| が返すものである。
+		この関数は構文ファイルをデバッグするのに役に立つ。
+		例(カーソル下の構文スタックを表示する): >
+			for id in synstack(line("."), col("."))
+			   echo synIDattr(id, "name")
+			endfor
 
 system({expr} [, {input}])				*system()* *E677*
 		シェルコマンド{expr}の実行結果を得る。
@@ -4663,13 +5200,13 @@ system({expr} [, {input}])				*system()* *E677*
 		コマンドの標準入力として渡される。この文字列はそのまま(as-is)
 		書き出され、正しい改行文字を使うよう自分自身で気を付けなければ
 		ならない。パイプは使われない。
-		注意: {expr}内の改行はコマンドを失敗させるだろう。
+		注意: |shellescape()| を使ってコマンドの引数をエスケープするこ
+		と。{expr}内に改行が含まれるとコマンドが失敗する可能性がある。
 		'shellquote'と'shellxquote'に入っている文字は問題を引き起こす
 		かもしれない。
 		対話的なコマンドを使用することはできない。
 		戻り値は文字列。例: >
-
-			:let files = system("ls")
+		    :let files = system("ls " .  shellescape(expand('%:h')))
 
 <		システムに依存しないような戻り値にするために、シェルの出力をフ
 		ィルタリングし、マッキントッシュにおいては<CR>を<NL>に変換し、
@@ -4775,11 +5312,8 @@ tempname()
 		の呼出しまでは違う名前を生成することが保証される。例: >
 			:let tmpfile = tempname()
 			:exe "redir > " . tmpfile
-<		Unixでは、symlink攻撃や、他の人がそのファイルを読んでしまうな
-		どのセキュリティ上の問題を防ぐために、このファイルはプライベー
-		ト(現在のユーザのみアクセス可能)なディレクトリの中に置かれる。
-		Vimが終了するとき、そのディレクトリとその中の全ファイルは削除
-		される。
+<		Unix では、ファイルはプライベートなディレクトリに置かれる。
+		|tempfile|
 		MS-Windowsでは、'shellslash'がオンのときか'shellcmdflag'が'-'
 		で始まるときはスラッシュが使われる。
 
@@ -4804,6 +5338,19 @@ tr({src}, {fromstr}, {tostr})				*tr()*
 			echo tr("<blob>", "<>", "{}")
 <		戻り値は "{blob}" となる。
 
+trunc({expr})							*trunc()*
+		{expr} をゼロ方向に切りつめた整数を |Float| で返す。
+		{expr} は |Float| または |Number| に評価されなければならない。
+		例: >
+		Examples: >
+			echo trunc(1.456)
+<			1.0  >
+			echo trunc(-5.456)
+<			-5.0  >
+			echo trunc(4.0)
+<			4.0
+		{|+float| 機能つきでコンパイルされたときのみ有効}
+		
 							*type()*
 type({expr})	{expr}の型を示す数値を返す:
 			数値:	    0
@@ -4811,12 +5358,14 @@ type({expr})	{expr}の型を示す数値を返す:
 			Funcref:    2
 			リスト:	    3
 			辞書:	    4
+			浮動小数点数:	    5
 		マジックナンバーを使わずに、次のような使い方をすべきである: >
 			:if type(myvar) == type(0)
 			:if type(myvar) == type("")
 			:if type(myvar) == type(function("tr"))
 			:if type(myvar) == type([])
 			:if type(myvar) == type({})
+			:if type(myvar) == type(0.0)
 
 values({dict})						*values()*
 		{dict}の全ての値からなるリスト|List|を返す。このリストの順序は
@@ -4828,10 +5377,9 @@ virtcol({expr})						*virtcol()*
 		スクリーン座標(の桁)でどこに存在するかである。<Tab>(タブ文字)
 		が指定した位置にあった場合には、戻り値はそのタブの最後のカラム
 		(桁)位置になる。具体的に、'ts'が8に設定された状態で第1桁に
-		<Tab>があった場合、戻ってくる値は8になる。
-		{expr}の解釈の仕方については|col()|を参照。それに加えて、
-		[lnum, col]という行番号と桁番号のリストを指定できる。"lnum"か
-		"col"が範囲外の場合は0を返す。
+		<Tab>があった場合、戻り値は8になる。
+		バイト位置については |col()| を使う。
+		{expr}の解釈の仕方については|col()|を参照。
 		'virtualedit'がオンのときは[lnum, col, off]というリストを指定
 		することもできる。"off"は文字の開始位置からのスクリーン座標で
 		のオフセットである。例えば、<Tab>の中の位置や、行の最後の文字
@@ -4865,10 +5413,15 @@ visualmode([expr])						*visualmode()*
 <		これは最後に使われたのと同じビジュアルモードに入る。また、スク
 		リプトの動作を、最後に使われたビジュアルモードに応じて変更した
 		い場合にも便利だろう。
+		ビジュアルモードにいるときは |mode()| を使ってビジュアルモード
+		の種類を取得できる。(|:vmap| などの中などで)
 
+							*non-zero-arg*
 		{expr}に0以外の数値か空文字列以外の文字列を指定した場合は、ビ
 		ジュアルモードがクリアされ、以前の値を返す。Note " "と"0"は空
-		文字列ではないことに注意。よってモードがクリアされる。
+		文字列ではないことに注意。よってモードがクリアされる。リス
+		ト、辞書、浮動小数点数は数値でも文字列でもないのでモードはクリ
+		アされない。
 
 							*winbufnr()*
 winbufnr({nr})	結果は数値で、{nr}番目のウィンドウに関連付けられているバッファ
@@ -5031,6 +5584,7 @@ file_in_path		|gf|と|<cfile>|をサポート
 filterpipe		'shelltemp'がオフのとき、シェルの読み込み・書き込み・
 			フィルタコマンドにパイプを使う。
 find_in_path		includeファイル内の検索をサポート |+find_in_path|
+float			浮動小数点数 |Float| サポート
 fname_case		ファイル名の大文字小文字が区別される(Amiga,MS-DOS,
 			そしてWindowsでは区別されないので偽)
 folding			|folding| 折り畳みをサポート
@@ -5040,6 +5594,7 @@ gettext			翻訳メッセージをサポート |multi-lang|
 gui			GUIが有効である
 gui_athena		AthenaのGUIが有効である
 gui_gtk			GTK+のGUIが有効である
+gui_gnome		Gnomeサポート(gui_gtkも定義される)
 gui_gtk2		GTK+ 2のGUIが有効である (gui_gtkも定義される)
 gui_mac			マッキントッシュのGUIが有効である
 gui_motif		MotifのGUIが有効である
@@ -5070,8 +5625,10 @@ mouse_dec		DECのターミナルマウスをサポート
 mouse_gpm		gpmをサポート (Linuxのコンソールマウス)
 mouse_netterm		nettermのマウスをサポート
 mouse_pterm		qnx ptermのマウスをサポート
+mouse_sysmouse		sysmouse (*BSD コンソールマウス)をサポート
 mouse_xterm		xtermのマウスをサポート
-multi_byte		中国語・日本語・韓国語その他の言語をサポート
+multi_byte		'encoding' をサポート
+multi_byte_encoding	'encoding' がマルチバイトエンコーディングになる
 multi_byte_ime		IMEによる入力をサポート
 multi_lang		複数言語をサポート
 mzscheme		MzSchemeインターフェイスをサポート |mzscheme|.
@@ -5094,6 +5651,7 @@ showcmd			'showcmd'をサポート
 signs			|:sign|をサポート
 smartindent		'smartindent'をサポート
 sniff			SniFFインターフェイスをサポート
+startuptime		|--startuptime| をサポート
 statusline		'statusline', 'rulerformat'そして'titlestring'と
 			'iconstring'の特殊フォーマットをサポート
 sun_workshop		Sun |workshop|をサポート
@@ -5241,8 +5799,11 @@ x11			X11をサポート
 			素を通してしか呼べなくなる。そしてその辞書にローカル変
 			数"self"が定義される。|Dictionary-function|を参照。
 
+						*function-search-undo*
 			関数の実行によって、最後に使用されたサーチパターン、及
-			びredoコマンドの"."の内容は変更されない。
+			びredoコマンドの"."の内容は変更されない。したがって、
+			関数内で|:nohlsearch| を行っても、関数から戻ると検索結
+			果のハイライトが元に戻ることになる。
 
 					*:endf* *:endfunction* *E126* *E193*
 :endf[unction]		関数定義の終了。このコマンド1つで1行とすること。他のコ
@@ -5495,6 +6056,10 @@ Vimはこれを見つけると、まず波括弧の中の式を評価し、そ�
 			スでなければならない。ネストしたリストに対してはインデ
 			ックスを繰り返すことができる。
 			このコマンドはリストに要素を追加するためには使えない。
+			文字列の i バイト目をセットするためにも使えない。それ
+			には次のようにする: >
+				:let var = var[0:2] . 'X' . var[4:]
+<
 
 							*E711* *E719*
 :let {var-name}[{idx1}:{idx2}] = {expr1}		*E708* *E709* *E710*
@@ -5640,6 +6205,10 @@ Vimはこれを見つけると、まず波括弧の中の式を評価し、そ�
 <			辞書からは一度に1個の要素を削除することができる: >
 				:unlet dict['two']
 				:unlet dict.two
+			グローバル変数とスクリプトローカル変数をクリーンアップ
+			するために特に便利である(これらはスクリプト終了時に検
+			出されない)。関数ローカルな関数は、その関数から抜ける
+			ときに自動的に削除される。
 
 :lockv[ar][!] [depth] {name} ...			*:lockvar* *:lockv*
 			内部変数{name}をロックする。ロックすると、それ以降変更
@@ -5752,15 +6321,18 @@ Vimはこれを見つけると、まず波括弧の中の式を評価し、そ�
 			ため副作用なしに現在の要素を削除することができる。それ
 			以降の要素を変更すると、それが見つからなくなる。つまり
 			以下の例は動作する(リストを空にする非効率な方法): >
-				:for item in mylist
-				   :call remove(mylist, 0)
-				:endfor
+				for item in mylist
+				   call remove(mylist, 0)
+				endfor
 <			Note リストを並べ替える(例えばsort()やreverse()で)と予
 			期しない結果になることがある。
 			Note {var}の型が変わってしまうのを避けるために、リスト
 			の各要素の型は同じでなければならない。ループの末尾でこ
-			の変数をunletすれば要素の型が同一でなくてもよくなる。
-
+			の変数をunletすれば要素の型が同一でなくてもよくなる: >
+				for item in ["foo", ["bar"]]
+				   echo item
+				   unlet item  " これがないと E706 になる
+				endfor
 
 :for [{var1}, {var2}, ...] in {listlist}
 :endfo[r]
@@ -5823,7 +6395,7 @@ Vimはこれを見つけると、まず波括弧の中の式を評価し、そ�
 		:try | edit | catch /^Vim(edit):E\d\+/ | echo "error" | endtry
 <
 					*:cat* *:catch* *E603* *E604* *E605*
-:cat[ch] /{pattern}/	{pattern}にマッチする例外が発生し、より前の":catch"
+:cat[ch] /{pattern}/	{pattern}にマッチする例外が発生し、より前の|:catch|
 			で捕捉されなかった場合、このコマンドから次の|:catch|,
 			|:finally|, |:endtry|までのコマンドが実行される。その
 			ような例外が発生しなかった場合、そのコマンドはスキップ
@@ -5966,6 +6538,14 @@ Vimはこれを見つけると、まず波括弧の中の式を評価し、そ�
 		:execute "normal ixxx\<Esc>"
 <			これで<Esc>文字を表す。|expr-string|を参照。
 
+			ファイル名の中の特殊文字を正しくエスケープするように
+			注意すること。Vim コマンドに与えるファイル名をエス
+			ケープするには |fnameescape()| を使う。|:!| コマンドに
+			与えるときは |shellescape()| を使う。
+			例: >
+		:execute "e " . fnameescape(filename)
+		:execute "!ls " . shellescape(expand('%:h'), 1)
+<
 			注意:executeに渡す文字列としては、"while"や"if"系のコ
 			マンドが始まったり終ったりするだけのようなものは不適格
 			である。よって次のような例は認められない: >
@@ -6803,7 +7383,7 @@ Note: 全てを捕捉すると、期待していた以上のものを捕捉し�
 	:
 	:function! Write(file)
 	:  try
-	:    execute "write" a:file
+	:    execute "write" fnameescape(a:file)
 	:  catch /^Vim(write):/
 	:    throw "EXCEPT:IO(" . getcwd() . ", " . a:file . "):WRITEERR"
 	:  endtry
@@ -6945,7 +7525,7 @@ try条件文の中のエラー例外の値は次になる: >
 
 16進数で表示する ~
 >
-  :" 関数 Nr2Bin() は数値の2進文字列を返す。
+  :" 関数 Nr2Bin() は数値の2進文字列表現を返す。
   :func Nr2Bin(nr)
   :  let n = a:nr
   :  let r = ""
