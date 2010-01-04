@@ -1,4 +1,4 @@
-*motion.txt*    For Vim version 7.1.  Last change: 2006 Dec 07
+*motion.txt*    For Vim version 7.2.  Last change: 2009 Sep 15
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -151,6 +151,11 @@ CTRL-V		When used after an operator, before the motion command: Force
 ==============================================================================
 2. Left-right motions					*left-right-motions*
 
+These commands move the cursor to the specified column in the current line.
+They stop at the first column and at the end of the line, except "$", which
+may move to one of the next lines.  See 'whichwrap' option to make some of the
+commands move across line boundaries.
+
 h		or					*h*
 <Left>		or					*<Left>*
 CTRL-H		or					*CTRL-H* *<BS>*
@@ -234,7 +239,7 @@ g$ or g<End>		When lines wrap ('wrap' on): To the last character of
 
 							*bar*
 |			To screen column [count] in the current line.
-			|exclusive| motion.
+			|exclusive| motion.  Ceci n'est pas une pipe.
 
 							*f*
 f{char}			To [count]'th occurrence of {char} to the right.  The
@@ -269,11 +274,6 @@ T{char}			Till after [count]'th occurrence of {char} to the
 							*,*
 ,			Repeat latest f, t, F or T in opposite direction
 			[count] times.
-
-These commands move the cursor to the specified column in the current line.
-They stop at the first column and at the end of the line, except "$", which
-may move to one of the next lines.  See 'whichwrap' option to make some of the
-commands move across line boundaries.
 
 ==============================================================================
 3. Up-down motions					*up-down-motions*
@@ -325,9 +325,9 @@ gg			Goto line [count], default first line, on the first
 			non-blank character |linewise|.  If 'startofline' not
 			set, keep the same column.
 
-:[range]		Set the cursor on the specified line number.  If
-			there are several numbers, the last one is used.
-
+:[range]		Set the cursor on the last line number in [range].
+			[range] can also be just one line number, e.g., ":1"
+			or ":'m".
 							*N%*
 {count}%		Go to {count} percentage in the file, on the first
 			non-blank in the line |linewise|.  To compute the new
@@ -366,9 +366,11 @@ W			[count] WORDS forward.  |exclusive| motion.
 
 							*e*
 e			Forward to the end of word [count] |inclusive|.
+			Does not stop in an empty line.
 
 							*E*
 E			Forward to the end of WORD [count] |inclusive|.
+			Does not stop in an empty line.
 
 <S-Left>	or					*<S-Left>* *b*
 b			[count] words backward.  |exclusive| motion.
@@ -465,9 +467,9 @@ The definition of a sentence cannot be changed.
 							*paragraph*
 A paragraph begins after each empty line, and also at each of a set of
 paragraph macros, specified by the pairs of characters in the 'paragraphs'
-option.  The default is "IPLPPPQPP LIpplpipbp", which corresponds to the
-macros ".IP", ".LP", etc.  (These are nroff macros, so the dot must be in the
-first column).  A section boundary is also a paragraph boundary.
+option.  The default is "IPLPPPQPP TPHPLIPpLpItpplpipbp", which corresponds to
+the macros ".IP", ".LP", etc.  (These are nroff macros, so the dot must be in
+the first column).  A section boundary is also a paragraph boundary.
 Note that a blank line (only containing white space) is NOT a paragraph
 boundary.
 Also note that this does not include a '{' or '}' in the first column.  When
@@ -635,7 +637,8 @@ a`							*v_a`* *a`*
 			When the cursor starts on a quote, Vim will figure out
 			which quote pairs form a string by searching from the
 			start of the line.
-			Any trailing or leading white space is included.
+			Any trailing white space is included, unless there is
+			none, then leading white space is included.
 			When used in Visual mode it is made characterwise.
 			Repeating this object in Visual mode another string is
 			included.  A count is currently not used.
@@ -809,10 +812,6 @@ Lowercase marks 'a to 'z are remembered as long as the file remains in the
 buffer list.  If you remove the file from the buffer list, all its marks are
 lost.  If you delete a line that contains a mark, that mark is erased.
 
-To delete a mark: Create a new line, position the mark there, delete the line.
-E.g.: "o<Esc>mxdd".  This does change the file though.  Using "u" won't work,
-it also restores marks.
-
 Lowercase marks can be used in combination with operators.  For example: "d't"
 deletes the lines from the cursor position to mark 't'.  Hint: Use mark 't' for
 Top, 'b' for Bottom, etc..  Lowercase marks are restored when using undo and
@@ -853,16 +852,16 @@ when using blockwise Visual mode.  These commands do not work when no change
 was made yet in the current file.
 
 							*'<* *`<*
-'<  `<			To the first character of the last selected Visual
-			area in the current buffer.  For block mode it may
-			also be the last character in the first line (to be
-			able to define the block).  {not in Vi}.
+'<  `<			To the first line or character of the last selected
+			Visual area in the current buffer.  For block mode it
+			may also be the last character in the first line (to
+			be able to define the block).  {not in Vi}.
 
 							*'>* *`>*
-'>  `>			To the last character of the last selected Visual
-			area in the current buffer.  For block mode it may
-			also be the first character of the last line (to be
-			able to define the block).  Note that 'selection'
+'>  `>			To the last line or character of the last selected
+			Visual area in the current buffer.  For block mode it
+			may also be the first character of the last line (to
+			be able to define the block).  Note that 'selection'
 			applies, the position may be just after the Visual
 			area.  {not in Vi}.
 
@@ -1173,13 +1172,15 @@ remembered.
 					cursor is on the # or no ([{
 					following)
 			For other items the matchit plugin can be used, see
-			|matchit-install|.
+			|matchit-install|.  This plugin also helps to skip
+			matches in comments.
 
 			When 'cpoptions' contains "M" |cpo-M| backslashes
 			before parens and braces are ignored.  Without "M" the
 			number of backslashes matters: an even number doesn't
 			match with an odd number.  Thus in "( \) )" and "\( (
 			\)" the first and last parenthesis match.
+
 			When the '%' character is not present in 'cpoptions'
 			|cpo-%|, parens and braces inside double quotes are
 			ignored, unless the number of parens/braces in a line
@@ -1188,8 +1189,13 @@ remembered.
 			are also ignored (parens and braces inside single
 			quotes).  Note that this works fine for C, but not for
 			Perl, where single quotes are used for strings.
-			No count is allowed ({count}% jumps to a line {count}
-			percentage down the file |N%|).  Using '%' on
+
+			Nothing special is done for matches in comments.  You
+			can either use the matchit plugin |matchit-install| or
+			put quotes around matches.
+
+			No count is allowed, {count}% jumps to a line {count}
+			percentage down the file |N%|.  Using '%' on
 			#if/#else/#endif makes the movement linewise.
 
 						*[(*
