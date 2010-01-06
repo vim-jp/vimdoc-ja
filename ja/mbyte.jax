@@ -1,10 +1,10 @@
 COMMENT: マルチバイト文字(旧:multibyte.txt)
-STATUS: finished 7.1
+STATUS: finished 7.2
 TRANSLATOR: 西岡拓洋
 TRANSLATOR: 北条耀
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*mbyte.txt*     For Vim バージョン 7.1.  Last change: 2006 Aug 11
+*mbyte.txt*     For Vim バージョン 7.2.  Last change: 2009 Nov 17
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar et al.
 
@@ -353,6 +353,8 @@ u   unicode	ucs-2と同じ
 u   ucs2be	ucs-2と同じ (ビッグエンディアン)
 u   ucs-2be	ucs-2と同じ (ビッグエンディアン)
 u   ucs-4be	ucs-4と同じ (ビッグエンディアン)
+u   utf-32	ucs-4と同じ
+u   utf-32le	ucs-4leと同じ
     default     'encoding'のデフォルト値を意味する。環境に依存する。
 
 UCSコードにはバイト順の問題がある。これは扱いが難しいので、可能なときにはいつ
@@ -549,7 +551,7 @@ X11でのフォントの取り扱いは難しい。シングルバイトフォ�
 ある。マルチバイトフォントを使うにはさらにいくつか考慮することがある。
 
 Note: この説明のほとんどはGTK+ 2にとっては関係ない。XLFDを用いたフォントの指定
-はもうサポートされていない。フォントの設定例は'guifont'を参照。下記の項|XLFD|
+はサポートされていない。フォントの設定例は'guifont'を参照。下記の項|XLFD|
 と|xfontset|は読んでも読まなくても良い。
 
 Vimは固定幅のフォントだけを扱うことができる。プロポーショナルフォントを使用す
@@ -950,17 +952,11 @@ GLOBAL IMEについて (WHAT IS GLOBAL IME)			*global-ime*
 
 NOTE: IMEを使用するには入力したい言語をシステムに追加する必要がある。正確な設
 定方法はWindowsのバージョンによって違う。Windows XPの場合は:
-1. コントロールパネル
-2. 地域と言語のオプション
-3. 言語タブ
-4. [テキストサービスと入力言語]エリアの詳細ボタン
-5. 追加ボタン
-訳注: 原文 Windows 2000 Professionalの場合
-訳注: 1. Control Panel
-訳注: 2. Regional Options
-訳注: 3. Input Locales Tab
-訳注: 4. Add Installed input locales -> Chinese(PRC)
-訳注:    The default is still English (United Stated)
+1. コントロールパネルを開く
+2. 地域と言語のオプションを開く
+3. 言語タブを選択
+4. [テキストサービスと入力言語]エリアの詳細ボタンをクリック
+5. 追加ボタンをクリック
 
 
 IMEやXIMがオンのときのカーソルの色				*CursorIM*
@@ -1009,7 +1005,7 @@ IMEやXIMがオンのときのカーソルの色				*CursorIM*
 ドに入るとまず、(ASCII文字の)Exコマンドを入力するはずだからである。
 検索パターンの入力では、オプション'imsearch'が使われる。'iminsert'と設定を共有
 するように設定することもできる。
-
+								*lCursor*
 キーマップ(言語マップ)を使用中に、GUIカーソルの色を変えることができる。もし
 も、非標準な背景色を使用していた場合にカーソルが見えなくなることがないように、
 初期状態ではこの機能は無効になっている。次の例では、カーソルの色が明るくなるよ
@@ -1228,19 +1224,35 @@ Combining forms:
 のエンコーディングでは混在させることが不可能な言語でも、一つのファイルに混在さ
 せることが可能である。
 
-ユニコードはいくつかの方法でエンコードされる。もっとも一般的なのは、16ビットで
-文字を表わすUCS-2と、1文字をそれぞれ1バイトかそれ以上の複数バイトで表わすUTF-8
-である。Vimはそれらすべてのエンコーディングをサポートしているが、ユニコードの
-内部表現には常にUTF-8が使われる。
+ユニコードにはいくつかのエンコード法がある。もっとも一般的なのは、1文字を 1 ま
+たは複数バイトで表わすUTF-8であり、ASCII と後方互換性がある。MS-Windowsでは
+UTF-16 も使われる(以前は UCS-2 と呼ばれていた)。こちらは 16 ビットを基本単位と
+する。Vimはこれらのエンコーディングすべてをサポートしているが、Vim でユニコー
+ドを使う場合、内部では常に UTF-8 が使われている。
 
 Vimは幅広くUTF-8をサポートしており、それは以下の環境で機能する:
 - utf-8サポートが有効になっているxterm
 - Athena、Motif、GTK、のGUI
 - MS-Windows GUI
+- その他いくつかのプラットフォーム
 
 全角文字は'guifontwide'や'guifontset'を使うと最もうまく表示することができる。
 'guifont'だけを設定している場合は、全角文字は通常の幅で描画され、足りない幅が
 空白で埋められる。Note:オプション'guifontset'はGTK+ 2 GUIでは使用しない。
+
+							*bom-bytes*
+ファイルを読み込むとき、BOM (Byte Order Mark)があれば、そのユニコードエンコー
+ディングを判別するのに使われる:
+	EF BB BF     utf-8
+	FF FE        utf-16 big endian
+	FE FF        utf-16 little endian
+	00 00 FE FF  utf-32 big endian
+	FF FE 00 00  utf-32 little endian
+
+UTF-8 が推奨されているエンコーディングである。UTF-16 と UTF-32 を区別するのは
+難しい。Windows ではUTF-16 がしばしば使われる。UTF-32 はファイルフォーマットと
+しては広くつかわれていない。
+
 
 					*mbyte-combining* *mbyte-composing*
 合成文字や結合文字を使うと、先行文字の意味を変えることができる。結合文字は先行
@@ -1278,12 +1290,9 @@ Overlong sequenceに対して特別な処理はされない。通常の文字と
   も表示される。(表示が途切れてしまった場合は、":messages"を使う)。
 - "g8"は文字のUTF-8コードを16進数で表示する。合成文字も表示される。
 - ":set encoding=utf-8 fileencodings="とすると、すべてのファイルでUTF-8を使う
-  ことを強制できる。'encoding'と'fileencodings'の初期設定はロケールの値に応じ
-  て設定される。
-訳注: わからない
-訳注:- ":set encoding=utf-8 fileencodings=" forces using UTF-8 for all files.  The
-訳注:  default is to use the current locale for 'encoding' and set 'fileencodings'
-訳注:  to automatically the encoding of a file.
+  ように強制できる。'encoding'を現在のロケールに合わせて設定し、
+  'fileencodings'によって自動的にファイルのエンコーディングを判定するように設
+  定するのがデフォルトである。
 
 
 VimをUTF-8モードで起動する (STARTING VIM)
@@ -1375,8 +1384,6 @@ options.txtの説明を参照。
 		コードが256以上の)マルチバイト文字のところで改行することができ
 		る。これは、どこでも改行することができる言語を編集するときに
 		便利である。
-訳注:		at a multibyte character of 256 or higher.  Thus is useful for
-訳注:		Thusはtypo?
 
 'guifontset'	マルチバイトエンコーディングの文字に使うフォントのリスト。この
 		オプションが設定されていれば'guifont'の代りに使用される。
@@ -1387,7 +1394,7 @@ options.txtの説明を参照。
 
 マルチバイト機能は、特に以下の方々の貢献による:
 	Chi-Deok Hwang <hwang@mizi.co.kr>
-	Nam SungHyun <namsh@kldp.org>
+	SungHyun Nam <goweol@gmail.com>
 	K.Nagano <nagano@atese.advantest.co.jp>
 	Taro Muraoka  <koron@tka.att.ne.jp>
 	Yasuhiro Matsumoto <mattn@mail.goo.ne.jp>

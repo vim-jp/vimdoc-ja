@@ -1,4 +1,4 @@
-*indent.txt*    For Vim version 7.1.  Last change: 2007 May 11
+*indent.txt*    For Vim version 7.2.  Last change: 2009 Nov 12
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -6,22 +6,27 @@
 
 This file is about indenting C programs and other files.
 
-1. Indenting C programs		|C-indenting|
+1. Indenting C style programs	|C-indenting|
 2. Indenting by expression	|indent-expression|
 
 ==============================================================================
-1. Indenting C programs					*C-indenting*
+1. Indenting C style programs				*C-indenting*
 
-The basics for C indenting are explained in section |30.2| of the user manual.
+The basics for C style indenting are explained in section |30.2| of the user
+manual.
 
-Vim has options for automatically indenting C program files.  These options
-affect only the indent and do not perform other formatting.  For comment
-formatting, see |format-comments|.
+Vim has options for automatically indenting C style program files. Many
+programming languages including Java and C++ follow very closely the
+formatting conventions established with C.  These options affect only the
+indent and do not perform other formatting.  There are additional options that
+affect other kinds of formatting as well as indenting, see |format-comments|,
+|fo-table|, |gq| and |formatting| for the main ones.
 
 Note that this will not work when the |+smartindent| or |+cindent| features
 have been disabled at compile time.
 
-There are in fact four methods available for indentation:
+There are in fact four main methods available for indentation, each one
+overrides the previous if it is enabled, or non-empty for 'indentexpr':
 'autoindent'	uses the indent from the previous line.
 'smartindent'	is like 'autoindent' but also recognizes some C syntax to
 		increase/reduce the indent where appropriate.
@@ -501,11 +506,86 @@ to get do loops indented in .f90 files and left alone in Fortran files with
 other extensions such as .for.
 
 
+PHP				*ft-php-indent* *php-indent* *php-indenting*
+
+NOTE:	PHP files will be indented correctly only if PHP |syntax| is active.
+
+If you are editing a file in Unix 'fileformat' and '\r' characters are present
+before new lines, indentation won't proceed correctly ; you have to remove
+those useless characters first with a command like: >
+
+    :%s /\r$//g
+
+Or, you can simply |:let| the variable PHP_removeCRwhenUnix to 1 and the
+script will silently remove them when Vim loads a PHP file (at each|BufRead|).
+
+OPTIONS: ~
+
+PHP indenting can be altered in several ways by modifying the values of some
+variables:
+
+								*php-comment*
+To not enable auto-formating of comments by default (if you want to use your
+own 'formatoptions'): >
+    :let g:PHP_autoformatcomment = 0
+
+Else, 't' will be removed from the 'formatoptions' string and "qrowcb" will be
+added, see|fo-table|for more information.
+-------------
+
+To add an extra indent to every PHP lines with N being the number of
+'shiftwidth' to add: >
+    :let g:PHP_default_indenting = N
+
+For example, with N = 1, this will give:
+>
+    <?php
+	if (!isset($History_lst_sel))
+	    if (!isset($History_lst_sel))
+		if (!isset($History_lst_sel)) {
+		    $History_lst_sel=0;
+		} else
+		    $foo="bar";
+
+	$command_hist = TRUE;
+    ?>
+(Notice the extra indent between the PHP container markers and the code)
+-------------
+
+To automatically remove '\r' characters when the 'fileformat' is set to Unix: >
+    :let g:PHP_removeCRwhenUnix = 1
+-------------
+
+To indent braces at the same level than the code they contain: >
+    :let g:PHP_BracesAtCodeLevel = 1
+    
+This will give the following result: >
+    if ($foo)
+	{
+	foo();
+	}
+Instead of: >
+    if ($foo)
+    {
+	foo();
+    }
+
+NOTE:	Indenting will be a bit slower if this option is used because some
+	optimizations won't be available.
+-------------
+
+To indent 'case:' and 'default:' statements in switch() blocks: >
+    :let g:PHP_vintage_case_default_indent = 1
+
+(By default they are indented at the same level than the 'switch()' to avoid
+unnecessary indentation)
+
+
 PYTHON							*ft-python-indent*
 
 The amount of indent can be set for the following situations.  The examples
-given are de the defaults.  Note that the variables are set to an expression,
-so that you can change the value of 'shiftwidth' later.
+given are the defaults.  Note that the variables are set to an expression, so
+that you can change the value of 'shiftwidth' later.
 
 Indent after an open paren: >
 	let g:pyindent_open_paren = '&sw * 2'
@@ -529,8 +609,9 @@ b:sh_indent_options['continuation-line']
 
 b:sh_indent_options['case-labels']
 				Amount of indent to add for case labels.
+				(not actually implemented)
 
-b:sh_indent_options['case-statement']
+b:sh_indent_options['case-statements']
 				Amount of indent to add for case statements.
 
 b:sh_indent_options['case-breaks']
@@ -570,6 +651,115 @@ In addition, you can turn the verbose mode for debug issue: >
   let b:verilog_indent_verbose = 1
 
 Make sure to do ":set cmdheight=2" first to allow the display of the message.
+
+
+VHDL							*ft-vhdl-indent*
+
+Alignment of generic/port mapping statements are performed by default. This
+causes the following alignment example: >
+
+  ENTITY sync IS
+  PORT (
+         clk        : IN  STD_LOGIC;
+         reset_n    : IN  STD_LOGIC;
+         data_input : IN  STD_LOGIC;
+         data_out   : OUT STD_LOGIC
+       );
+  END ENTITY sync;
+
+To turn this off, add >
+
+  let g:vhdl_indent_genportmap = 0
+
+to the .vimrc file, which causes the previous alignment example to change: >
+
+  ENTITY sync IS
+  PORT (
+    clk        : IN  STD_LOGIC;
+    reset_n    : IN  STD_LOGIC;
+    data_input : IN  STD_LOGIC;
+    data_out   : OUT STD_LOGIC
+  );
+  END ENTITY sync;
+
+----------------------------------------
+
+Alignment of right-hand side assignment "<=" statements are performed by
+default. This causes the following alignment example: >
+
+  sig_out <= (bus_a(1) AND
+             (sig_b OR sig_c)) OR
+             (bus_a(0) AND sig_d);
+
+To turn this off, add >
+
+  let g:vhdl_indent_rhsassign = 0
+
+to the .vimrc file, which causes the previous alignment example to change: >
+
+  sig_out <= (bus_a(1) AND
+    (sig_b OR sig_c)) OR
+    (bus_a(0) AND sig_d);
+
+----------------------------------------
+
+Full-line comments (lines that begin with "--") are indented to be aligned with
+the very previous line's comment, PROVIDED that a whitespace follows after
+"--".
+
+For example: >
+
+  sig_a <= sig_b; -- start of a comment
+                  -- continuation of the comment
+                  -- more of the same comment
+
+While in Insert mode, after typing "-- " (note the space " "), hitting CTRL-F
+will align the current "-- " with the previous line's "--".
+
+If the very previous line does not contain "--", THEN the full-line comment
+will be aligned with the start of the next non-blank line that is NOT a
+full-line comment.
+
+Indenting the following code: >
+
+  sig_c <= sig_d; -- comment 0
+         -- comment 1
+               -- comment 2
+    --debug_code:
+    --PROCESS(debug_in)
+         --BEGIN
+            --  FOR i IN 15 DOWNTO 0 LOOP
+             --    debug_out(8*i+7 DOWNTO 8*i) <= debug_in(15-i);
+            --  END LOOP;
+     --END PROCESS debug_code;
+
+      -- comment 3
+  sig_e <= sig_f; -- comment 4
+           -- comment 5
+
+results in: >
+
+  sig_c <= sig_d; -- comment 0
+                  -- comment 1
+                  -- comment 2
+  --debug_code:
+  --PROCESS(debug_in)
+  --BEGIN
+  --  FOR i IN 15 DOWNTO 0 LOOP
+  --    debug_out(8*i+7 DOWNTO 8*i) <= debug_in(15-i);
+  --  END LOOP;
+  --END PROCESS debug_code;
+
+  -- comment 3
+  sig_e <= sig_f; -- comment 4
+                  -- comment 5
+
+Notice that "--debug_code:" does not align with "-- comment 2"
+because there is no whitespace that follows after "--" in "--debug_code:".
+
+Given the dynamic nature of indenting comments, indenting should be done TWICE.
+On the first pass, code will be indented. On the second pass, full-line
+comments will be indented according to the correctly indented code.
 
 
 VIM							*ft-vim-indent*
