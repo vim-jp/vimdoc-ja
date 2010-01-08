@@ -1,10 +1,10 @@
 COMMENT: OS特有情報:VMS
-STATUS: finished 7.0
+STATUS: finished 7.2
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*os_vms.txt*    For Vim バージョン 7.0.  Last change: 2006 Apr 30
+*os_vms.txt*    For Vim バージョン 7.2.  Last change: 2009 Oct 28
 
 
 			  VIMリファレンスマニュアル
@@ -332,6 +332,8 @@ NOTE: これらのうちからどれか1つを選ぶ必要がある。もっと�
 8.12 diff モード
 8.13 C 言語のキーワードに '$' を認める
 8.14 初心者のための VIMTUTOR
+8.15 コンソールモードで起動が遅い問題について
+8.16 共通の VIM ディレクトリ - 異なるアーキテクチャ
 
 8.1 バックスペースとデリート
 
@@ -670,12 +672,130 @@ VIMTUTOR.COM が用意されている。バイナリ配布物においては次�
 
 (Thomas.R.Wyant III, Vim 6.1)
 
+8.15 コンソールモードでの起動が遅い問題について
+
+GUI/GTK 版の Vim はコンソールモードでも同じように動作するので、多くの管理者は
+それをシステムワイドでデプロイする。
+不幸なことに、回線が遅い環境で GUI/GTK 版の実行ファイルを使ってコンソールモー
+ドで起動しようとすると、X 環境を検出しようとしてタイムアウト待ちになるため、か
+なり遅くなってしまう。
+
+幸いなことに、簡単な解決法がある。GUI/GTK 版の実行ファイルとコンソール用にビル
+ドした実行ファイルの両方をデプロイするのである。次のように: >
+
+    |- vim72
+    |----- doc
+    |----- syntax        
+       vimrc    (system rc files)
+       gvimrc
+       gvim.exe (GUI/GTK 版の vim.exe をリネームしたもの)
+       vim.exe  (コンソール版の実行ファイル)
+
+以下のようなシステムシンボルを LOGIN.COM または SYLOGIN.COM で定義する: >
+
+	$ define/nolog VIM RF10:[UTIL.VIM72] ! where you VIM directory is
+	$ vi*m  :== mcr VIM:VIM.EXE
+	$ gvi*m :== mcr VIM:GVIM.EXE
+	$ ! or you can try to spawn with
+	$ gv*im :== spawn/nowait/input=NLA0 mcr VIM:GVIM.EXE -g -GEOMETRY 80x40
+
+
+このようにすれば、X 環境を持たずコンソールモードで使用したいユーザーも速度の問
+題を回避できる。
+
+(Zoltan Arpadffy, Vim 7.2)
+
+8.16 共通の VIM ディレクトリ - 異なるアーキテクチャ
+
+次のような異なるアーキテクチャのノードを含むクラスタにおいては:
+
+$show cluster
+View of Cluster from system ID 11655  node: TOR                                                                     18-AUG-2008 11:58:31
++---------------------------------+
+ｦ        SYSTEMS        ｦ MEMBERS ｦ
++-----------------------+---------ｦ
+ｦ  NODE  ｦ   SOFTWARE   ｦ  STATUS ｦ
++--------+--------------+---------ｦ
+ｦ TOR    ｦ VMS V7.3-2   ｦ MEMBER  ｦ
+ｦ TITAN2 ｦ VMS V8.3     ｦ MEMBER  ｦ
+ｦ ODIN   ｦ VMS V7.3-2   ｦ MEMBER  ｦ
++---------------------------------+
+
+VIM ディレクトリは共通にし、実行ファイルだけ異なるようにすると便利である。この
+問題に対しては、以下のようにいくつかの解決法がある: >
+
+解決法 1. すべての実行ファイルを同じディレクトリに違う名前で入れる
+これは以下のスクリプトを login.com か sylogin.com に入れることで簡単にできる:
+>
+
+	$ if f$getsyi("NODE_HWTYPE") .eqs. "VAX"
+	$ then
+	$       say "VAX platform"
+	$       vi*m:== mcr vim:VIM.EXE_VAX
+	$ endif
+	$ if f$getsyi("NODE_HWTYPE") .eqs. "ALPH"
+	$ then
+	$       say "ALPHA platform"
+	$       vi*m :== mcr vim:VIM.EXE_AXP
+	$ endif
+	$ if f$getsyi("ARCH_NAME") .eqs. "IA64"
+	$ then
+	$      say "IA64 platform"
+	$      vi*m :== mcr vim:VIM.EXE_IA64
+	$ endif
+
+解決法 2. 別々のディレクトリにする: >
+
+	$ if f$getsyi("NODE_HWTYPE") .eqs. "VAX"
+	$ then
+	$       say "VAX platform"
+	$       define/nolog VIM RF10:[UTIL.VAX_EXE] ! VAX executables
+	$ endif
+	$ if f$getsyi("NODE_HWTYPE") .eqs. "ALPH"
+	$ then
+	$       say "ALPHA platform"
+	$       define/nolog VIM RF10:[UTIL.AXP_EXE] ! AXP executables
+	$ endif
+	$ if f$getsyi("ARCH_NAME") .eqs. "IA64"
+	$ then
+	$      say "IA64 platform"
+	$      define/nolog VIM RF10:[UTIL.IA64_EXE] ! IA64 executables
+	$ endif
+        $! VIMRUNTIME must be defined in order to find runtime files
+	$ define/nolog VIMRUNTIME RF10:[UTIL.VIM72]
+
+このアプローチの良い例が http://www.polarhome.com/vim/ からダウンロードできる
+GNU_TOOLS.ZIP の [GNU]gnu_tools.com スクリプトである。
+
+(Zoltan Arpadffy, Vim 7.2)
+
 ==============================================================================
 
 9. VMS関連の変更点					*vms-changes*
 
-バージョン 7
+最近の変更点
+- 以下のプラグインが VMS の runtime に追加された:
+  genutils 2.4, multiselect 2.2, multvals 3.1, selectbuf 4.3,
+  bufexplorer 7.1.7, taglist 4.5
+- vimrc の小さな変更 (VMS runtime 内のみ)
+- make_vms.mms - HUGE がデフォルト
+- [TESTDIR]make_vms.mms にできるだけ多くのテストを含めた
+- test30 と test54 を VMS 用に修正した
+- VMS ポートで FLOAT 機能を有効にした
+- os_vms.txt を更新した
+
+Version 7.2 (2008 Aug 9)
+- VCF ファイルの書き込みを修正
+- CTAGS 5.7 を含めた
+- make_vms.mms を修正 (VAX で構文エラーになっていた)
+
+Version 7.1 (2007 Jun 15)
+- TAGS ファイルをメニューから作成
+
+Version 7 (2006 May 8)
 - 低レベルの文字入力を改良 (コンソールモードにのみ影響する)
+- プラグインのバグを修正
+- CTAGS 5.6 を含めた
 
 (訳注: 翻訳対象から除外)
 
@@ -815,6 +935,7 @@ Version 4.5 (1996 Dec 16)
 
 OpenVMSの文章とコンパイル済みバイナリは以下がメンテナンスしている:
 Zoltan Arpadffy <arpadffy@polarhome.com>
+OpenVMS Vim page: http://www.polarhome.com/vim/
 
 この文章には、初期の著者や貢献者の書いた部分や記述が含まれている:
 	Charles E. Campbell, Jr. <cec@gryphon.gsfc.nasa.gov>

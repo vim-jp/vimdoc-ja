@@ -1,9 +1,9 @@
 COMMENT: クイックフィックス(プログラム開発支援)
-STATUS: finished 7.1
+STATUS: finished 7.2
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*quickfix.txt*  For Vim バージョン 7.1.  Last change: 2007 May 10
+*quickfix.txt*  For Vim バージョン 7.2.  Last change: 2009 May 24
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -134,8 +134,11 @@ AmigaでManx's Aztec C compilerを使っているなら、Vimと連携させる�
 			ウィンドウのロケーションリストが使われる。
 
 							*:cq* *:cquit*
-:cq[uit]		Vimをエラーとして終了することで、コンパイラが同じ
+:cq[uit][!]		Vimをエラーとして終了することで、コンパイラが同じ
 			ファイルをコンパイルする事が無くなる。
+			警告: ファイルに対する変更はすべて失われる([!] を指定
+			しなくても)! このコマンドは、システムへの戻り値が非
+			零であるということ以外 ":qall!" |:qall| と同じである。
 
 							*:cf* *:cfile*
 :cf[ile][!] [errorfile]	エラーファイルを読みこみ最初のエラーへ移動する。Vimが
@@ -151,12 +154,12 @@ AmigaでManx's Aztec C compilerを使っているなら、Vimと連携させる�
 			ンオプション-qを使ってロケーションリストを設定すること
 			はできない。
 
-							
-:cg[etfile][!] [errorfile]                              *:cg* *:cgetfile*
+
+:cg[etfile] [errorfile]					*:cg* *:cgetfile*
 			エラーファイルを読み込む。":cfile"に似ているが、最初のエ
 			ラーに移動しない。
 
-:lg[etfile][!] [errorfile]				*:lg* *:lgetfile*
+:lg[etfile] [errorfile]					*:lg* *:lgetfile*
 			":cgetfile"と同様だが、QuickFixリストでなく、カレント
 			ウィンドウのロケーションリストが使われる。
 
@@ -216,15 +219,15 @@ AmigaでManx's Aztec C compilerを使っているなら、Vimと連携させる�
 			ウィンドウのロケーションリストが使われる。
 
 							*:cgete* *:cgetexpr*
-:cgete[xpr][!] {expr}	{expr}の結果を使ってQuickFixリストを作成する。":cexpr"
+:cgete[xpr] {expr}	{expr}の結果を使ってQuickFixリストを作成する。":cexpr"
 			と同様だが、最初のエラーにジャンプしない点が異なる。
 
 							*:lgete* *:lgetexpr*
-:lgete[xpr][!] {expr}	":cgetexpr"と同様だが、QuickFixリストでなく、カレ
+:lgete[xpr] {expr}	":cgetexpr"と同様だが、QuickFixリストでなく、カレ
 			ントウィンドウのロケーションリストが使われる。
 
 							*:cad* *:caddexpr*
-:cad[dexpr][!] {expr}	{expr}を評価し、結果の行を現在のQuickFixリストに追加す
+:cad[dexpr] {expr}	{expr}を評価し、結果の行を現在のQuickFixリストに追加す
 			る。QuickFixリストがまだ無い場合は、新しいリストが作成
 			される。現在のカーソル位置は変わらない。より詳しくは
 			|:cexpr|を参照。
@@ -232,7 +235,7 @@ AmigaでManx's Aztec C compilerを使っているなら、Vimと連携させる�
     :g/mypattern/caddexpr expand("%") . ":" . line(".") .  ":" . getline(".")
 <
 							*:lad* *:laddexpr*
-:lad[dexpr][!] {expr}	":caddexpr"と同様だが、QuickFixリストでなく、カレ
+:lad[dexpr] {expr}	":caddexpr"と同様だが、QuickFixリストでなく、カレ
 			ントウィンドウのロケーションリストが使われる。
 
 							*:cl* *:clist*
@@ -263,6 +266,22 @@ AmigaでManx's Aztec C compilerを使っているなら、Vimと連携させる�
 Vimが|+autocmd|機能つきでビルドされている場合、QuickFixコマンド(':make',
 ':grep'など)を実行する前後に2つの自動コマンドが利用できる。詳しくは
 |QuickFixCmdPre|と|QuickFixCmdPost|を参照。
+
+						*QuickFixCmdPost-example*
+'encoding' とロカールが異なる場合、コンパイラのエラーメッセージと Vim 内部のエ
+ンコーディングが異なる場合がある。次のようにすれば、このメッセージを変換でき
+る: >
+>
+	function QfMakeConv()
+	   let qflist = getqflist()
+	   for i in qflist
+	      let i.text = iconv(i.text, "cp936", "utf-8")
+	   endfor
+	   call setqflist(qflist)
+	endfunction
+
+	au QuickfixCmdPost make call QfMakeConv()
+
 
 =============================================================================
 2. エラーウィンドウ					*quickfix-window*
@@ -412,6 +431,7 @@ BufWinEnterイベントも発生する。ここでもバッファ名は"quickfix
 			6. vimが|+autocmd|つきでビルドされているならば、
 			   |QuickFixCmdPost|に関連付けられた自動コマンドが全て
 			   実行される。
+			   後述のサンプルを参照。
 			7. [!]が与えられていないときは最初のエラーに移動する。
 			8. エラーファイルが削除される。
 			9.|:cnext|や|:cprevious|などのコマンドでエラー間を移動
@@ -457,6 +477,25 @@ Unixでは"| tee"が使用される。コンパイラがファイルに出力す
 
 'shellpipe'が空の場合、{errorfile}が省略される。これはコンパイラ自身がエラー
 ファイルを作成する場合(Manx's Amiga C)に便利である。
+
+
+QuickFixCmdPost を使ってエンコーディングを修正する ~
+
+ビルドプログラムが出力するメッセージと 'encoding' の値が異なる場合がある。この
+例は、Vim がそのエラーメッセージを読み込んだ後でエンコーディングを変換する方法
+を示している: >
+
+	function QfMakeConv()
+	   let qflist = getqflist()
+	   for i in qflist
+	      let i.text = iconv(i.text, "cp936", "utf-8")
+	   endfor
+	   call setqflist(qflist)
+	endfunction
+
+	au QuickfixCmdPost make call QfMakeConv()
+
+(Faque Cheng による例)
 
 ==============================================================================
 5. :vimgrepと:grepの使い方					*grep* *lid*
@@ -562,14 +601,20 @@ grepライクなプログラムと連携できる。
 			":grep"と似ているが、新しいエラーリストを作らず、解釈さ
 			れたエラーが現在のリストに追加される。
 			Example: >
-				:grep nothing %
+				:call setqflist([])
 				:bufdo grepadd! something %
 <			１番目のコマンドは新しい空のエラーリストを作成する。２
 			番目のコマンドはバッファリスト内の各バッファに対し
 			"grepadd"を実行する。最初のエラーへジャンプするのを避け
 			るために!を使っていることに注意。|:bufdo|でジャンプする
 			ことはできない。
-
+			引数リスト内のファイルに対して実行し、マッチがないファ
+			イルでのエラーを回避する例: >
+                                :silent argdo try 
+				  \ | grepadd! something %
+				  \ | catch /E480:/
+				  \ | endtry"
+<
 							*:lgrepa* *:lgrepadd*
 :lgrepa[dd][!] [arguments]
 			":grepadd"と同様だが、QuickFixリストでなく、カレント
@@ -714,6 +759,17 @@ AmigaにおけるQuickfixモードには他にも制限がある。コンパイ�
 Vimがコンパイラから起動された場合、:shやいくつかの:!コマンドは機能しない。Vim
 がコンパイラと同じプロセスの中で動いているため、標準出力が利用できないからで 
 ある。
+
+
+PERL					*quickfix-perl* *compiler-perl*
+
+Perl コンパイラプラグインはコンパイルはしないが、Perl 内部の構文チェック機能を
+呼び出し、その出力を解析してエラーを QuickFix モードで修正できるようにする。
+
+チェックするファイルの中に "no warnings" または "$^W = 0" と書いてあっても関係
+なく警告が表示される。これを無効にするには g:perl_compiler_force_warnings に 0
+を代入する。例: >
+	let g:perl_compiler_force_warnings = 0
 
 
 PYUNIT COMPILER						*compiler-pyunit*
@@ -1326,7 +1382,8 @@ jade (http://www.jclark.com/参照)のエラーを解釈するのは簡単であ
 						*errorformat-Perl*
 $VIMRUNTIME/tools にefm_perl.plスクリプトがある。これはPerlのエラーメッセー
 ジをフィルタし、QuickFixモードが理解できるフォーマットに変換する。使い方は
-ファイルの先頭を参照。
+ファイルの先頭を参照。(このスクリプトはもう非推奨で、今は |compiler-perl| を参
+照のこと)
 
 
 
