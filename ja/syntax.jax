@@ -1,10 +1,10 @@
 COMMENT: 構文ハイライト(テキストの着色)
-STATUS: finished 7.1
+STATUS: finished 7.2
 TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*syntax.txt*	For Vim バージョン 7.1.  Last change: 2007 May 11
+*syntax.txt*	For Vim バージョン 7.2.  Last change: 2009 Dec 19
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -117,6 +117,9 @@ NOTE: |.gvimrc|の中で":gui"を使用すると"gvim -f"によりフォアグ�
     :syntax off		$VIMRUNTIME/syntax/nosyntax.vim
 |syntax-loading|も参照。
 
+NOTE: 長い行があって表示が遅く、構文ハイライトをオフにしたくなるような場合は、
+'synmaxcol' をもっと小さい値にすることも考えてみること。
+
 ==============================================================================
 2. 構文ハイライトファイル					*:syn-files*
 
@@ -203,8 +206,12 @@ NOTE: |.gvimrc|の中で":gui"を使用すると"gvim -f"によりフォアグ�
 イルのうち最初に見つけた1つだけを読込む。
 
 
-名前付けの慣習		
-							*group-name*
+名前付けの慣習			*group-name* *{group-name}* *E669* *W18*
+
+構文グループとは、同じ種類の構文アイテムをグループ化したものである。構文グルー
+プから強調グループにリンクされ、強調グループに対して色が設定される。構文グルー
+プそれ自体は、色や属性を指定するものではない。
+
 ハイライトや構文グループの名前はアスキー文字、数字、アンダースコアだけでつけな
 ければならない。正規表現では: "[a-zA-Z0-9_]*"
 
@@ -382,8 +389,8 @@ Vimはロードした構文の名前を変数"b:current_syntax"に記憶して�
 
 	:10,40TOhtml
 
-出力結果をファイルに保存すれば、あらゆるNetscapeのようなHTML Viewerでそれを観
-ることができる。Vimで表示されるのと寸分たがわぬ色が再現される。
+出力結果をファイルに保存すれば、好きなブラウザでそれを観ることができる。Vimで
+表示されるのと寸分たがわぬ色が再現される。
 
 変換の範囲を指定するには、"html_start_line"と"html_end_line"をその範囲の最初と
 最後に設定すること。例えば、最後に選択された範囲だけを変換するには: >
@@ -400,14 +407,44 @@ Vimはロードした構文の名前を変数"b:current_syntax"に記憶して�
 この変数を削除すれば元通り'number'に従うように戻すことができる: >
    :unlet html_number_lines
 
-閉じた折り畳みは、画面表示通りに HTML に出力される。これが好ましくないなら、
-2html を呼ぶ前にコマンド |zR| を使うか、または次のようにする: >
-   :let html_ignore_folding = 1
-
 デフォルトでは、古いブラウザ用に最適化されたHTMLが生成される。属性を表現するの
 にカスケードスタイルシートを使用したい場合には次の設定を使用する(結果的にかな
 り短いHTML 4に準拠したファイルが得られる): >
    :let html_use_css = 1
+
+閉じた折り畳みは、画面表示通りに HTML に出力される。これが好ましくないなら、
+2html を呼ぶ前にコマンド |zR| を使うか、または次のようにする: >
+   :let html_ignore_folding = 1
+
+ブラウザ上でも Vim と同じように折り畳みの開閉を行えるようにしたいことがある
+だろう。そんなときは次の設定をすると、動的な折り畳みの HTML が生成される: >
+   :let html_dynamic_folds = 1
+
+html_dynamic_folds を使うと、html_use_css も自動的にセットされる。古いブラウ
+ザで動的な折り畳みを実現するのは非常に難しいからである。html_ignore_folding
+を設定していると html_dynamic_folds はオフになる。
+
+html_dynamic_folds を使うと、HTML でも Vim と同じような折畳表示カラム
+(foldcolumn) が表示される。これをクリックすると JavaScript によって折り畳み
+が開閉される。この折畳表示カラムの幅は |'foldcolumn'| の設定値から始まり、文
+書の最大の折り畳みレベルまで増えていく。折畳表示カラムをまったく表示させない
+ようにするには次のようにする: >
+   :let html_no_foldcolumn = 1
+
+このオプションをセットすると、HTML の中で折り畳みを開くための折畳表示カラム
+がすべてなくなってしまう。そこで、html_hover_unfold というオプションが用意さ
+れている。このオプションをセットすると、CSS 2.0 を使い、折り畳みの上にマウス
+を持っていくだけで折り畳みを開くことができるようになる。古いブラウザ(特に
+Internet Explorer 6)はこの機能に対応していないことに注意。IE6 でも表示できる
+ように CSS1 を使った専用のマークアップが入っているが、IE6 では折畳を開くこと
+はできない。html_hover_unfold を有効にしているとき、新しいブラウザなら
+JavaScript を無効にしていても閉じた折畳の中を見られることに注意。このオプショ
+ンを有効にするには次のようにする: >
+   :let html_hover_unfold = 1
+
+html_no_foldcolumn と html_dynamic_folds をセットすると、自動的に
+html_hover_unfold もセットされる。そうしないと折畳が閉じたままになってしまう
+からである。
 
 デフォルトでは、テキストの周りに"<pre>"と"</pre>"がつけられる。これによって、
 ブラウザでも折り返しをせずに、Vimで表示される通りになる。一部が少々変わっても
@@ -415,9 +452,11 @@ Vimはロードした構文の名前を変数"b:current_syntax"に記憶して�
    :let html_no_pre = 1
 こうすると、各行末に<br>を使い、連続するスペースに"&nbsp;"を使うようになる。
 
-HTMLファイルの文字集合の指定には現在の'encoding'の値が使われる。ただしこれは
-'encoding'の値が同値なHTML文字集合名を持つ場合だけ機能する。これを上書きするに
-は、g:html_use_encodingを使用したい文字集合名にセットすればよい: >
+HTML ファイルの文字集合の指定には現在の 'encoding' の値が使われる。ただし、
+'encoding' の値に対応する HTML 文字集合名が存在しない場合はそうはいかない。こ
+れを上書きするには、g:html_use_encoding に使用したい文字集合名をセットすればよ
+い:
+>
    :let html_use_encoding = "foobar"
 文字集合指定の行を省略するには、g:html_use_encodingを空文字列にする: >
    :let html_use_encoding = ""
@@ -505,10 +544,10 @@ apacheの構文ファイルはApache HTTPサーバのバージョンに基づい
    :let filetype_i = "asm"
 "asm"には使用するアセンブリ言語の種類を指定する。
 
-ファイル名の同じ拡張子を使用しているアセンブリ言語には沢山の種類がある。従って
-ユーザは自分が使用する種類を選択するか、もしくはアセンブリファイルそのものに
-Vimがそれと判断できるような行を追加しなければならない。現在は以下の構文ファイ
-ルが利用可能:
+同じ拡張子を使用しているアセンブリ言語はたくさんある。そのため、ユーザは自分
+が使っている種類を選択するか、もしくはアセンブリファイルそのものにVimがそれ
+と判断できるような行を追加しなければならない。現在は以下の構文ファイルが利用
+可能:
 	asm		GNUアセンブラ(デフォルト)
 	asm68k		モトローラ680x0アセンブラ
 	asmh8300	日立H-8300用GNUアセンブラ
@@ -520,17 +559,18 @@ Vimがそれと判断できるような行を追加しなければならない�
 	pic		PICアセンブラ(現在はPIC16F84用)
 
 アセンブリファイルに次のような行を書き加えるのが一番柔軟である: >
-	:asmsyntax=nasm
-"nasm"は実際に使用するアセンブリ構文の名前に置き換える。このような記述はファイ
-ルの先頭5行以内に書いてなければならない。
+	asmsyntax=nasm
+ここで、"nasm" は実際に使用するアセンブリ構文の名前に置き換えること。この記
+述はファイルの先頭 5 行以内に書いてなければならない。この文字列の前後に非空
+白文字があってはならない。
 
 構文の種類はバッファ変数b:asmsyntaxを設定することで常にそちらが優先される: >
-	:let b:asmsyntax=nasm
+	:let b:asmsyntax = "nasm"
 
 自動にしろ手動にしろb:asmsyntaxが設定されていないときには、グローバル変数
 asmsyntaxが使用される。これによりデフォルトのアセンブリ言語を設定することがで
 きる: >
-	:let asmsyntax=nasm
+	:let asmsyntax = "nasm"
 
 最後の手段として、何も設定されていない場合には、"asm"構文が使用される。
 
@@ -608,7 +648,7 @@ C							*c.vim* *ft-c-syntax*
 
 Cには幾つかの補助的なハイライト方法がある。それらを有効化するには対応した変数
 に値を設定する。例: >
-	:let c_comment_strings=1
+	:let c_comment_strings = 1
 これを無効化するには":unlet"を使う。例: >
 	:unlet c_comment_strings
 
@@ -621,6 +661,9 @@ c_no_tab_space_error	 ... 但しタブ文字前のスペース文字は除外
 c_no_bracket_error	[]の中の{}をエラーとして表示しない
 c_no_curly_error	{ と } が第1桁にあるときを除き、[] と () の内側の {}
 			をエラーとして表示しない。
+c_curly_error		対応する { がない } をハイライトする。これを有効に
+			すると、ファイルの先頭から同期が始まるため、遅くなる。
+			start of the file, can be slow
 c_no_ansi		ANSI標準の型と定数をハイライトしない
 c_ansi_typedefs		 ... 但し標準ANSI型はハイライトする
 c_ansi_constants	 ... 但し標準ANSI定数はハイライトする
@@ -669,7 +712,6 @@ cErrInParen及びcErrInBracketのハイライトをリセットする。
 Cファイルで折り畳みをするには、以下の行を'runtimepath'中の"after"ディレクトリ
 内のファイルに加えるとよい。Unixなら~/.vim/after/syntax/c.vimに加えるとよいだ
 ろう: >
-    syn region myFold start="{" end="}" transparent fold
     syn sync fromstart
     set foldmethod=syntax
 
@@ -842,8 +884,8 @@ Windows 2000で導入されたコマンドインタプリタの新しい拡張�
 DOXYGEN						*doxygen.vim* *doxygen-syntax*
 
 Doxygen は JavaDoc に似た特殊なフォーマットからコードのドキュメントを生成する。
-この構文スクリプトは c, cpp, idl のファイルに対して Doxygen のハイライトを追加
-する。また、Java に対しても使える。
+この構文スクリプトは c, cpp, idl, php のファイルに対して Doxygen のハイライ
+トを追加する。また、Java に対しても使える。
 
 Doxygen のフォーマットを有効にするにはいくつかの方法がある。手動、またはモード
 ラインでそのファイルの syntax に '.doxygen' を追加する。例: >
@@ -1432,9 +1474,9 @@ Java 1.1では、System.out.println()とSystem.err.println()はデバッグの�
 数、型(this, super)に使われる。私はこれらの文に異なる背景色をつけることにして
 いる。
 
-JavaとC++間で移植が容易なコードを書くための補助として、Javaプログラム中のC++キー
-ワードはエラーとしてハイライトされる。しかし、本当にそれらのキーワードを使いた
-いときは.vimrc中で次の変数を定義するとよい: >
+Java と C++ 間で移植が容易なコードを書くための支援として、Java プログラム内
+の C++ キーワードをエラーとしてハイライトすることができる。そうするには次の
+行を .vimrc に書く: >
 	:let java_allow_cpp_keywords=1
 
 JavadocはJavaプログラム中から特別なコメントを抜き出してHTMLページを作成するプ
@@ -2338,19 +2380,24 @@ Vimは様々なファイル名がどのタイプであるかを指定するこ�
 	let g:is_posix     = 1
 <   bash: >
 	let g:is_bash	   = 1
-<   sh: (デフォルト) Borne shell >
+<   sh: (デフォルト) Bourne shell >
 	let g:is_sh	   = 1
 
 "#! ..." という行がなく、かつユーザが上の方法でデフォルトの sh.vim の構文を設
-定していない場合、sh.vim は Borne シェルの構文であると仮定する。エラーレポート
+定していない場合、sh.vim は Bourne シェルの構文であると仮定する。エラーレポート
 に RFC や市場浸透統計の引用を含める必要はありません。単に .vimrc でシステムで
 使われるデフォルトの sh のバージョンを選択してください。
 
-.vimrcで以下のように設定すると >
-	let g:sh_fold_enabled= 1
-
+syntax/sh.vim は構文ベースの折り畳みを数種類用意している: >
+	let g:sh_fold_enabled= 0     (デフォルト。構文折り畳みなし)
+	let g:sh_fold_enabled= 1     (関数の折り畳みを有効化)
+	let g:sh_fold_enabled= 2     (ヒアドキュメントの折り畳みを有効化)
+	let g:sh_fold_enabled= 4     (if/do/for の折り畳みを有効化)
+>
 様々な構文要素(ヒアドキュメントと関数の中身)がsyntaxメソッドによって折り畳み可
-能になる(|:syn-fold|)。
+能になる(|:syn-fold|)。これらのうち複数を組み合わせることもできる: >
+
+	let g:sh_fold_enabled= 3     (関数とヒアドキュメントの折畳を有効化)
 
 上方向にスクロールしているときにハイライトがおかしくなり、それがCTRL-Lで再描画
 すると直るようなら、変数"sh_minlines"の値を大きくしてみるとよい。例: >
@@ -2410,7 +2457,7 @@ SQLにはANSI標準があるのだが、ほとんどのデータベースエン�
 デフォルト設定をOracleから他の対応しているSQLに変更することができる。また、
 バッファごとに使うSQLの方言を変えることも簡単にできる。
 
-より詳しい説明は|sql.txt|を参照。
+より詳しい説明は|ft_sql.txt|を参照。
 
 
 TCSH						*tcsh.vim* *tcsh-syntax*
@@ -2418,24 +2465,26 @@ TCSH						*tcsh.vim* *tcsh-syntax*
 これは"tcsh"という名前のシェルをカバーしている。これはcshのスーパーセットであ
 る。ファイル形式がどのように判定されるかは|csh.vim|を参照。
 
-tcshはシェル変数"backslash_quote"をセットしていない限り文字列中に\"が現れるこ
+tcshはシェル変数 backslash_quote をセットしていない限り文字列中に\"が現れるこ
 とを許さない。Vimにバックスラッシュクォート構文が存在しないと判断させたいな
 ら、次の行を.vimrcに加えること: >
 
 	:let tcsh_backslash_quote = 0
 
 上方向にスクロールしているときにハイライトがおかしくなり、それがCTRL-Lで再描画
-すると直るようなら、変数"tcsh_minlines"の値を大きくしてみるとよい: >
+すると直るようなら、変数 tcsh_minlines の値を大きくしてみるとよい: >
 
-	:let tcsh_minlines = 100
+	:let tcsh_minlines = 1000
 
-こうすると構文シンクロナイズが画面最上行の100行前から始まるようになる。大きな
-値にすることの欠点は、再描画が遅くなることである。
+こうすると構文シンクロナイズが画面最上行の1000行前から始まるようになる。
+tcsh_minlines に "fromstart" をセットすると、ファイルの先頭からシンクロナイズ
+が行われるようになる。tcsh_minlines の既定値は 100。大きな値にすることの欠点は、
+再描画が遅くなることである。
 
 
 TEX						*tex.vim* *ft-tex-syntax*
 
-*tex-folding*
+								*tex-folding*
 構文折り畳み? ~
 
 <syntax/tex.vim>のバージョン28以降では、構文による部分、章、節、小節などの折り
@@ -2444,6 +2493,14 @@ TEX						*tex.vim* *ft-tex-syntax*
 :set fdm=syntaxとする。後者をLaTeXファイルの末尾にモードラインとして書いておく
 といいかもしれない: >
 	% vim: fdm=syntax
+<
+								*tex-nospell*
+コメントの中ではスペルチェックを行わせたくない場合
+
+LaTeX ファイルのコメントの中にソースコードのようなものを含めることがあるので、
+コメントの中ではスペルチェックを無効にしたいという人もいる。そのようにするには
+次の行を .vimrc に加える: >
+      let g:tex_comment_nospell= 1
 <
 *tex-runon*
 追い込みコメント/Mathについて ~
@@ -2457,7 +2514,7 @@ texZone, texMathZoneの3つの主な区間・範囲がサポートされてい�
 このコメントがあると、ここで強制的にtexZoneまたはtexMathZoneのハイライトを終わ
 らせる。
 
-*tex-slow*
+								*tex-slow*
 構文ハイライトが遅いならば ~
 
 遅いコンピュータを使っているなら、これらの値を減らすとよいかもしれない >
@@ -2467,8 +2524,8 @@ texZone, texMathZoneの3つの主な区間・範囲がサポートされてい�
 らは第一にシンクロナイズ(つまり、画面最上行のテキストがどのグループに入るか)に
 影響を与える。
 
-*tex-morecommands* *tex-package*
-もっとコマンドをハイライトさせたい？
+					    *tex-morecommands* *tex-package*
+もっとコマンドをハイライトさせるには ~
 
 LaTeXはプログラミング言語であり、特殊化されたLaTeXのコマンド、構文、フォントが
 つまったパッケージがたくさんある。そのようなパッケージを使っている人は、標準の
@@ -2476,7 +2533,7 @@ syntax/tex.vimにそのパッケージを対応させてほしいと思うだろ
 かに非現実的である。そこで、|mysyntaxfile-add|で使われているテクニックを使って
 、syntax/tex.vimで提供されているハイライトを拡張・修正してみてください。
 
-*tex-error*
+								*tex-error*
 エラーのハイライトが行き過ぎならば ~
 
 <tex.vim>は様々な種類のレキシカルエラーチェックをサポートしている。すなわち、
@@ -2485,7 +2542,7 @@ syntax/tex.vimにそのパッケージを対応させてほしいと思うだろ
 	let tex_no_error=1
 すると<syntax/tex.vim>によるすべてのエラーチェックが行われなくなる。
 
-*tex-math*
+								*tex-math*
 新しいMathグループが必要ならば ~
 
 新しいmathグループをLaTeXに含めるには、以下のコードがその例となるだろう: >
@@ -2504,7 +2561,7 @@ syntax/tex.vimにそのパッケージを対応させてほしいと思うだろ
 LOCALMATHをあなたが決めた新しいmathグループに書き換える必要がある。そしてこれ
 を.vim/after/syntax/tex.vimに加えること。
 
-*tex-style*
+								*tex-style*
 新しいスタイルを始めるには ~
 
 *.texファイルで"\makeatletter"を使う人がいるかもしれないので、コマンド中で"@"
@@ -2529,30 +2586,51 @@ tfの構文ハイライトには1つのオプションがある。
 
 
 VIM						*vim.vim* *ft-vim-syntax*
-
+			*g:vimsyn_minlines*	*g:vimsyn_maxlines*
 正確な構文ハイライトと画面更新速度はトレードオフの問題である。正確さを向上させ
-るには、変数g:vim_minlinesの値を大きくすればよい。変数g:vim_maxlinesは画面更新
-速度を改善するのに使える(これについては|:syn-sync|を参照)。
+るには、変数 g:vimsyn_minlines の値を大きくすればよい。g:vimsyn_maxlines も画
+面更新頻度を高めるのに使える(これについては|:syn-sync|を参照)。 >
+	g:vim_minlines : シンクロナイズの最小行数を指定する
+	g:vim_maxlines : シンクロナイズの最大行数を指定する 
+<
+	(g:vim_minlines と g:vim_maxlines はこれらのオプションの以前の名前であ
+	る)
 
-	g:vim_minlines : シンクロナイズの最小行数をセットするのに使う
-	g:vim_maxlines : シンクロナイズの最大行数をセットするのに使う 
+						*g:vimsyn_embed*
+g:vimsyn_embed オプションは、どの外部スクリプト言語の埋め込みに対応するかを指
+定する。 >
 
-g:vimembedscriptオプションは外部スクリプト言語(現在のところperl, python, ruby,
-tcl)のサポートを犠牲にする代わりに、vimスクリプト用の構文ハイライトの読み込み
-をいくらか速くすることができる。
+   g:vimsyn_embed == 0   : どのスクリプトの埋め込みも対応しない
+   g:vimsyn_embed =~ 'm' : mzscheme に対応 (コンパイル時に有効にした場合のみ)
+   g:vimsyn_embed =~ 'p' : perl     に対応 (コンパイル時に有効にした場合のみ)
+   g:vimsyn_embed =~ 'P' : python   に対応 (コンパイル時に有効にした場合のみ)
+   g:vimsyn_embed =~ 'r' : ruby     に対応 (コンパイル時に有効にした場合のみ)
+   g:vimsyn_embed =~ 't' : tcl      に対応 (コンパイル時に有効にした場合のみ)
+<
+g:vimsyn_embed の既定値は "mpPr" であり、mzscheme, perl, python, ruby に対応し
+ている。tcl が利用可能でない環境で has("tcl") の判定を行うと Vim がハングする
+ようなので、デフォルトでは tcl の埋め込みには対応していない(もちろん、有効にし
+たい場合には g:vimembedscript に含めることで有効にできる)。
+						*g:vimsyn_folding*
 
-	g:vimembedscript == 1 (デフォルト)	 <vim.vim>埋め込みスクリプト言
-	g:vimembedscript が存在しない		 語: perl, python, ruby, tclの
-						 ハイライトを有効化する。
+syntax/vim.vim によって折り畳みが可能である: >
 
-	g:vimembedscript == 0			 埋め込みスクリプト言語用の構
-						 文ハイライトを読み込まない。
+   g:vimsyn_folding == 0 または変数が存在しない: 構文ベースの折り畳みはしない
+   g:vimsyn_folding =~ 'a' : augroups
+   g:vimsyn_folding =~ 'f' : 関数を折り畳む
+   g:vimsyn_folding =~ 'm' : mzscheme スクリプトを折り畳む
+   g:vimsyn_folding =~ 'p' : perl     スクリプトを折り畳む
+   g:vimsyn_folding =~ 'P' : python   スクリプトを折り畳む
+   g:vimsyn_folding =~ 'r' : ruby     スクリプトを折り畳む
+   g:vimsyn_folding =~ 't' : tcl      スクリプトを折り畳む
 
+							*g:vimsyn_noerror*
 syntax/vim.vimによるエラーのハイライトは必ずしも正しいとは限らない。Vimスクリ
 プトは正しくハイライトするのが難しい言語である。エラーのハイライトをやめるには
 次を|vimrc|に書けばよい: >
 
-	let g:vimsyntax_noerror = 1
+	let g:vimsyn_noerror = 1
+<
 
 
 XF86CONFIG				*xf86conf.vim* *ft-xf86conf-syntax*
@@ -3251,6 +3329,8 @@ region item end     -	 yes  -    yes	-    yes  yes
 - ハイライトされる領域がマッチしたテキストの外側にはみ出してはならない。
 - endパターンに対する負のオフセットは機能しない場合がある。これはハイライトが
   既に終わっているべきとき、endパターンは検出されない可能性があるからである。
+- Vim 7.2 以前では、オフセットは文字単位でなくバイト単位であった。それではマル
+  チバイト文字ではうまく機能しないので、7.2 から変更された。
 - マッチの開始位置が、パターンがマッチした位置と別の行になってはならない。つま
   り"a\nb"ms=eというのは正常に機能しない。ハイライトの開始位置は別の行にあって
   もかまわない。"a\nb"hs=eというのは正常に機能する。
@@ -3291,13 +3371,14 @@ Leading context			*:syn-lc* *:syn-leading* *:syn-context*
 "ms"を指定しないと自動的に"lc"と同じ値にセットされる。
 
 
-Multi-line patterns					*:syn-multi-line*
+複数行にわたるパターン					*:syn-multi-line*
 
 パターンが"\n"を含むと改行にマッチするようになる。たいていの場合これは期待通り
 に動作するが、少しだけ例外がある。
 
 startパターンにオフセットをつけるとき、マッチ部分の開始位置が次の行の先頭であ
-ってはならない。ハイライトは次の行で始まってもよい。
+ってはならない。ハイライトは次の行で始まってもよい。"\zs" を使うときも、マッチ
+部分の開始位置が他の行になってはならない。
 
 skipパターンも"\n"を含んでよい。ただし次の行の最初の文字がskipパターンにマッチ
 していても、そこからendパターンの検索が続けられる。これは、再描画は領域内のど
@@ -3363,9 +3444,9 @@ skipパターンも"\n"を含んでよい。ただし次の行の最初の文字
 	remove={group-name}..
 		指定したグループをクラスタからとり除く。
 
-定義したクラスタはcontains=..やnextgroup=..、add=..、remove=..などの文脈で使う
-ことができる。そのとき、クラスタ名の頭に"@"をつける。クラスタを定義する前にそ
-のクラスタ名を使用してもよい。
+定義したクラスタはcontains=..やcontainedin=..、nextgroup=..、add=..、remove=..
+などの文脈で使うことができる。そのとき、クラスタ名の頭に"@"をつける。クラスタ
+を定義する前にそのクラスタ名を使用してもよい。
 
 例: >
    :syntax match Thing "# [^#]\+ #" contains=@ThingMembers
@@ -3638,7 +3719,9 @@ skipパターンも"\n"を含んでよい。ただし次の行の最初の文字
 			に見つかったものが読み込まれる。
 			現在使われているカラースキームの名前を見るには: >
 				:echo g:colors_name
-<			再帰的な読み込みはされない。つまりカラースキームスクリ
+<			デフォルトのカラースキームを使っている場合はエラー E121
+			になる。
+			再帰的な読み込みはされない。つまりカラースキームスクリ
 			プト中で":colorscheme"を使うことはできない。
 			カラースキームが読み込まれた後、自動コマンドイベント
 			|ColorScheme|が発生する。カラースキームファイルを書く
@@ -3825,7 +3908,7 @@ ctermbg={color-nr}				*highlight-ctermbg*
 	を設定するべきである。
 	カラースキーム使用時に'background'を変更するとカラースキームが再読み込
 	みされる。そしてNormalを含む全ての色がリセットされる。これが嫌なら最初
-	に変数"colors_name"を削除すること。
+	に変数"g:colors_name"を削除すること。
 
 	Normalグループの"ctermfg"や"ctermbg"を変更した場合、Vim終了時にその色
 	をリセットする必要がある。これはtermcapエントリ"op"|t_op|を使ってなさ
