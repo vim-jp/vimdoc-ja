@@ -1,4 +1,4 @@
-*insert.txt*    For Vim version 7.2.  Last change: 2009 Jul 14
+*insert.txt*    For Vim version 7.3.  Last change: 2010 Jul 29
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -359,10 +359,14 @@ CTRL-G CTRL-J	cursor one line down, insert start column    *i_CTRL-G_CTRL-J*
 <PageUp>	move window one page up			     *i_<PageUp>*
 <S-Down>	move window one page down		     *i_<S-Down>*
 <PageDown>	move window one page down		     *i_<PageDown>*
-<MouseDown>	scroll three lines down			     *i_<MouseDown>*
-<S-MouseDown>	scroll a full page down			     *i_<S-MouseDown>*
-<MouseUp>	scroll three lines up			     *i_<MouseUp>*
-<S-MouseUp>	scroll a full page up			     *i_<S-MouseUp>*
+<ScrollWheelDown>    move window three lines down	*i_<ScrollWheelDown>*
+<S-ScrollWheelDown>  move window one page down		*i_<S-ScrollWheelDown>*
+<ScrollWheelUp>      move window three lines up		*i_<ScrollWheelUp>*
+<S-ScrollWheelUp>    move window one page up		*i_<S-ScrollWheelUp>*
+<ScrollWheelLeft>    move window six columns left	*i_<ScrollWheelLeft>*
+<S-ScrollWheelLeft>  move window one page left		*i_<S-ScrollWheelLeft>*
+<ScrollWheelRight>   move window six columns right	*i_<ScrollWheelRight>*
+<S-ScrollWheelRight> move window one page right		*i_<S-ScrollWheelRight>*
 CTRL-O		execute one command, return to Insert mode   *i_CTRL-O*
 CTRL-\ CTRL-O	like CTRL-O but don't move the cursor	     *i_CTRL-\_CTRL-O*
 CTRL-L		when 'insertmode' is set: go to Normal mode  *i_CTRL-L*
@@ -523,7 +527,7 @@ last one).  {Vi does not have the 'expandtab' option}
 6. Virtual Replace mode		*vreplace-mode* *Virtual-Replace-mode*
 
 Enter Virtual Replace mode with the "gR" command in normal mode.
-{not available when compiled without the +vreplace feature}
+{not available when compiled without the |+vreplace| feature}
 {Vi does not have Virtual Replace mode}
 
 Virtual Replace mode is similar to Replace mode, but instead of replacing
@@ -639,6 +643,7 @@ completion operation: >
 	      return "\<Tab>"
 	   else
 	      return "\<C-N>"
+	   endif
 	endfunction
 	inoremap <Tab> <C-R>=CleverTab()<CR>
 
@@ -1357,7 +1362,7 @@ Script completes:
 - function names with additional info:
   - in case of built-in functions list of possible arguments and after | type
     data returned by function
-  - in case of user function arguments and name of file were function was
+  - in case of user function arguments and name of file where function was
     defined (if it is not current file)
 
 - constants names
@@ -1445,8 +1450,8 @@ a look at the PHP filetype to see how this works.
 If you edit a file called, index.php, run the following command: >
 	:syntax list
 
-First thing you will notice is there are many different syntax groups.  The
-PHP language can include elements from different languages like HTML,
+The first thing you will notice is that there are many different syntax groups.
+The PHP language can include elements from different languages like HTML,
 JavaScript and many more.  The syntax plugin will only include syntax groups
 that begin with the filetype, "php", in this case.  For example these syntax
 groups are included by default with the PHP: phpEnvVar, phpIntVar,
@@ -1483,6 +1488,38 @@ on word characters.   This can be controlled adding the following to your
 vimrc: >
     let g:omni_syntax_use_iskeyword = 0
 
+For plugin developers, the plugin exposes a public function OmniSyntaxList.
+This function can be used to request a List of syntax items.  When editing a
+SQL file (:e syntax.sql) you can use the ":syntax list" command to see the 
+various groups and syntax items.  For example: >
+    syntax list 
+
+Yields data similar to this: >
+    sqlOperator    xxx some prior all like and any escape exists in is not 
+                       or intersect minus between distinct
+                       links to Operator
+    sqlType        xxx varbit varchar nvarchar bigint int uniqueidentifier 
+                       date money long tinyint unsigned xml text smalldate 
+                       double datetime nchar smallint numeric time bit char 
+                       varbinary binary smallmoney
+                       image float integer timestamp real decimal
+
+There are two syntax groups listed here: sqlOperator and sqlType.  To retrieve
+a List of syntax items you can call OmniSyntaxList a number of different 
+ways.  To retrieve all syntax items regardless of syntax group:  >
+    echo OmniSyntaxList( [] )
+
+To retrieve only the syntax items for the sqlOperator syntax group: >
+    echo OmniSyntaxList( ['sqlOperator'] )
+
+To retrieve all syntax items for both the sqlOperator and sqlType groups: >
+    echo OmniSyntaxList( ['sqlOperator', 'sqlType'] )
+
+From within a plugin, you would typically assign the output to a List: >
+    let myKeywords = []
+    let myKeywords = OmniSyntaxList( ['sqlKeyword'] )
+
+    
 
 SQL							*ft-sql-omni*
 
@@ -1744,7 +1781,7 @@ NOTE: These commands cannot be used with |:global| or |:vglobal|.
 			or script is finished.
 			This command does not work from |:normal|.
 			{not in Vi}
-			{not available when compiled without the +ex_extra
+			{not available when compiled without the |+ex_extra|
 			feature}
 
 							*:stopi* *:stopinsert*
@@ -1763,14 +1800,14 @@ NOTE: These commands cannot be used with |:global| or |:vglobal|.
 			script that the replacement will only start after
 			the function or script is finished.
 			{not in Vi}
-			{not available when compiled without the +ex_extra
+			{not available when compiled without the |+ex_extra|
 			feature}
 
 							*:startgreplace*
 :startg[replace][!]	Just like |:startreplace|, but use Virtual Replace
 			mode, like with |gR|.
 			{not in Vi}
-			{not available when compiled without the +ex_extra
+			{not available when compiled without the |+ex_extra|
 			feature}
 
 ==============================================================================
