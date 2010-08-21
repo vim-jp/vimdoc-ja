@@ -1,4 +1,4 @@
-*if_pyth.txt*   For Vim version 7.2.  Last change: 2008 Aug 16
+*if_pyth.txt*   For Vim version 7.3.  Last change: 2010 Aug 13
 
 
 		  VIM REFERENCE MANUAL    by Paul Moore
@@ -12,11 +12,14 @@ The Python Interface to Vim				*python* *Python*
 4. Range objects		|python-range|
 5. Window objects		|python-window|
 6. Dynamic loading		|python-dynamic|
+7. Python 3			|python3|
 
 {Vi does not have any of these commands}
 
-The Python interface is available only when Vim was compiled with the
+The Python 2.x interface is available only when Vim was compiled with the
 |+python| feature.
+The Python 3 interface is available only when Vim was compiled with the
+|+python3| feature.
 
 ==============================================================================
 1. Commands						*python-commands*
@@ -237,10 +240,12 @@ with marks (see below) which use vim line numbers.
 
 The buffer object methods are:
 	b.append(str)	Append a line to the buffer
+	b.append(str, nr)  Idem, below line "nr"
 	b.append(list)	Append a list of lines to the buffer
 			Note that the option of supplying a list of strings to
 			the append method differs from the equivalent method
 			for Python's built-in list objects.
+	b.append(list, nr)  Idem, below line "nr"
 	b.mark(name)	Return a tuple (row,col) representing the position
 			of the named mark (can also get the []"<> marks)
 	b.range(s,e)	Return a range object (see |python-range|) which
@@ -282,10 +287,12 @@ The range object attributes are:
 
 The range object methods are:
 	r.append(str)	Append a line to the range
+	r.append(str, nr)  Idem, after line "nr"
 	r.append(list)	Append a list of lines to the range
 			Note that the option of supplying a list of strings to
 			the append method differs from the equivalent method
 			for Python's built-in list objects.
+	r.append(list, nr)  Idem, after line "nr"
 
 Example (assume r is the current range):
 	# Send all lines in a range to the default printer
@@ -326,6 +333,50 @@ console window type "path" to see what directories are used.
 The name of the DLL must match the Python version Vim was compiled with.
 Currently the name is "python24.dll".  That is for Python 2.4.  To know for
 sure edit "gvim.exe" and search for "python\d*.dll\c".
+
+==============================================================================
+7. Python 3						*python3*
+
+							*:py3* *:python3*
+The |:py3| and |:python3| commands work similar to |:python|.
+							*:py3file*
+The |:py3file| command works similar to |:pyfile|.
+
+Vim can be built in four ways (:version output):
+1. No Python support	    (-python, -python3)
+2. Python 2 support only    (+python or +python/dyn, -python3)
+3. Python 3 support only    (-python, +python3 or +python3/dyn)
+4. Python 2 and 3 support   (+python/dyn, +python3/dyn)
+
+Some more details on the special case 4:
+
+When Python 2 and Python 3 are both supported they must be loaded dynamically.
+
+When doing this on Linux/Unix systems and importing global symbols, this leads
+to a crash when the second Python version is used.  So either global symbols
+are loaded but only one Python version is activated, or no global symbols are
+loaded. The latter makes Python's "import" fail on libaries that expect the
+symbols to be provided by Vim.
+							*E836* *E837*
+Vim's configuration script makes a guess for all libraries based on one
+standard Python library (termios).  If importing this library succeeds for
+both Python versions, then both will be made available in Vim at the same
+time.  If not, only the version first used in a session will be enabled.
+When trying to use the other one you will get the E836 or E837 error message.
+
+Here Vim's behavior depends on the system in which it was configured.  In a
+system where both versions of Python were configured with --enable-shared,
+both versions of Python will be activated at the same time.  There will still
+be problems with other third party libraries that were not linked to
+libPython.
+
+To work around such problems there are these options:
+1. The problematic library is recompiled to link to the according
+   libpython.so.
+2. Vim is recompiled for only one Python version.
+3. You undefine PY_NO_RTLD_GLOBAL in auto/config.h after configuration.  This
+   may crash Vim though.
+
 
 ==============================================================================
  vim:tw=78:ts=8:ft=help:norl:
