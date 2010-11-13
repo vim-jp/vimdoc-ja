@@ -1,4 +1,4 @@
-*options.txt*	For Vim version 7.3.  Last change: 2010 Aug 15
+*options.txt*	For Vim version 7.3.  Last change: 2010 Oct 23
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -1496,6 +1496,25 @@ A jump table for the options with a short description can be found at |Q_op|.
 			feature}
 	Number of screen lines to use for the command-line window. |cmdwin|
 
+						*'colorcolumn'* *'cc'*
+'colorcolumn' 'cc'	string	(default "")
+			local to window
+			{not in Vi}
+			{not available when compiled without the |+syntax|
+			feature}
+	'colorcolumn' is a comma separated list of screen columns that are
+	highlighted with ColorColumn |hl-ColorColumn|.  Useful to align
+	text.  Will make screen redrawing slower.
+	The screen column can be an absolute number, or a number preceded with
+	'+' or '-', which is added to or subtracted from 'textwidth'. >
+
+		:set cc=+1  " highlight column after 'textwidth'
+		:set cc=+1,+2,+3  " highlight three columns after 'textwidth'
+		:hi ColorColumn ctermbg=lightgrey guibg=lightgrey
+<
+	When 'textwidth' is zero then the items with '-' and '+' are not used.
+	A maximum of 256 columns are highlighted.
+
 						*'columns'* *'co'* *E594*
 'columns' 'co'		number	(default 80 or terminal width)
 			global
@@ -2817,13 +2836,13 @@ A jump table for the options with a short description can be found at |Q_op|.
 	  2. If a <NL> is found and 'fileformats' includes "unix", 'fileformat'
 	     is set to "unix".  Note that when a <NL> is found without a
 	     preceding <CR>, "unix" is preferred over "dos".
-	  3. If 'fileformats' includes "mac", 'fileformat' is set to "mac".
-	     This means that "mac" is only chosen when "unix" is not present,
-	     or when no <NL> is found in the file, and when "dos" is not
-	     present, or no <CR><NL> is present in the file.
-	     Also if "unix" was first chosen, but the first <CR> is before
-	     the first <NL> and there appears to be more <CR>'s than <NL>'s in
-	     the file, then 'fileformat' is set to "mac".
+	  3. If 'fileformat' has not yet been set, and if 'fileformats'
+	     includes "mac", 'fileformat' is set to "mac".
+	     This means that "mac" is only chosen when:
+	      "unix" is not present or no <NL> is found in the file, and
+	      "dos" is not present or no <CR><NL> is found in the file.
+	     Except: if "unix" was chosen, but there is a <CR> before
+	     the first <NL>, and there appear to be more <CR>s than <NL>s in
 	  4. If 'fileformat' is still not set, the first name from
 	     'fileformats' is used.
 	  When reading a file into an existing buffer, the same is done, but
@@ -3070,6 +3089,10 @@ A jump table for the options with a short description can be found at |Q_op|.
 	Specifies for which type of commands folds will be opened, if the
 	command moves the cursor into a closed fold.  It is a comma separated
 	list of items.
+	NOTE: When the command is part of a mapping this option is not used.
+	Add the |zv| command to the mapping to get the same effect.
+	(rationale: the mapping may want to control opening folds itself)
+
 		item		commands ~
 		all		any
 		block		"(", "{", "[[", "[{", etc.
@@ -3084,8 +3107,6 @@ A jump table for the options with a short description can be found at |Q_op|.
 				Also for |[s| and |]s|.
 		tag		jumping to a tag: ":ta", CTRL-T, etc.
 		undo		undo or redo: "u" and CTRL-R
-	When the command is part of a mapping this option is not used.  Add
-	the |zv| command to the mapping to get the same effect.
 	When a movement command is used for an operator (e.g., "dl" or "y%")
 	this option is not used.  This means the operator will include the
 	whole closed fold.
@@ -4600,25 +4621,6 @@ A jump table for the options with a short description can be found at |Q_op|.
 	    :set makeprg=latex\ \\\\nonstopmode\ \\\\input\\{$*}
 <	This option cannot be set from a |modeline| or in the |sandbox|, for
 	security reasons.
-
-						*'colorcolumn'* *'cc'*
-'colorcolumn' 'cc'	string	(default "")
-			local to window
-			{not in Vi}
-			{not available when compiled without the |+syntax|
-			feature}
-	'colorcolumn' is a comma separated list of screen columns that are
-	highlighted with ColorColumn |hl-ColorColumn|.  Useful to align
-	text.  Will make screen redrawing slower.
-	The screen column can be an absolute number, or a number preceded with
-	'+' or '-', which is added to or subtracted from 'textwidth'. >
-
-		:set cc=+1  " highlight column after 'textwidth'
-		:set cc=+1,+2,+3  " highlight three columns after 'textwidth'
-		:hi ColorColumn ctermbg=lightgrey guibg=lightgrey
-<
-	When 'textwidth' is zero then the items with '-' and '+' are not used.
-	A maximum of 256 columns are highlighted.
 
 						*'matchpairs'* *'mps'*
 'matchpairs' 'mps'	string	(default "(:),{:},[:]")
@@ -7530,8 +7532,9 @@ A jump table for the options with a short description can be found at |Q_op|.
 	!	When included, save and restore global variables that start
 		with an uppercase letter, and don't contain a lowercase
 		letter.  Thus "KEEPTHIS and "K_L_M" are stored, but "KeepThis"
-		and "_K_L_M" are not.  Only String and Number types are
-		stored.
+		and "_K_L_M" are not.  Nested List and Dict items may not be
+		read back correctly, you end up with a string representation
+		instead.
 	"	Maximum number of lines saved for each register.  Old name of
 		the '<' item, with the disadvantage that you need to put a
 		backslash before the ", otherwise it will be recognized as the

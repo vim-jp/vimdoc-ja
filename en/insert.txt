@@ -1,4 +1,4 @@
-*insert.txt*    For Vim version 7.3.  Last change: 2010 Jul 29
+*insert.txt*    For Vim version 7.3.  Last change: 2010 Oct 27
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -382,6 +382,10 @@ mappings it's often better to use <Esc> (first put an "x" in the text, <Esc>
 will then always put the cursor on it).  Or use CTRL-\ CTRL-O, but then
 beware of the cursor possibly being beyond the end of the line.
 
+The CTRL-O command takes you to Normal mode.  If you then use a command enter
+Insert mode again it doesn't nest.  Thus when typing "a<C-O>a" and then <Esc>
+takes you back to Normal mode, you do not need to type <Esc> twice.
+
 The shifted cursor keys are not available on all terminals.
 
 Another side effect is that a count specified before the "i" or "a" command is
@@ -555,12 +559,11 @@ CTRL-D, 'expandtab', 'smarttab', 'softtabstop', etc.
 In 'list' mode, Virtual Replace mode acts as if it was not in 'list' mode,
 unless "L" is in 'cpoptions'.
 
-Note that the only times characters beyond the cursor should appear to move
-are in 'list' mode, and occasionally when 'wrap' is set (and the line changes
-length to become shorter or wider than the width of the screen), or
-momentarily when typing over a CTRL character.  A CTRL character takes up two
-screen spaces.  When replacing it with two normal characters, the first will
-be inserted and the second will replace the CTRL character.
+Note that the only situations for which characters beyond the cursor should
+appear to move are in List mode |'list'|, and occasionally when 'wrap' is set
+(and the line changes length to become shorter or wider than the width of the
+screen).  In other cases spaces may be inserted to avoid following characters
+to move.
 
 This mode is very useful for editing <Tab> separated columns in tables, for
 entering new data while keeping all the columns aligned.
@@ -1044,7 +1047,8 @@ be relatively short.  The "info" item can be longer, it will  be displayed in
 the preview window when "preview" appears in 'completeopt'.  The "info" item
 will also remain displayed after the popup menu has been removed.  This is
 useful for function arguments.  Use a single space for "info" to remove
-existing text in the preview window.
+existing text in the preview window.  The size of the preview window is three
+lines, but 'previewheight' is used when it has a value of 1 or 2.
 
 The "kind" item uses a single letter to indicate the kind of completion.  This
 may be used to show the completion differently (different color or icon).
@@ -1766,6 +1770,11 @@ too long when appending characters a line break is automatically inserted.
 These two commands will keep on asking for lines, until you type a line
 containing only a ".".  Watch out for lines starting with a backslash, see
 |line-continuation|.
+
+When in Ex mode (see |-e|) a backslash at the end of the line can be used to
+insert a NUL character.  To be able to have a line ending in a backslash use
+two backslashes.  This means that the number of backslashes is halved, but
+only at the end of the line.
 
 NOTE: These commands cannot be used with |:global| or |:vglobal|.
 ":append" and ":insert" don't work properly in between ":if" and
