@@ -15,7 +15,13 @@ import gdata.sites.client
 import atom
 
 
-SOURCE_APP_NAME = "vimdocjp-updater-v1.1"
+SOURCE_APP_NAME = "vimdocja-updater-v1.1"
+
+RETRY_MAX = 3
+
+
+def is_helphtml(page_name):
+    return page_name.endswith("-html") or page_name == "home"
 
 
 def main():
@@ -34,21 +40,21 @@ def main():
         for entry in feed.entry:
             page_name = entry.page_name.text
             print("fetch: {0}".format(page_name))
-            if page_name.endswith("-html") or page_name == "home":
+            if is_helphtml(page_name):
                 entries[page_name] = entry
         if feed.find_next_link() is None:
             break
         feed = client.GetNext(feed)
 
     for page_name in sorted(os.listdir(srcdir)):
-        if page_name.endswith("-html") or page_name == "home":
+        if is_helphtml(page_name):
             with open(os.path.join(srcdir, page_name)) as f:
                 content = f.read()
             if page_name in entries:
                 print("update: {0}".format(page_name))
                 entry = entries.pop(page_name)
                 entry.content = atom.data.Content(text=content)
-                for _retry in range(3):
+                for _retry in range(RETRY_MAX):
                     try:
                         client.Update(entry)
                     except gdata.client.RequestError:
@@ -57,7 +63,7 @@ def main():
                     break
             else:
                 print("create: {0}".format(page_name))
-                for _retry in range(3):
+                for _retry in range(RETRY_MAX):
                     try:
                         entry = client.CreatePage("webpage", page_name,
                                 html=content, page_name=page_name)
@@ -68,7 +74,7 @@ def main():
 
     for entry in entries.values():
         print("delete: {0}".format(entry.page_name.text))
-        for _retry in range(3):
+        for _retry in range(RETRY_MAX):
             try:
                 client.Delete(entry)
             except gdata.client.RequestError:
