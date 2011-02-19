@@ -24,6 +24,12 @@ def is_helphtml(page_name):
     return page_name.endswith("-html") or page_name == "home"
 
 
+def pagetitle(page_name):
+    if page_name == "home":
+        return "help"
+    return page_name.replace("-html", "")
+
+
 def main():
     srcdir = "tmp"
     site = raw_input("site: ")
@@ -53,6 +59,7 @@ def main():
             if page_name in entries:
                 print("update: {0}".format(page_name))
                 entry = entries.pop(page_name)
+                entry.title = atom.data.Title(text=pagetitle(page_name))
                 entry.content = atom.data.Content(text=content)
                 for _retry in range(RETRY_MAX):
                     try:

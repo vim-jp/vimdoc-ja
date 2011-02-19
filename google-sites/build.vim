@@ -60,7 +60,7 @@ endfunction
 
 function! s:AddHeaderFooter()
   1;/<body>/
-  call append('.', ["試験中"])
+  call append('.', [])
 
   1;/<\/body>/-1
   call append('.', [])
@@ -170,10 +170,8 @@ endfunction
 function! s:Header()
   let name = fnamemodify(bufname("%"), ":r:r")
   let indexfile = s:GetIndexFile(bufname("%"))
-  let title = printf("<title>Vim documentation: %s</title>", name)
-  call setline(search('^<title', 'wn'), title)
   let header = [
-        \ printf('<a name="top"></a><h1>Vim documentation: %s</h1>', name),
+        \ '<a name="top"></a>',
         \ printf('<a href="%s">main help file</a>', indexfile),
         \ '<hr>',
         \ ]
