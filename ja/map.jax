@@ -4,7 +4,7 @@ TRANSLATOR: 西岡拓洋
 TRANSLATOR: 北条耀
 MAINTAINER: 村岡太郎<koron@tka.att.ne.jp>
 
-*map.txt*       For Vim バージョン 7.3.  Last change: 2010 Nov 10
+*map.txt*       For Vim バージョン 7.3.  Last change: 2011 Jun 13
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -112,6 +112,9 @@ MAINTAINER: 村岡太郎<koron@tka.att.ne.jp>
 :cmapc[lear]			|mapmode-c|		*:cmapc*  *:cmapclear*
 			マップコマンドに対応したモードのすべてのマップを削除し
 			ます。{Vi にはない機能です}
+			バッファローカルなマップを削除するには <buffer> 引数を
+			付けてください |:map-<buffer>|。
+			mappings |:map-<buffer>|
 			警告: 標準設定のマップも削除されます。
 
 :map				|mapmode-nvo|
@@ -225,8 +228,8 @@ InsertDot() 関数の戻り値が挿入されます。カーソルの前のテ�
 ある条件に一致するなら omni 補完を開始する、というようなことができます。
 
 短縮入力では、入力されて短縮入力展開のトリガーとなった文字が |v:char| にセット
-されます。これを使って {lhs} の展開方法を決めることもできます。v:char を変更す
-ることはできません。v:char を自分で挿入する必要はありません。
+されます。これを使って {lhs} の展開方法を決めることもできます。自分で v:char
+を挿入したり変更したりすべきではありません。
 
 副作用に注意してください。式は文字の取得中に評価されるため、簡単に異常動作を起
 こせてしまいます。そのため、次のものは制限されます:
@@ -497,8 +500,8 @@ CTRL-V を1つだけ入力した後に (CTRL-Vを2度押しで入力) 何も入�
 	:set encoding=latin1
 	:imap <M-C> foo
 	:set encoding=utf-8
-latin1 環境で文字「Ã」(0xC3 または <M-C>) をマップしています。例えば、「á」
-(0xe1 または <M-a>) は UTF-8 では 0xC3 0xA1 の 2 バイトで表現されるので、0xC3
+latin1 環境で文字「Ã」(0xc3 または <M-C>) をマップしています。例えば、「á」
+(0xe1 または <M-a>) は UTF-8 では 0xc3 0xa1 の 2 バイトで表現されるので、0xc3
 をマップしてしまうと á が入力できなくなってしまいます。
 
 					*<Leader>* *mapleader*
@@ -918,11 +921,13 @@ CTRL-V を押してから短縮入力の後の文字を入力します。
 			しないとコマンドライン用の短縮入力があった場合にそれが
 			展開されてしまいます。
 
-:ab[breviate] [<expr>] {lhs} {rhs}
+:ab[breviate] [<expr>] [<buffer>] {lhs} {rhs}
 			{rhs} の短縮入力を {lhs} として定義します。既に {lhs}
 			が定義されていると、新しい {rhs} で置き換えられます。
 			{rhs} はスペースを含んでいてもかまいません。
 			<expr> 引数については|:map-<expr>|を参照してください。
+			<buffer> 引数については |:map-<buffer>| を参照してくだ
+			さい。
 
 						*:una* *:unabbreviate*
 :una[bbreviate] {lhs}	{lhs} という短縮入力を全て削除します。見つからなかった
@@ -933,12 +938,12 @@ CTRL-V を押してから短縮入力の後の文字を入力します。
 			入します。
 
 						*:norea* *:noreabbrev*
-:norea[bbrev] [<expr>] [lhs] [rhs]
+:norea[bbrev] [<expr>] [<buffer>] [lhs] [rhs]
 			":ab" と同じですが、展開後にマップを適用しません。
 			{Vi にはない機能です}
 
 						*:ca* *:cabbrev*
-:ca[bbrev] [<expr>] [lhs] [rhs]
+:ca[bbrev] [<expr>] [<buffer>] [lhs] [rhs]
 			":ab" と同じですが、コマンドラインモード用の短縮入力の
 			み対象です。{Vi にはない機能です}
 
@@ -947,13 +952,13 @@ CTRL-V を押してから短縮入力の後の文字を入力します。
 			のみ対象です。{Vi にはない機能です}
 
 						*:cnorea* *:cnoreabbrev*
-:cnorea[bbrev] [<expr>] [lhs] [rhs]
+:cnorea[bbrev] [<expr>] [<buffer>] [lhs] [rhs]
 			":ab" と同じですが、コマンドラインモード用の短縮入力の
 			み対象で、展開後にマップを適用しません。{Vi にはない機
 			能です}
 
 						*:ia* *:iabbrev*
-:ia[bbrev] [<expr>] [lhs] [rhs]
+:ia[bbrev] [<expr>] [<buffer>] [lhs] [rhs]
 			":ab" と同じですが、挿入モード用の短縮入力のみ対象で
 			す。{Vi にはない機能です}
 
@@ -962,19 +967,19 @@ CTRL-V を押してから短縮入力の後の文字を入力します。
 			す。{Vi にはない機能です}
 
 						*:inorea* *:inoreabbrev*
-:inorea[bbrev] [<expr>] [lhs] [rhs]
+:inorea[bbrev] [<expr>] [<buffer>] [lhs] [rhs]
 			":ab" と同じですが、挿入モード用の短縮入力のみ対象で、
 			展開後にマップを適用しません。{Vi にはない機能です}
 
 							*:abc* *:abclear*
-:abc[lear]		すべての短縮入力を削除します。{Vi にはない機能です}
+:abc[lear] [<buffer>]	すべての短縮入力を削除します。{Vi にはない機能です}
 
 							*:iabc* *:iabclear*
-:iabc[lear]		挿入モード用の短縮入力を削除します。
+:iabc[lear] [<buffer>]	挿入モード用の短縮入力を削除します。
 			{Vi にはない機能です}
 
 							*:cabc* *:cabclear*
-:cabc[lear]		コマンドラインモード用の短縮入力を削除します。
+:cabc[lear] [<buffer>]	コマンドラインモード用の短縮入力を削除します。
 			{Vi にはない機能です}
 
 							*using_CTRL-V*
@@ -1158,14 +1163,15 @@ CTRL-V を押してから短縮入力の後の文字を入力します。
 た場合はエラーになります)。-nargs属性を指定すると、ユーザ定義コマンドが引数指
 定できるようになります。次の属性が指定できます:
 
-	-nargs=0    引数を取らない (指定なしと同じ)
-	-nargs=1    1個の引数をとれる (必ず引数が必要)
+	-nargs=0    引数を取らない (デフォルト)
+	-nargs=1    1個の引数が必要 (空白で区切られない)
 	-nargs=*    いくつでも引数を取れる (0個以上)
+		    空白で区切られる
 	-nargs=?    0 もしくは 1 個の引数が取れる
 	-nargs=+    引数が必ず必要。数はいくつでもよい
 
-ここでは、引数は (エスケープされていない) スペースやタブ文字で分けられているも
-のとしています。
+引数は (エスケープされていない) スペースやタブ文字で区切られます。ただし、引数
+を 1 つだけ取る場合は空白は引数の一部として解釈されます。
 
 Note: 引数はVimスクリプトの式としてではなく、テキストとして解釈されることに注
 意してください。具体的な例を上げると、"s:var"を引数として渡すと、そのコマンド
@@ -1189,17 +1195,21 @@ script2.vimを実行すると"None"が表示されます。期待した結果と
 
 	-complete=augroup	オートコマンドのグループ
 	-complete=buffer	バッファ
+	-complete=color		カラースキーム
 	-complete=command	Ex コマンド(と、引数)
+	-complete=compiler	コンパイラー
 	-complete=cscope	|:cscope| サブオプション
 	-complete=dir		ディレクトリ
 	-complete=environment	環境変数
 	-complete=event		オートコマンドのイベント
 	-complete=expression	Vimの式
 	-complete=file		ファイルとディレクトリ
+	-complete=file_in_path	|'path'| 内のファイルとディレクトリ
 	-complete=filetype	ファイルタイプ名 |'filetype'|
 	-complete=function	関数
 	-complete=help		ヘルプの主題
 	-complete=highlight	強調グループ
+	-complete=locale	ロケール名 (locale -a の出力)
 	-complete=mapping	マップ
 	-complete=menu		メニュー
 	-complete=option	オプション
@@ -1270,7 +1280,7 @@ script2.vimを実行すると"None"が表示されます。期待した結果と
 	-range	    範囲指定が可能になります、無指定時は現在行
 	-range=%    範囲指定が可能になります、無指定時はファイル全体(1,$)
 	-range=N    カウント(無指定時はN)を行番号位置に指定できます
-		    (例 |:split|)
+		    (例 |:split|)。行番号に 0 を指定可能になる。
 	-count=N    カウント(無指定時はN)を行番号位置か、初期化引数に指定でき
 		    ます (例 |:Next|)。-count(無指定時の値なし)とした場合
 		    は-count=0と同じです。

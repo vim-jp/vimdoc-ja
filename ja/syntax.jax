@@ -4,7 +4,7 @@ TRANSLATOR: 村岡太郎 <koron@tka.att.ne.jp>
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
 TRANSLATOR: 青山正太郎(mm) <jod@r9.dion.ne.jp>
 
-*syntax.txt*	For Vim バージョン 7.3.  Last change: 2011 Jan 22
+*syntax.txt*	For Vim バージョン 7.3.  Last change: 2011 Jul 18
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -470,11 +470,22 @@ html_no_foldcolumn と html_dynamic_folds をセットすると、自動的に
 html_hover_unfold もセットされる。そうしないと折畳が閉じたままになってしまう
 からである。
 
-デフォルトでは、テキストの周りに"<pre>"と"</pre>"がつけられる。これによって、
-ブラウザでも折り返しをせずに、Vimで表示される通りになる。一部が少々変わっても
-いいから折り返しをさせたいなら、次のようにする: >
+デフォルトでは、テキストの周りに"<pre>"と"</pre>"がつけられる。変換されるウィ
+ンドウの 'wrap' がオンになっている場合、テキストを折り返し表示するために CSS
+2.0 の "white-space:pre-wrap" が使われる。折り返しを明示的に有効化するには次の
+ように設定する: >
+   :let g:html_pre_wrap = 1
+無効化するには次のように設定する: >
+   :let g:html_pre_wrap = 0
+生成される HTML は Vim ウィンドウでの表示に近いものになるが、'showbreak' やラ
+インブレイクなどは HTML には反映されない。
+
+HTML で折り返しを有効にするもう一つ方法がある。ただし表示がさらに違うものに
+なってしまうかもしれない。次のように設定する: >
    :let g:html_no_pre = 1
-こうすると、各行末に<br>を使い、連続するスペースに"&nbsp;"を使うようになる。
+こうすると、各行末に<br>を使い、連続するスペースに"&nbsp;"を使うようになる。こ
+の方法は古いブラウザとの互換性が高い。しかし最近のブラウザは "white-space" を
+サポートしている。
 
 "<pre>" タグを使う場合、テキスト中の <Tab> 文字は、それがテキストの見た目に影
 響せず、ドキュメントの中で故意に使用されているようなら、そのまま出力に含まれま
@@ -502,8 +513,9 @@ Note: おそらく HTML 内のテキストのインデントや整列が崩れ�
 3 行で表示するように戻すには次のように設定します: >
     :unlet g:html_whole_filler
 <
-TOhtml は 'fileencoding' が設定されていればその値を使い、設定されていなければ
-'encoding' の値を使い、HTML ファイルの文字セットと 'fileencoding' を決定しま
+ほとんどのバッファでは、TOhtml は 'fileencoding' が設定されていればその値を、
+設定されていなければ 'encoding' の値を使い、HTML ファイルの文字セットと
+'fileencoding' を決定します。特定の 'buftype' では常に 'encoding' が使われま
 す。|encoding-names| の説明で名前が出てくるようなエンコーディングであればたい
 ていは機能しますが、TOhtml で自動的に使用されるのは広くサポートされているエン
 コーディングだけです。特定のエンコーディングが初期設定で自動的に認識されない場
@@ -849,13 +861,13 @@ CSH						*csh.vim* *ft-csh-syntax*
 ファイルがcshかtcshかを判定するのは難しいことがよく知られている。いくつかのシ
 ステムでは/bin/cshを/bin/tcshにシンボリックリンクしていることが、この判別をほ
 ぼ不可能にしている。Vimが間違った判定をする場合には変数"filetype_csh"を設定す
-ることが出来る。cshを使うには: >
-
-	:let filetype_csh = "csh"
+ることが出来る。cshを使うには:  *g:filetype_csh*
+>
+	:let g:filetype_csh = "csh"
 
 tcshを使うには: >
 
-	:let filetype_csh = "tcsh"
+	:let g:filetype_csh = "tcsh"
 
 拡張子がtcshであるか標準的なtcshファイル名(.tcshrc, tcsh.tcshrc, tcsh.login)を
 持つスクリプトはすべてtcshファイル形式とされる。他のtcsh/cshスクリプトは、
@@ -1077,8 +1089,10 @@ ERLANG						*erlang.vim* *ft-erlang-syntax*
 FLEXWIKI				*flexwiki.vim* *ft-flexwiki-syntax*
 
 
-FlexWiki は http://www.flexwiki.com で入手できる ASP.NET ベースの wiki パッケ
-ージである。
+FlexWiki は http://www.flexwiki.com で入手できる ASP.NET ベースの wiki パッ
+ケージである。
+NOTE: このサイトは現在機能していない。Wikipedia によると 2009 年に開発がストッ
+プした。
 
 FlexWiki の構文のほとんどの一般的な要素に対して構文ハイライトができる。
 FlexWiki のtplugin スクリプトはバッファローカルなオプションを設定し、FlexWiki
@@ -2281,6 +2295,12 @@ REXX						*rexx.vim* *ft-rexx-syntax*
 こうすると構文シンクロナイズが画面最上行の50行前から始まるようになる。値を大き
 くすることの欠点は、再描画が遅くなることである。
 
+Vim は ".r" ファイルのタイプを推測しようとします。(コメント行から) タイプを特
+定できなかった場合、デフォルトは "r" です。デフォルトを rexx にするには次の行
+を .vimrc に追加します:  *g:filetype_r*
+>
+	:let g:filetype_r = "r"
+
 
 RUBY						*ruby.vim* *ft-ruby-syntax*
 
@@ -3114,6 +3134,9 @@ xpm.vimは編集中のXPMファイルの内容から、動的に構文要素を�
    :hi par1 ctermfg=red guifg=red
    :hi par2 ctermfg=blue guifg=blue
    :hi par3 ctermfg=darkgreen guifg=darkgreen
+<
+						*E849*
+構文グループの最大数は 19999 です。
 
 ==============================================================================
 6. :syntaxの引数					*:syn-arguments*
@@ -3623,6 +3646,9 @@ skipパターンも"\n"を含んでよい。ただし次の行の最初の文字
    :syntax match Stuff "( aaa bbb )" contains=@BigGroup
    :syntax cluster BigGroup remove=B	" BはBigGroup内にないので無意味
    :syntax cluster SmallGroup remove=B	" Stuff内でbbbがマッチしなくなる
+<
+						*E848*
+クラスタの最大数は 9767 です。
 
 ==============================================================================
 9. 構文ファイルのインクルード			*:syn-include* *E397*
@@ -3657,6 +3683,9 @@ skipパターンも"\n"を含んでよい。ただし次の行の最初の文字
 	  マッチしたファイル全てが読み込まれる。相対パスを使用することが推奨さ
 	  れる。そうすればユーザが":syn include"を書き換えることなく、インクル
 	  ードされるファイルを改変して別の場所におけるからである。
+
+						*E847*
+インクルードの最大数は 999 です。
 
 ==============================================================================
 10. 表示のシンクロナイズ 			*:syn-sync* *E403* *E404*

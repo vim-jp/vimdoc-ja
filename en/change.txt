@@ -1,4 +1,4 @@
-*change.txt*    For Vim version 7.3.  Last change: 2010 Jul 29
+*change.txt*    For Vim version 7.3.  Last change: 2011 Jun 19
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -522,11 +522,11 @@ comment (starting with '"') after the ":!" command.
 ={motion}		Filter {motion} lines through the external program
 			given with the 'equalprg' option.  When the 'equalprg'
 			option is empty (this is the default), use the
-			internal formatting function |C-indenting|.  But when
-			'indentexpr' is not empty, it will be used instead
-			|indent-expression|.  When Vim was compiled without
-			internal formatting then the "indent" program is used
-			as a last resort.
+			internal formatting function |C-indenting| and
+			|'lisp'|.  But when 'indentexpr' is not empty, it will
+			be used instead |indent-expression|.  When Vim was
+			compiled without internal formatting then the "indent"
+			program is used as a last resort.
 
 							*==*
 ==			Filter [count] lines like with ={motion}.
@@ -690,7 +690,8 @@ reason is that the flags can only be found by skipping the pattern, and in
 order to skip the pattern the "magicness" must be known.  Catch 22!
 
 If the {pattern} for the substitute command is empty, the command uses the
-pattern from the last substitute or ":global" command.  With the [r] flag, the
+pattern from the last substitute or ":global" command.  If there is none, but
+there is a previous search pattern, that one is used.  With the [r] flag, the
 command uses the pattern from the last substitute, ":global", or search
 command.
 
@@ -716,11 +717,13 @@ Otherwise it works on whole lines anyway.
 
 					*sub-replace-special* *:s\=*
 When the {string} starts with "\=" it is evaluated as an expression, see
-|sub-replace-expression|.  You can use that for any special characters.
+|sub-replace-expression|.  You can use that for complex replacement or special
+characters.
+
 Otherwise these characters in {string} have a special meaning:
 								*:s%*
 When {string} is equal to "%" and '/' is included with the 'cpoptions' option,
-then the {string} of the previous substitute command is used. |cpo-/|
+then the {string} of the previous substitute command is used, see |cpo-/|
 
 magic	nomagic	  action    ~
   &	  \&	  replaced with the whole matched pattern	     *s/\&*
@@ -755,6 +758,14 @@ magic	nomagic	  action    ~
       \x	  where x is any character not mentioned above:
 		  Reserved for future expansion
 
+The special meaning is also used inside the third argument {sub} of
+the |substitute()| function with the following exceptions:
+  - A % inserts a percent literally without regard to 'cpoptions'.
+  - magic is always set without regard to 'magic'.
+  - A ~ inserts a tilde literally.
+  - <CR> and \r inserts a carriage-return (CTRL-M).
+  - \<CR> does not have a special meaning. it's just one of \x.
+
 Examples: >
   :s/a\|b/xxx\0xxx/g		 modifies "a b"	     to "xxxaxxx xxxbxxx"
   :s/\([abc]\)\([efg]\)/\2\1/g	 modifies "af fa bg" to "fa fa gb"
@@ -786,17 +797,19 @@ either the first or second pattern in parentheses did not match, so either
 Substitute with an expression			*sub-replace-expression*
 						*sub-replace-\=*
 When the substitute string starts with "\=" the remainder is interpreted as an
-expression.  This does not work recursively: a substitute() function inside
+expression.  This does not work recursively: a |substitute()| function inside
 the expression cannot use "\=" for the substitute string.
 
 The special meaning for characters as mentioned at |sub-replace-special| does
-not apply except for "<CR>", "\<CR>" and "\\".  Thus in the result of the
-expression you need to use two backslashes to get one, put a backslash before a
-<CR> you want to insert, and use a <CR> without a backslash where you want to
-break the line.
+not apply except for "<CR>".  A <NL> character is used as a line break, you
+can get one with a double-quote string: "\n".  Prepend a backslash to get a
+real <NL> character (which will be a NUL in the file).
 
-For convenience a <NL> character is also used as a line break.  Prepend a
-backslash to get a real <NL> character (which will be a NUL in the file).
+The "\=" notation can also be used inside the third argument {sub} of
+|substitute()| function.  In this case, the special meaning for characters as
+mentioned at |sub-replace-special| does not apply at all. Especially, <CR> and
+<NL> are interpreted not as a line break but as a carriage-return and a
+new-line respectively.
 
 When the result is a |List| then the items are joined with separating line
 breaks.  Thus each item becomes a line, except that they can contain line
@@ -916,8 +929,10 @@ inside of strings can change!  Also see 'softtabstop' option. >
 {Visual}["x]Y		Yank the highlighted lines [into register x] (for
 			{Visual} see |Visual-mode|).  {not in Vi}
 
-							*:y* *:yank*
-:[range]y[ank] [x]	Yank [range] lines [into register x].
+							*:y* *:yank* *E850*
+:[range]y[ank] [x]	Yank [range] lines [into register x]. Yanking to the
+			"* or "+ registers is possible only when the
+			|+clipboard| feature is included.
 
 :[range]y[ank] [x] {count}
 			Yank {count} lines, starting with last line number
@@ -1387,16 +1402,19 @@ before typing anything else on the new line.  This will replace the
 middle-comment leader with the end-comment leader and apply any specified
 alignment, leaving just " */".  There is no need to hit BackSpace first.
 
+When there is a match with a middle part, but there also is a maching end part
+which is longer, the end part is used.  This makes a C style comment work
+without requiring the middle part to end with a space.
 
 Here is an example of alignment flags at work to make a comment stand out
-(kind of looks like a 1 too). Consider comment string >
-	sr:/***,m:**,ex2:******/
-
-                                   /***
-                                     **<--right aligned from "r" flag
-                                     **
-offset 2 spaces from the "2" flag--->**
-                                   ******/
+(kind of looks like a 1 too). Consider comment string: >
+	:set comments=sr:/***,m:**,ex-2:******/
+<
+                                   /*** ~
+                                     **<--right aligned from "r" flag ~
+                                     ** ~
+offset 2 spaces for the "-2" flag--->** ~
+                                   ******/ ~
 In this case, the first comment was typed, then return was pressed 4 times,
 then "/" was pressed to end the comment.
 
@@ -1414,8 +1432,8 @@ Reindenting using a different method like |gq| or |=| will not consult
 alignment flags either. The same behaviour can be defined in those other
 formatting options. One consideration is that 'cindent' has additional options
 for context based indenting of comments but cannot replicate many three piece
-indent alignments.  However, 'indentexpr' is has the ability to work better
-with three piece comments.
+indent alignments.  However, 'indentexpr' has the ability to work better with
+three piece comments.
 
 Other examples: >
    "b:*"	Includes lines starting with "*", but not if the "*" is

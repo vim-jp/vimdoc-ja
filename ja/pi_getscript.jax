@@ -3,14 +3,14 @@ STATUS: finished 7.3
 TRANSLATOR: nakadaira <hopper2@nanameue.jp>
 MAINTAINER: nakadaira <hopper2@nanameue.jp>
 
-*pi_getscript.txt*  For Vim バージョン 7.3.  Last change: 2009 Oct 14
+*pi_getscript.txt*  For Vim バージョン 7.0.  Last change: 2011 May 31
 >
 		GETSCRIPT REFERENCE MANUAL  by Charles E. Campbell, Jr.
 <
 Authors:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.Mbiz>
 	  (remove NOSPAM from the email address)
 						*GetLatestVimScripts-copyright*
-Copyright: (c) 2004-2009 by Charles E. Campbell, Jr.	*glvs-copyright*
+Copyright: (c) 2004-2010 by Charles E. Campbell, Jr.	*glvs-copyright*
            The VIM LICENSE applies to getscript.vim and
            pi_getscript.txt (see |copyright|) except use
            "getscript" instead of "Vim".  No warranty, express or implied.
@@ -80,7 +80,9 @@ GetLatestVimScripts の動作には wget か curl が必要です。
 3. GetLatestVimScripts の使い方				*glvs-usage* *:GLVS*
 
 次のコマンドを実行すると GetLatestVimScripts() が呼び出されます >
+
 	:GLVS
+
 同じ名前のコマンドが他のプラグインによって既に定義されていた場合は、次のコマン
 ドを使ってください
 >
@@ -129,7 +131,8 @@ GetLatest/GetLatestVimScripts.dist ファイルはそのようなデータファ
 	http://vim.sourceforge.net/scripts/script.php?script_id=40
 
 この "40" が ScriptID です。GetLatestVimScripts はこの番号を使ってスクリプトの
-ページにアクセスします。
+ページにアクセスします。この番号は最初に vim.sf.net にプラグインをアップロード
+したときに付けられます。
 
 二列目の数値はスクリプトの SourceID です。SourceID は vim.sf.net にスクリプト
 がアップロードされるごとに新しい番号が付けられます。したがって、その番号を見れ
@@ -149,20 +152,40 @@ GetLatestVimScripts は、vim.sf.net のスクリプトのページから Source
 
 このコメントは、チェックすべきスクリプトの番号が 884 番であること、そのスクリ
 プトが自動インストール可能であることを示しています。getscript はこの情報を
-GetLatestVimScripts.dat に保存します。次のような行になります: >
+GetLatestVimScripts.dat に保存します (まだなければ)。次のような行になります: >
 
-	884 1 AutoAlign.vim
+	884 1 :AutoInstall: AutoAlign.vim
 <
 詳細は |glvs-plugins| を参照してください。このように、GetLatestVimScripts はプ
 ラグインを更新するための包括的な機能を提供しています。
+
+要約:
+
+  * getscript が、既にインストールされているプラグインを元に
+    GetLatestVimScripts.dat を構築/追加できるように設定する: >
+	let g:GetLatestVimScripts_allowautoinstall=1
+<
+  * 次のような行が >
+	" GetLatestVimScripts: 884  1 :AutoInstall: AutoAlign.vim
+<   プラグインに含まれていれば、そのプラグインは AutoInstall 可能であることが
+    プラグインの作者によって示されていることになる。すべてのプラグインが
+    AutoInstall できるとは限らない。そして、AutoInstall できるかどうかを判断す
+    るのはプラグインの作者がもっとも適している。
+
+  * 次のような行が >
+	884 1 :AutoInstall: AutoAlign.vim
+<   GetLatestVimScripts.dat ファイルに含まれていれば、あなたが getscript に対
+    して AutoInstall の許可を与えていることになる。AutoInstall にはあなたとプ
+    ラグインの作者の両者の許可が必要です。|GetLatestVimScripts_dat| 参照。
+
 
 						*GetLatestVimScripts_dat*
 <GetLatestVimScripts.dat> ファイルの例:
 >
     ScriptID SourceID Filename
     --------------------------
-    294 1 Align.vim
-    120 2 decho.vim
+    294 1 :AutoInstall: Align.vim
+    120 2 Decho.vim
      40 3 DrawIt.tar.gz
     451 4 EasyAccents.vim
     195 5 engspchk.vim
@@ -201,8 +224,8 @@ GetLatestVimScripts はそれを見付けて、GetLatestVimScripts.dat ファイ
 	                        ^
 	                    scriptid
 <
-NOTE: :AutoInstall: はプラグイン作者が書くオプションです。 ~
-      GetLatestVimScripts.dat のエントリには書けません。 ~
+NOTE: :AutoInstall: 機能の実行にはプラグイン作者とユーザーの両者の許可が必要 ~
+      です。 ~
 
 GetLatestVimScripts 命令が未登録の場合は、ユーザーの
 GetLatest/GetLatestVimScripts.dat ファイルに追加されます。あなたのプラグインが
@@ -344,6 +367,9 @@ scriptname を更新します。
 ==============================================================================
 9. GetLatestVimScripts 開発履歴		*getscript-history* *glvs-hist* {{{1
 
+v33 May 31, 2011 : * using fnameescape() instead of escape()
+		   * *.xz support
+v32 Jun 19, 2010 : * (Jan Steffens) added support for xz compression
 v31 Jun 29, 2008 : * (Bill McCarthy) fixed having hls enabled with getscript
 		   * (David Schaefer) the acd option interferes with vimballs
 		     Solution: bypass the acd option
