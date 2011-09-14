@@ -19,10 +19,10 @@ $(OUTDIR)/runtime:
 build_runtime: $(OUTDIR)/runtime
 
 snapshot: build_runtime
-	tar cf - -C $(OUTDIR) runtime | bzip2 > $(OUTDIR)/vimdoc_$(TARGET_LANG)-snapshot.tar.bz2
+	cd $(OUTDIR)/runtime && tar cf - * | bzip2 > ../vimdoc_$(TARGET_LANG)-snapshot.tar.bz2
 
 zip: build_runtime
-	cd $(OUTDIR) && zip -r9q vimdoc_ja-$(VERSION).zip runtime
+	cd $(OUTDIR)/runtime && zip -r9q ../vimdoc_ja-$(VERSION).zip *
 
 distupload: zip
 	python tools/googlecode_upload.py \
