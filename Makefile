@@ -2,7 +2,7 @@ OUTDIR=build
 TARGET_LANG=ja
 VERSION=$(shell date +%Y%m%d)-r$(shell svnversion)
 
-all: build_runtime status
+all: build_runtime
 
 clean:
 	rm -rf $(OUTDIR)/runtime
@@ -12,25 +12,11 @@ distclean:
 
 .PHONY: all clean distclean others jax build_runtime snapshot zip
 
-
 $(OUTDIR)/runtime:
-	mkdir -p $(OUTDIR)/runtime
-	mkdir -p $(OUTDIR)/runtime/doc
-	mkdir -p $(OUTDIR)/runtime/syntax
+	mkdir -p $(OUTDIR)
+	svn export --force runtime $(OUTDIR)/runtime
 
-$(OUTDIR)/runtime/%: runtime/%
-	cp -f $< $@
-
-others: $(OUTDIR)/runtime \
-	$(OUTDIR)/runtime/syntax/help_$(TARGET_LANG).vim
-
-jax:
-	@perl tools/doc_maker.pl -v -p -d $(OUTDIR)/runtime/doc -e jax $(TARGET_LANG)/*.$(TARGET_LANG)x
-
-status:
-	@perl tools/status_table.pl -i $(TARGET_LANG) > $(OUTDIR)/status_$(TARGET_LANG).html
-
-build_runtime: $(OUTDIR)/runtime others jax
+build_runtime: $(OUTDIR)/runtime
 
 snapshot: build_runtime
 	tar cf - -C $(OUTDIR) runtime | bzip2 > $(OUTDIR)/vimdoc_$(TARGET_LANG)-snapshot.tar.bz2
