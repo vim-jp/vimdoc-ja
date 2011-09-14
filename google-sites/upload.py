@@ -32,7 +32,8 @@ def pagetitle(page_name):
 
 def main():
     srcdir = "tmp"
-    site = raw_input("site: ")
+    # site = raw_input("site: ")
+    site = "vimdocja"
     email = raw_input("email: ")
     password = getpass.getpass("password: ")
 

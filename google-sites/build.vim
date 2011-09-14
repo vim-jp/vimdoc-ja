@@ -29,11 +29,8 @@ function! s:main()
   cd tmp
 
   " copy dist files
-  args ../../ja/* ../../removed/vim_faq_help.jax
+  args ../../runtime/doc/* ../../removed/vim_faq_help.jax
   argdo saveas %:t
-  " remove header
-  args *.jax
-  argdo 1,/^$/delete | update
   " add non-ascii char
   edit vim_faq_help.jax | 1s/$/ 和訳/ | update
 

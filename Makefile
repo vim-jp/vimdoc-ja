@@ -30,3 +30,8 @@ distupload: zip
 	  --summary="release $(VERSION)" \
 	  $(OUTDIR)/vimdoc_ja-$(VERSION).zip
 
+sites:
+	cd google-sites; \
+	  gvim -u build.vim -f; \
+	  python upload.py;
+
