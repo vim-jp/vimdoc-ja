@@ -10,7 +10,7 @@ clean:
 distclean:
 	rm -rf $(OUTDIR)
 
-.PHONY: all clean distclean others jax build_runtime snapshot zip
+.PHONY: all clean build_runtime snapshot zip distupload
 
 $(OUTDIR)/runtime:
 	mkdir -p $(OUTDIR)
@@ -23,3 +23,10 @@ snapshot: build_runtime
 
 zip: build_runtime
 	cd $(OUTDIR) && zip -r9q vimdoc_ja-$(VERSION).zip runtime
+
+distupload: zip
+	python tools/googlecode_upload.py \
+	  --project="vimdoc-ja" \
+	  --summary="release $(VERSION)" \
+	  $(OUTDIR)/vimdoc_ja-$(VERSION).zip
+
