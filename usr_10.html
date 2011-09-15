@@ -1,0 +1,836 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Vim documentation: usr_10</title>
+<meta name="Generator" content="Vim/7.3">
+<meta name="plugin-version" content="vim7.3_v6">
+<meta name="syntax" content="help">
+<meta name="settings" content="use_css,no_pre">
+<style type="text/css">
+<!--
+.MissingTag { background-color: black; color: white; }
+.EnglishTag { background-color: gray; color: white; }
+body { color: #000000; background-color: #ffffff; font-family: monospace; }
+.Todo { color: #808080; background-color: #ffff00; }
+.Comment { color: #8080ff; }
+.Ignore { color: #ffffff; font-weight: bold; }
+.Special { color: #ff40ff; }
+.PreProc { color: #ff40ff; }
+-->
+</style>
+</head>
+<body>
+
+<a name="top"></a><h1>Vim documentation: usr_10</h1>
+<a href="index.html">main help file</a>
+<hr>
+<a class="Constant" href="usr_10.html" name="usr_10.txt">*usr_10.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;For Vim バージョン 7.3.&nbsp;&nbsp;Last change: 2006 Nov 05<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; VIM USER MANUAL - by Bram Moolenaar<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 大規模な編集<br>
+<br>
+<br>
+四章では、小さな変更を加える方法について説明しました。この章では、同じ操作を再<br>
+実行する方法や、広範囲のテキストを変更する方法を説明します。ビジュアルモードで<br>
+は選択範囲にさまざまな処理を実行できます。外部プログラムを使えばとても複雑な処<br>
+理もできます。<br>
+<br>
+<a class="Identifier" href="usr_10.html#10.1">|10.1|</a>&nbsp;&nbsp;操作の記録と再実行<br>
+<a class="Identifier" href="usr_10.html#10.2">|10.2|</a>&nbsp;&nbsp;置換<br>
+<a class="Identifier" href="usr_10.html#10.3">|10.3|</a>&nbsp;&nbsp;コマンドの範囲指定<br>
+<a class="Identifier" href="usr_10.html#10.4">|10.4|</a>&nbsp;&nbsp;global コマンド<br>
+<a class="Identifier" href="usr_10.html#10.5">|10.5|</a>&nbsp;&nbsp;矩形選択<br>
+<a class="Identifier" href="usr_10.html#10.6">|10.6|</a>&nbsp;&nbsp;ファイルの一部の保存と読み込み<br>
+<a class="Identifier" href="usr_10.html#10.7">|10.7|</a>&nbsp;&nbsp;テキストの整形<br>
+<a class="Identifier" href="usr_10.html#10.8">|10.8|</a>&nbsp;&nbsp;大文字/小文字の変換<br>
+<a class="Identifier" href="usr_10.html#10.9">|10.9|</a>&nbsp;&nbsp;外部プログラムを使う<br>
+<br>
+次章:&nbsp;<a class="Identifier" href="usr_11.html">|usr_11.txt|</a>&nbsp;&nbsp;クラッシュからの復帰<br>
+前章:&nbsp;<a class="Identifier" href="usr_09.html">|usr_09.txt|</a>&nbsp;&nbsp;GUI を使う<br>
+目次:&nbsp;<a class="Identifier" href="usr_toc.html">|usr_toc.txt|</a><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_10.html#10.1" name="10.1">*10.1*</a>&nbsp;&nbsp;操作の記録と再実行<br>
+<br>
+&quot;.&quot; コマンドを使えば直前の変更を繰り返せますが、複数のコマンドを組み合わせた、<br>
+もっと複雑な操作を繰り返すにはどうすればいいでしょうか。それには記録コマンドを<br>
+使います。次の手順で記録できます:<br>
+<br>
+1. &quot;q<span class="Special">{register}</span>&quot; コマンドを実行する。指定したレジスタ&nbsp;<span class="Special">{register}</span>&nbsp;へのキー入力<br>
+&nbsp;&nbsp; の記録が開始されます。レジスタ名は a から z のいずれかです。<br>
+2. コマンドを入力して編集する。<br>
+3. q を押して記録を終了する&nbsp;&nbsp;(レジスタの指定は必要ない)。<br>
+<br>
+記録したマクロは &quot;@<span class="Special">{register}</span>&quot; コマンドで実行できます。<br>
+<br>
+このコマンドの使い方を練習してみましょう。次のようなファイル名の一覧がありま<br>
+す:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">stdio.h</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">fcntl.h</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">unistd.h</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">stdlib.h</span><br>
+<br>
+これを次のように変更します:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">#include &quot;stdio.h&quot;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">#include &quot;fcntl.h&quot;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">#include &quot;unistd.h&quot;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">#include &quot;stdlib.h&quot;</span><br>
+<br>
+まず、一行目の行頭に移動してください。そして次のコマンドを実行します。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;qa&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;レジスタ a へのマクロの記録を開始。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 行頭に移動。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i#include &quot;<span class="Special">&lt;Esc&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;行頭に #include &quot; を挿入。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 行末に移動。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&quot;<span class="Special">&lt;Esc&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 行末に引用符 (&quot;) を追加。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 次の行に移動。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;q&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; マクロの記録を終了。<br>
+<br>
+さて、一回分の作業はこれで終りました。&quot;@a&quot; コマンドを使って変更を繰り返してみ<br>
+てください。<br>
+&quot;@a&quot; コマンドには繰り返し回数を指定できます。三回繰り返すには、次のようにしま<br>
+す:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3@a</span><br>
+<br>
+<br>
+移動と実行<br>
+<span class="PreProc">----------</span><br>
+<br>
+変更したい行がいろんな場所に分散している場合は、それぞれの場所に移動してから<br>
+&quot;@a&quot; コマンドを使います。一度でも再実行すると、次からは &quot;@@&quot; で同じマクロを再<br>
+実行できます。&quot;@@&quot; の方が少しだけ入力が簡単です。例えば、&quot;@b&quot; でレジスタ b を<br>
+実行すると、次に &quot;@@&quot; を実行したときはレジスタ b が使われます。<br>
+マクロの実行と &quot;.&quot; にはいくつか違いがあります。まず第一に、&quot;.&quot; は一つの変更し<br>
+か繰り返せません。上述の例のように、&quot;@a&quot; では複数の変更やカーソルの移動も繰り<br>
+返せます。第二に、&quot;.&quot; は直前の変更しか繰り返せません。レジスタを実行する方法な<br>
+ら、他の変更を加えた後でも、&quot;@a&quot; を使って、記録されたコマンドを繰り返せます。<br>
+最後に、レジスタは 26 個あります。つまり、26 個のコマンド操作を記録しておける<br>
+のです。<br>
+<br>
+<br>
+レジスタを使う<br>
+<span class="PreProc">--------------</span><br>
+<br>
+記録に用いるレジスタはヤンクや削除で使っているのと同じものです。そのため、レジ<br>
+スタを操作して、記録されたコマンドと他のコマンドを合成することができます。<br>
+レジスタ n にいくつかのコマンドが記録されているとします。ところが、&quot;@n&quot; で実行<br>
+してみると、ミスがあることに気付きました。最初から記録をやり直すこともできます<br>
+が、また何か間違えてしまうかもしれません。代わりに、次のようなテクニックを使っ<br>
+てみましょう。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;G&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ファイルの最後にジャンプ。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<span class="Special">&lt;Esc&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;空行を作成。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;np&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; レジスタ n の内容をプット。記録されたコマンド<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;がテキストとして表示されます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{edits}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 間違っている部分を修正。普通にテキストを編集す<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;るのと同じです。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 行頭に移動。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;ny$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;修正したコマンドをレジスタ n にヤンク<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;不要になった最終行を削除<br>
+<br>
+さて、&quot;@n&quot; で正しいコマンドが実行されるようになりました。(記録されたコマンドに<br>
+改行が含まれている場合は、上記の最後の二項目はその全内容が含まれるようにしてく<br>
+ださい)<br>
+<br>
+<br>
+レジスタに追記<br>
+<span class="PreProc">--------------</span><br>
+<br>
+これまで、レジスタ名には小文字を使ってきました。レジスタに追記するには大文字を<br>
+使います。<br>
+単語を変更するためのコマンドがレジスタ c に記録されているとします。これは正し<br>
+く動作するのですが、変更すべき次の単語を検索する処理を追加したくなりました。次<br>
+のようにすればできます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;qC/word&lt;Enter&gt;q</span><br>
+<br>
+レジスタ c に追記するために &quot;qC&quot; で記録を開始しています。レジスタ名を大文字で<br>
+書くと、同じレジスタに追記するという意味になるのです。<br>
+<br>
+これは記録コマンドだけでなく、ヤンクや削除コマンドでも同じです。例えば、いくつ<br>
+かの行をレジスタ a に集めたいとします。最初の行を次のコマンドでヤンクしましょ<br>
+う:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;aY</span><br>
+<br>
+次の行に移動し、このように入力します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;AY</span><br>
+<br>
+これを全ての行で実行します。レジスタ a にはヤンクした順にすべての行が保存され<br>
+ます。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_10.html#10.2" name="10.2">*10.2*</a>&nbsp;&nbsp;置換&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="usr_10.html#find-replace" name="find-replace">*find-replace*</a><br>
+<br>
+&quot;:substitute&quot; コマンドを使うと、指定した範囲内の文字列を置換できます。コマンド<br>
+の書式は次のとおりです:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:[range]substitute/from/to/[flags]</span><br>
+<br>
+このコマンドは&nbsp;<span class="Special">[range]</span>&nbsp;で指定された行範囲の中の文字列 &quot;from&quot; を文字列 &quot;to&quot; に<br>
+置換します。例えば、次のコマンドを実行すると、すべての行の &quot;Professor&quot; が<br>
+&quot;Teacher&quot; に置換されます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:%substitute/Professor/Teacher/</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;:substitute&quot; の綴りを完全に入力するような人はまずいません。普通は短縮<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;形の &quot;:s&quot; が使われます。以降ではこの短縮形を使います。<br>
+<br>
+コマンドの前の &quot;%&quot; はファイル全体を意味する範囲指定です。範囲指定がない場合は、<br>
+現在行のみ置換されます。範囲指定については次の節で述べます&nbsp;<a class="Identifier" href="usr_10.html#10.3">|10.3|</a>。<br>
+<br>
+初期設定では、各行の最初に見つかったものだけが変更されます。例えば、上のコマン<br>
+ドを実行すると、次の行は:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Professor Smith criticized Professor Johnson today.</span><br>
+<br>
+このように変更されます:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Teacher Smith criticized Professor Johnson today.</span><br>
+<br>
+すべてを置換するには g (global) フラグを指定してください:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:%s/Professor/Teacher/g</span><br>
+<br>
+これを実行すると、先程の行は次のようになります。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Teacher Smith criticized Teacher Johnson today.</span><br>
+<br>
+フラグは他にもあります。p (print=出力) フラグ　を指定すると、最後に変更された<br>
+行が表示されます。c (confirm=確認) フラグを指定すると、一つ一つ確認しながら置<br>
+換できます。次のようにして使います:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:%s/Professor/Teacher/c</span><br>
+<br>
+&quot;Professor&quot; が現れる最初の場所が検索され、置換される予定のテキストが表示されま<br>
+す。そして、次のようなプロンプトが表示されます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Teacher に置換しますか? (y/n/a/q/l/^E/^Y)</span><br>
+<br>
+ここでは次のいずれかの返答が必要です。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Yes;&nbsp;&nbsp;置換する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No;&nbsp;&nbsp; 置換せずにスキップ。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; All;&nbsp;&nbsp;置換する。以降すべて確認なしで置換する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;q&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Quit; 置換を終了する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;l&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Last; 置換をしてから終了する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-E</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;画面を一行上にスクロールする。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-Y</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;画面を一行下にスクロールする。<br>
+<br>
+<br>
+置換コマンドの &quot;from&quot; の部分は実際にはパターン (正規表現) です。これは検索コマ<br>
+ンドで使うのと同じものです。例えば、次のコマンドでは、行頭に現れる &quot;the&quot; のみ<br>
+が置換されます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:s/^the/these/</span><br>
+<br>
+&quot;from&quot; や &quot;to&quot; にスラッシュ (/) を含めるには、バックスラッシュ (\) を前置する<br>
+必要がありますが、スラッシュの代わりに他の文字を使えばその必要はありません。例<br>
+えばプラス (+) など:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:s+one/two+one or two+</span><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_10.html#10.3" name="10.3">*10.3*</a>&nbsp;&nbsp;コマンドの範囲指定<br>
+<br>
+&quot;:substitute&quot; などの : コマンドは、実行する範囲を指定できます。これを範囲指定<br>
+(range) と呼びます。<br>
+範囲指定の基本形式は&nbsp;<span class="Special">{number}</span>,<span class="Special">{number}</span>&nbsp;です。例:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:1,5s/this/that/g</span><br>
+<br>
+1 行目から 5 行目まで置換コマンドが実行されます。5 行目も範囲に入ります。範囲<br>
+指定はコマンドの前に指定してください。<br>
+<br>
+特定の一行だけ指定するには、数字を一つだけ指定します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:54s/President/Fool/</span><br>
+<br>
+一部のコマンドは範囲指定を省略するとファイル全体を処理します。そのようなコマン<br>
+ドで現在行だけを処理するには &quot;.&quot; を使います。例えば、&quot;:write&quot; コマンドの範囲指<br>
+定を省略するとファイル全体が保存されますが、現在行だけを保存するには、次のよう<br>
+にします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:.write otherfile</span><br>
+<br>
+一行目の行番号は 1 です。最終行は &quot;$&quot; で指定できます。例えば、現在行から最終行<br>
+までの範囲で置換をするには、次のようにします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:.,$s/yes/no/</span><br>
+<br>
+先程使った &quot;%&quot; は &quot;1,$&quot;、つまり一行目から最終行までと同じことです。<br>
+<br>
+<br>
+パターンを使った範囲指定<br>
+<span class="PreProc">------------------------</span><br>
+<br>
+例えば、本のどこかの章を編集していて、その章で使われている &quot;grey&quot; を全て<br>
+&quot;gray&quot; に置換したいとします。ただし、その章だけを置換、つまり次章は変更したく<br>
+ありません。章は行頭が &quot;Chapter&quot; で始まる行で区切られています。次のコマンドで<br>
+それができます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:?^Chapter?,/^Chapter/s=grey=gray=g</span><br>
+<br>
+パターン検索が二回使われています。最初の &quot;?^Chapter?&quot; では現在行から上に向かっ<br>
+て検索しています。この ?pattern? という範囲の書き方は後方検索をするために使い<br>
+ます。同様に、&quot;/^Chapter/&quot; で前方検索を行い、次章の先頭を検索しています。<br>
+上の例では、説明をわかりやすくするために、置換コマンドの区切りに &quot;=&quot; を使って<br>
+います。スラッシュでも他の文字でも動作に違いはありません。<br>
+<br>
+<br>
+加算と減算<br>
+<span class="PreProc">----------</span><br>
+<br>
+実は上のコマンドには少しだけ間違いがあります。次章のタイトルに &quot;grey&quot; が含まれ<br>
+ていると、それも置換されてしまいます。それが期待どおりの動作ならいいのですが、<br>
+そうでなければ？ その場合はオフセットを指定すればよいのです。<br>
+パターンを検索し、その一行上の行を使うには、次のようにします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/Chapter/-1</span><br>
+<br>
+数字は 1 でなくても構いません。ヒットした行の 2 行下を指定するなら、次のように<br>
+します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/Chapter/+2</span><br>
+<br>
+オフセットは他の範囲指定にも使えます。例えば:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:.+3,$-5</span><br>
+<br>
+これは、現在行の 3 行下から、最終行の 5 行上までの範囲を指定しています。<br>
+<br>
+<br>
+マークを使う<br>
+<span class="PreProc">------------</span><br>
+<br>
+行番号を直接指定する代わりに、マークを使うこともできます。<br>
+マークの使い方は三章で説明しました。例えば、範囲指定したい領域の先頭を &quot;mt&quot; で<br>
+マークし、領域の末尾を &quot;mb&quot; でマークします。すると、マークを使って次のように範<br>
+囲指定をすることができます (マークのある行は範囲に含まれます):<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:'t,'b</span><br>
+<br>
+<br>
+ビジュアルモードと範囲指定<br>
+<span class="PreProc">--------------------------</span><br>
+<br>
+ビジュアルモードでテキストを選択し、&quot;:&quot; を押してコマンドラインモードに入ると、<br>
+次のような表示になります:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:'&lt;,'&gt;</span><br>
+<br>
+この状態でコマンドを入力すると、そのコマンドはビジュアル選択した範囲に対して適<br>
+用されます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;行の一部だけビジュアルモードで選択した場合や、<span class="Special">CTRL-V</span>&nbsp;で矩形選択した場<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;合でも、コマンドは行全体に適用されます。これは将来、変更されるかも知れ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ません。<br>
+<br>
+実は、'&lt; と '&gt; はマークです。ビジュアル選択の始点と終点を示しています。このマー<br>
+クは、次にビジュアル選択するまで同じ場所を指しています。そのため、 &quot;'&lt;&quot; コマン<br>
+ドでその場所にジャンプすることもできます。マークと他の範囲指定方法を組み合わせ<br>
+ることもできます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:'&gt;,$</span><br>
+<br>
+これは、選択範囲の終点からファイルの末尾までを範囲指定しています。<br>
+<br>
+<br>
+行数指定<br>
+<span class="PreProc">--------</span><br>
+<br>
+変更したい行数が分かっているなら、その数を入力してから &quot;:&quot; を押してください。<br>
+例えば、&quot;5:&quot; と入力すると、次のような表示になります:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:.,.+4</span><br>
+<br>
+続けて、使いたいコマンドを入力してください。これは、&quot;.&quot; (現在行) から &quot;.+4&quot; (4<br>
+行下) が範囲指定されています。つまり範囲は 5 行ということです。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_10.html#10.4" name="10.4">*10.4*</a>&nbsp;&nbsp;global コマンド<br>
+<br>
+&quot;:global&quot; コマンドは Vim の中でも最も強力な機能の一つです。パターンにヒットす<br>
+る行を検索し、その行で、任意のコマンドを実行できます。コマンドの書式は次のとお<br>
+りです:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:[range]global/{pattern}/{command}</span><br>
+<br>
+&quot;:substitute&quot; コマンドに似ていますが、文字列が置換されるのではなく、<span class="Special">{command}</span><br>
+コマンドが実行されます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;:global&quot; で実行できるのは &quot;:&quot; で始まるコマンドだけです。ノーマルモー<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ドコマンドはそのままでは使えません。<a class="Identifier" href="various.html#:normal">|:normal|</a>コマンドを使ってください。<br>
+<br>
+例えば、C++ スタイルのコメント内の &quot;foobar&quot; を &quot;barfoo&quot; に置換したいとします。<br>
+コメントは &quot;//&quot; で開始されています。次のコマンドを使いましょう:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:g+//+s/foobar/barfoo/g</span><br>
+<br>
+最初の &quot;:g&quot; は &quot;:global&quot; の短縮形です。&quot;:substitute&quot; を &quot;:s&quot; と縮めるのと同じ<br>
+です。次に &quot;+&quot; 記号で囲まれたパターンがあります。今回はスラッシュを含んだパター<br>
+ンを検索するので、セパレータに &quot;+&quot; を使っています。その後に、&quot;foobar&quot; を<br>
+&quot;barfoo&quot; に置換するコマンドが続きます。<br>
+範囲指定を省略した場合、global コマンドはファイル全体に適用されます。そのため、<br>
+上の例では範囲指定をしていません。この点は、&quot;:substitute&quot; が、範囲指定を省略す<br>
+ると現在行だけ処理するのと異なっています。<br>
+このコマンドは完璧ではありません。&quot;//&quot; が行の途中にあった場合もヒットしてしま<br>
+うので、行頭から &quot;//&quot; までの文字も置換されてしまいます。<br>
+<br>
+&quot;:substitute&quot; と同じく、どんなパターンでも使えます。もっと複雑なパターンを覚え<br>
+たら使ってみてください。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_10.html#10.5" name="10.5">*10.5*</a>&nbsp;&nbsp;矩形選択<br>
+<br>
+<span class="Special">CTRL-V</span>&nbsp;を使うと、テキストの矩形部分を選択することができます。ここでは、矩形選<br>
+択でのみ使える特殊なコマンドを説明します。<br>
+<br>
+矩形選択では、&quot;$&quot; コマンドに特殊な意味があります。&quot;$&quot; で移動した直後は、選択範<br>
+囲のすべての行で、選択範囲が行末まで拡張されます。現在行より長い行も行末まで選<br>
+択されます。この選択効果は、左右の移動をすると失われてしまいます。つまり、&quot;j&quot;<br>
+なら効果は残りますが、&quot;h&quot; では元に戻ってしまいます。<br>
+<br>
+<br>
+テキストの挿入<br>
+<span class="PreProc">--------------</span><br>
+<br>
+&quot;I<span class="Special">{string}&lt;Esc&gt;</span>&quot; コマンドを使うと、各行の、矩形選択した左側に&nbsp;<span class="Special">{string}</span>&nbsp;を挿入<br>
+できます。例えば、<span class="Special">CTRL-V</span>&nbsp;を押して矩形選択を開始し、カーソルを動かして選択範囲<br>
+を設定します。次に I を押して挿入モードに入り、テキストを挿入します。このとき、<br>
+挿入したテキストは最初の行にだけ表示されます。<br>
+<span class="Special">&lt;Esc&gt;</span>&nbsp;を押して挿入モードを抜けると、テキストが魔法のように選択範囲の残りの行に<br>
+挿入されます。例:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">include one</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">include two</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">include three</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">include four</span><br>
+<br>
+カーソルを &quot;one&quot; の &quot;o&quot; に移動し&nbsp;<span class="Special">CTRL-V</span>&nbsp;を押します。&quot;3j&quot; で、&quot;four&quot; まで移動し<br>
+ます。これで 4 行が矩形選択されました。そして、次のコマンドを入力します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Imain.&lt;Esc&gt;</span><br>
+<br>
+結果は次のようになります:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">include main.one</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">include main.two</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">include main.three</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">include main.four</span><br>
+<br>
+選択範囲の途中に短い行があって、その行の文字が選択範囲に入ってなかった場合は、<br>
+その行には何も挿入されません。例えば、以下のテキストで、一行目と三行目の<br>
+&quot;long&quot; を矩形選択します。二行目は短いのでなにも選択されていません:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">This is a long line</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">short</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Any other long line</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^^^^ 選択範囲<br>
+<br>
+そして、&quot;Ivery&nbsp;<span class="Special">&lt;Esc&gt;</span>&quot; を入力すると、次のようになります:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">This is a very long line</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">short</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Any other very long line</span><br>
+<br>
+短かい行には何も挿入されません。<br>
+<br>
+改行を含むテキストを挿入した場合、&quot;I&quot; は通常の挿入コマンドと同じ動作をします。<br>
+つまり、最初の行にだけテキストが挿入されます。<br>
+<br>
+&quot;A&quot; コマンドも同様の動作をします。ただし、テキストは右側に挿入されます。そし<br>
+て、短い行にもテキストが挿入されます。&quot;I&quot; と使い分ければ、短い行にテキストを挿<br>
+入するかどうかを選択することができます。<br>
+&quot;A&quot; には特別な場合が一つあります。矩形選択時に &quot;$&quot; を使って各行の行末まで選択<br>
+範囲を拡張した場合、&quot;A&quot;を使うと各行の行末にテキストが追加されます。<br>
+上と同じ例を使って、こんどは &quot;$A XXX<span class="Special">&lt;Esc&gt;</span>&quot; と入力すると、結果は次のようになり<br>
+ます:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">This is a long line XXX</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">short XXX</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Any other long line XXX</span><br>
+<br>
+&quot;$&quot; を使わなければこの効果は出せません。Vim は &quot;$&quot; が使われたかどうかを記憶し<br>
+ています。カーソルを一番長い行の行末に移動し、見た目の選択範囲を同じにしても、<br>
+同じ結果にはなりません。<br>
+<br>
+<br>
+テキストの変更<br>
+<span class="PreProc">--------------</span><br>
+<br>
+矩形選択で &quot;c&quot; コマンドを使うと、選択範囲が削除され、挿入モードに入ります。入<br>
+力された文字列は選択されていた各行に挿入されます。<br>
+上と同じ例を使って、&quot;long&quot; を選択しているときに今度は &quot;c_LONG_<span class="Special">&lt;Esc&gt;</span>&quot; と入力す<br>
+ると、結果は次のようになります:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">This is a _LONG_ line</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">short</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Any other _LONG_ line</span><br>
+<br>
+&quot;I&quot; コマンドの場合と同じく、短い行は無視されます。また、新しい文字列には改行は<br>
+入力できません。<br>
+<br>
+&quot;C&quot; コマンドの場合は、ブロックの左端から行末までが削除されます。そして、挿入<br>
+モードに入り、文字列を入力できるようになります。その文字列は各行の行末に追加さ<br>
+れます。<br>
+また同じ例ですが、こんどは &quot;Cnew text<span class="Special">&lt;Esc&gt;</span>&quot; と入力すると、結果は次のようになり<br>
+ます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">This is a new text</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">short</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Any other new text</span><br>
+<br>
+注意すべきは、&quot;long&quot; という単語だけが選択されていても、これを実行すると、行末<br>
+まで全部消えてしまう点です。つまり、選択範囲の左端の位置だけが意味を持ちます。<br>
+繰り返しですが、文字が選択されていない短い行はここでも無視されます。<br>
+<br>
+その他に、矩形選択内の文字列を変更するコマンドには次のようなものがあります。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 大文字/小文字切換え (a -&gt; A and A -&gt; a)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;U&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 大文字化する&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(a -&gt; A and A -&gt; A)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;u&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 小文字化する&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(a -&gt; a and A -&gt; a)<br>
+<br>
+<br>
+一つの文字で埋める<br>
+<span class="PreProc">------------------</span><br>
+<br>
+選択範囲全体を一つの文字で埋めるには &quot;r&quot; コマンドを使います。またまた、上で用<br>
+いた例ですが、こんどは &quot;long&quot; を選択した上で &quot;rx&quot; と入力します:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">This is a xxxx line</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">short</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Any other xxxx line</span><br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;行末を越えて矩形選択したい場合は、25 章の&nbsp;<a class="Type" href="options.html#'virtualedit'">'virtualedit'</a>&nbsp;の説明を参照し<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;てください。<br>
+<br>
+<br>
+シフト<br>
+<span class="PreProc">------</span><br>
+<br>
+&quot;&gt;&quot; コマンドを使うと、選択されたテキストを右側にシフトできます。間は空白で埋め<br>
+られます。シフトの開始位置は矩形選択の左端です。<br>
+また同じ例を使って、今度は &quot;&gt;&quot; を実行すると次のようになります:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">This is a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; long line</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">short</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Any other&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; long line</span><br>
+<br>
+シフトされる桁数は&nbsp;<a class="Type" href="options.html#'shiftwidth'">'shiftwidth'</a>&nbsp;オプションで設定します。これを 4 に変更するに<br>
+は次のようにします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set shiftwidth=4</span><br>
+<br>
+&quot;&lt;&quot; コマンドを使うと、選択範囲の左側にある空白を一つのシフト分だけ削除できま<br>
+す。このコマンドは選択範囲の左側にある空白の量によって制限されます。つまり、空<br>
+白がシフト量より少ない場合は、可能な範囲だけ空白が削除されます。<br>
+<br>
+<br>
+行の結合<br>
+<span class="PreProc">--------</span><br>
+<br>
+&quot;J&quot; コマンドを使うと、選択範囲の行を一行に連結できます。つまり改行が削除されま<br>
+す。正確には、改行、行頭の空白、行末の空白、が一つの空白で置換されます<br>
+(<a class="Type" href="options.html#'joinspaces'">'joinspaces'</a>&nbsp;オプションで動作を変更できます)。<br>
+さて、また同じ例を使って、今度は &quot;J&quot; を実行します:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">This is a long line short Any other long line</span><br>
+<br>
+&quot;J&quot; コマンドは矩形選択以外でも使えます。&quot;v&quot; や &quot;V&quot; で選択した場合も全く同じ動<br>
+作をします。<br>
+<br>
+空白を変更したくない場合は、&quot;gJ&quot; コマンドを使ってください。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_10.html#10.6" name="10.6">*10.6*</a>&nbsp;ファイルの一部の保存と読み込み<br>
+<br>
+メールを書いているとき、他のファイルを取り込みたいことがあるかもしれません。そ<br>
+れには &quot;:read&nbsp;<span class="Special">{filename}</span>&quot; コマンドを使います。指定したファイルの内容が現在行の<br>
+下にプットされます。<br>
+次の文章でやってみましょう。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Hi John,</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Here is the diff that fixes the bug:</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Bye, Pierre.</span><br>
+<br>
+カーソルを二行目に移動し、次のコマンドを入力します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:read patch</span><br>
+<br>
+&quot;patch&quot; という名前のファイルが挿入され、次のようになります:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Hi John,</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Here is the diff that fixes the bug:</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">2c2</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for (i = 0; i &lt;= length; ++i)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">---</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for (i = 0; i &lt; length; ++i)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Bye, Pierre.</span><br>
+<br>
+&quot;:read&quot; コマンドに範囲指定すると、指定されたファイルが範囲指定された行の下に<br>
+プットされます。例えば、&quot;:$r patch&quot; なら、&quot;patch&quot; の内容がファイルの末尾に追加<br>
+されます。<br>
+ファイルの先頭に読み込むにはどうすればいいでしょうか。それには、行番号 0 を指<br>
+定します。そのような行は実際にはないので、他のコマンドに指定するとエラーになる<br>
+かもしれませんが、このコマンドでは指定できます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:0read patch</span><br>
+<br>
+&quot;patch&quot; の内容がファイルの先頭にプットされます。<br>
+<br>
+<br>
+ファイルの一部だけ保存<br>
+<span class="PreProc">----------------------</span><br>
+<br>
+ファイルの一部だけ保存するには、&quot;:write&quot; コマンドを使います。範囲指定を省略す<br>
+るとファイル全体が保存されますが、範囲指定すると、指定した範囲の行だけが保存さ<br>
+れます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:.,$write tempo</span><br>
+<br>
+このコマンドで、現在行から最終行までが &quot;tempo&quot; に保存されます。ファイルが既に<br>
+存在している場合はエラーメッセージが表示されるので、間違ってファイルを上書きす<br>
+る心配はありません。ファイルを上書きしたい場合は、! を付けてください:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:.,$write! tempo</span><br>
+<br>
+注意: ! は &quot;:write&quot; コマンドの直後に指定してください。間に空白を入れると、フィ<br>
+ルタコマンドになってしまいます。フィルタコマンドについては後で説明します。<br>
+<br>
+<br>
+ファイルに追記する<br>
+<span class="PreProc">------------------</span><br>
+<br>
+この章の最初の節で、複数の行をレジスタに集める方法を説明しました。同じように、<br>
+複数の行をファイルに集めることができます。まず、次のコマンドで最初の行を保存し<br>
+てください:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:.write collection</span><br>
+<br>
+次に、二行目として保存したい行に移動し、次のように入力します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:.write &gt;&gt;collection</span><br>
+<br>
+新規ファイルとして保存するのではなく、&quot;&gt;&gt;&quot; を使って、ファイルの末尾に追記する<br>
+ことを指示しています。あとは必要なだけこの操作を繰り返してください。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_10.html#10.7" name="10.7">*10.7*</a>&nbsp;&nbsp;テキストの整形<br>
+<br>
+文章を入力しているとき、行が画面内に収まるように自動的に改行してくれたら便利で<br>
+すよね。そうするには、<a class="Type" href="options.html#'textwidth'">'textwidth'</a>&nbsp;オプションを設定します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set textwidth=72</span><br>
+<br>
+vimrc ファイルの見本 (<a class="Identifier" href="usr_05.html#vimrc_example.vim">|vimrc_example.vim|</a>) で、テキストファイルが開かれたとき<br>
+にこのオプションが設定されるようにしていたのを覚えているでしょうか。したがっ<br>
+て、vimrc ファイルの見本をそのまま使っているなら、オプションは既に設定されてい<br>
+ます。現在の&nbsp;<a class="Type" href="options.html#'textwidth'">'textwidth'</a>&nbsp;の設定を確認するには、次のようにします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set textwidth</span><br>
+<br>
+これで、行が 72 文字より長くなった行が改行されるようになりました。ただし、行の<br>
+途中からテキストを挿入したときや、単語削除をしたときは、行が 72 文字よりも長く<br>
+なったり短くなったりします。既存の文章が自動的に再整形されたりはしません。<br>
+現在の段落を整形するには、次のコマンドを使います:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gqap</span><br>
+<br>
+これは &quot;gq&quot; というオペレータで始まるコマンドです。次に &quot;ap&quot; というテキストオブ<br>
+ジェクトが指定されています。これは &quot;a paragraph&quot; (一つの段落) という意味です。<br>
+段落は、空行で区切られたテキストです。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;空行 (改行文字だけの行) と空白行 (空白文字だけの行) は違います。段落の<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;区切りは「空行」だけです。見た目では気付きにくいので注意！<br>
+<br>
+&quot;ap&quot; 以外のテキストオブジェクトや、移動コマンドも指定できます。段落が正しく分<br>
+割されているなら、次のコマンドでファイル全体を整形できます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gggqG</span><br>
+<br>
+これは、&quot;gg&quot; で一行目に移動し、&quot;gq&quot; で整形オペレータを指定、&quot;G&quot; でファイル末尾<br>
+までジャンプしています。<br>
+<br>
+段落の区切りが明確でない場合は、手動で行を選択して整形してください。整形したい<br>
+範囲の最初の行に移動し、&quot;gqj&quot; コマンドを使います。現在行と次の行が整形されま<br>
+す。現在行が短い場合は、次の行の単語が現在行に移動します。現在行が長い場合は、<br>
+現在行の単語が次の行に移動します。カーソルは次の行に移動しているので、&quot;.&quot; でコ<br>
+マンドを再実行できます。あとは必要なだけ繰り返してください。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_10.html#10.8" name="10.8">*10.8*</a>&nbsp;&nbsp;大文字/小文字の変換<br>
+<br>
+&quot;section header&quot; という小文字のテキストがあります。これを、&quot;section&quot; だけ大文<br>
+字にするには、&quot;gU&quot; オペレータを使います。カーソルを先頭に移動して、コマンドを<br>
+実行してください:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; gUw</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; section header&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;----&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SECTION header<br>
+<br>
+&quot;gu&quot; オペレータで小文字に変換できます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; guw</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SECTION header&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;----&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;section header<br>
+<br>
+&quot;g~&quot; を使うと、大文字と小文字を切り替えることができます。今説明したのは全てオ<br>
+ペレータなので、移動コマンドやテキストオブジェクトやビジュアルモードと組み合わ<br>
+せることができます。<br>
+オペレータを行に適用するには、オペレータを二回繰り返してください。例えば、&quot;d&quot;<br>
+は削除オペレータなので、&quot;dd&quot; で一行削除になります。同じように、&quot;gugu&quot; で行全体<br>
+が小文字になります。もっと短く、&quot;guu&quot; でも構いません。&quot;gUgU&quot; は &quot;gUU&quot;、&quot;g~g~&quot;<br>
+は &quot;g~~&quot; と短縮できます。例:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;g~~</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Some GIRLS have Fun&nbsp;&nbsp;&nbsp;&nbsp;----&gt;&nbsp;&nbsp; sOME girls HAVE fUN</span><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_10.html#10.9" name="10.9">*10.9*</a>&nbsp;&nbsp;外部プログラムを使う<br>
+<br>
+Vim には強力なコマンドがたくさんあるので何でもできますが、外部プログラムを使っ<br>
+た方がもっとキレイで高速に処理できる場合もあります。<br>
+&quot;!<span class="Special">{motion}{program}</span>&quot; コマンドを使うと、ファイルの一部を、外部プログラムでフィ<br>
+ルタすることができます。つまり、<span class="Special">{program}</span>&nbsp;で指定したプログラムが実行され、<br>
+<span class="Special">{motion}</span>&nbsp;で指定した範囲のテキストがプログラムに入力され、指定された範囲のテキ<br>
+ストがプログラムの出力で置き換えられます。<br>
+UNIX のフィルタに馴染のない方にはわかりにくいと思うので、例を交えて説明します。<br>
+sort コマンドはファイルの中身をソート (並べ替え) するコマンドです。次のコマン<br>
+ドを実行すると、ソートされていない input.txt の中身が整列され、output.txt に保<br>
+存されます。(この例は UNIX でも Microsoft Windows でも動作します)<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sort &lt;input.txt &gt;output.txt</span><br>
+<br>
+さて、同じことを Vim でやってみましょう。1 行目から 5 行目までをソートしてみま<br>
+す。カーソルを一行目に移動して、次のコマンドを実行します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!5G</span><br>
+<br>
+&quot;!&quot; はフィルタを実行するためのコマンドです。次に、移動コマンドを実行し、フィル<br>
+タに渡す範囲を指定しています。&quot;5G&quot; は 5 行目に移動するコマンドなので、1 行目<br>
+(現在行) から 5 行目までがフィルタの範囲として指定されます。<br>
+カーソルが画面の一番下に移動し、! プロンプトが表示されるので、フィルタプログラ<br>
+ムの名前を入力してください。この場合なら &quot;sort&quot; ですね。したがって、コマンドは<br>
+全部で次のようになります。<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!5Gsort&lt;Enter&gt;</span><br>
+<br>
+コマンドを実行すると、最初の五行が sort プログラムで処理され、元のテキストが、<br>
+プログラムの出力で置き換えられます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;line 55&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; line 11<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;line 33&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; line 22<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;line 11&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; --&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; line 33<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;line 22&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; line 44<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;line 44&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; line 55<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;last line&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; last line<br>
+<br>
+&quot;!!&quot; コマンドを使うと、現在行をフィルタできます。Unix では &quot;date&quot; コマンドで現<br>
+在の日時を出力できるので、&quot;!!date<span class="Special">&lt;Enter&gt;</span>&quot; で現在行を &quot;date&quot; の出力で置き換える<br>
+ことができます。これはファイルに日付を挿入するのに便利です。<br>
+<br>
+<br>
+うまく動作しない場合<br>
+<span class="PreProc">--------------------</span><br>
+<br>
+シェルを起動し、テキストを入力し、出力を取り込むためには、シェルが正しく実行で<br>
+きるように設定されている必要があります。フィルタ処理に問題がある場合は、以下の<br>
+オプションを確認してください。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'shell'">'shell'</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 外部プログラムを実行するために使われるプログラムの指定<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'shellcmdflag'">'shellcmdflag'</a>&nbsp;&nbsp;シェルにコマンドを渡すための引数指定<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'shellquote'">'shellquote'</a>&nbsp;&nbsp;&nbsp;&nbsp;コマンドを囲むためのクオート文字<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'shellxquote'">'shellxquote'</a>&nbsp;&nbsp; コマンドとリダイレクトを囲むためのクオート文字<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'shelltype'">'shelltype'</a>&nbsp;&nbsp;&nbsp;&nbsp; シェルの種類 (Amiga専用)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'shellslash'">'shellslash'</a>&nbsp;&nbsp;&nbsp;&nbsp;ファイル名のバックスラッシュをスラッシュにする<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(MS-Windows 系専用)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'shellredir'">'shellredir'</a>&nbsp;&nbsp;&nbsp;&nbsp;コマンドの出力をファイルに保存するために指定する文字列<br>
+<br>
+Unix では、設定する必要はほとんどありません。なぜなら、おそらく sh 系か csh 系<br>
+のシェルが使われているからです。Vim は&nbsp;<a class="Type" href="options.html#'shell'">'shell'</a>&nbsp;に &quot;csh&quot; という文字列が含まれて<br>
+いるかどうかでシェルの種類を判断し、関連したオプションを自動的に設定します。<br>
+しかし、MS-Windows ではいろんなシェルがあるので、フィルタを動作させるためには、<br>
+オプションを設定する必要があるかもしれません。詳しくはオプションのヘルプを参照<br>
+してください。<br>
+<br>
+<br>
+コマンドの出力を読み込む<br>
+<span class="PreProc">------------------------</span><br>
+<br>
+カレントディレクトリの内容を読み込むには、次のようにします。<br>
+<br>
+Unix系:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:read !ls</span><br>
+MS-Windows系:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:read !dir</span><br>
+<br>
+&quot;ls&quot; や &quot;dir&quot; コマンドの出力が取り込まれ、カーソルの下に挿入されます。これは<br>
+ファイルの読み込みに似ていますが、&quot;!&quot; を使ってコマンドを指定している点が違いま<br>
+す。<br>
+コマンドに引数を指定することもできます。出力をプットする場所を指定することもで<br>
+きます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:0read !date -u</span><br>
+<br>
+これはファイルの先頭に現在の日付と時間を UTC 形式で挿入します (&quot;-u&quot; 引数が使え<br>
+る date コマンドが必要ですよ。当たり前ですが...)。<span class="Todo">Note</span>: &quot;!!date&quot; が現在行を置<br>
+き換えるのに対して、&quot;:read !date&quot; は行を挿入するという点が違います。<br>
+<br>
+<br>
+コマンドにテキストを入力する<br>
+<span class="PreProc">----------------------------</span><br>
+<br>
+Unix の &quot;wc&quot; コマンドは単語を数えることができます。編集中のファイル内の単語を<br>
+数えるには、次のようにします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:write !wc</span><br>
+<br>
+これは上述の write コマンドと似ていますが、&quot;!&quot; を使って外部プログラムを指定し<br>
+ている点が違います。テキストがコマンドの標準入力に渡され、次のような結果が表示<br>
+されます:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;47&nbsp;&nbsp;&nbsp;&nbsp; 249</span><br>
+<br>
+&quot;wc&quot; コマンドは冗長なメッセージを出力しません。この出力は、行数が 4、単語数が<br>
+47、文字数が 249 であることを示しています。<br>
+<br>
+次のような間違いに気をつけてください:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:write! wc</span><br>
+<br>
+これはカレントディレクトリの &quot;wc&quot; というファイルに強制上書きするコマンドです。<br>
+空白は重要ですよ！<br>
+<br>
+<br>
+画面の再描画<br>
+<span class="PreProc">------------</span><br>
+<br>
+外部プログラムがエラーを起こした場合、画面がめちゃくちゃになってしまうことがあ<br>
+ります。Vim は必要だと思われる最小限の領域だけを再描画しますが、他のプログラム<br>
+の出力内容を完全に把握することはできません。次のコマンドで画面を再描画できま<br>
+す:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CTRL-L</span><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+次章:&nbsp;<a class="Identifier" href="usr_11.html">|usr_11.txt|</a>&nbsp;&nbsp;クラッシュからの復帰<br>
+<br>
+Copyright: see&nbsp;<a class="Identifier" href="usr_01.html#manual-copyright">|manual-copyright|</a>&nbsp;&nbsp;vim:tw=78:ts=8:ft=help:norl:<br>
+<hr>
+<a href="#top">top</a> - <a href="index.html">main help file</a><br>
+
+</body>
+</html>

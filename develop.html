@@ -1,0 +1,528 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Vim documentation: develop</title>
+<meta name="Generator" content="Vim/7.3">
+<meta name="plugin-version" content="vim7.3_v6">
+<meta name="syntax" content="help">
+<meta name="settings" content="use_css,no_pre">
+<style type="text/css">
+<!--
+.MissingTag { background-color: black; color: white; }
+.EnglishTag { background-color: gray; color: white; }
+body { color: #000000; background-color: #ffffff; font-family: monospace; }
+.Todo { color: #808080; background-color: #ffff00; }
+.Comment { color: #8080ff; }
+.Ignore { color: #ffffff; font-weight: bold; }
+.Statement { color: #ffff00; }
+.PreProc { color: #ff40ff; }
+.Constant { color: #ff6060; }
+.Identifier { color: #00ffff; }
+-->
+</style>
+</head>
+<body>
+
+<a name="top"></a><h1>Vim documentation: develop</h1>
+<a href="index.html">main help file</a>
+<hr>
+<a class="Constant" href="develop.html" name="develop.txt">*develop.txt*</a>&nbsp;&nbsp; For Vim バージョン 7.3.&nbsp;&nbsp;Last change: 2008 Dec 17<br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIM REFERENCE MANUAL&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
+<br>
+<br>
+Vimの開発&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#development" name="development">*development*</a><br>
+<br>
+この文書は、Vimの更なる開発に参加しようという人にとって重要である。<br>
+<br>
+1. 設計上の目標&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="develop.html#design-goals">|design-goals|</a><br>
+2. コーディングスタイル&nbsp;<a class="Identifier" href="develop.html#coding-style">|coding-style|</a><br>
+3. 決定事項&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="develop.html#design-decisions">|design-decisions|</a><br>
+4. 想定していること&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="develop.html#design-assumptions">|design-assumptions|</a><br>
+<br>
+ソースコードの概要については&quot;src&quot;ディレクトリのREADME.txtを見てください。<br>
+<br>
+Vimはオープンソースソフトウェアです。誰でもVimの開発に協力できます。パッチを送<br>
+る時はなるべく&quot;context diff&quot;形式(&quot;diff -c&quot;で作る)でお願いします。<br>
+<span class="Constant"><a href="http://www.vim.org/tips/tip.php?tip_id=618">http://www.vim.org/tips/tip.php?tip_id=618</a></span>&nbsp;も見てください。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+1. 設計上の目標&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#design-goals" name="design-goals">*design-goals*</a><br>
+<br>
+重要度の順に従って書かれている(大雑把であるが)。<br>
+<br>
+かなりの項目が矛盾していることを注意しておく。これは故意である。それらの<br>
+間で、バランスを取っていかねばならない。<br>
+<br>
+<br>
+<span class="Statement">VIM IS... VI COMPATIBLE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#design-compatible" name="design-compatible">*design-compatible*</a><br>
+<br>
+なにより、VimはViの気軽な置き換えとして使うことができるべきである。ユーザ<br>
+が望むなら、Vimを、オリジナルのViとの区別がほとんど付かない互換モードで使う<br>
+ことができる。<br>
+<br>
+例外:<br>
+- 明白なViのバグをVimに再現しない。<br>
+- Viには異なるバージョンが存在する。私はバージョン3.7(6/7/85)を参考として<br>
+&nbsp;&nbsp;使っている。しかし、他のバージョンのサポートも可能な限り取り込まれる。<br>
+&nbsp;&nbsp;POSIXにおけるViのパートは、決定的な資料とは考えない。<br>
+- Vimは新しいコマンドを持つため、Viにないコマンドを入力しても機能してしまう<br>
+&nbsp;&nbsp;場合がある。<br>
+- VimはViの持っていない多くの特徴を持つ。VimからViへ戻ることは問題を引き起こ<br>
+&nbsp;&nbsp;すが、これは避けられないことである。<br>
+- いくつかの事柄はめったに使われた例がない(オープンモード、クラッシュ時の<br>
+&nbsp;&nbsp;e-mailの送信、など)。これらは、誰かが何らかの理由でそれを入れるべきだと考<br>
+&nbsp;&nbsp;え、さらにその機能が働き過ぎない場合に限って取り入れられる。<br>
+- いくつかの項目に関しては、Vi互換を保るべきかどうか、議論の余地がある。これ<br>
+&nbsp;&nbsp;らに関しては、オプションフラグが作られるだろう。<br>
+<br>
+<br>
+<span class="Statement">VIM IS... IMPROVED&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#design-improved" name="design-improved">*design-improved*</a><br>
+<br>
+Vimの改良点は、それをよりよいViにすべきであって、まったく違ったエディタに<br>
+してしまってはならない。拡張は&quot;Viの精神&quot;に従って行われる。<br>
+- 可能な限りキーボードを使う。マウスは私たちの持たぬ第３の手を必要とする。<br>
+&nbsp;&nbsp;多くの端末はマウスを備えていない。<br>
+- それでもマウスを使うようであれば、キーボードに切り替える必要をなくす。<br>
+&nbsp;&nbsp;マウスとキーボードの操作の混在を避けよ。<br>
+- コマンドとオプションを矛盾なく追加せよ。でなければ、それらを見つけ出し、思い<br>
+&nbsp;&nbsp;出すのに、人々は苦労を強いられるだろう。後々、さらにコマンドやオプションが<br>
+&nbsp;&nbsp;追加されることを忘れてはならない。<br>
+- 特性は、人々が知らなければ役に立たない。目立たない特性は追加しない、あるいは、<br>
+&nbsp;&nbsp;少なくともその特性が存在するというヒントをドキュメントに追加すること。<br>
+- CTRLや他の修飾子の使用は最小限に留めよ、これらはタイプしにくい。<br>
+- 多くの初心者、不慣れなVimユーザがいる。Vimを使いはじめること、そしてより多く<br>
+&nbsp;&nbsp;を学んでいくことが、簡単にできるようにせよ。<br>
+- 特性は限りなく追加できる。新しく追加される特性は、(1)ユーザが求めていること、<br>
+&nbsp;&nbsp;(2)実装にどれほどの労力が必要か、そして(3)誰かが実際に実装している、といった<br>
+&nbsp;&nbsp;ことに基づいて選択される。<br>
+<br>
+<br>
+<span class="Statement">VIM IS... MULTI PLATFORM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#design-multi-platform" name="design-multi-platform">*design-multi-platform*</a><br>
+<br>
+Vimは、可能な限り、多くのプラットホーム上の多くのユーザの助けでありたい。<br>
+- 多くの種類の端末をサポートする。最低限の要求は、カーソルの配置機能と画面の<br>
+&nbsp;&nbsp;クリアである。コマンドはたいていのキーボードが持つキーのみを使う。マッピン<br>
+&nbsp;&nbsp;グには、キーボード上の全てのキーを使うことができる。<br>
+- 多くのプラットホームをサポートする。必要条件は、誰かがそのプラットホーム上で<br>
+&nbsp;&nbsp;Vimの開発をしたいと考えること、それによってコードに混乱をきたさないこと、で<br>
+&nbsp;&nbsp;ある。<br>
+- 多くのコンパイラとライブラリをサポートする。全ての人が、他のコンパイラや<br>
+&nbsp;&nbsp;GUIライブラリをインストールできるわけではないからである。<br>
+- 人々は、あるプラットホームから別のプラットホームへ、そしてGUIから端末バー<br>
+&nbsp;&nbsp;ジョンへ移行する。特性は全てのバージョン、あるいは、少なくとも理に叶った労力<br>
+&nbsp;&nbsp;でできる限りのバージョンで、提供されるべきである。ユーザが能率的に仕事を仕上<br>
+&nbsp;&nbsp;げるために、プラットホームを切り替えねばならないような事態は避けたい。<br>
+- いくつかのプラットホームでは実現できない、または、ただひとつのプラットホーム<br>
+&nbsp;&nbsp;でしか実現できないような特性も、実装できないというわけではない。[これは前項<br>
+&nbsp;&nbsp;と故意に矛盾するものであり、両者の間でバランスが取られる。]<br>
+<br>
+<br>
+<span class="Statement">VIM IS... WELL DOCUMENTED&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#design-documented" name="design-documented">*design-documented*</a><br>
+<br>
+- 文書化されていない特性は、役に立たない。新しい特性を含んだパッチには、必ず<br>
+&nbsp;&nbsp;ドキュメントが含まれているべきである。<br>
+- ドキュメントは、わかりやすく、理解できるものであるべきだ。例を使うことが推<br>
+&nbsp;&nbsp;奨される。<br>
+- 文章を不必要に長くしてはならない。短い文章は、その項目を見つけやすくする。<br>
+<br>
+<br>
+<span class="Statement">VIM IS... HIGH SPEED AND SMALL IN SIZE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#design-speed-size" name="design-speed-size">*design-speed-size*</a><br>
+<br>
+Vimを使うことで、システムリソースに大打撃を与えてはならない。Vimを小さく、<br>
+速く保つこと。<br>
+- コンピュータは年毎により速く、大容量になっている。Vimも成長しうるが、コン<br>
+&nbsp;&nbsp;ピュータの成長速度より速くなってはならない。Vimを古いシステム上でも使える<br>
+&nbsp;&nbsp;よう保つ必要がある。<br>
+- 多くのユーザは、Vimを頻繁にシェルから立ち上げる。起動は短時間でなくてはなら<br>
+&nbsp;&nbsp;ない。<br>
+- コマンドは能率的に働く必要がある。コマンドが消費する時間は、可能な限り短く<br>
+&nbsp;&nbsp;あるべきだ。役に立つコマンドなら、多少時間がかかってもよい。<br>
+- Vimを、遅い接続を通して使う人がいることを忘れてはならない。通信にかかるオー<br>
+&nbsp;&nbsp;バーヘッドは最小にすること。<br>
+- サイズがかなり大きく、多くの人によって使われるわけではない項目は、無効化で<br>
+&nbsp;&nbsp;きる特性とすべきである。<br>
+- Vimは、他のいろいろな構成要素の中にある、ひとつのコンポーネントである。巨大<br>
+&nbsp;&nbsp;なアプリケーションに変えてはならない、むしろ他のプログラムとよく協調するよう<br>
+&nbsp;&nbsp;にせよ。<br>
+<br>
+<br>
+<span class="Statement">VIM IS... MAINTAINABLE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#design-maintain" name="design-maintain">*design-maintain*</a><br>
+<br>
+- ソースコードは乱雑になってはならない。そして、信頼できるものでなくてはな<br>
+&nbsp;&nbsp;らない。<br>
+- 読みやすくするため、すべてのファイルで同じレイアウトを取ること<br>
+&nbsp;&nbsp;<a class="Identifier" href="develop.html#coding-style">|coding-style|</a>。<br>
+- 役に立つコメントをいれること！関数名と引数名を引用しても役に立たない。それ<br>
+&nbsp;&nbsp;が何のためにあるのか説明すること。<br>
+- プラットホーム独立のコードに多くの変更を加える必要をなくし、他のプラットホー<br>
+&nbsp;&nbsp;ムへの移植を簡単にできるようにすること。<br>
+- オブジェクト指向の精神を使う: データとコードを同じ場所に。コードの他の部分<br>
+&nbsp;&nbsp;に関する知識は最小で済むように。<br>
+<br>
+<br>
+<span class="Statement">VIM IS... FLEXIBLE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#design-flexible" name="design-flexible">*design-flexible*</a><br>
+<br>
+Vimは、そのユーザに特定の作業パターンを強いるよりは、ユーザの好むスタイルでの<br>
+作業を支援すべきである。これは大きなインパクトをもつ項目(例えば、<a class="Type" href="options.html#'compatible'">'compatible'</a><br>
+オプション)や、その他の詳細によって実現される。デフォルトは、多くのユーザが<br>
+そのままのVimを楽しんで使えるように、慎重に選ばれている。コマンドとオプション<br>
+は、Vimをユーザの希望と環境に調整するために使われる。<br>
+<br>
+<br>
+<span class="Statement">VIM IS... NOT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#design-not" name="design-not">*design-not*</a><br>
+<br>
+- Vim はシェルでもオペレーティングシステムでもない。Vim の中でシェルを走らせた<br>
+&nbsp;&nbsp;りデバッガを制御したりできるようにはならない。これらは他の方法で成されるべき<br>
+&nbsp;&nbsp;である: Vim をシェルや IDE のコンポーネントとして使おう。<br>
+&nbsp;&nbsp;風刺を込めて曰く: &quot;Vim は Emacs のように流し台以外ならなんでもかんでも取り込<br>
+&nbsp;&nbsp;んでしまうようなことはしないが、Vim で流し台を洗うことはできるぞ。 ;-)&quot;<br>
+&nbsp;&nbsp;A satirical way to say this: &quot;Unlike Emacs, Vim does not attempt to include<br>
+&nbsp;&nbsp;everything but the kitchen sink, but some people say that you can clean one<br>
+&nbsp;&nbsp;with it.&nbsp;&nbsp;;-)&quot;<br>
+&nbsp;&nbsp;Vim と gdb を連携させる方法については次を参照:<br>
+&nbsp;&nbsp;<span class="Constant"><a href="http://www.agide.org">http://www.agide.org</a></span>&nbsp;と&nbsp;<span class="Constant"><a href="http://clewn.sf.net">http://clewn.sf.net</a></span>.<br>
+- Vimは、全てのプラットホームに渡って調和を欠くという代償を払って、見栄えをよ<br>
+&nbsp;&nbsp;くしようとする装飾的なGUIエディタではない。しかし、機能的なGUI特性は歓迎さ<br>
+&nbsp;&nbsp;れる。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+2. コーディングスタイル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#coding-style" name="coding-style">*coding-style*</a><br>
+<br>
+Vimのソースコードに変更を加える際、守るべきルールがある。ソースを読めるもの、<br>
+保守できるものとして保つため、これらのルールに従って欲しい。<br>
+<br>
+このリストは完全ではない。より多くの例は、ソースコードを見て欲しい。<br>
+<br>
+<br>
+<span class="Statement">MAKING CHANGES&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#style-changes" name="style-changes">*style-changes*</a><br>
+<br>
+コードに変更を加える基本的なステップは:<br>
+1. ドキュメントを調整する。最初にこれをやることで、あなたの行う変更がユーザに<br>
+&nbsp;&nbsp; 与える影響について、おおまかな印象をもつことができる。<br>
+2. ソースコードに変更を加える。<br>
+3. 変更がリストされた項目に影響を与えていないか、../doc/todo.txtをチェックす<br>
+&nbsp;&nbsp; る。<br>
+4. 無修正のコードとドキュメントに対するパッチを、&quot;diff -c&quot;によって得る。<br>
+5. 変更に関する注意書きを作り、パッチに含める。<br>
+<br>
+<br>
+<span class="Statement">USE OF COMMON FUNCTIONS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#style-functions" name="style-functions">*style-functions*</a><br>
+<br>
+よく使われる関数のうち、特別なVimバージョンを持つものがある。これらは理由あっ<br>
+て導入されたものなので、常にVimバージョンを使うように意識すること。<br>
+<br>
+NORMAL NAME&nbsp;&nbsp;&nbsp;&nbsp; VIM NAME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DIFFERENCE OF VIM VERSION<br>
+free()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim_free()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULLの解放をチェックする<br>
+malloc()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alloc()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; アウトオブメモリーの状況をチェックする<br>
+malloc()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lalloc()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alloc()に似ているが、長い引数を持つ<br>
+strcpy()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;STRCPY()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char_u *引数を、(char *)へキャストする<br>
+strchr()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim_strchr()&nbsp;&nbsp;&nbsp;&nbsp;スペシャルキャラクタを受け入れる<br>
+strrchr()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; vim_strrchr()&nbsp;&nbsp; スペシャルキャラクタを受け入れる<br>
+isspace()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; vim_isspace()&nbsp;&nbsp; 128以上のキャラクタを扱うことができる<br>
+iswhite()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; vim_iswhite()&nbsp;&nbsp; Tabとスペースに対してのみTRUE<br>
+memcpy()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mch_memmove()&nbsp;&nbsp; オーバーラップしたコピーを扱う<br>
+bcopy()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mch_memmove()&nbsp;&nbsp; オーバーラップしたコピーを扱う<br>
+memset()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim_memset()&nbsp;&nbsp;&nbsp;&nbsp;全てのシステムで一定である<br>
+<br>
+<br>
+<span class="Statement">NAMES&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#style-names" name="style-names">*style-names*</a><br>
+<br>
+関数の名前に31文字より長い名前は使えません。(VMSのために）<br>
+<br>
+&quot;delete&quot;という名前の変数を使わないでください。C++で問題となります。<br>
+<br>
+Vimができる限り多くのシステム上で走るという必要上、システムによってすでに定義<br>
+されている名前を使うことは避けねばならない。これは、問題となることが知られて<br>
+いる名前のリストである。名前はregexpパターンとして与えられている。<br>
+<br>
+is.*()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;POSIX, ctype.h<br>
+to.*()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;POSIX, ctype.h<br>
+<br>
+d_.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;POSIX, dirent.h<br>
+l_.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;POSIX, fcntl.h<br>
+gr_.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; POSIX, grp.h<br>
+pw_.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; POSIX, pwd.h<br>
+sa_.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; POSIX, signal.h<br>
+mem.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; POSIX, string.h<br>
+str.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; POSIX, string.h<br>
+wcs.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; POSIX, string.h<br>
+st_.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; POSIX, stat.h<br>
+tms_.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;POSIX, times.h<br>
+tm_.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; POSIX, time.h<br>
+c_.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;POSIX, termios.h<br>
+MAX.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; POSIX, limits.h<br>
+__.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;POSIX, system<br>
+_[A-Z].*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;POSIX, system<br>
+E[A-Z0-9]*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;POSIX, errno.h<br>
+<br>
+.*_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;POSIX, for typedefs, *_Tを使ってください。<br>
+<br>
+wait&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;types.hとコンフリクトするため、関数の引数として使わない<br>
+index&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; グローバル宣言を覆い隠す<br>
+time&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;グローバル宣言を覆い隠す<br>
+new&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; C++の予約語<br>
+try&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Borland C++は、これを変数として使うことを好まない<br>
+<br>
+basename()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GNU 文字列関数(GNU string function)<br>
+dirname()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GNU 文字列関数(GNU string function)<br>
+get_env_value() Linux システム関数<br>
+<br>
+<br>
+<span class="Statement">VARIOUS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#style-various" name="style-various">*style-various*</a><br>
+<br>
+型の定義に使う名前は最後を&quot;_T&quot;にします:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;typedef int some_T;</span><br>
+マクロ定義はすべて大文字にします:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;#define SOME_THING</span><br>
+機能に関する定義は&quot;FEAT_&quot;で始めます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;#define FEAT_FOO</span><br>
+<br>
+'\&quot;'を使わない、あるコンパイラはこれを扱えない。'&quot;'はうまく機能する。<br>
+<br>
+次を使ってはならない:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#if HAVE_SOME<br>
+あるコンパイラはこれを扱えず、&quot;HAVE_SAME&quot;が定義されていないと訴える。<br>
+次を使う<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#ifdef HAVE_SOME<br>
+または<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#if defined(HAVE_SOME)<br>
+<br>
+<br>
+<span class="Statement">STYLE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#style-examples" name="style-examples">*style-examples*</a><br>
+<br>
+一般的なルール: １行に１つのステートメント。<br>
+<br>
+間違い:&nbsp;&nbsp;&nbsp;&nbsp; if (cond) a = 1;<br>
+<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (cond)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a = 1;<br>
+<br>
+間違い:&nbsp;&nbsp;&nbsp;&nbsp; while (cond);<br>
+<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; while (cond)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;<br>
+<br>
+間違い:&nbsp;&nbsp;&nbsp;&nbsp; do a = 1; while (cond);<br>
+<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; do<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a = 1;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (cond);<br>
+<br>
+<br>
+関数は次のようにして始める:<br>
+<br>
+間違い: int function_name(int arg1, int arg2)<br>
+<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp; /*<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * Explanation of what this function is used for.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * この関数が何に使われるかの説明。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * Return value explanation.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * 戻り値の説明。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function_name(arg1, arg2)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; arg1;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* short comment about arg1 */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; arg2;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* short comment about arg2 */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; local;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/* comment about local */<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local = arg1 * arg2;<br>
+<br>
+注意: ANSIスタイルの関数宣言を使わないこと。いまだそれをサポートしていないコ<br>
+ンパイラを使わねばならない人が、少ないながらいるからである。<br>
+<br>
+<br>
+<span class="Statement">SPACES AND PUNCTUATION&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#style-spaces" name="style-spaces">*style-spaces*</a><br>
+<br>
+関数名とブラケットの間にスペースを入れないこと:<br>
+<br>
+間違い: func (arg);<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp; func(arg);<br>
+<br>
+if、while、switchなどの後には、スペースを入れること。<br>
+<br>
+間違い: if(arg)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for(;;)<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp; if (arg)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (;;)<br>
+<br>
+カンマ、セミコロンの後にはスペースを入れること:<br>
+<br>
+間違い: func(arg1,arg2);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (i = 0;i &lt; 2;++i)<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp; func(arg1, arg2);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for (i = 0; i &lt; 2; ++i)<br>
+<br>
+'='、'+'、'/'などの前と後には、スペースを入れること。<br>
+<br>
+間違い: var=a*5;<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp; var = a * 5;<br>
+<br>
+一般的なこと: コードの行をグループ分けするために、空行を使う。行グループのす<br>
+ぐ上にコメントを入れる。こうすることによって、何が行われるのかをより簡単に知<br>
+ることができる。<br>
+<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp; /* Prepare for building the table. */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/* テーブルの作成の準備 */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get_first_item();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;table_idx = 0;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/* Build the table */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/* テーブルの作成 */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (has_item())<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;table[table_idx++] = next_item();<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/* Finish up. */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/* 仕上げ */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cleanup_items();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;generate_hash(table);<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+3. 決定事項&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#design-decisions" name="design-decisions">*design-decisions*</a><br>
+<br>
+折畳(folding)<br>
+<br>
+同じバッファにいくつもの折畳状態を設定可能にする。例えば、あるウインドウに関<br>
+数を折畳んだ状態で表示し、他のウインドウで関数の中身を表示するなど。<br>
+<br>
+折畳はテキストを表示する方法である。テキストを変更すべきではない。したがってバッ<br>
+ファ内のテキストをウインドウに表示する際のフィルタとして実行される。<br>
+<br>
+<br>
+ウインドウの名前<br>
+<br>
+&quot;ウインドウ&quot;という単語は一般にいくつかの意味で使われている。スクリーン上のウ<br>
+インドウ、xtermのウインドウ、Vimのバッファを表示するウインドウなど。<br>
+<br>
+混乱を避けるため、時にウインドウと呼ばれる他の物には別の名前が付けられてい<br>
+る。ここに関連する物の概観を示す。<br>
+<br>
+スクリーン(screen)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ディスプレイ全体。GUIでは例えば1024x768ピクセルの画<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;面。Vimシェルはスクリーン全体を使うことも一部を使う<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;こともできる。<br>
+<br>
+シェル(shell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Vimアプリケーション。スクリーン全体(例えばコンソール<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;で実行した時)、あるいはその一部(xtermやGUI)。<br>
+<br>
+ウインドウ(window)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;バッファの表示画面。Vimは複数のウインドウを持つこと<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ができる。ウインドウはコマンドラインやメニューバー、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ツールバーなどといっしょに表示される。これらはシェル<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;に納まる。<br>
+<br>
+スペルチェック&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#develop-spell" name="develop-spell">*develop-spell*</a><br>
+<br>
+Vim にスペルチェックを追加することになったとき、利用可能なスペルチェックのライ<br>
+ブラリやプログラムについて調査が行われた。その結果は残念なことに、Vim 内でスペ<br>
+ルチェックエンジンとして使えるものはないとわかった。これには様々な理由がある:<br>
+<br>
+- マルチバイトエンコーディングをサポートしていない。1つのファイル内で複数の言<br>
+&nbsp;&nbsp;語を使えるようにするために、少なくとも UTF-8 はサポートしていなければならな<br>
+&nbsp;&nbsp;い。<br>
+&nbsp;&nbsp;オンザフライな変換は常に可能とは限らない(iconv に対応している必要がある)。<br>
+- プログラムとライブラリに対して: それらをそのまま(as-is)使うには、Vim と別個<br>
+&nbsp;&nbsp;にインストールしなければならない。これはたいてい不可能ではないが、難点である。<br>
+- パフォーマンス: いくつかのテストによると、スペルチェックを構文強調のようにオ<br>
+&nbsp;&nbsp;ンザフライで(再描画中に)行うことは可能であった。しかし他のコードで使われたメ<br>
+&nbsp;&nbsp;カニズムはもっと遅かった。例えば、Myspell はハッシュテーブルを使用する。ほと<br>
+&nbsp;&nbsp;んどのスペルチェッカが使用している接辞圧縮を使うと遅くなった。<br>
+- aspell のような外部プログラムを使うには、通信メカニズムを用意しなければなら<br>
+&nbsp;&nbsp;ない。これをポータブルな方法で行うのは複雑過ぎる(Unix だけなら比較的簡単だが、<br>
+&nbsp;&nbsp;それでは十分ではない)。そしてパフォーマンスが問題になる(何回ものプロセス切替<br>
+&nbsp;&nbsp;が行われる)。<br>
+- &quot;Etten-Leur&quot; や &quot;et al.&quot; など、単語でない単語のサポートを欠いている。そのた<br>
+&nbsp;&nbsp;めこれらの部分を OK とマークしなければならないが、そうすると信頼性が低下する。<br>
+- 地域や方言のサポートを欠いている。英語の単語をすべて受け付け、カナダ語でない<br>
+&nbsp;&nbsp;単語を別に扱うことが難しくなる。<br>
+- 頻度が低い単語のサポートを欠いている。正しいがめったに使われないたくさんの単<br>
+&nbsp;&nbsp;語が、よく使われる単語のスペルミスとみなされてしまう。<br>
+- スペル候補を作成するには速度はそれほど重要ではなく、他のプログラムやライブラ<br>
+&nbsp;&nbsp;リをインストールすることは許容できる。しかし、単語リストが異なるとスペル候補<br>
+&nbsp;&nbsp;が誤単語になってしまう。<br>
+<br>
+<br>
+スペル候補&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#develop-spell-suggestions" name="develop-spell-suggestions">*develop-spell-suggestions*</a><br>
+<br>
+候補の作成には2つの基本的なメカニズムがある:<br>
+1. 誤った単語を少し変更して正しい単語とマッチするかチェックする。あるいは、正<br>
+&nbsp;&nbsp; しい単語全てに対し、それを少し変更して誤った単語とマッチするかチェックする。<br>
+&nbsp;&nbsp; 変更とは、文字の削除・文字の挿入・2つの文字の交換などである。<br>
+2. 誤った単語と正しい単語のリストの両方に soundfolding (発音が近い単語を同じグ<br>
+&nbsp;&nbsp; ループとみなすこと) を行って、そこでマッチを見つける。1番目のメカニズムと同<br>
+&nbsp;&nbsp; 様にいくつか変更をしてもよい。<br>
+<br>
+最初のメカニズムはタイプミスを見つけるのにはよい。ハッシュテーブルの実験と、他<br>
+のスペルチェッカのソリューションを見ると、これにはtrie(ツリー構造の一種)が最適<br>
+であるとの結論になった。メモリ使用量の削減と、賢い変更を試みるということの両方<br>
+に面でである。例えば、文字を挿入するときは正しい単語につながる文字だけを試せば<br>
+よい。他の(ハッシュテーブルを使った)メカニズムは、単語のすべての位置で、ありう<br>
+るすべての文字を試さねばならない、また、ハッシュテーブルを使うには、単語の境界<br>
+が個別に認識されなければならないのに対し、trie はそれを要求しない。そのためメ<br>
+カニズムがより単純になる。<br>
+<br>
+ある単語の発音は知っているがスペルを知らないという場合に soundfolding は有用で<br>
+ある。例えば、&quot;dictionary&quot;という単語を&quot;daktonerie&quot;と書いてしまうかもしれない。<br>
+これを最初の方法で訂正しようとすると変更回数が非常に多くなってしまい、正しいス<br>
+ペルを見つけるのは困難である。それに対し、これらの単語にsoundfoldingを行うと<br>
+&quot;tktnr&quot;と&quot;tkxnry&quot;になり、2文字しか違わない。<br>
+<br>
+soundfoldの同値(音が似ている単語)により単語を見つけるには全てのsoundfolded<br>
+wordsのリストが必要である。どれが最良の方法かを探すための実験が行われた。案:<br>
+1. 修正候補を探すときに、その場でsound foldingを行う。つまり、正しい単語のtrie<br>
+&nbsp;&nbsp; をたどりながら、各単語をsoundfoldingし、それがスペルミスしている単語からど<br>
+&nbsp;&nbsp; れだけ異なるかをチェックする。これはメモリ効率の面でとても優れているが、時<br>
+&nbsp;&nbsp; 間は長くかかる。英語の場合、高速なPCで2秒ほどかかる。これは対話的な利用とし<br>
+&nbsp;&nbsp; て受け入れられる。しかしいくつかの言語(ドイツ語、カタルニャ語など)に対して<br>
+&nbsp;&nbsp; は10秒以上かかり、受け入れがたい。バッチ処理(自動訂正)に使うには全ての言語<br>
+&nbsp;&nbsp; で遅すぎる。<br>
+2. soundfoldされた単語に対してtrieを使い、soundfoldingなしのときとまったく同じ<br>
+&nbsp;&nbsp; ように検索できるようにする。そのためには、soundfoldされた各単語に対し、正し<br>
+&nbsp;&nbsp; い単語のリストを記憶しておく必要がある。そうすると照合がとても高速になるが、<br>
+&nbsp;&nbsp; 1MB〜10MBのオーダーの大量のメモリを必要とする。ある言語の場合は元の単語のリ<br>
+&nbsp;&nbsp; ストよりも多くなる。<br>
+3. 2番目の案と同様だが、接辞圧縮を使い、soundfoldした基本単語だけを保存するこ<br>
+&nbsp;&nbsp; とによりメモリ消費量をへらす。これはAspellが採用している方法である。不利点<br>
+&nbsp;&nbsp; は、誤った単語をsoundfoldする前に接辞を取り除いておかねばならないことである。<br>
+&nbsp;&nbsp; そのため、単語の先頭・末尾における誤りに対しては対応できない。また、誤った<br>
+&nbsp;&nbsp; 単語が正しい単語から大きく異なるときは遅くなる。<br>
+<br>
+我々が採用したのは、2番目のメカニズムを使い、別ファイルを使う方法である。こう<br>
+することによって、十分なメモリを持っているユーザはとてもよい候補を得ることがで<br>
+きるし、メモリが不足しているユーザやスペルチェックだけで候補は出さなくてよいと<br>
+いうユーザはそれほどメモリを使わなくてすむ。<br>
+<br>
+<br>
+単語の頻度<br>
+<br>
+候補をソートするにはどの単語が共通であるかを知ると役にたつ。理論的には単語の頻<br>
+度は単語とともに辞書の中に保持することができる。しかしそうすると単語につき回数<br>
+を保持しなければならない。これは単語ツリー圧縮を大いに劣化させる。また、全ての<br>
+言語に対して単語の頻度を保守するのは大変な作業である。<br>
+また、テキストに既に出てきている単語を優先するとよいだろう。このようにして特定<br>
+のテキスト内に表れる単語は候補の中で優先度が高くなる。<br>
+<br>
+実装されたのは、表示中に単語を数えることである。ハッシュテーブルを使ってその単<br>
+語の回数を高速に検索する。回数は接辞ファイルでCOMMONアイテムにリストされている<br>
+単語から初期化される。そのため新規ファイルの編集を始めたときも機能する。<br>
+<br>
+これは理想的ではない。Vimが長時間稼働しているほど回数は大きくなるためである。<br>
+しかし実用的には単語の回数を使わない場合に比べて注目に値するほどの改善である。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+4. Assumptions&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#design-assumptions" name="design-assumptions">*design-assumptions*</a><br>
+<br>
+変数のサイズ:<br>
+char&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8 bit signed<br>
+char_u&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8 bit unsigned<br>
+int&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 32 or 64 bit signed (限定された機能については16ビットもありうる)<br>
+unsigned&nbsp;&nbsp;&nbsp;&nbsp;32 or 64 bit unsigned (16ビットについてはintと同様)<br>
+long&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;32 or 64 bit signed, can hold a pointer<br>
+<br>
+<span class="Todo">Note</span>&nbsp;いくつかのコンパイラは長すぎる行は文字列をうまく扱えない。C89の標準規格で<br>
+は509文字までに制限されている。<br>
+<br>
+&nbsp;vim:tw=78:ts=8:ft=help:norl:<br>
+<hr>
+<a href="#top">top</a> - <a href="index.html">main help file</a><br>
+
+</body>
+</html>

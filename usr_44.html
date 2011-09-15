@@ -1,0 +1,743 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Vim documentation: usr_44</title>
+<meta name="Generator" content="Vim/7.3">
+<meta name="plugin-version" content="vim7.3_v6">
+<meta name="syntax" content="help">
+<meta name="settings" content="use_css,no_pre">
+<style type="text/css">
+<!--
+.MissingTag { background-color: black; color: white; }
+.EnglishTag { background-color: gray; color: white; }
+body { color: #000000; background-color: #ffffff; font-family: monospace; }
+.Todo { color: #808080; background-color: #ffff00; }
+.Special { color: #ff40ff; }
+.Comment { color: #8080ff; }
+.Ignore { color: #ffffff; font-weight: bold; }
+.PreProc { color: #ff40ff; }
+-->
+</style>
+</head>
+<body>
+
+<a name="top"></a><h1>Vim documentation: usr_44</h1>
+<a href="index.html">main help file</a>
+<hr>
+<a class="Constant" href="usr_44.html" name="usr_44.txt">*usr_44.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;For Vim バージョン 7.3.&nbsp;&nbsp;Last change: 2008 Dec 28<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; VIM USER MANUAL - by Bram Moolenaar<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;構文ファイルを作成する<br>
+<br>
+<br>
+Vim は 200 種類以上ものファイルを強調表示できます。強調表示されないファイルを<br>
+見つけた場合は、本章を読んで、ファイルを強調表示する方法を調べてください。リ<br>
+ファレンスマニュアルの&nbsp;<a class="Identifier" href="syntax.html#:syn-define">|:syn-define|</a>&nbsp;も参照してください。<br>
+<br>
+<a class="Identifier" href="usr_44.html#44.1">|44.1|</a>&nbsp;&nbsp;基本的な syntax コマンド<br>
+<a class="Identifier" href="usr_44.html#44.2">|44.2|</a>&nbsp;&nbsp;キーワード<br>
+<a class="Identifier" href="usr_44.html#44.3">|44.3|</a>&nbsp;&nbsp;マッチ<br>
+<a class="Identifier" href="usr_44.html#44.4">|44.4|</a>&nbsp;&nbsp;リージョン<br>
+<a class="Identifier" href="usr_44.html#44.5">|44.5|</a>&nbsp;&nbsp;構文アイテムを入れ子にする<br>
+<a class="Identifier" href="usr_44.html#44.6">|44.6|</a>&nbsp;&nbsp;グループの並び<br>
+<a class="Identifier" href="usr_44.html#44.7">|44.7|</a>&nbsp;&nbsp;その他の引数<br>
+<a class="Identifier" href="usr_44.html#44.8">|44.8|</a>&nbsp;&nbsp;クラスタ<br>
+<a class="Identifier" href="usr_44.html#44.9">|44.9|</a>&nbsp;&nbsp;他の構文ファイルをインクルードする<br>
+<a class="Identifier" href="usr_44.html#44.10">|44.10|</a>&nbsp;シンクロナイズ<br>
+<a class="Identifier" href="usr_44.html#44.11">|44.11|</a>&nbsp;構文ファイルをインストールする<br>
+<a class="Identifier" href="usr_44.html#44.12">|44.12|</a>&nbsp;ポータブルな文法定義ファイル<br>
+<br>
+次章:&nbsp;<a class="Identifier" href="usr_45.html">|usr_45.txt|</a>&nbsp;&nbsp;言語を選択する<br>
+前章:&nbsp;<a class="Identifier" href="usr_43.html">|usr_43.txt|</a>&nbsp;&nbsp;ファイルタイプを使う<br>
+目次:&nbsp;<a class="Identifier" href="usr_toc.html">|usr_toc.txt|</a><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_44.html#44.1" name="44.1">*44.1*</a>&nbsp;&nbsp;基本的な syntax コマンド<br>
+<br>
+既存の構文ファイルを土台にすることで多くの時間を節約できます。望みのものに近い<br>
+言語の構文ファイルを $VIMRUNTIME/syntax から探してください。それらのファイルを<br>
+見れば、構文ファイルの基本的な構造がわかると思います。内容を理解するには本章を<br>
+読んでください。<br>
+<br>
+基本的なことから説明します。構文定義を開始する前に、古い定義をクリアする必要が<br>
+あります:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax clear</span><br>
+<br>
+最終的な構文ファイルではこのコマンドは必要ありませんが、いろいろと試したいとき<br>
+には便利です。<br>
+<br>
+本章の説明はかなり簡略化されています。構文ファイルを書いて、それを他人に使って<br>
+もらう場合は、本章を最後まで読んで詳細を理解してください。<br>
+<br>
+<br>
+定義された構文アイテムを一覧表示する<br>
+<span class="PreProc">------------------------------------</span><br>
+<br>
+現在定義されている構文アイテムを表示するには、次のコマンドを使います:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax</span><br>
+<br>
+実際に定義されている構文アイテムを確認することができます。新しい構文ファイルを<br>
+作っていて、いろいろと試しているときに便利です。また、それぞれの構文アイテム<br>
+は、実際の表示と同じ色で表示されるので、何がどうなっているかも確認できます。<br>
+特定の構文グループのアイテムを一覧表示するには次のようにします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax list {group-name}</span><br>
+<br>
+これはクラスタ (<a class="Identifier" href="usr_44.html#44.8">|44.8|</a>参照) を一覧表示することもできます。その場合は名前に @<br>
+を付けてください。<br>
+<br>
+<br>
+大文字と小文字の区別<br>
+<span class="PreProc">--------------------</span><br>
+<br>
+Pascal などの言語は大文字と小文字を区別しません。C などの言語は大文字と小文字<br>
+を区別します。次のコマンドで区別するかしないかを指定できます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax case match&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(大文字/小文字を区別する)</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax case ignore&nbsp;&nbsp;&nbsp;&nbsp; (大文字/小文字を区別しない)</span><br>
+<br>
+&quot;match&quot; を指定すると大文字と小文字は区別されます。その場合、&quot;int&quot; と &quot;Int&quot; と<br>
+&quot;INT&quot; はそれぞれ違うものになります。&quot;ignore&quot; を指定した場合は、&quot;Procedure&quot; と<br>
+&quot;PROCEDURE&quot; と &quot;procedure&quot; は同じ扱いになります。<br>
+&quot;:syntax case&quot; コマンドは構文ファイルのどこにでも書くことができ、それ移行の構<br>
+文定義に作用します。ほとんどの場合、&quot;:syntax case&quot; コマンドは構文ファイルに一<br>
+つだけ書きますが、大文字と小文字を区別する要素と区別しない要素を両方もつような<br>
+特殊な言語の場合には、ファイルのいたるところで &quot;:syntax case&quot; コマンドを書くこ<br>
+ともできます。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_44.html#44.2" name="44.2">*44.2*</a>&nbsp;&nbsp;キーワード<br>
+<br>
+最も基本的な構文要素はキーワードです。次のように定義します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax keyword {group} {keyword} ...</span><br>
+<br>
+<span class="Special">{group}</span>&nbsp;は構文グループの名前です。&quot;:highlight&quot; コマンドを使うことで&nbsp;<span class="Special">{group}</span>&nbsp;に<br>
+色を割り当てることができます。<span class="Special">{keyword}</span>&nbsp;は実際のキーワードです。いくつか例を示<br>
+します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax keyword xType int long char</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax keyword xStatement if then else endif</span><br>
+<br>
+&quot;xType&quot; と &quot;xStatement&quot; がグループ名です。習慣的に、グループ名の先頭にはファイ<br>
+ルタイプ名が付けられます。この例では x 言語 (そういう言語があるのではなく単に<br>
+eXample の x) の構文を定義しています。例えば &quot;csh&quot; スクリプト用の構文ファイル<br>
+なら &quot;cshType&quot; という名前になります。つまり、<a class="Type" href="options.html#'filetype'">'filetype'</a>&nbsp;の値と同じものを先頭に<br>
+付けます。<br>
+この例では &quot;int&quot; と &quot;long&quot; と &quot;char&quot; が同じ方法で強調表示され、&quot;if&quot; と &quot;then&quot;<br>
+と &quot;else&quot; と &quot;endif&quot; が別の同じ方法で強調表示されます。次に、x グループ名と<br>
+Vim の標準名を関連付ける必要があります。次のようにします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:highlight link xType Type</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:highlight link xStatement Statement</span><br>
+<br>
+&quot;xType&quot; を &quot;Type&quot; で強調表示し、&quot;xStatement&quot; を &quot;Statement&quot; で強調表示します。<br>
+標準名については&nbsp;<a class="Identifier" href="syntax.html#group-name">|group-name|</a>&nbsp;を参照してください。<br>
+<br>
+<br>
+特殊なキーワード<br>
+<span class="PreProc">----------------</span><br>
+<br>
+キーワードとして使われる文字は&nbsp;<a class="Type" href="options.html#'iskeyword'">'iskeyword'</a>&nbsp;オプションに指定されていなければな<br>
+りません。それ以外の文字を使った場合、その単語は決してマッチしません。Vim はそ<br>
+のことについて警告メッセージを出しません。<br>
+例題の x 言語は '-' 文字をキーワードとして使えます。それは次のように設定しま<br>
+す:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal iskeyword+=-</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax keyword xStatement when-not</span><br>
+<br>
+&quot;:setlocal&quot; コマンドを使って、カレントバッファだけ&nbsp;<a class="Type" href="options.html#'iskeyword'">'iskeyword'</a>&nbsp;を変更していま<br>
+す。この設定によって &quot;w&quot; や &quot;*&quot; などのコマンドの動作も変更されます。動作を変更<br>
+したくない場合は、キーワードではなくマッチを使ってください(次節で説明します)。<br>
+<br>
+x 言語では短縮形も使えます。例えば、&quot;next&quot; は &quot;n&quot;、&quot;ne&quot;、&quot;nex&quot; に短縮できま<br>
+す。次のコマンドでそれを定義できます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax keyword xStatement n[ext]</span><br>
+<br>
+これは &quot;nextone&quot; にはマッチしません。キーワードは常に単語全体にのみマッチしま<br>
+す。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_44.html#44.3" name="44.3">*44.3*</a>&nbsp;&nbsp;マッチ<br>
+<br>
+もう少し複雑なものを定義してみましょう。普通の識別子にマッチさせるため、マッチ<br>
+構文アイテムを定義します。次の例は、すべての文字が小文字の単語にマッチします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xIdentifier /\&lt;\l\+\&gt;/</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーワードは他の構文アイテムより優先されます。&quot;if&quot; や &quot;then&quot; などの<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーワード (上述の &quot;:syntax keyword&quot; コマンドで定義したもの) は、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xIdentifier にもマッチしますが、キーワードとして扱われます。<br>
+<br>
+最後の部分はパターンです。これは検索で使用するものと同じです。// を使ってパ<br>
+ターンを囲みます (&quot;:substitute&quot; コマンドと同じ)。+ や &quot; など、他の文字を使うこ<br>
+ともできます。<br>
+<br>
+次はコメント用のマッチを定義してみます。x 言語では &quot;#&quot; から行末までがコメント<br>
+になります:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xComment /#.*/</span><br>
+<br>
+すべての検索パターンが使えるので、マッチを使うことで非常に複雑なものを強調表示<br>
+できます。検索パターンについては&nbsp;<a class="Identifier" href="pattern.html#pattern">|pattern|</a>&nbsp;を参照してください。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_44.html#44.4" name="44.4">*44.4*</a>&nbsp;&nbsp;リージョン<br>
+<br>
+例題の x 言語では、文字列をダブルクオートで囲みます。文字列を強調表示するため<br>
+にリージョン (領域) を定義します。それにはリージョンの開始 (ダブルクオート) と<br>
+リージョンの終了 (ダブルクオート) が必要です。定義は次のようになります:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xString start=/&quot;/ end=/&quot;/</span><br>
+<br>
+&quot;start&quot; と &quot;end&quot; に指定したパターンは、リージョンの開始と終了を探すために使用<br>
+されます。しかし次のような文字列があったらどうなるでしょうか？<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">&quot;A string with a double quote (\&quot;) in it&quot;</span><br>
+<br>
+これはうまくいきません。文字列の途中のダブルクオートによってリージョンが終了し<br>
+てしまいます。文字列中のエスケープされたダブルクオートをスキップするように指定<br>
+する必要があります。それには &quot;skip&quot; キーワードを使います:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xString start=/&quot;/ skip=/\\&quot;/ end=/&quot;/</span><br>
+<br>
+検索パターンの中ではバックスラッシュが特殊な文字として使われるので、連続した二<br>
+つのバックスラッシュが一つのバックスラッシュにマッチします。<br>
+<br>
+マッチではなくリージョンを使うのはどんな場面しょうか？主な違いは、マッチは一つ<br>
+のパターンであり、そのパターン全体がマッチするということです。リージョンは<br>
+&quot;start&quot; パターンがマッチするとすぐに開始されます。&quot;end&quot; パターンが見つかるかど<br>
+うかは関係ありません。つまり、構文アイテムが &quot;end&quot; パターンにマッチすることに<br>
+依存している場合はリージョンは使えません。それが大丈夫なら、リージョンを定義す<br>
+る方が簡単な場合が多々あります。また、次の節でも述べるように、構文アイテムを入<br>
+れ子にする場合もリージョンが適しています。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_44.html#44.5" name="44.5">*44.5*</a>&nbsp;&nbsp;構文アイテムを入れ子にする<br>
+<br>
+次のようなコメントがあります:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">%Get input&nbsp;&nbsp;TODO: Skip white space</span><br>
+<br>
+コメントを青色で強調表示し、その中の TODO を黄色の大きな字で強調表示してみま<br>
+しょう。それには、次のような構文グループを定義します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax keyword xTodo TODO contained</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xComment /%.*/ contains=xTodo</span><br>
+<br>
+一行目の &quot;contained&quot; 引数は、そのキーワードが他の構文アイテムの中にのみ出現す<br>
+ることを示しています。二行目の &quot;contains=xTodo&quot; は、その構文アイテムの中に<br>
+xTodo が出現することを示しています。結果、コメント全体は &quot;xComment&quot; にマッチし<br>
+て青色になり、その中の TODO は xTodo にマッチして黄色になります (xTodo に対す<br>
+る強調表示が設定してあるなら)。<br>
+<br>
+<br>
+入れ子の再帰<br>
+<span class="PreProc">------------</span><br>
+<br>
+x 言語では波カッコでコードブロックを表現します。コードブロックの中にはさらに別<br>
+のコードブロックを入れることができます。これは次のように定義できます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xBlock start=/{/ end=/}/ contains=xBlock</span><br>
+<br>
+例えば、次のようなテキストがあった場合:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">while i &lt; b {</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">if a {</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">b = c;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">}</span><br>
+<br>
+まず、一行目の { で一つ目の xBlock が開始します。二行目には別の { があります。<br>
+そこは xBlock の中で、xBlock は自身を含むことができるので、二つ目の xBlock が<br>
+開始します。したがって、&quot;b = c&quot; の行は第二レベルの xBlock リージョンの中という<br>
+ことになります。次の行には } があり、これはリージョンの末尾を示すパターンに<br>
+マッチするので、これによって二つ目の xBlock が閉じます。この } は二つ目の<br>
+xBlock リージョンの中の文字なので、一つ目の xBlock リージョンからは隠されま<br>
+す。そして、最後の } によって一つ目の xBlock リージョンが閉じます。<br>
+<br>
+<br>
+末尾をキープする<br>
+<span class="PreProc">----------------</span><br>
+<br>
+次の二つの構文アイテムを見てみましょう:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xComment start=/%/ end=/$/ contained</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xPreProc start=/#/ end=/$/ contains=xComment</span><br>
+<br>
+% から行末までをコメントとして定義し、# から行末までをプリプロセッサ指令として<br>
+定義しています。プリプロセッサ行にはコメントを入れることができるので、プリプロ<br>
+セッサの定義には &quot;contains=xComment&quot; 引数が指定されています。では、次のような<br>
+テキストで何が起こるか見てみましょう:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">#define X = Y&nbsp;&nbsp;% Comment text</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">int foo = 1;</span><br>
+<br>
+このテキストは、二行目も xPreProc として強調表示されます。プリプロセッサ指令は<br>
+行末で終るものであり、そのために &quot;end=/$/&quot; と指定しました。何が間違っていたの<br>
+でしょうか？<br>
+問題は内包されたコメントにあります。コメントは % で始まり、行末で終ります。コ<br>
+メントが終るとプリプロセッサ構文に戻りますが、それは行末が処理された後なので、<br>
+次の行も含まれてしまうのです。<br>
+この問題を回避し、内包された構文が改行を消費しないようにするには、&quot;keepend&quot; 引<br>
+数を使います。これで、行末への二重マッチに対応できます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xComment start=/%/ end=/$/ contained</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xPreProc start=/#/ end=/$/ contains=xComment keepend</span><br>
+<br>
+<br>
+複数アイテムの内包<br>
+<span class="PreProc">------------------</span><br>
+<br>
+&quot;contains=&quot; 引数には「すべての構文アイテム」を指定することができます。例:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xList start=/\[/ end=/\]/ contains=ALL</span><br>
+<br>
+xList にはすべての構文アイテムが内包されます。「すべて」は自分自身を含みます<br>
+が、同じ位置のものは除外されます (無限ループを避けるため)。<br>
+一部のグループだけを除外するような指定もできます。つまり、指定したグループ以外<br>
+のグループを内包できます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xList start=/\[/ end=/\]/ contains=ALLBUT,xString</span><br>
+<br>
+&quot;TOP&quot; を指定すると、&quot;contained&quot; 引数を持たないすべてのアイテムが対象になりま<br>
+す。&quot;CONTAINED&quot; を指定すると、&quot;contained&quot; 引数を持つアイテムだけが対象になりま<br>
+す。詳しくは&nbsp;<a class="Identifier" href="syntax.html#:syn-contains">|:syn-contains|</a>&nbsp;を参照してください。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_44.html#44.6" name="44.6">*44.6*</a>&nbsp;&nbsp;グループの並び<br>
+<br>
+x 言語には次のような形式のステートメントがあります:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">if (condition) then</span><br>
+<br>
+この三つのアイテムを別々に強調表示します。ただし、&quot;(condition)&quot; と &quot;then&quot; は他<br>
+の場所にも出現し、そこでは別の方法で強調表示されることもあります。次のように定<br>
+義します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xIf /if/ nextgroup=xIfCondition skipwhite</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xIfCondition /([^)]*)/ contained nextgroup=xThen skipwhite</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xThen /then/ contained</span><br>
+<br>
+&quot;nextgroup&quot; 引数で、次に来るアイテムを指定します。これは (マッチするための) 必<br>
+須条件にはなりません。指定されたアイテムが見つからなかった場合は何も起こりませ<br>
+ん。例えば、次のテキストの場合:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">if not (condition) then</span><br>
+<br>
+&quot;if&quot; は xIf にマッチします。&quot;not&quot; は nextgroup に指定された xIfCondition に<br>
+マッチしません。したがって、&quot;if&quot; だけが強調表示されます。<br>
+<br>
+&quot;skipwhite&quot; 引数を指定すると、次のアイテムとの間に空白 (スペースとタブ) をはさ<br>
+むことができます。同様に、&quot;skipnl&quot; を指定すれば、次のアイテムとの間に改行をは<br>
+さむことができ、&quot;skipempty&quot; を指定すれば、空行をはさむことができます。ただし、<br>
+&quot;skipnl&quot; は空行をスキップしないので注意してください。改行の後で何かにマッチす<br>
+る必要があります。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_44.html#44.7" name="44.7">*44.7*</a>&nbsp;&nbsp;その他の引数<br>
+<br>
+MATCHGROUP<br>
+<span class="PreProc">----------</span><br>
+<br>
+リージョンは、リージョン全体が同じグループで強調表示されます。例えば、() で囲<br>
+まれたテキストを xInside グループで強調表示するため、次のように定義します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xInside start=/(/ end=/)/</span><br>
+<br>
+このときに、カッコだけを別の方法で強調表示することを考えます。複雑な方法を使っ<br>
+て定義することもできますが、&quot;matchgroup&quot; 引数を使う方法もあります。<br>
+&quot;matchgroup&quot; を指定すると、リージョンの start と end の部分を別の強調グループ<br>
+で表示できます (この例では xParen):<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xInside matchgroup=xParen start=/(/ end=/)/</span><br>
+<br>
+&quot;matchgroup&quot; 引数は、その引数より後ろに指定された start と end に対して適用さ<br>
+れます。上の例では start と end の両方が xParen で強調表示されます。end を<br>
+xParenEnd で強調表示する場合は次のようにします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xInside matchgroup=xParen start=/(/</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ matchgroup=xParenEnd end=/)/</span><br>
+<br>
+&quot;matchgroup&quot; を使うと、内包されたアイテムが start と end の部分にマッチしなく<br>
+なります。次の &quot;transparent&quot; の例題ではそれを利用しています。<br>
+<br>
+<br>
+TRANSPARENT (透過)<br>
+<span class="PreProc">------------------</span><br>
+<br>
+例えば C 言語のファイルで、&quot;while&quot; の後の () と、&quot;for&quot; の後の () を別の方法で<br>
+強調表示してみます。両方とも () を入れ子にできて、それが外側の () と同じ方法で<br>
+強調表示されるようにします。() の強調表示は ) がマッチしたところでストップしま<br>
+す。それには、例えば次のようにします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region cWhile matchgroup=cWhile start=/while\s*(/ end=/)/</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ contains=cCondNest</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region cFor matchgroup=cFor start=/for\s*(/ end=/)/</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ contains=cCondNest</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region cCondNest start=/(/ end=/)/ contained transparent</span><br>
+<br>
+cWhile と cFor には別の強調表示が使われます。cCondNest は両方に出現し、自身を<br>
+内包しているアイテムと同じ強調グループで強調表示されます。&quot;transparent&quot; 引数に<br>
+よってこのような動作になります。<br>
+この例では、&quot;matchgroup&quot; 引数に自分自身のグループを指定しています。その理由<br>
+は、matchgroup を使うことで、内包されたアイテムが start の部分にマッチしないと<br>
+いう副作用が発生するからです。それを利用して cCondNest グループが &quot;while&quot; や<br>
+&quot;for&quot; の直後の ( にマッチしないようにしています。もし直後の ( にマッチしてしま<br>
+うと、cCondNest は ) までのすべてのテキストにマッチしてしまい、その後ろから<br>
+リージョンが再開することになってしまいます。matchgroup を指定することで、<br>
+cCondNest は start の後、つまり最初の ( より後でマッチするようになります。<br>
+<br>
+<br>
+オフセット<br>
+<span class="PreProc">----------</span><br>
+<br>
+&quot;if&quot; の後ろにある ( と ) の間のテキストをリージョンとして定義します。ただし、<br>
+&quot;if&quot; と () 自体はリージョンに含めたくありません。そのような場合はオフセットを<br>
+使います。例:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xCond start=/if\s*(/ms=e+1 end=/)/me=s-1</span><br>
+<br>
+start パターンには &quot;ms=e+1&quot; というオフセットが指定されています。&quot;ms&quot; は Match<br>
+Start という意味です。マッチの開始位置のオフセットを設定できます。通常は、パ<br>
+ターンがマッチした場所がマッチの開始位置になります。&quot;e+1&quot; はパターンがマッチし<br>
+たテキストの末尾からさらに一つ進んだ場所を示します。<br>
+end パターンには &quot;me=s-1&quot; というオフセットが指定されています。&quot;me&quot; は Match<br>
+End という意味です。&quot;s-1&quot; はパターンにマッチしたテキストの先頭から一つ戻った場<br>
+所を示します。例えば、次のテキストでは:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">if (foo == bar)</span><br>
+<br>
+&quot;foo == bar&quot; の部分だけが xCond で強調表示されます。<br>
+<br>
+オフセットの詳細については&nbsp;<a class="Identifier" href="syntax.html#:syn-pattern-offset">|:syn-pattern-offset|</a>&nbsp;を参照してください。<br>
+<br>
+<br>
+ONELINE<br>
+<span class="PreProc">-------</span><br>
+<br>
+&quot;oneline&quot; 引数は、リージョンが複数行にまたがらないことを示します。例:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xIfThen start=/if/ end=/then/ oneline</span><br>
+<br>
+これは &quot;if&quot; で始まって &quot;then&quot; で終るリージョンを定義しています。ただし、&quot;if&quot;<br>
+と &quot;then&quot; が同じ行にない場合はマッチしません。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;oneline&quot; を使用した場合、end パターンが同じ行でマッチしない限り、リー<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ジョンは開始されません。&quot;oneline&quot; がない場合は、end パターンがマッチす<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る場所があるかどうかはチェックされません。その場合、たとえ end パター<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ンにマッチする場所がなくても、リージョンは開始されます。<br>
+<br>
+<br>
+行の継続と継続の回避<br>
+<span class="PreProc">--------------------</span><br>
+<br>
+さて、少し複雑になってきました。次はプリプロセッサ行を定義してみます。プリプロ<br>
+セッサ行は行頭の # で始まり、行末まで続きます。行末が \ で終っていた場合は、次<br>
+の行まで継続します。それには、継続パターンにマッチする構文アイテムを内包するよ<br>
+うに指定します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xPreProc start=/^#/ end=/$/ contains=xLineContinue</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xLineContinue &quot;\\$&quot; contained</span><br>
+<br>
+通常は xPreProc は単一行にマッチしますが、内包された xLineContinue によって次<br>
+の行まで継続するようになります。例えば、次のテキストは二行ともマッチします:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">#define SPAM&nbsp;&nbsp;spam spam spam \</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">bacon and spam</span><br>
+<br>
+これは期待した動作ですね。あるいは、内包されたパターンに &quot;excludenl&quot; を指定す<br>
+ることによって、リージョンを単一行に収めることもできます。例えば、xPreProc の<br>
+中で、行末に &quot;end&quot; があったときに、それを強調表示したいような場合に使います。<br>
+xPreProc が (xLineContinueのときのように) 次の行に継続しないようにするには、次<br>
+のように &quot;excludenl&quot; を使います:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region xPreProc start=/^#/ end=/$/</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ contains=xLineContinue,xPreProcEnd</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xPreProcEnd excludenl /end$/ contained</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xLineContinue &quot;\\$&quot; contained</span><br>
+<br>
+&quot;excludenl&quot; はパターン指定の前に置いてください。&quot;xLineContinue&quot; には<br>
+&quot;excludenl&quot; が指定されていないので、最初の例と同様、マッチすることによって<br>
+xPreProc リージョンが拡張されます。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_44.html#44.8" name="44.8">*44.8*</a>&nbsp;&nbsp;クラスタ<br>
+<br>
+構文ファイルを書いてみると、実にたくさんの構文グループを作成するということに気<br>
+付くと思います。必要なら、クラスタと呼ばれるものを定義して複数の構文グループを<br>
+ひとまとめにすることができます。<br>
+例えば、for ループ、if 文、while ループ、関数、などを持った言語があります。そ<br>
+れぞれは数値や識別子など、同じ構文要素を含むことができます。それを次のように定<br>
+義してみます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xFor /^for.*/ contains=xNumber,xIdent</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xIf /^if.*/ contains=xNumber,xIdent</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xWhile /^while.*/ contains=xNumber,xIdent</span><br>
+<br>
+同じ &quot;contains=&quot; を何度も書かなければなりません。内包されるアイテムを追加する<br>
+ときは、その変更を三回繰り返すことになります。クラスタを使って複数の構文グルー<br>
+プをひとまとめにすることで、このような指定が簡単になります。<br>
+上の三つのグループが内包している二つのアイテムをクラスタとして定義するには、次<br>
+のコマンドを使います:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax cluster xState contains=xNumber,xIdent</span><br>
+<br>
+クラスタは他の構文アイテムの中で使われます。使い方は普通の構文アイテムと同じで<br>
+す。名前の先頭に @ を付けてください。例の三つの構文アイテムは次のように定義で<br>
+きます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xFor /^for.*/ contains=@xState</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xIf /^if.*/ contains=@xState</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax match xWhile /^while.*/ contains=@xState</span><br>
+<br>
+クラスタに構文グループを追加するには &quot;add&quot; 引数を使います:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax cluster xState add=xString</span><br>
+<br>
+クラスタから構文グループを取り除くこともできます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax cluster xState remove=xNumber</span><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_44.html#44.9" name="44.9">*44.9*</a>&nbsp;&nbsp;他の構文ファイルをインクルードする<br>
+<br>
+C++ 言語の構文は C 言語のスーパーセットです。構文ファイルを二つも書くのは避け<br>
+たいので、次のコマンドを使って、C++ 構文ファイルの中で C 構文ファイルを読み込<br>
+みます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:runtime! syntax/c.vim</span><br>
+<br>
+&quot;:runtime!&quot; コマンドは&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;の中からすべての &quot;syntax/c.vim&quot; を探しま<br>
+す。そして、C ファイルを開いたときと同様に、C++ における C の部分の構文が定義<br>
+されます。c.vim 構文ファイルを入れ替えていたり、拡張ファイルで構文アイテムを追<br>
+加していたりする場合は、それらも読み込まれます。<br>
+C の構文アイテムをロードしたら、C++ 特有の構文アイテムを定義します。例えば、C<br>
+にはないキーワードを定義します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax keyword cppStatement&nbsp;&nbsp;&nbsp;&nbsp;new delete this friend using</span><br>
+<br>
+コマンドの動作は普通の構文ファイルのときと同じです。<br>
+<br>
+次に、Perl 言語を考えてみましょう。Perl スクリプトは二つの異なる部分で構成され<br>
+ます。一つは POD 形式のドキュメントセクション、もう一つは Perl で書かれたプロ<br>
+グラムです。POD セクションは &quot;=head&quot; で始まり &quot;=cut&quot; で終ります。<br>
+POD 構文の定義を一つのファイルに書き、Perl 構文ファイルの中からそれを使いま<br>
+す。&quot;:syntax include&quot; コマンドで構文ファイルを読み込むと、その中で定義されてい<br>
+る要素がクラスタに格納されます。Perl の場合、次のようなコマンドを使います:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax include @Pod &lt;sfile&gt;:p:h/pod.vim</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax region perlPOD start=/^=head/ end=/^=cut/ contains=@Pod</span><br>
+<br>
+Perl ファイルの中で &quot;=head&quot; が見つかると perlPOD リージョンが開始します。<br>
+perlPOD リージョンは @Pod クラスタを内包しています。リージョンの中では、<br>
+pod.vim 構文ファイルで定義されたトップレベルの構文アイテムがマッチします。<br>
+&quot;=cut&quot; が見つかるとリージョンは終了し、Perl ファイルの構文アイテムに戻ります。<br>
+&quot;:syntax include&quot; コマンドで読み込まれたファイル内の &quot;:syntax clear&quot; コマンド<br>
+は適切に無視されます。さらに、&quot;contains=ALL&quot; のような引数は同じファイルの構文<br>
+アイテムだけが対象になります。呼び出し元の構文アイテムは対象になりません。<br>
+&quot;<span class="Special">&lt;sfile&gt;</span>:p:h/&quot; の部分は、カレントファイル名 (<span class="Special">&lt;sfile&gt;</span>) をフルパス (:p) に展開<br>
+し、その head (先端) (:h) を取り出しています。展開結果はファイルのディレクトリ<br>
+名になります。つまり、同じディレクトリの pod.vim がインクルードされます。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_44.html#44.10" name="44.10">*44.10*</a>&nbsp;シンクロナイズ (構文解析の同期)<br>
+<br>
+例えばコンパイラなら話は簡単です。ファイルの先頭から開始して、順番に構文解析し<br>
+ていくだけです。しかし Vim では、ユーザーが編集している場所、つまりファイルの<br>
+途中から構文解析が開始されます。どのようにして適切な開始位置を決めているので<br>
+しょうか。<br>
+秘密は &quot;:syntax sync&quot; コマンドにあります。このコマンドを使って、構文解析の開始<br>
+位置を指定します。例えば、次のコマンドを使うと、C スタイルコメントの開始位置、<br>
+あるいは終了位置が後方検索され、その場所から構文ハイライトが開始されます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax sync ccomment</span><br>
+<br>
+引数を指定して動作を調整できます。&quot;minlines&quot; 引数には、後方検索で戻る最小の行<br>
+数を指定します。&quot;maxlines&quot; 引数には、検索される行数の上限を指定します。<br>
+例えば、画面の一番上に表示されている行から、最低でも 10 行前まで調べるようにす<br>
+るには、次のようにします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax sync ccomment minlines=10 maxlines=500</span><br>
+<br>
+最小の範囲内で見つからなかった場合は、適切な場所が見つかるまで、さらに戻って調<br>
+べます。ただし、500 行以上は戻りません。 (&quot;maxlines&quot; を大きくすると処理速度が<br>
+遅くなります。小さ過ぎるとシンクロナイズに失敗してしまいます。)<br>
+シンクロナイズは、スキップ可能な構文アイテムを指定することで、少し高速になりま<br>
+す。テキストを実際に表示するときだけ必要な構文アイテムを定義するときに<br>
+&quot;display&quot; 引数を指定してください。<br>
+デフォルトでは、検索されたコメントは Comment 構文グループで強調表示されます。<br>
+他の方法で強調表示したい場合は、使用したい構文グループを指定してください:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax sync ccomment xAltComment</span><br>
+<br>
+プログラミング言語が C スタイルコメントを持っていない場合は、他の方法でシンク<br>
+ロナイズします。最も簡単なのは、戻る行数を指定して、その場所から構文解析を試す<br>
+方法です。例えば、150 行前に戻って、そこから構文解析を開始するには、次のように<br>
+します:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax sync minlines=150</span><br>
+<br>
+&quot;minlines&quot; に大きな値を指定すると Vim の動作が遅くなります (特に上方にスクロー<br>
+ルする場合など)。<br>
+検索対象になる構文グループを指定することもできます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax sync match {sync-group-name}</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ grouphere {group-name} {pattern}</span><br>
+<br>
+<span class="Special">{group-name}</span>&nbsp;という構文グループが&nbsp;<span class="Special">{pattern}</span>&nbsp;にマッチした場所のすぐ後から開始す<br>
+るということを定義します。<span class="Special">{sync-group-name}</span>&nbsp;はシンクロナイズ定義の名前です。例<br>
+えば、sh スクリプトでは if 文を &quot;if&quot; で開始し、&quot;fi&quot; で閉じます:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">if [ --f file.txt ] ; then</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">echo &quot;File exists&quot;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">fi</span><br>
+<br>
+この構文に対して &quot;grouphere&quot; を定義すると、次のようになります:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax sync match shIfSync grouphere shIf &quot;\&lt;if\&gt;&quot;</span><br>
+<br>
+&quot;groupthere&quot; 引数を使ってグループの終端を示すパターンを指定します。例えば、<br>
+if/fi グループの終端は次のように定義できます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax sync match shIfSync groupthere NONE &quot;\&lt;fi\&gt;&quot;</span><br>
+<br>
+この例では、NONE を指定して、パターンにマッチした場所が特定のリージョンの中で<br>
+はないこと、つまりは if ブロックの中ではないことを指定しています。<br>
+<br>
+&quot;grouphere&quot; 引数と &quot;groupthere&quot; 引数を指定しないで、マッチやリージョンを定義す<br>
+ることもできます。そのようなグループはシンクロナイズのときにスキップされます。<br>
+例えば、次のように定義すると、{} で囲まれた範囲がスキップされます (他のシンク<br>
+ロナイズメソッドにマッチする場合でも):<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax sync match xSpecial /{.*}/</span><br>
+<br>
+シンクロナイズの詳細はリファレンスマニュアルの<a class="Identifier" href="syntax.html#:syn-sync">|:syn-sync|</a>を参照してください。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_44.html#44.11" name="44.11">*44.11*</a>&nbsp;構文ファイルをインストールする<br>
+<br>
+新しい構文ファイルを使用する準備ができたら、それを&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;の &quot;syntax&quot;<br>
+ディレクトリにコピーしてください。Unix なら &quot;~/.vim/syntax&quot; です。<br>
+構文ファイルの名前はファイルタイプ名に &quot;.vim&quot; を付けた名前にします。したがっ<br>
+て、x 言語ならファイルのフルパスは次のようになります:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">~/.vim/syntax/x.vim</span><br>
+<br>
+さらに、ファイルタイプが認識されるように設定する必要があります。<a class="Identifier" href="usr_43.html#43.2">|43.2|</a>&nbsp;参照。<br>
+<br>
+構文ファイルがうまく動作したら、それを他の Vim ユーザーが利用できるようにして<br>
+あげるといいでしょう。まず次のセクションを読んで、構文ファイルが他の環境でも動<br>
+作するようにしてください。そして、Vim のメンテナ &lt;maintainer@vim.org&gt; にメール<br>
+を送ってください。ファイルタイプの認識方法の説明もお願いします。よほどのことが<br>
+ない限り、Vim のバージョンアップに合わせて取り込まれます。<br>
+<br>
+<br>
+既存の構文ファイルを拡張する<br>
+<span class="PreProc">----------------------------</span><br>
+<br>
+上記は、完全に新しい構文ファイルを作成する場合の説明です。既存の構文ファイルを<br>
+使っていて、それに足りない構文アイテムがあるような場合には、それとは別のファイ<br>
+ルを使って構文アイテムを追加することができます。ファイルを別にすることで、Vim<br>
+をバージョンアップしたときに変更が失われてしまうのを防止します。<br>
+syntax コマンドを自分のファイルに書きます。できる限り既存の構文グループの名前<br>
+を使ってください。例えば、C 構文ファイルに新しい変数タイプを追加するには、次の<br>
+ように書きます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:syntax keyword cType off_t uint</span><br>
+<br>
+これを、元の構文ファイルと同じ名前で保存します。この場合なら &quot;c.vim&quot; です。そ<br>
+のファイルを&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;の最後の方にあるディレクトリに置きます。そうするこ<br>
+とで、元の構文ファイルよりも後に読み込ませます。Unix なら次の場所に保存します:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">~/.vim/after/syntax/c.vim</span><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_44.html#44.12" name="44.12">*44.12*</a>&nbsp;ポータブルな構文ファイル<br>
+<br>
+すべての Vim ユーザーが構文ファイルを共有できれば素晴らしいと思いませんか？そ<br>
+のためには、構文ファイルはいくつかのガイドラインに従っている必要があります。<br>
+<br>
+ファイルの先頭にヘッダを書いてください。構文ファイルの用途、メンテナ、最終更新<br>
+日を書きます。詳細な変更履歴は必要ありません(ほとんどの人はそれを読みません)。<br>
+例:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; Vim syntax file</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; Language:&nbsp;&nbsp;&nbsp;&nbsp; C</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; Maintainer:&nbsp;&nbsp; Bram Moolenaar &lt;Bram@vim.org&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; Last Change:&nbsp;&nbsp;2001 Jun 18</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; Remark:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Included by the C++ syntax.</span><br>
+<br>
+他の構文ファイルと同じレイアウトを使ってください。既存の構文ファイルを参考にす<br>
+ると時間を節約できます。<br>
+<br>
+構文ファイルには分かりやすい名前を付けます。小文字と数字だけを使ってください。<br>
+名前は多くの場所で使うので長くなり過ぎないようにします (構文ファイルの名前<br>
+(&quot;name.vim&quot;)、<a class="Type" href="options.html#'filetype'">'filetype'</a>、b:current_syntax、構文グループの接頭辞 (nameType、<br>
+nameStatement、nameString、etc) などで使います)。<br>
+<br>
+最初に &quot;b:current_syntax&quot; をチェックします。これが定義済みなら、他の構文ファイ<br>
+ルが&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;の前の方でロードされたということです:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if exists(&quot;b:current_syntax&quot;)</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;finish</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif</span><br>
+<br>
+Vim 5.8 との互換性が必要なら次のようにします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if version &lt; 600</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;syntax clear</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elseif exists(&quot;b:current_syntax&quot;)</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;finish</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif</span><br>
+<br>
+ファイルの最後で &quot;b:current_syntax&quot; に構文の名前を設定します。ファイルをインク<br>
+ルードしている場合、そのファイルの中でも &quot;b:current_syntax&quot; が設定されるので注<br>
+意してください。複数のファイルをインクルードする場合には、&quot;b:current_syntax&quot;<br>
+をリセットする必要があるかもしれません。<br>
+<br>
+構文ファイルが Vim 5.x でも動作するようにするには、v:version をチェックする必<br>
+要があります。実例は yacc.vim を参照してください。<br>
+<br>
+ユーザー設定を変更しないでください。<a class="Type" href="options.html#'tabstop'">'tabstop'</a>&nbsp;や&nbsp;<a class="Type" href="options.html#'expandtab'">'expandtab'</a>&nbsp;などの設定を変更<br>
+してはいけません。そのような設定はファイルタイププラグインの仕事です。<br>
+<br>
+マップや短縮入力を定義しないでください。<a class="Type" href="options.html#'iskeyword'">'iskeyword'</a>&nbsp;だけは、キーワードの識別に<br>
+どうしても必要なら、設定しても構いません。<br>
+<br>
+ユーザーが好みの色を選択できるように、強調表示されるグループの名前に標準とは違<br>
+う名前を付けます。そして、それらを標準の強調グループにリンクします。そうすれば<br>
+どのカラースキームでも適切に強調表示できます。標準以外の強調グループを使ってし<br>
+まうと、カラースキームによっては正しく強調表示されません。また、ユーザーの環境<br>
+によって背景色が違ったり、色数が 8 色しかない場合もあるので覚えておいてくださ<br>
+い。<br>
+<br>
+強調グループをリンクするには &quot;hi def link&quot; を使います。そうすることで、ユー<br>
+ザーはあなたの構文ファイルがロードされる前の段階で他の強調グループを選択できま<br>
+す。例:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hi def link nameString&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hi def link nameNumber&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Number</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hi def link nameCommand&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Statement</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;... etc ...&nbsp;&nbsp;</span><br>
+<br>
+シンクロナイズで使用しない構文アイテムには &quot;display&quot; 引数を付けてください。上<br>
+方向へのスクロールや&nbsp;<span class="Special">CTRL-L</span>&nbsp;の動作が早くなります。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+次章:&nbsp;<a class="Identifier" href="usr_45.html">|usr_45.txt|</a>&nbsp;&nbsp;言語を選択する<br>
+<br>
+Copyright: see&nbsp;<a class="Identifier" href="usr_01.html#manual-copyright">|manual-copyright|</a>&nbsp;&nbsp;vim:tw=78:ts=8:ft=help:norl:<br>
+<hr>
+<a href="#top">top</a> - <a href="index.html">main help file</a><br>
+
+</body>
+</html>

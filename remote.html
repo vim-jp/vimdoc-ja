@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Vim documentation: remote</title>
+<meta name="Generator" content="Vim/7.3">
+<meta name="plugin-version" content="vim7.3_v6">
+<meta name="syntax" content="help">
+<meta name="settings" content="use_css,no_pre">
+<style type="text/css">
+<!--
+.MissingTag { background-color: black; color: white; }
+.EnglishTag { background-color: gray; color: white; }
+body { color: #000000; background-color: #ffffff; font-family: monospace; }
+.Todo { color: #808080; background-color: #ffff00; }
+.Comment { color: #8080ff; }
+.Ignore { color: #ffffff; font-weight: bold; }
+.Special { color: #ff40ff; }
+.PreProc { color: #ff40ff; }
+-->
+</style>
+</head>
+<body>
+
+<a name="top"></a><h1>Vim documentation: remote</h1>
+<a href="index.html">main help file</a>
+<hr>
+<a class="Constant" href="remote.html" name="remote.txt">*remote.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;For Vim バージョン 7.3.&nbsp;&nbsp;Last change: 2008 May 24<br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar<br>
+<br>
+<br>
+Vimクライアントサーバ通信&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#client-server" name="client-server">*client-server*</a><br>
+<br>
+1. 共通機能&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="remote.html#clientserver">|clientserver|</a><br>
+2. X11特有の項目&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="remote.html#x11-clientserver">|x11-clientserver|</a><br>
+3. Win32特有の項目&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="remote.html#w32-clientserver">|w32-clientserver|</a><br>
+<br>
+{これらのコマンドはViには存在しない}<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+1. 共通機能&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#clientserver" name="clientserver">*clientserver*</a><br>
+<br>
+オプション<a class="Identifier" href="various.html#+clientserver">|+clientserver|</a>でコンパイルした時には、Vimはコマンドサーバとして動作<br>
+することができる。それによりクライアントからメッセージを受け取りそれを実行する<br>
+ことができる。同時に、Vimはクライアントの機能も持ち合わせVimサーバへメッセージ<br>
+を送ることもできる。<br>
+<br>
+以下のコマンドライン引数が利用できる:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">引数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;意味</span><br>
+<br>
+&nbsp;&nbsp; --remote [+<span class="Special">{cmd}</span>]&nbsp;<span class="Special">{file}</span>&nbsp;...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#--remote" name="--remote">*--remote*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイルをリモートのVimで開く。Vimサーバが無い<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;時には、ローカルで実行される。オプションで<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+<span class="Special">{cmd}</span>に一つだけExコマンドを指定できる。コマン<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ドは&quot;|&quot;でつなげて複数指定できる。コマンドライン<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;の残りの部分はファイルのリストとして扱われる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;だからファイルではない引数はこれよりも前に書か<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;なければならない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この方法で標準入力を開くことはできない<a class="Identifier" href="starting.html#--">|--|</a>。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次のようにしなければリモートのVimが問題を起こ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;すかもしれない。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; vim --remote-send &quot;&lt;C-\&gt;&lt;C-N&gt;:n filename&lt;CR&gt;&quot;</span><br>
+&nbsp;&nbsp;&nbsp;--remote-silent [+<span class="Special">{cmd}</span>]&nbsp;<span class="Special">{file}</span>&nbsp;...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#--remote-silent" name="--remote-silent">*--remote-silent*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上と同様、しかしサーバが存在しなくてもエラーを<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;報告しない。指定したファイルがすでにローカルで<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;編集中であっても同様。<br>
+&nbsp;&nbsp; --remote-wait [+<span class="Special">{cmd}</span>]&nbsp;<span class="Special">{file}</span>&nbsp;...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#--remote-wait" name="--remote-wait">*--remote-wait*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--remoteと同様、しかしリモートVimでファイルが<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;完了(解放)されるまで待つ。<br>
+&nbsp;&nbsp; --remote-wait-silent [+<span class="Special">{cmd}</span>]&nbsp;<span class="Special">{file}</span>&nbsp;...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#--remote-wait-silent" name="--remote-wait-silent">*--remote-wait-silent*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--remote-waitと同様、しかしサーバが存在しなく<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;てもエラーを報告しない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#--remote-tab" name="--remote-tab">*--remote-tab*</a><br>
+&nbsp;&nbsp; --remote-tab&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; --remote と同様、しかし各ファイルを新しいタブ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ページで開く。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#--remote-tab-silent" name="--remote-tab-silent">*--remote-tab-silent*</a><br>
+&nbsp;&nbsp; --remote-tab-silent&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--remote-silent と同様、しかし各ファイルを新し<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;いタブページで開く。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#--remote-tab-wait" name="--remote-tab-wait">*--remote-tab-wait*</a><br>
+&nbsp;&nbsp; --remote-tab-wait&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--remote-wait と同様、しかし各ファイルを新しい<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;タブページで開く。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#--remote-tab-wait-silent" name="--remote-tab-wait-silent">*--remote-tab-wait-silent*</a><br>
+&nbsp;&nbsp; --remote-tab-wait-silent&nbsp;&nbsp;&nbsp;&nbsp; --remote-wait-silent と同様、しかし各ファイル<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を新しいタブページで開く。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#--servername" name="--servername">*--servername*</a><br>
+&nbsp;&nbsp; --servername&nbsp;<span class="Special">{name}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;サーバ名<span class="Special">{name}</span>になる。--remoteコマンドのどれか<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1つと併用すると、デフォルトのサーバではなく<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{name}</span>で指定されるサーバに接続する(下を参照)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#--remote-send" name="--remote-send">*--remote-send*</a><br>
+&nbsp;&nbsp; --remote-send&nbsp;<span class="Special">{keys}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; サーバに<span class="Special">{keys}</span>を送信して終了する。<span class="Special">{keys}</span>&nbsp;に<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;マップは適用されない。特殊キー名が使用できる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例：&quot;<span class="Special">&lt;CR&gt;</span>&quot; は CR 文字になる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#--remote-expr" name="--remote-expr">*--remote-expr*</a><br>
+&nbsp;&nbsp; --remote-expr&nbsp;<span class="Special">{expr}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; サーバに<span class="Special">{expr}</span>を実行評価させ、その結果を標準出<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;力に印刷する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#--serverlist" name="--serverlist">*--serverlist*</a><br>
+&nbsp;&nbsp; --serverlist&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; サーバ名のリストを表示する。<br>
+<br>
+<br>
+<span class="PreProc">使用例</span><br>
+<br>
+既に起動しているgvimサーバで&quot;file.txt&quot;を編集する:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;gvim --remote file.txt</span><br>
+<br>
+既に起動しているFOOBARという名のサーバで&quot;file.txt&quot;を編集する:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;gvim --servername FOOBAR --remote file.txt</span><br>
+<br>
+既に起動しているFILESという名のサーバがあれば、FILESで&quot;file.txt&quot;を編集するが、<br>
+無ければ自分がFILESになる:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;gvim --servername FILES --remote-silent file.txt</span><br>
+<br>
+--remoteの後の全ての引数がファイル名として解釈されるので動作しない:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;gvim --remote --servername FOOBAR file.txt</span><br>
+<br>
+リモートサーバで&quot;+foo&quot;という名のファイルを編集する(&quot;./&quot;により先頭の&quot;+&quot;の特別な<br>
+意味が無効化されていることに注目):<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;vim --remote ./+foo</span><br>
+<br>
+&quot;BLA&quot;という名のリモートサーバで編集中の全てのファイルを保存して終了する:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;vim --servername BLA --remote-send '&lt;C-\&gt;&lt;C-N&gt;:wqa&lt;CR&gt;'</span><br>
+<br>
+<span class="PreProc">サーバ名</span><br>
+<br>
+デフォルトではVimは自分が起動された時の名前(gvim, egvim ...)のサーバになろうと<br>
+する。これは引数--servernameで変更できる。指定した名前が利用できない場合には、<br>
+利用できる名前になるように後置名が付加される。例えば、1つのX-Serverで2つ目の<br>
+gvimを起動したときには&quot;gvim1&quot;というようになる。その時のサーバ名へは組み込み変<br>
+数<a class="Identifier" href="eval.html#v:servername">|v:servername|</a>によりアクセスできる。サーバ名の大文字小文字は区別されないの<br>
+で、&quot;gvim&quot; と &quot;GVIM&quot;は同じとみなされる。<br>
+<br>
+Vimが引数--remoteや--remote-waitまたは--remote-sendで起動された時には、上記の<br>
+ようにその名前で起動されたサーバを探そうと試みる。正確に一致するサーバがなかっ<br>
+た時には、数字の後置名を付けて見つかった最初のサーバを使用する。<br>
+引数-- servernameに数字の後置を付けた名前を指定した場合には、それは正確に一致<br>
+するものだけを対象とする。<br>
+<br>
+サーバが見つからなく、--remoteか--remote-waitが使われた時には、Vimは残りのコマ<br>
+ンドラインに従い起動し、そのファイルの編集セッションを自分自身で取り持つ。この<br>
+方法ならgvimはコマンドを送信する時に、既に別のgvimが起動しているかどうかを知る<br>
+必要は無い。<br>
+<br>
+引数--serverlistはVimに登録(実行)されている全てのコマンドサーバを、標準出力<br>
+(stdout)に印刷して終了する。<br>
+<br>
+Win32&nbsp;<span class="Todo">NOTE</span>: Vimサーバをアクティブアプリケーション(トップウィンドウ)にすること<br>
+は、MS-Windowsがそれを許していないので必ずしも成功するわけではない。クライアン<br>
+トは引数--remoteや--remote-waitを使用しサーバ名が&quot;g&quot;で始まる時には、サーバをア<br>
+クティブアプリケーションにすることを試みる。<br>
+<br>
+<br>
+<span class="PreProc">リモート編集</span><br>
+<br>
+引数--argumentは残りのコマンドラインから<a class="Identifier" href="windows.html#:drop">|:drop|</a>コマンドを構成することをを引き<br>
+起こし、それを上記の方法で送信する。<br>
+引数--remote-waitは同じ事をして、加えて全てのファイルの編集の完了を待つように<br>
+設定される。これはBufUnloadイベントを使用し、だからファイルがアンロードされる<br>
+とすぐに、Vimはファイルの編集が完了したと判断する。<br>
+引数--remoteと--remote-waitは残りのコマンドライン全てを自分のものとして扱うこ<br>
+とに注意。言い換えれば残り全ての引数はファイル名とみなされる。そこにオプション<br>
+を置くことはできない!<br>
+<br>
+<br>
+<span class="PreProc">Vimスクリプト関数</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#E240" name="E240">*E240*</a>&nbsp;<a class="Constant" href="remote.html#E573" name="E573">*E573*</a><br>
+Vimスクリプトにはコマンドサーバを操作するために幾つか関数がある。詳細な解説は<br>
+<a class="Identifier" href="eval.html">|eval.txt|</a>を参照するか、関数名の上で<span class="Special">CTRL-]</span>を使って完全な解説を参照すること。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">概要&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 説明</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;remote_expr( server, string, idvar)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;式を送信する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;remote_send( server, string, idvar)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーシーケンスを送信する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;serverlist()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 利用可能なサーバのリストを得る<br>
+&nbsp;&nbsp;&nbsp;&nbsp;remote_peek( serverid, retvar)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 結果文字列の有無確認する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;remote_read( serverid)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 結果文字列を取得する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;server2client( serverid, string)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 結果文字列を送信する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;remote_foreground( server)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; サーバを前面に移動する<br>
+<br>
+<a class="Identifier" href="intro.html#CTRL-\_CTRL-N">|CTRL-\_CTRL-N|</a>の説明も参照。キーシーケンスの先頭に使用すると便利。<br>
+server2client()で使用するサーバIDはexpand(&quot;<span class="Special">&lt;client&gt;</span>&quot;)で取得できる。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+2. X11特有の項目&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#x11-clientserver" name="x11-clientserver">*x11-clientserver*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#E247" name="E247">*E247*</a>&nbsp;<a class="Constant" href="remote.html#E248" name="E248">*E248*</a>&nbsp;<a class="Constant" href="remote.html#E251" name="E251">*E251*</a>&nbsp;<a class="Constant" href="remote.html#E258" name="E258">*E258*</a>&nbsp;<a class="Constant" href="remote.html#E277" name="E277">*E277*</a><br>
+<br>
+クライアントとサーバ間の通信はXサーバにより行なわれる。Vimサーバのディスプレイ<br>
+を指定する必要がある。Xサーバの通常の保護機能が使われているは、通信が成り立つ<br>
+ためにはそのXサーバでウィンドウを作成できなければならない。異なるマシン間での<br>
+通信も可能である。<br>
+<br>
+デフォルトでは、GUI Vim は X サーバに名前を登録して送信された文字列を実行でき<br>
+るように備える。Vim はクライアントとしても振舞い、同じ X11 ディスプレイで動作<br>
+する別の Vim インスタンスに文字列を送ることができる。<br>
+<br>
+X11のGUI Vim(gvim)が起動すると、ルートウィンドウの'VimRegistry'プロパティに<br>
+送信サーバ名を登録しようと試みる。<br>
+<br>
+X11ディスプレイにアクセスできる非GUIのVim(<a class="Identifier" href="term.html#xterm-clipboard">|xterm-clipboard|</a>が有効になっている)<br>
+も、サーバ名が引数--servernameで明示的に与えられればコマンドサーバとして振舞う<br>
+ことができる。<br>
+<br>
+引数に--servernameサーバ名を与えなければコマンドサーバ機能を無効にできる。<br>
+<br>
+異なるアプリケーションからVimサーバへコマンドを送るには、使われているプロトコ<br>
+ルの幾つかのヒントを含むソースコードsrc/if_xcmdsrv.cを参照のこと。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+3. Win32特有の項目&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="remote.html#w32-clientserver" name="w32-clientserver">*w32-clientserver*</a><br>
+<br>
+全てのWin32版Vimはコンソールもサーバとして動作できる。OLEを組み込んでコンパイ<br>
+ルする必要は無い。どのMS-Windowsでも動作する、Windowsメッセージが使用されてい<br>
+る。しかしネットワークを通じてやり取りすることはできない。<br>
+<br>
+MS-Windowsメッセージを使っているから、どのようなアプリケーションでもVimサーバ<br>
+と通信することができる。加えてOLEの機能を使うこともできる<a class="Identifier" href="if_ole.html#ole-interface">|ole-interface|</a>。<br>
+<br>
+gvimを使っている時には、--remote-waitは以下のようにしないと正しく動作しない:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;start /w gvim --remote-wait file.txt</span><br>
+<br>
+&nbsp;vim:tw=78:sw=4:ts=8:ft=help:norl:<br>
+<hr>
+<a href="#top">top</a> - <a href="index.html">main help file</a><br>
+
+</body>
+</html>

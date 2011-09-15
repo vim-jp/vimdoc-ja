@@ -1,0 +1,783 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Vim documentation: ft_sql</title>
+<meta name="Generator" content="Vim/7.3">
+<meta name="plugin-version" content="vim7.3_v6">
+<meta name="syntax" content="help">
+<meta name="settings" content="use_css,no_pre">
+<style type="text/css">
+<!--
+.MissingTag { background-color: black; color: white; }
+.EnglishTag { background-color: gray; color: white; }
+body { color: #000000; background-color: #ffffff; font-family: monospace; }
+.Todo { color: #808080; background-color: #ffff00; }
+.Statement { color: #ffff00; }
+.Special { color: #ff40ff; }
+.Comment { color: #8080ff; }
+.Ignore { color: #ffffff; font-weight: bold; }
+.Constant { color: #ff6060; }
+.PreProc { color: #ff40ff; }
+-->
+</style>
+</head>
+<body>
+
+<a name="top"></a><h1>Vim documentation: ft_sql</h1>
+<a href="index.html">main help file</a>
+<hr>
+<a class="Constant" href="ft_sql.html" name="ft_sql.txt">*ft_sql.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;For Vim バージョン 7.3.&nbsp;&nbsp;Last change: 2010 Jul 20<br>
+<br>
+by David Fishburn<br>
+<br>
+これは SQL ファイルを編集するためのファイルタイププラグインです。<br>
+<br>
+Structured Query Language (SQL) はリレーショナルデータベースと対話するための文<br>
+を規定した規格です。Vim には SQL 内を移動、インデント、構文ハイライトする機能<br>
+が備わっています。<br>
+<br>
+1. 移動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-navigation">|sql-navigation|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;1.1 Matchit&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-matchit">|sql-matchit|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;1.2 オブジェクト単位の移動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-object-motions">|sql-object-motions|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;1.3 SQL 独自のオブジェクト単位移動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-predefined-objects">|sql-predefined-objects|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;1.4 マクロ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-macros">|sql-macros|</a><br>
+2. SQL の方言&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-dialects">|sql-dialects|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;2.1 SQLSetType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#SQLSetType">|SQLSetType|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;2.2 SQLGetType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#SQLGetType">|SQLGetType|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;2.3 SQL 方言の既定値&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-type-default">|sql-type-default|</a><br>
+3. SQL 方言を追加する&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-adding-dialects">|sql-adding-dialects|</a><br>
+4. SQL オムニ補完&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-completion">|sql-completion|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;4.1 static モード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-completion-static">|sql-completion-static|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;4.2 dynamic モード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-completion-dynamic">|sql-completion-dynamic|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;4.3 SQL 補完のチュートリアル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-completion-tutorial">|sql-completion-tutorial|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.3.1 テーブル補完&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-completion-tables">|sql-completion-tables|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.3.2 カラム補完&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-completion-columns">|sql-completion-columns|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.3.3 プロシージャ補完&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-completion-procedures">|sql-completion-procedures|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.3.4 ビュー補完&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-completion-views">|sql-completion-views|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;4.4 補完のカスタマイズ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-completion-customization">|sql-completion-customization|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;4.5 SQL 関連のマップ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="ft_sql.html#sql-completion-maps">|sql-completion-maps|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;4.6 他のファイルタイプのファイル内で使うには<a class="Identifier" href="ft_sql.html#sql-completion-filetypes">|sql-completion-filetypes|</a><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+1. 移動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-navigation" name="sql-navigation">*sql-navigation*</a><br>
+<br>
+SQL ファイルタイププラグインはファイル内の移動を支援するためのオプションを多数<br>
+備えています。<br>
+<br>
+<br>
+1.1 Matchit&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-matchit" name="sql-matchit">*sql-matchit*</a><br>
+<span class="PreProc">-----------</span><br>
+matchit プラグイン(<span class="Constant"><a href="http://www.vim.org/scripts/script.php?script_id=39">http://www.vim.org/scripts/script.php?script_id=39</a></span>)はたくさ<br>
+んの機能を備えており、異なる言語に対応するためにカスタマイズすることができます。<br>
+matchit プラグインはローカル変数 b:match_words を定義することで設定します。様<br>
+々なキーワードの上で % キーを押すと、それに対応する位置へカーソルを移動します。<br>
+例えばカーソルが &quot;if&quot; の上にあるとき % を押すと &quot;else&quot;, &quot;elseif&quot;, &quot;end if&quot; の<br>
+間を循環して移動します。<br>
+<br>
+以下のキーワードがサポートされています:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;if</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;elseif | elsif</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;else [if]</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;end if</span><br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;[while condition] loop</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;leave</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continue</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;end loop</span><br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;for</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;leave</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continue</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;end loop</span><br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;do</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;statements</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;doend</span><br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;case</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;when</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;when</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;default</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;end case</span><br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;merge</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;when not matched</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;when matched</span><br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;create[ or replace] procedure|function|event</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;returns</span><br>
+<br>
+<br>
+1.2 オブジェクト単位で移動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-object-motions" name="sql-object-motions">*sql-object-motions*</a><br>
+<span class="PreProc">-----------------------</span><br>
+Vim には既定でテキストオブジェクトを操作するキーがたくさん定義されています<br>
+<a class="Identifier" href="motion.html#object-motions">|object-motions|</a>。このファイルタイププラグインはこれらのキーの一部を SQL 用に<br>
+再定義します。<br>
+<br>
+SQL ファイルを編集するとき、以下のノーマルモード<a class="Identifier" href="intro.html#Normal">|Normal|</a>とビジュアルモード<br>
+<a class="Identifier" href="visual.html#Visual">|Visual|</a>のマップが定義されます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;]]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次の 'begin' へ移動する</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;[[&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;前の 'begin' へ移動する</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;][&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次の 'end' へ移動する</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;[]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;前の 'end' へ移動する</span><br>
+<br>
+<br>
+1.3 SQL 独自のオブジェクト単位移動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-predefined-objects" name="sql-predefined-objects">*sql-predefined-objects*</a><br>
+<span class="PreProc">-----------------------------</span><br>
+ほとんどのリレーショナルデータベースはテーブル、インデックス、トリガー、ストア<br>
+ドプロシージャなど様々な標準的な機能を備えています。また、ベンダごとに様々な独<br>
+自オブジェクトがあります。次のマップたちはこれらのオブジェクト間を移動するため<br>
+に作られています。お使いのデータベースによってオブジェクトのリストを調整できる<br>
+ようでなればなりません。このファイルタイププラグインは標準オブジェクトのほとん<br>
+どと、多くの追加的なオブジェクトを定義しています。これを可能な限りフレキシブル<br>
+にするために、<a class="Identifier" href="starting.html#vimrc">|vimrc|</a>&nbsp;でオブジェクトのリストを上書きできるようになっています。<br>
+次のようにします:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;let g:ftplugin_sql_objects = 'function,procedure,event,table,trigger' .</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ ',schema,service,publication,database,datatype,domain' .</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ ',index,subscription,synchronization,view,variable'</span><br>
+<br>
+上記のリストを対象として、以下のノーマルモード<a class="Identifier" href="intro.html#Normal">|Normal|</a>とビジュアルモード<br>
+<a class="Identifier" href="visual.html#Visual">|Visual|</a>のマップが定義されています:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;]}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次の 'create &lt;オブジェクト名&gt;' へ移動する</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;[{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;前の 'create &lt;オブジェクト名&gt;' へ移動する</span><br>
+<br>
+繰り返し ]} を押すとこれらの create 文の間を循環して移動します:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;create table t1 (</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;);</span><br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;create procedure p1</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;begin</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;end;</span><br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;create index i1 on t1 (c1);</span><br>
+<br>
+g:ftplugin_sql_objects の既定値は以下の通りです:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;let g:ftplugin_sql_objects = 'function,procedure,event,' .</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ '\\(existing\\\\|global\\s\\+temporary\\s\\+\\)\\\{,1}' .</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'table,trigger' .</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ ',schema,service,publication,database,datatype,domain' .</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ ',index,subscription,synchronization,view,variable'</span><br>
+<br>
+上記の設定は以下の場合にも対応しています:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;create table t1 (</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;);</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;create existing table t2 (</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;);</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;create global temporary table t3 (</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;);</span><br>
+<br>
+既定では CREATE 文だけを検索します。<a class="Identifier" href="starting.html#vimrc">|vimrc|</a>&nbsp;に以下を書くと、他の文も対象にする<br>
+ことができます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;let g:ftplugin_sql_statements = 'create,alter'</span><br>
+<br>
+このファイルタイププラグインは以下の3種類のコメントを定義しています:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;1.&nbsp;&nbsp;--</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;2.&nbsp;&nbsp;//</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;3.&nbsp;&nbsp;/*</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; */</span><br>
+<br>
+コメントを対象として、以下のノーマルモード<a class="Identifier" href="intro.html#Normal">|Normal|</a>とビジュアルモード<a class="Identifier" href="visual.html#Visual">|Visual|</a>で<br>
+のマップが定義されています:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;]&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次のコメントの開始位置へ移動</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;[&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;前のコメントの終了位置へ移動</span><br>
+<br>
+<br>
+<br>
+1.4 マクロ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-macros" name="sql-macros">*sql-macros*</a><br>
+<span class="PreProc">----------</span><br>
+<a class="Identifier" href="options.html#'define'">|'define'|</a>&nbsp;に以下の正規表現を設定することにより、マクロ定義を見つけるための<br>
+Vim の機能に対応しています:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;\c\&lt;\(VARIABLE\|DECLARE\|IN\|OUT\|INOUT\)\&gt;</span><br>
+<br>
+この正規表現は以下のようなコードに対応しています:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;CREATE VARIABLE myVar1 INTEGER;</span><br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;CREATE PROCEDURE sp_test(</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IN myVar2 INTEGER,</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;OUT myVar3 CHAR(30),</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;INOUT myVar4 NUMERIC(20,0)</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;)</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;BEGIN</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DECLARE myVar5 INTEGER;</span><br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SELECT c1, c2, c3</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;INTO myVar2, myVar3, myVar4</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FROM T1</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WHERE c4 = myVar1;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;END;</span><br>
+<br>
+以下の行の &quot;myVar1&quot; の上にカーソルを置いて、:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WHERE c4 = myVar1;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ^</span><br>
+<br>
+以下のキーのどれかを押してみてください:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;[d</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;[D</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;[CTRL-D</span><br>
+<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+2. SQL の方言&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-dialects" name="sql-dialects">*sql-dialects*</a>&nbsp;<a class="Constant" href="ft_sql.html#sql-types" name="sql-types">*sql-types*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sybase" name="sybase">*sybase*</a>&nbsp;<a class="Constant" href="ft_sql.html#TSQL" name="TSQL">*TSQL*</a>&nbsp;<a class="Constant" href="ft_sql.html#Transact-SQL" name="Transact-SQL">*Transact-SQL*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sqlanywhere" name="sqlanywhere">*sqlanywhere*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#oracle" name="oracle">*oracle*</a>&nbsp;<a class="Constant" href="ft_sql.html#plsql" name="plsql">*plsql*</a>&nbsp;<a class="Constant" href="ft_sql.html#sqlj" name="sqlj">*sqlj*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sqlserver" name="sqlserver">*sqlserver*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#mysql" name="mysql">*mysql*</a>&nbsp;<a class="Constant" href="ft_sql.html#postgresql" name="postgresql">*postgresql*</a>&nbsp;<a class="Constant" href="ft_sql.html#psql" name="psql">*psql*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#informix" name="informix">*informix*</a><br>
+<br>
+すべてのリレーショナルデータベースは SQL に対応しています。SQL の一部分はベン<br>
+ダー間で移植可能です(例: CREATE TABLE, CREATE INDEX)が、ベンダー固有の拡張が大<br>
+量にあります。Oracle は &quot;CREATE OR REPLACE&quot; 構文、CREATE TABLE 文でのカラム既<br>
+定値の指定、プロシージャ言語(ストアドプロシージャとトリガー)を備えています。<br>
+<br>
+標準の Vim ディストリビューションには Oracle の PL/SQL に基づいた構文ハイライ<br>
+トが付属しています。SQL インデントスクリプトは Oracle と SQL Anywhere&nbsp;<br>
+用に動作します。ファイルタイププラグインはすべてのベンダ用に動作し、ベンダ中立<br>
+を保ちつつも拡張可能であるべきです。<br>
+<br>
+現在様々なベンダに対応しています。これは構文スクリプトを通して実現しています。<br>
+残念なことに、複数の構文ルールを切り替えるには以下のどれかを作成しなければなり<br>
+ません:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;1.&nbsp;&nbsp;新しいファイルタイプ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;2.&nbsp;&nbsp;独自のオートコマンド<br>
+&nbsp;&nbsp;&nbsp;&nbsp;3.&nbsp;&nbsp;コマンド手動実行<br>
+<br>
+大多数の人は1つのベンダのデータベース製品しか扱わないため、<a class="Identifier" href="starting.html#vimrc">|vimrc|</a>&nbsp;で既定値を<br>
+設定しておくとよいでしょう。<br>
+<br>
+<br>
+2.1 SQLSetType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sqlsettype" name="sqlsettype">*sqlsettype*</a>&nbsp;<a class="Constant" href="ft_sql.html#SQLSetType" name="SQLSetType">*SQLSetType*</a><br>
+<span class="PreProc">--------------</span><br>
+複数のデータベースを扱っている人々にとっては、バッファごとまたは任意のタイミン<br>
+グでベンダのルール(インデント、構文)を切り替えられるとよいでしょう。<br>
+ftplugin/sql.vim では次のコマンドが定義されています:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;SQLSetType</span><br>
+<br>
+このコマンドを引数なしで実行すると、インデントと構文スクリプトが既定値に戻りま<br>
+す。既定値は&nbsp;<a class="Identifier" href="ft_sql.html#sql-type-default">|sql-type-default|</a>&nbsp;を参照してください。Vi 互換モードをオフにして<br>
+いると (<a class="Identifier" href="options.html#'compatible'">|'compatible'|</a>)、<span class="Special">&lt;Tab&gt;</span>&nbsp;キーで引数を補完できます。<br>
+<br>
+コマンド名とスペースをタイプした後、引数を指定するために補完を利用できます。こ<br>
+のコマンドは source したい Vim スクリプトの名前を受け取ります。<br>
+<a class="Identifier" href="cmdline.html#cmdline-completion">|cmdline-completion|</a>&nbsp;機能により、SQLSetType コマンドは&nbsp;<a class="Identifier" href="options.html#'runtimepath'">|'runtimepath'|</a>&nbsp;から<br>
+名前に&nbsp;<span class="MissingTag">'sql'</span>&nbsp;を含む Vim スクリプトを検索します。これは名前のスペルから推測を取<br>
+り出します。以下が例です:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;:SQLSetType</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;:SQLSetType sqloracle</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;:SQLSetType sqlanywhere</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;:SQLSetType sqlinformix</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;:SQLSetType mysql</span><br>
+<br>
+もっとも簡単な方法は、<span class="Special">&lt;Tab&gt;</span>&nbsp;を使ってまずコマンド名(SQLSetType)を補完し、スペー<br>
+スに続いてもう一度&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;を押すと利用可能な Vim スクリプトの名前のリストが表示<br>
+されます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;:SQL&lt;Tab&gt;&lt;space&gt;&lt;Tab&gt;</span><br>
+<br>
+<br>
+2.2 SQLGetType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sqlgettype" name="sqlgettype">*sqlgettype*</a>&nbsp;<a class="Constant" href="ft_sql.html#SQLGetType" name="SQLGetType">*SQLGetType*</a><br>
+<span class="PreProc">--------------</span><br>
+現在、どのSQL の方言が使われているかを調べるには、コマンド SQLGetType を使い<br>
+ます。ftplugin/sql.vim で次のコマンドが定義されています:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;SQLGetType</span><br>
+<br>
+このコマンドを使うと、以下のような文字列がエコー表示されます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;Current SQL dialect in use:sqlanywhere</span><br>
+<br>
+<br>
+2.3 SQL 方言の既定値&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-type-default" name="sql-type-default">*sql-type-default*</a><br>
+<span class="PreProc">-----------------------</span><br>
+すでに述べたように、Vim の既定の構文ルールは Oracle (PL/SQL) に基づいています。<br>
+これを上書きするには、次のうちどれかを&nbsp;<a class="Identifier" href="starting.html#vimrc">|vimrc|</a>&nbsp;に書きます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;let g:sql_type_default = 'sqlanywhere'</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;let g:sql_type_default = 'sqlinformix'</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;let g:sql_type_default = 'mysql'</span><br>
+<br>
+次を&nbsp;<a class="Identifier" href="starting.html#vimrc">|vimrc|</a>&nbsp;に書くと:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;let g:sql_type_default = 'sqlinformix'</span><br>
+<br>
+次回 SQL ファイルを編集するときには以下のスクリプトが自動的に読み込まれます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;ftplugin/sql.vim</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;syntax/sqlinformix.vim</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;indent/sql.vim</span><br>
+<br>
+indent/sqlinformix.sql は読み込まれていないことに注意してください。Informix 用<br>
+のインデントファイルは存在しないため、既定のインデントファイルが読み込まれてい<br>
+ます。<br>
+<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+3. SQL 方言を追加する&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-adding-dialects" name="sql-adding-dialects">*sql-adding-dialects*</a><br>
+<br>
+Vim の標準ディストリビューションにスクリプトが含まれていない SQL 方言を扱うと<br>
+きは、対応するスクリプトが投稿されていないか&nbsp;<span class="Constant"><a href="http://www.vim.org">http://www.vim.org</a></span>&nbsp;をチェックして<br>
+みてください。もしなければ既存のスクリプトをコピーしてカスタマイズしましょう。<br>
+詳しくは&nbsp;<a class="Identifier" href="filetype.html#filetype-plugins">|filetype-plugins|</a>&nbsp;を参照してください。<br>
+<br>
+スクリプトを識別しやすくするために、ファイル名の先頭に &quot;sql&quot; という接頭辞をつ<br>
+けてください。例えば SQLite データベース用のカスタマイズを作りたい場合は、以下<br>
+のファイルを作成します:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;Unix</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~/.vim/syntax/sqlite.vim</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~/.vim/indent/sqlite.vim</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;Windows</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$VIM/vimfiles/syntax/sqlite.vim</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$VIM/vimfiles/indent/sqlite.vim</span><br>
+<br>
+SQLSetType コマンドには変更を加える必要はありません。SQLSetType コマンドを実行<br>
+すると自動的に新しい SQL ファイルが選ばれ、読み込まれます。<br>
+<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+4. SQL オムニ補完&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-completion" name="sql-completion">*sql-completion*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#omni-sql-completion" name="omni-sql-completion">*omni-sql-completion*</a><br>
+<br>
+Vim 7 にはプラグイン開発者が任意の言語用のコード補完を作るためのインターフェイ<br>
+スと関数が備わっています。Vim 7 には SQL 言語用のコード補完が含まれています。<br>
+<br>
+SQL 補完プラグインには static と dynamic という2つのモードがあります。static&nbsp;<br>
+モードは 現在の構文強調ルールから生成されたデータをもとにポップアップを表示し<br>
+ます。dynamic モードはデータベースから直接抽出したデータをもとにポップアップ<br>
+を表示します。このデータにはテーブルのリスト、カラムのリスト、プロシージャ名な<br>
+どが含まれます。<br>
+<br>
+4.1 static モード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-completion-static" name="sql-completion-static">*sql-completion-static*</a><br>
+<span class="PreProc">---------------</span><br>
+static ポップアップはファイルタイプが SQL のファイルを編集しているときに、使用<br>
+中の構文ルールで定義された項目を含んで表示されます。プラグインは、表示される項<br>
+目のリストを絞り込むための様々なマップを用意しています。<br>
+既定の static マップは次の通りです:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;imap &lt;buffer&gt; &lt;C-C&gt;a &lt;C-\&gt;&lt;C-O&gt;:call sqlcomplete#Map('syntax')&lt;CR&gt;&lt;C-X&gt;&lt;C-O&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;imap &lt;buffer&gt; &lt;C-C&gt;k &lt;C-\&gt;&lt;C-O&gt;:call sqlcomplete#Map('sqlKeyword')&lt;CR&gt;&lt;C-X&gt;&lt;C-O&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;imap &lt;buffer&gt; &lt;C-C&gt;f &lt;C-\&gt;&lt;C-O&gt;:call sqlcomplete#Map('sqlFunction')&lt;CR&gt;&lt;C-X&gt;&lt;C-O&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;imap &lt;buffer&gt; &lt;C-C&gt;o &lt;C-\&gt;&lt;C-O&gt;:call sqlcomplete#Map('sqlOption')&lt;CR&gt;&lt;C-X&gt;&lt;C-O&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;imap &lt;buffer&gt; &lt;C-C&gt;T &lt;C-\&gt;&lt;C-O&gt;:call sqlcomplete#Map('sqlType')&lt;CR&gt;&lt;C-X&gt;&lt;C-O&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;imap &lt;buffer&gt; &lt;C-C&gt;s &lt;C-\&gt;&lt;C-O&gt;:call sqlcomplete#Map('sqlStatement')&lt;CR&gt;&lt;C-X&gt;&lt;C-O&gt;</span><br>
+<br>
+&quot;<span class="Special">&lt;C-C&gt;</span>&quot; のキーは環境によっては動作しないかもしれません。そこで、以下の行を<br>
+<a class="Identifier" href="starting.html#.vimrc">|.vimrc|</a>&nbsp;に書くことで &quot;<span class="Special">&lt;C-C&gt;</span>&quot; を他のキーに変更できます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;let g:ftplugin_sql_omni_key = '&lt;C-C&gt;'</span><br>
+<br>
+<br>
+static マップ(構文強調グループに基づいている)は以下の形式で定義されています:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;imap &lt;buffer&gt; &lt;C-C&gt;k &lt;C-\&gt;&lt;C-O&gt;:call sqlcomplete#Map('sqlKeyword')&lt;CR&gt;&lt;C-X&gt;&lt;C-O&gt;</span><br>
+<br>
+このコマンドは次のように分解できます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;imap&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - インサートモードでのマップを作成する</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;buffer&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - このバッファに対してのみ</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;k&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - マップするキー</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-\&gt;&lt;C-O&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - コマンドを1個実行し、インサートモードに戻る</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;:call sqlcomplete#Map( - 他の補完プラグインと組み合わせて使えるようにする</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ために、いくつかのな関数を実行します。</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; どの項目を補完して欲しいかを SQL 補完プラグインに</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 指示します。</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; この場合は構文強調グループ 'sqlKeyword' の項目を</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 表示するよう指定しています。</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 選択可能な構文強調グループ名のリストは、SQL ファ</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; イルを編集中に次のコマンドで表示できます。</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :syntax list</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;'sqlKeyword'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 構文強調グループ sqlKeyword の項目を表示します。</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;)&lt;CR&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- :let コマンドを実行します。</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-X&gt;&lt;C-O&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 標準のオムニ補完のキーストロークを実行します。</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sqlcomplete#Map 関数の引数に 'sqlKeyword' を渡して</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;あるので、SQL 補完プラグインは構文強調グループ</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sqlKeyword の項目をポップアップするようになってい</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ます。プラグインは Vim が再起動するまでこの結果を</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キャッシュします。 構文のリストはsyntaxcomplete プ</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ラグインを使って抽出されます。</span><br>
+<br>
+<a class="Type" href="options.html#'syntax'">'syntax'</a>&nbsp;キーワードを使うのは特別な場合です。これは syntaxcomplete プラグイン&nbsp;<br>
+にすべての構文アイテムを抽出するよう指示します。そのためこれは Vim のどの SQL<br>
+構文ファイルに対しても有効です。これを書いている時点でこれは SQL 方言用の10&nbsp;<br>
+個の構文ファイルを含んでいます(上の セクション3&nbsp;<a class="Identifier" href="ft_sql.html#sql-dialects">|sql-dialects|</a>&nbsp;を参照)。<br>
+<br>
+構文ファイルから抽出される項目の例を以下に示します:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; 全部</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 全構文強調グループの中身</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; 文</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - Select, Insert, Update, Delete, Create, Alter, ...</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; 関数</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - Min, Max, Trim, Round, Date, ...</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; キーワード</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - Index, Database, Having, Group, With</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; オプション</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - Isolation_level, On_error, Qualify_owners, Fire_triggers, ...</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; 型</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - Integer, Char, Varchar, Date, DateTime, Timestamp, ...</span><br>
+<br>
+<br>
+4.2 dynamic モード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-completion-dynamic" name="sql-completion-dynamic">*sql-completion-dynamic*</a><br>
+<span class="PreProc">----------------</span><br>
+dynamic モードではデータベースから直接抽出したデータを元にポップアップを表示<br>
+します。dynamic 機能を有効にするためには dbext.vim をインストールしなければな<br>
+りません(<span class="Constant"><a href="http://vim.sourceforge.net/script.php?script_id=356">http://vim.sourceforge.net/script.php?script_id=356</a></span>)。<br>
+<br>
+dynamic モードは SQL 補完プラグインのいくつかの機能から使われています。dbext&nbsp;<br>
+プラグインをインストールしたら dbext-tutorial の設定と使い方を読んでください。<br>
+dbext を使うと SQL 補完プラグインがテーブル、プロシージャ、ビュー、カラムのリ<br>
+ストを表示できるようになります。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; テーブルリスト</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 全スキーマ所有者の全テーブル</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; プロシージャリスト</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 全スキーマ所有者の全ストアドプロシージャ</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; ビューリスト</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 全スキーマ所有者の全ビュー</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; カラムリスト</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 選択したテーブル内のカラム</span><br>
+<br>
+これらのリストをポップアップを表示するには、インサートモードで以下のキーを使い<br>
+ます(ここで&nbsp;<span class="Special">&lt;C-C&gt;</span>&nbsp;は CTRL キーを押しながら C キーを押すという意味です):<br>
+&nbsp;&nbsp;&nbsp;&nbsp; テーブルリスト&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&nbsp;<span class="Special">&lt;C-C&gt;</span>t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<span class="Special">&lt;C-X&gt;&lt;C-O&gt;</span>&nbsp;(既定のマップはテーブルリスト)<br>
+&nbsp;&nbsp;&nbsp;&nbsp; ストアドプロシージャリスト&nbsp;&nbsp;-&nbsp;<span class="Special">&lt;C-C&gt;</span>p<br>
+&nbsp;&nbsp;&nbsp;&nbsp; ビューリスト&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&nbsp;<span class="Special">&lt;C-C&gt;</span>v<br>
+&nbsp;&nbsp;&nbsp;&nbsp; カラムリスト&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&nbsp;<span class="Special">&lt;C-C&gt;</span>c<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp; ドリルイン／アウト&nbsp;&nbsp;&nbsp;&nbsp; - テーブルリストのポップアップウィンドウを表示中<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;に&nbsp;<span class="Special">&lt;Right&gt;</span>&nbsp;を押すと現在選択されているテーブル&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;のカラムリストの表示に切り替わります。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- カラムリストのポップアップウィンドウを表示中に<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Left&gt;</span>&nbsp;を押すとテーブルリスト表示に切り替わり<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- これを使えばテーブルリストとカラムリストの表示を<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;素早く切り替えることができます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<span class="Special">&lt;Right&gt;</span>&nbsp;と&nbsp;<span class="Special">&lt;Left&gt;</span>&nbsp;のキーも&nbsp;<a class="Identifier" href="starting.html#.vimrc">|.vimrc|</a>&nbsp;により変更で<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;きます<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:ftplugin_sql_omni_key_right = '&lt;Right&gt;'</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:ftplugin_sql_omni_key_left&nbsp;&nbsp;= '&lt;Left&gt;'</span><br>
+<br>
+SQL 補完プラグインはポップアップウィンドウに表示されるリストをキャッシュしてお<br>
+きます。これによってリストの再表示がとても高速になります。データベースに新しい<br>
+テーブルやカラムが追加されたときはプラグインのキャッシュをクリアする必要が出て<br>
+くるかもしれません。キャッシュをクリアするための既定のマップは次の通りです:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;imap &lt;buffer&gt; &lt;C-C&gt;R &lt;C-\&gt;&lt;C-O&gt;:call sqlcomplete#Map('ResetCache')&lt;CR&gt;&lt;C-X&gt;&lt;C-O&gt;</span><br>
+<br>
+<br>
+4.3 SQL 補完のチュートリアル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-completion-tutorial" name="sql-completion-tutorial">*sql-completion-tutorial*</a><br>
+<span class="PreProc">----------------</span><br>
+<br>
+このチュートリアルは SQL 補完プラグインの主な機能を一通り紹介することを意図し<br>
+て次のことが書かれています:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; a) プラグインに慣れる</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; b) 主な機能を紹介する</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; c) カスタマイズする方法を示す</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; d) 「ベストな使い方」をデモする(一番簡単な設定方法)</span><br>
+<br>
+まず、新規バッファを作成しましょう:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; :e tutorial.sql</span><br>
+<br>
+<br>
+static な機能<br>
+<span class="PreProc">---------------</span><br>
+各種のリストを表示するには、単にインサートモードで次をタイプします:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;C-C&gt;</span>s&nbsp;&nbsp; (SQL 文を表示する)<br>
+そしてリストの中を&quot;select&quot;まで下に移動していきます。 探している項目をよく知っ<br>
+ている場合、例えばそれが&quot;s&quot;という文字で始まることを知っている場合は、その文字<br>
+を続けてタイプできます。&quot;se&quot;とタイプしてから(引用符はタイプしません):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;C-Space&gt;</span>t<br>
+を押してみてください。<br>
+&quot;select&quot;が選択されたところで&nbsp;<span class="Special">&lt;Enter&gt;</span>&nbsp;を押すとその項目を確定します。次に<br>
+<span class="Statement">&nbsp;&nbsp;&nbsp;&nbsp;</span>* fr<span class="Special">&lt;C-C&gt;</span>a (すべての構文アイテムを表示する)<br>
+とタイプしてみてください。&quot;from&quot;が候補に現れるでしょう。<br>
+<br>
+ストアドプロシージャを書くときには型リストが便利です。型リストはそのデータベー<br>
+スがサポートしているすべての型を含んでいます。ただしこれはお使いの構文ファイル<br>
+に依存します。SQL Anywhere 構文ファイル(sqlanywhere.vim)は以下のような場合に対<br>
+応しています :<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; BEGIN</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DECLARE customer_id &lt;C-C&gt;T &lt;-- リストから型を選ぶ</span><br>
+<br>
+<br>
+dynamic な機能<br>
+<span class="PreProc">----------------</span><br>
+dynamic な機能を使うにはまず dbext.vim<br>
+(<span class="Constant"><a href="http://vim.sourceforge.net/script.php?script_id=356">http://vim.sourceforge.net/script.php?script_id=356</a></span>) をインストールしなければ<br>
+なりません。このプラグインにはチュートリアルが付属しています。SQL 補完プラグイ<br>
+ンの観点からすると、dbext の主な機能はデータベースへの接続です。dbext の接続プ<br>
+ロファイルは接続情報を定義するためのもっとも効果的なメカニズムです。一度接続が<br>
+確立されていれば、SQL 補完プラグインはポップアップを表示する際にバックグラウン<br>
+ドで dbext の機能を利用します。<br>
+<br>
+dbext.vim を正しく設定したら、テストするためにコマンド :DBListTable を実行しま<br>
+す。 テーブルのリストが表示されれば dbext.vim が正常に動作しています。表示され<br>
+ない 場合は dbext.txt を読んで調べてください。<br>
+<br>
+既に dbext のチュートリアルをやっていれば、<span class="Special">&lt;C-C&gt;</span>t でテーブルのリストを表示でき<br>
+ることをご存知でしょう。dbext がテーブルリストを作成する間、少々時間がかかりま<br>
+す。リストが表示されたら&nbsp;<span class="Special">&lt;C-W&gt;</span>&nbsp;を押してください。するとポップアップウィンドウ<br>
+と既に選択されたテーブル名の両方が消えます。<br>
+<br>
+<span class="Comment">&nbsp;4.3.1 テーブル補完&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *sql-completion-tables*</span><br>
+<br>
+C-c&gt;t を押すと、dbext により接続したデータベース内のテーブルのリストが表示さ<br>
+れます。<br>
+<span class="Todo">NOTE</span>: SQL 補完ポップアップはすべてキーマップの前のプリフィックスに対応していま<br>
+す。プリフィックスを指定すると、ポップアップウィンドウの内容がその文字列で始ま<br>
+るものだけに制限されます。<br>
+<br>
+<span class="Comment">&nbsp;4.3.2 カラム補完&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *sql-completion-columns*</span><br>
+<br>
+SQL 補完プラグインは特定のテーブルのカラムのリストを表示することもできます。&nbsp;<br>
+このカラム補完は&nbsp;<span class="Special">&lt;C-C&gt;</span>c で起動できます。<br>
+<br>
+<span class="Todo">NOTE</span>: 以下の例ではポップアップウィンドウの表示中に&nbsp;<span class="Special">&lt;Right&gt;</span>&nbsp;でカラムリストを<br>
+表示しています。<br>
+<br>
+カラム補完を使用している様子の例:<br>
+&nbsp;&nbsp;&nbsp;&nbsp; - もう一度&nbsp;<span class="Special">&lt;C-C&gt;</span>t を押すとテーブルのリストが表示されます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp; - 補完ウィンドウにリストが表示されているとき&nbsp;<span class="Special">&lt;Right&gt;</span>&nbsp;を押すとテーブル<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; のリストが消え、途中まで 入力されたテーブルに含まれるカラムのリスト表&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 示に切り替わります(すこし時間がかかります)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp; -&nbsp;<span class="Special">&lt;Left&gt;</span>&nbsp;を押すとカラムリストからテーブルリストに切り替わります。これに<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; よってテーブルリストとカラムリストをとても素早く切り替えられます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp; - 同じテーブルに対してもう一度&nbsp;<span class="Special">&lt;Right&gt;</span>&nbsp;を押すと、今度はカラムリストが<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; キャッシュされているため時間がかからないことに気づくでしょう。キャッ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; シュしているテーブルのスキーマが変更されたときは&nbsp;<span class="Special">&lt;C-C&gt;</span>R を押します。す<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; るとSQL 補完のキャッシュがクリアされます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp; -&nbsp;<span class="Todo">NOTE</span>:&nbsp;<span class="Special">&lt;Right&gt;</span>&nbsp;と&nbsp;<span class="Special">&lt;Left&gt;</span>&nbsp;は補完ウィンドウがアクティブな状態で動作す<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; るよう設計されています。補完のポップアップウィンドウがアクティブでない<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 場合はノーマルモードでの&nbsp;<span class="Special">&lt;Right&gt;</span>&nbsp;と&nbsp;<span class="Special">&lt;Left&gt;</span>&nbsp;の動作になります。<br>
+<br>
+SQL 文を動的に組み立てる方法を見ていきましょう。select 文にはカラムのリストが<br>
+必要です。SQL 補完プラグインを使ってカラムのリストを組み立てる方法は 2 通りあ<br>
+ります。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;一度に 1 カラムを挿入する方法:</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1. SELECT を入力した後に&nbsp;<span class="Special">&lt;C-c&gt;</span>t を押してテーブルリストを表示します。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. リストからテーブルを選択します。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.&nbsp;<span class="Special">&lt;Right&gt;</span>&nbsp;を押してカラムリストを表示します。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4. リストからカラムを選択してエンターを押します。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5. &quot;,&quot; を入力して&nbsp;<span class="Special">&lt;C-c&gt;</span>c を押します。通常、カラムリストを生成するには<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソルをテーブル名の上に置かねばなりません。プラグインはその名前<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; を使ってどのテーブルからカラム リストを抽出するか決定します。このス<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; テップではカーソルをテーブル名の上に置かずに&nbsp;<span class="Special">&lt;C-c&gt;</span>c を押したため、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 表示されるカラムリストは前に使ったテーブルが対象となります。そして<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カラムを選択して続けます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6. ステップ 5 を必要なだけ繰り返します。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;テーブルの全カラムを挿入する方法:</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1. SELECT と入力してから&nbsp;<span class="Special">&lt;C-C&gt;</span>t を押すとテーブルのリストが表示されます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. カラムリストを表示したいテーブルにカーソルを合わせます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.&nbsp;<span class="Special">&lt;Enter&gt;</span>&nbsp;を押してテーブルを選択します。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.&nbsp;<span class="Special">&lt;C-C&gt;</span>l を押してそのテーブル内の全カラムのカンマ区切りのリストを表示<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; させます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5. ステップ 3 で選んだテーブル名に基づいてプラグインは妥当なテーブルエ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; イリアスを決定します。ここでそのエイリアスを受け入れるかどうかプロ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ンプトが表示されます。OK を押してください。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6. するとテーブル名が消え、代わりにそのテーブルのカラムリスト(各カラム<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 名の前にエイリアスがつき、カンマ区切りになったもの)が挿入されます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.&nbsp;<span class="Special">&lt;C-C&gt;</span>L を押すとステップ 3 と 4 を同時に実行できます。これは、リス<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; トの中で現在選ばれているテーブルで決定するためにマップの中に&nbsp;<span class="Special">&lt;C-Y&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; を埋め込んでいます。<br>
+<br>
+select 文を書くための特別な機能があります。 次の文を書く場合を考えてください:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; select *</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; from customer c,</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;contact cn,</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;department as dp,</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;employee e,</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;site_options so</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;where c.</span><br>
+<br>
+インサートモードで &quot;customer&quot; テーブルのエイリアスである最後の &quot;c.&quot; を入力した<br>
+後、<span class="Special">&lt;C-C&gt;</span>c または&nbsp;<span class="Special">&lt;C-X&gt;&lt;C-O&gt;</span>&nbsp;を押してみてください。すると customer テーブルの<br>
+カラムのリストがポップアップ表示します。これは、select 文の開始位置を見て FROM<br>
+句で指定されたテーブルのリストを探しています。この場合は文字列 &quot;customer c&quot;<br>
+(&quot;c&quot; は customer テーブルのエイリアス)が発見されます。省略可能なキーワード<br>
+&quot;AS&quot; にも対応しています。例: &quot;customer AS c&quot;<br>
+<br>
+<br>
+<span class="Comment">&nbsp;4.3.3 プロシージャ補完:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*sql-completion-procedures*</span><br>
+<br>
+テーブルリストと同様に、<span class="Special">&lt;C-C&gt;</span>p でデータベースに登録されているストアドプロシー<br>
+ジャのリストを表示できます。<br>
+<br>
+<span class="Comment">&nbsp;4.3.4 ビュー補完:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*sql-completion-views*</span><br>
+<br>
+テーブルリストと同様に、<span class="Special">&lt;C-C&gt;</span>v でデータベースに登録されているビューのリストを<br>
+表示できます。<br>
+<br>
+<br>
+4.4 補完のカスタマイズ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-completion-customization" name="sql-completion-customization">*sql-completion-customization*</a><br>
+<span class="PreProc">----------------------------</span><br>
+<br>
+<a class="Identifier" href="starting.html#vimrc">|vimrc|</a>&nbsp;でオプションをセットすることによって SQL 補完プラグインをカスタマイズ<br>
+できます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;omni_sql_no_default_maps</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 既定値: この変数は定義されていない<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- この変数が定義されている場合はオムニ補完用のマップが作られません。よ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;り詳しくは&nbsp;<a class="Identifier" href="ft_sql.html#sql-completion-maps">|sql-completion-maps|</a>&nbsp;を参照。<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;omni_sql_use_tbl_alias</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 既定値: a<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- この設定はカンマ区切りのカラムリストを生成するときに参照されます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;既定ではカラムリストを生成するマップは&nbsp;<span class="Special">&lt;C-C&gt;</span>l です。カラムリストを<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;生成するときに各カラムの前にエイリアスがつきます。例えば:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.emp_id, e.emp_name。このオプションには 3 種類の値を設定できます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n - エイリアスを使わない</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d - 既定のエイリアス(自動的に決定されたもの)を使う</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a - エイリアス名を問い合わせる</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;エイリアスは以下の規則によって決定されます:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1.&nbsp;&nbsp;テーブル名が '_' を含んでいれば、それを区切り文字に使います<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MY_TABLE_NAME --&gt; MTN</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; my_table_name --&gt; mtn</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; My_table_NAME --&gt; MtN</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.&nbsp;&nbsp;テーブル名が '_' を含んでいないが大文字・小文字が混在してい<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; れば、それを区切り文字に使います:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MyTableName --&gt; MTN</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.&nbsp;&nbsp;テーブル名が '_' を含んでいなく、大文字・小文字も混在してい<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; なければテーブル名の最初の文字を使います:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mytablename --&gt; m</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MYTABLENAME --&gt; M</span><br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;omni_sql_ignorecase</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 既定値:&nbsp;<a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;の現在値<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- 有効な値は 0 または 1。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- 数文字を入力してから補完を開始すると、リストの要素がその文字列で始ま<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;るものだけにフィルタされます。このオプションが 0 の場合は、そのフィ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ルタが大文字・小文字を区別します。<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;omni_sql_include_owner</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 既定値: dbext.vim 3.00 がインストールされていなければ 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- 有効な値は 0 または 1。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- テーブル、プロシージャ、ビューのリストを補完するとき、dbext.vim 3.00<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;以上を使っていればオブジェクトのリストにその所有者名がつきます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;これらのオブジェクトを補完するとき omni_sql_include_owner が有効に<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;なっていればその所有者名も置き換えられます。<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;omni_sql_precache_syntax_groups</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 既定値:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<a class="Type" href="options.html#'syntax'">'syntax'</a>,'sqlKeyword','sqlFunction','sqlOption','sqlType','sqlStatement']<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- sqlcomplete は他のプラグインと組み合わせて使うことができます。その方<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;法の概略は&nbsp;<a class="Identifier" href="ft_sql.html#sql-completion-filetypes">|sql-completion-filetypes|</a>&nbsp;で説明されています。一時的に<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイルタイプが SQL に変更されたとき、SQL 補完プラグインはこのオプ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ションで指定されたリスト内の構文グループをキャッシュします。<br>
+<br>
+<br>
+4.5 SQL 関連のマップ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-completion-maps" name="sql-completion-maps">*sql-completion-maps*</a><br>
+<span class="PreProc">------------</span><br>
+<br>
+既定の SQL 関連のマップはこのドキュメントの他の節で詳しく説明しました。ここで<br>
+は簡潔な説明つきのマップのリストを示します。<br>
+<br>
+static モードのマップ<br>
+<span class="PreProc">-----------</span><br>
+以下は Vim の構文強調ルールを使って補完リストを作成するマップです。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;a</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - SQL 構文アイテムを全て表示します。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;k</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 'sqlKeyword' と定義された構文アイテムを全て表示します。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;f</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 'sqlFunction' と定義された構文アイテムを全て表示します。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;o</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -'sqlOption' と定義された構文アイテムを全て表示します。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;T</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 'sqlType' と定義された構文アイテムを全て表示します。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;s</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 'sqlStatement' と定義された構文アイテムを全て表示します。<br>
+<span class="Comment">&nbsp;</span><br>
+dynamic モードのマップ<br>
+<span class="PreProc">------------</span><br>
+以下は dbext.vim プラグインを使用して補完リストを作成するマップです。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;t</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - テーブルのリストを表示します。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;p</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - プロシージャのリストを表示します。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;v</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - ビューのリストを表示します。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;c</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 指定テーブルのカラムのリストを表示します。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;l</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 指定テーブルのカラムのリストをカンマ区切りで表示します。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;L</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 指定テーブルのカラムのリストをカンマ区切りで表示します。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;補完ウィンドウがアクティブなときだけ使用できます。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;Right&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - 現在補完リストでカーソルが指しているテーブルのカラムリストを表示しま<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。ほとんどの Unix システムでは&nbsp;<span class="Special">&lt;Right&gt;</span>&nbsp;を認識できないため、この<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;マップは Windows でのみ定義されます。同じ機能を Unix でも利用するに<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;は他のキーを選んで自分の vimrc で同じマップを定義してください。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;Left&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - テーブルのリストを表示します。ほとんどの Unix システムでは&nbsp;<span class="Special">&lt;Left&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を認識できないため、このマップは Windows でのみ定義されます。同じ機<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;能を Unix でも利用するには他のキーを選んで自分の vimrc で同じマップ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を定義してください。<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-C&gt;R</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - キャッシュされた項目を全て削除し、項目のリストを再生成するよう強制し<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ます。<br>
+<br>
+マップのカスタマイズ<br>
+<span class="PreProc">--------------------</span><br>
+好みに応じてマップを作成できます。一般的に、これらのマップは構文強調グループを<br>
+定義します。<br>
+<br>
+デフォルトで作成されるマップが好みでなかったり、そのキーがお使いのプラット<br>
+フォームでは動作しない場合、次の変数を&nbsp;<a class="Identifier" href="starting.html#vimrc">|vimrc|</a>&nbsp;で定義してください:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;let g:omni_sql_no_default_maps = 1</span><br>
+<br>
+ftplugin/sql.vimを直接編集することはやめてください。このファイルを変更しても、<br>
+将来アップデートしたときその変更は上書きされてしまいます。Vim は、ディストリ<br>
+ビューションに含まれているファイルを変更することなくカスタマイズを行うために<br>
+after というディレクトリ構造を備えています。マップをカスタマイズするには<br>
+after/ftplugin/sql.vim を作成します(<a class="Identifier" href="options.html#after-directory">|after-directory|</a>を参照)。そしてその中で<br>
+ftplugin/sql.vim に書かれているのと同じマップを、好みのキーストロークに対して<br>
+定義します。<span class="Special">&lt;C-C&gt;</span>&nbsp;が選ばれたのは、それが Windows、*nix のどちらでも動作するか<br>
+らです。Windows では&nbsp;<span class="Special">&lt;C-Space&gt;</span>&nbsp;やALT キーを使うこともできます。<br>
+<br>
+<br>
+4.6 他のファイルタイプのファイル内で使うには&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_sql.html#sql-completion-filetypes" name="sql-completion-filetypes">*sql-completion-filetypes*</a><br>
+<span class="PreProc">------------------------------</span><br>
+<br>
+SQL を他のファイルタイプのファイル内で使う機会はよくあります。例えば Perl,<br>
+Java, PHP, Javascript はどれもデータベースと対話できます。編集中の言語の補完機<br>
+能に加えて SQL 補完も使いたいという状況はよくあります。<br>
+<br>
+そんな場合は、以下のステップによって簡単に実現できます(Perlの例です):<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;1.&nbsp;&nbsp;:e test.pl</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;2.&nbsp;&nbsp;:set filetype=sql</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;3.&nbsp;&nbsp;:set ft=perl</span><br>
+<br>
+ステップ 1<br>
+<span class="PreProc">------</span><br>
+Perl ファイルの編集を始めます。自動的にファイルタイプが &quot;perl&quot; になります。デ<br>
+フォルトで、ファイルタイプ・ファイルの ftplugin/perl.vim が読み込まれます。<br>
+<a class="Identifier" href="insert.html#ft-syntax-omni">|ft-syntax-omni|</a>&nbsp;に書かれているコマンドによって構文補完プラグインを使っている<br>
+場合は、オプション&nbsp;<a class="Identifier" href="options.html#'omnifunc'">|'omnifunc'|</a>&nbsp;が &quot;syntax#Complete&quot; にセットされます。<br>
+<span class="Special">&lt;C-X&gt;&lt;C-O&gt;</span>&nbsp;を押すと Perl の構文アイテムを含むオムニポップアップが表示されます。<br>
+<br>
+ステップ 2<br>
+<span class="PreProc">------</span><br>
+手動でファイルタイプを&nbsp;<span class="MissingTag">'sql'</span>&nbsp;にセットすると、やはり対応するファイルタイプ・<br>
+ファイルの ftplugin/sql.vim が読み込まれます。このファイルは、SQL 補完用に多数<br>
+のバッファ固有のマップを定義します(<a class="Identifier" href="ft_sql.html#sql-completion-maps">|sql-completion-maps|</a>&nbsp;を参照)。こうしてマッ<br>
+プが作成され、SQL 補完プラグインが初期化されます。全ての SQL 構文アイテムが準<br>
+備的にキャッシュされます。SQL ファイルタイプ・スクリプトは2種類の補完プラグイ<br>
+ンを使おうとしていることを検出します。<span class="Special">&lt;C-C&gt;</span>&nbsp;で始まる SQL 用のマップが呼び出さ<br>
+れると、その実行中だけ<a class="Identifier" href="options.html#'omnifunc'">|'omnifunc'|</a>&nbsp;を切り替えます。そのため、<span class="Special">&lt;C-X&gt;&lt;C-O&gt;</span>&nbsp;は (構<br>
+文補完プラグインによる) Perl 用の補完のために使用し、<span class="Special">&lt;C-C&gt;</span>&nbsp;は SQL 補完機能のた<br>
+めに使用できます。<br>
+<br>
+ステップ 3<br>
+<span class="PreProc">------</span><br>
+ファイルタイプを Perl に戻すと、&quot;perl&quot; に関連する全ての構文要素が元通りになり<br>
+ます。<br>
+<br>
+<br>
+vim:tw=78:ts=8:ft=help:norl:<br>
+<hr>
+<a href="#top">top</a> - <a href="index.html">main help file</a><br>
+
+</body>
+</html>

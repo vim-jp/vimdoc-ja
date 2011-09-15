@@ -1,0 +1,213 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Vim documentation: usr_32</title>
+<meta name="Generator" content="Vim/7.3">
+<meta name="plugin-version" content="vim7.3_v6">
+<meta name="syntax" content="help">
+<meta name="settings" content="use_css,no_pre">
+<style type="text/css">
+<!--
+.MissingTag { background-color: black; color: white; }
+.EnglishTag { background-color: gray; color: white; }
+body { color: #000000; background-color: #ffffff; font-family: monospace; }
+.Todo { color: #808080; background-color: #ffff00; }
+.Comment { color: #8080ff; }
+.Ignore { color: #ffffff; font-weight: bold; }
+.PreProc { color: #ff40ff; }
+-->
+</style>
+</head>
+<body>
+
+<a name="top"></a><h1>Vim documentation: usr_32</h1>
+<a href="index.html">main help file</a>
+<hr>
+<a class="Constant" href="usr_32.html" name="usr_32.txt">*usr_32.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;For Vim バージョン 7.3.&nbsp;&nbsp;Last change: 2010 Jul 20<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; VIM USER MANUAL - by Bram Moolenaar<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;undo ツリー<br>
+<br>
+<br>
+Vim にはマルチレベルの undo 機能があります。変更を undo してから新しい変更を加<br>
+えると、undo ツリーに枝が作成されます。このテキストでは、枝を移動する方法を説<br>
+明します。<br>
+<br>
+<a class="Identifier" href="usr_32.html#32.1">|32.1|</a>&nbsp;&nbsp;ファイル保存時への undo<br>
+<a class="Identifier" href="usr_32.html#32.2">|32.2|</a>&nbsp;&nbsp;変更の番号付け<br>
+<a class="Identifier" href="usr_32.html#32.3">|32.3|</a>&nbsp;&nbsp;ツリーを飛び回る<br>
+<a class="Identifier" href="usr_32.html#32.4">|32.4|</a>&nbsp;&nbsp;タイムトラベル<br>
+<br>
+次章:&nbsp;<a class="Identifier" href="usr_40.html">|usr_40.txt|</a>&nbsp;&nbsp;新しいコマンドを作る<br>
+前章:&nbsp;<a class="Identifier" href="usr_31.html">|usr_31.txt|</a>&nbsp;&nbsp;GUI の活用<br>
+目次:&nbsp;<a class="Identifier" href="usr_toc.html">|usr_toc.txt|</a><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_32.html#32.1" name="32.1">*32.1*</a>&nbsp;&nbsp;ファイル保存時への undo<br>
+<br>
+いくつかの変更を加えた後で、やっぱり最後にファイルを保存したときの状態に戻りた<br>
+いなと思うようなことがときどきあります。そんなときは次のコマンドを使います:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:earlier 1f</span><br>
+<br>
+&quot;f&quot; は &quot;file&quot; を意味します。<br>
+<br>
+このコマンドを繰り返し実行してさらに過去に戻ることができます。あるいは、1 より<br>
+大きなカウント指定をすればもっと素早く過去に戻れます。<br>
+<br>
+戻り過ぎてしまったときは次のコマンドで進むことができます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:later 1f</span><br>
+<br>
+<span class="Todo">Note</span>: このコマンドは時間を基準にして移動します。これは undo した後でなにか変更<br>
+を加えていた場合に重要になってきます。それについては次の節で説明します。<br>
+<br>
+<span class="Todo">Note</span>: ここではテキストの保存の話をしています。undo 情報のファイルへの保存につ<br>
+いては&nbsp;<a class="Identifier" href="undo.html#undo-persistence">|undo-persistence|</a>&nbsp;を参照してください。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_32.html#32.2" name="32.2">*32.2*</a>&nbsp;&nbsp;変更の番号付け<br>
+<br>
+セクション&nbsp;<a class="Identifier" href="usr_02.html#02.5">|02.5|</a>&nbsp;では一本道の undo/redo について説明しましたが、実は、<br>
+undo/redo は分岐することができます。変更を undo してから新しい変更を加えると、<br>
+新しい変更が undo ツリーの枝になります。<br>
+<br>
+&quot;one&quot; というテキストから始めましょう。最初に &quot; too&quot; を追加します。次に too の<br>
+一つ目の 'o' を 'w' に変更します。これで、 二つの変更 (番号 1、2) と、テキスト<br>
+の三つの状態ができました。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;change 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one too</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;change 2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one two</span><br>
+<br>
+一つだけ変更を undo して &quot;one too&quot; の状態に戻り、&quot;one&quot; を &quot;me&quot; に変更します。<br>
+すると、undo ツリーに枝が作成されます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;change 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one too</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp; \<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; change 2&nbsp;&nbsp;change 3<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one two&nbsp;&nbsp;&nbsp;&nbsp;me too</span><br>
+<br>
+この状態で&nbsp;<a class="Identifier" href="undo.html#u">|u|</a>&nbsp;コマンドを使って undo してみてください。二回 undo すると &quot;one&quot;<br>
+に戻ります。<a class="Identifier" href="undo.html#CTRL-R">|CTRL-R|</a>&nbsp;で redo すると &quot;one too&quot; になります。もう一度&nbsp;<a class="Identifier" href="undo.html#CTRL-R">|CTRL-R|</a>&nbsp;を<br>
+実行すると &quot;me too&quot; になります。このように、undo/redo を実行すると、最後に使わ<br>
+れた枝を上下に移動できます。<br>
+<br>
+重要なのは変更が作成される順番です。undo ツリーにおいては、undo とredo は変更<br>
+とはみなされません。それぞれの変更の後にはテキストの新しい状態があります。<br>
+<br>
+<span class="Todo">Note</span>: 変更にだけ番号が付きます。上図のツリーに示されている &quot;テキスト&quot; の部分に<br>
+は番号が付きません。テキストは、その上の変更番号によって参照されます。ただし、<br>
+ツリーを上に移動したときなどは、下の変更番号によって参照されます (どの変更が<br>
+undo されたかわかるように)。<br>
+訳注: 例えば上図の &quot;one too&quot; から undo/redo したときのメッセージ:<br>
+訳注:&nbsp;&nbsp; undo したとき:&nbsp;&nbsp;1 change; before #1&nbsp;&nbsp;&nbsp;&nbsp;&lt;- 下の番号が使われる<br>
+訳注:&nbsp;&nbsp; redo したとき:&nbsp;&nbsp;1 change; after #3<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_32.html#32.3" name="32.3">*32.3*</a>&nbsp;&nbsp;ツリーを飛び回る<br>
+<br>
+さて、&quot;one two&quot; の状態を得るにはどうすればいいでしょうか。次のコマンドを使いま<br>
+す:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:undo 2</span><br>
+<br>
+テキストが &quot;one two&quot; (change 2 の下) になります。<a class="Identifier" href="undo.html#:undo">|:undo|</a>&nbsp;コマンドを使うと、指<br>
+定した変更の下にジャンプできます。<br>
+<br>
+新しい変更を加えてみましょう。&quot;one&quot; を &quot;not&quot; に変更します:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;change 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one too</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp; \<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; change 2&nbsp;&nbsp;change 3<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one two&nbsp;&nbsp;&nbsp;&nbsp;me too</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; change 4<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">not two</span><br>
+<br>
+何か考えが変わって &quot;me too&quot; に戻りたくなった場合は、<a class="Identifier" href="undo.html#g-">|g-|</a>&nbsp;コマンドを使います。<br>
+このコマンドは時間を基準にして戻ります。ツリーを上下に移動するのではなく、直前<br>
+の変更に移動します。<br>
+<br>
+<a class="Identifier" href="undo.html#g-">|g-|</a>&nbsp;を繰り返し実行すると、テキストは次のように変化します:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">me too</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one two</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one too</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one</span><br>
+<br>
+<a class="Identifier" href="undo.html#g+">|g+|</a>&nbsp;を使えば時間を進めることができます:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one too</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">one two</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">me too</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">not two</span><br>
+<br>
+ジャンプしたい変更番号が分かっているときには&nbsp;<a class="Identifier" href="undo.html#:undo">|:undo|</a>&nbsp;が便利です。番号がよく分<br>
+からないときには&nbsp;<a class="Identifier" href="undo.html#g-">|g-|</a>&nbsp;と&nbsp;<a class="Identifier" href="undo.html#g+">|g+|</a>&nbsp;が便利です。<br>
+<br>
+<a class="Identifier" href="undo.html#g-">|g-|</a>&nbsp;と&nbsp;<a class="Identifier" href="undo.html#g+">|g+|</a>&nbsp;にカウント指定を付けると実行回数を指定できます。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_32.html#32.4" name="32.4">*32.4*</a>&nbsp;&nbsp;タイムトラベル<br>
+<br>
+しばらくテキストを編集すると、ツリーは大きく成長します。そのとき、数分前のテキ<br>
+ストに戻りたいと思うことがあるかもしれません。<br>
+<br>
+undo ツリーにどのような枝があるかを確認するには次のコマンドを使います:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:undolist</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">number changes&nbsp;&nbsp;time</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;16 seconds ago<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;5 seconds ago<br>
+<br>
+枝に付いている葉の数と、変更された時間が表示されます。今、change 4 の下 (&quot;not<br>
+two&quot;) にいるとして、10 秒前に戻るには次のようにします:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:earlier 10s</span><br>
+<br>
+指定した時間だけ戻り、ツリーの特定の位置へ移動できます。<a class="Identifier" href="undo.html#:earlier">|:earlier|</a>&nbsp;コマンドの<br>
+引数は &quot;m&quot; で分、&quot;h&quot; で時間、&quot;d&quot; で日を指定することもできます。すべての変更を<br>
+元に戻したい場合は大きな値を指定してください:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:earlier 100d</span><br>
+<br>
+時間を進めるには&nbsp;<a class="Identifier" href="undo.html#:later">|:later|</a>&nbsp;コマンドを使います:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:later 1m</span><br>
+<br>
+<a class="Identifier" href="undo.html#:earlier">|:earlier|</a>&nbsp;と同様に、&quot;s&quot;、&quot;m&quot;、&quot;h&quot; で単位を指定します。<br>
+<br>
+undo 情報の詳細を見たい、触りたい、という場合は&nbsp;<a class="Identifier" href="eval.html#undotree()">|undotree()|</a>&nbsp;関数を使ってくだ<br>
+さい。関数が何を返すかは次のコマンドで確認できます:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:echo undotree()</span><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+次章:&nbsp;<a class="Identifier" href="usr_40.html">|usr_40.txt|</a>&nbsp;&nbsp;新しいコマンドを作る<br>
+<br>
+Copyright: see&nbsp;<a class="Identifier" href="usr_01.html#manual-copyright">|manual-copyright|</a>&nbsp;&nbsp;vim:tw=78:ts=8:ft=help:norl:<br>
+<hr>
+<a href="#top">top</a> - <a href="index.html">main help file</a><br>
+
+</body>
+</html>

@@ -1,0 +1,1085 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Vim documentation: cmdline</title>
+<meta name="Generator" content="Vim/7.3">
+<meta name="plugin-version" content="vim7.3_v6">
+<meta name="syntax" content="help">
+<meta name="settings" content="use_css,no_pre">
+<style type="text/css">
+<!--
+.MissingTag { background-color: black; color: white; }
+.EnglishTag { background-color: gray; color: white; }
+body { color: #000000; background-color: #ffffff; font-family: monospace; }
+.Comment { color: #8080ff; }
+.Ignore { color: #ffffff; font-weight: bold; }
+.Todo { color: #808080; background-color: #ffff00; }
+.Special { color: #ff40ff; }
+.PreProc { color: #ff40ff; }
+.Identifier { color: #00ffff; }
+-->
+</style>
+</head>
+<body>
+
+<a name="top"></a><h1>Vim documentation: cmdline</h1>
+<a href="index.html">main help file</a>
+<hr>
+<a class="Constant" href="cmdline.html" name="cmdline.txt">*cmdline.txt*</a>&nbsp;&nbsp; For Vim バージョン 7.3.&nbsp;&nbsp;Last change: 2011 Mar 27<br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIM REFERENCE MANUAL&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#Cmdline-mode" name="Cmdline-mode">*Cmdline-mode*</a>&nbsp;<a class="Constant" href="cmdline.html#Command-line-mode" name="Command-line-mode">*Command-line-mode*</a><br>
+コマンドラインモード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#Cmdline" name="Cmdline">*Cmdline*</a>&nbsp;<a class="Constant" href="cmdline.html#Command-line" name="Command-line">*Command-line*</a>&nbsp;<a class="Constant" href="cmdline.html#mode-cmdline" name="mode-cmdline">*mode-cmdline*</a>&nbsp;<a class="Constant" href="cmdline.html#:" name=":">*:*</a><br>
+<br>
+コマンドラインモードはExコマンド (&quot;:&quot;)、検索パターン (&quot;/&quot; と &quot;?&quot;)、フィルタコ<br>
+マンド (&quot;!&quot;) の入力に使われる。<br>
+<br>
+コマンドライン編集の基本は、ユーザマニュアルの第20章で説明されている<br>
+<a class="Identifier" href="usr_20.html">|usr_20.txt|</a>。<br>
+<br>
+1. コマンドラインの編集&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="cmdline.html#cmdline-editing">|cmdline-editing|</a><br>
+2. コマンドラインの補完&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="cmdline.html#cmdline-completion">|cmdline-completion|</a><br>
+3. Exコマンドライン&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="cmdline.html#cmdline-lines">|cmdline-lines|</a><br>
+4. Exコマンドラインの範囲&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="cmdline.html#cmdline-ranges">|cmdline-ranges|</a><br>
+5. Exコマンドラインのフラグ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="cmdline.html#ex-flags">|ex-flags|</a><br>
+6. Exコマンド用の特別な文字&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="cmdline.html#cmdline-special">|cmdline-special|</a><br>
+7. コマンドラインウィンドウ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="cmdline.html#cmdline-window">|cmdline-window|</a><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+1. コマンドラインの編集&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#cmdline-editing" name="cmdline-editing">*cmdline-editing*</a><br>
+<br>
+通常、文字はカーソル位置の前に挿入される。コマンドラインでは左右のカーソルキー<br>
+で移動ができる。<span class="Special">&lt;Insert&gt;</span>キーで挿入と上書を切り替えることができる。<br>
+<span class="Special">{Vi: 行の最後の文字しか変更できない}</span><br>
+<br>
+<span class="Todo">Note</span>&nbsp;キーボードに有効なカーソルキーまたは他の特殊なキーが一切ないときでも、コ<br>
+マンド &quot;:cnoremap&quot; を使って他のキーをそれらに割り当てられることに注意。<br>
+例えば、tcsh風の編集キーを定義する方法は以下の通り。&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#tcsh-style" name="tcsh-style">*tcsh-style*</a>&nbsp;<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cnoremap &lt;C-A&gt; &lt;Home&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cnoremap &lt;C-F&gt; &lt;Right&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cnoremap &lt;C-B&gt; &lt;Left&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cnoremap &lt;Esc&gt;b &lt;S-Left&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cnoremap &lt;Esc&gt;f &lt;S-Right&gt;</span><br>
+(&lt;&gt; 記法を使っている&nbsp;<a class="Identifier" href="intro.html#<>">|&lt;&gt;|</a>．これらを全て文字通り打ち込むこと)<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#cmdline-too-long" name="cmdline-too-long">*cmdline-too-long*</a><br>
+コマンドラインが長くなりすぎて画面に収まらなくなったときは、画面に入るだけの部<br>
+分が表示される。カーソルはこの見える部分しか動けない。そのため、これ以上は編集<br>
+できない。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#cmdline-history" name="cmdline-history">*cmdline-history*</a>&nbsp;<a class="Constant" href="cmdline.html#history" name="history">*history*</a><br>
+ユーザの打ち込んだコマンドは、履歴表に記録される。これらの履歴は上下矢印キーで<br>
+呼び出せる。実際には4つの履歴表がある。<br>
+履歴表:<br>
+- ':' コマンド用<br>
+- 検索文字列用<br>
+- 式 (expression) 用<br>
+- インプット行 (関数&nbsp;<a class="Identifier" href="eval.html#input()">|input()|</a>&nbsp;に対して入力されたテキスト) 用<br>
+- デバッグモードコマンド用<br>
+これらは全く別のものである。それぞれの履歴は同種の入力をしたときだけ使用できる。<br>
+オプション&nbsp;<a class="Type" href="options.html#'history'">'history'</a>&nbsp;で保存されるコマンド数を設定できる (既定値: 20)。<br>
+<span class="Todo">NOTE</span>:<br>
+- 以前と全く同じコマンドを打ち込んだときは、古い方の記録が消される (繰り返され<br>
+&nbsp;&nbsp;たコマンドが古いコマンドの履歴を追い出して消すのを避けるため)。<br>
+- 打ち込んだコマンドだけが記録される。完全にマッピングから実行されたコマンドは<br>
+&nbsp;&nbsp;履歴に残らない。<br>
+- 全ての検索パターンは、コマンド &quot;*&quot; や &quot;#&quot; 等によるものも含め、検索用の履歴に<br>
+&nbsp;&nbsp;記録される。しかしマッピングからの検索に対しては、最後の検索のみが記録される<br>
+&nbsp;&nbsp;(長いマッピングが履歴の内容を捨ててしまうのを避けるため)。<br>
+<span class="Special">{Vi: 履歴はない}</span><br>
+{Vimが&nbsp;<a class="Identifier" href="various.html#+cmdline_hist">|+cmdline_hist|</a>&nbsp;機能付きでコンパイルされたときのみ有効}<br>
+<br>
+コマンドラインには名前の自動補完機能がある。<a class="Identifier" href="cmdline.html#cmdline-completion">|cmdline-completion|</a>&nbsp;を参照。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-V" name="c_CTRL-V">*c_CTRL-V*</a><br>
+<span class="Special">CTRL-V</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次に打ち込まれた非数字文字を，その通りに挿入する。また最大3個<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;の数字により，1バイト文字をコードの10進表現に基づいて入力でき<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。打ち込んだ非数字文字と3個の数字にはマッピングは適用されな<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;い。これは挿入モードと同じ働きをする (<a class="Identifier" href="insert.html#i_CTRL-V">|i_CTRL-V|</a>&nbsp;を参照)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">NOTE</span>: Windowsでは&nbsp;<span class="Special">CTRL-V</span>&nbsp;はテキストの張り付けにマッピングされ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ていることが多い。そのときは代わりに&nbsp;<span class="Special">CTRL-Q</span>&nbsp;を使うこと。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-Q" name="c_CTRL-Q">*c_CTRL-Q*</a><br>
+<span class="Special">CTRL-Q</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-V</span>&nbsp;と同様だが、ターミナルによっては表示制御に使われている。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;その場合は使えない。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<Left>" name="c_&lt;Left&gt;">*c_&lt;Left&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_Left" name="c_Left">*c_Left*</a><br>
+<span class="Special">&lt;Left&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルを左へ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<Right>" name="c_&lt;Right&gt;">*c_&lt;Right&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_Right" name="c_Right">*c_Right*</a><br>
+<span class="Special">&lt;Right&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソルを右へ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<S-Left>" name="c_&lt;S-Left&gt;">*c_&lt;S-Left&gt;*</a><br>
+<span class="Special">&lt;S-Left&gt;</span>&nbsp;または&nbsp;<span class="Special">&lt;C-Left&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<C-Left>" name="c_&lt;C-Left&gt;">*c_&lt;C-Left&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルを 1WORD 分左へ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<S-Right>" name="c_&lt;S-Right&gt;">*c_&lt;S-Right&gt;*</a><br>
+<span class="Special">&lt;S-Right&gt;</span>&nbsp;または&nbsp;<span class="Special">&lt;C-Right&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<C-Right>" name="c_&lt;C-Right&gt;">*c_&lt;C-Right&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルを 1WORD 分右へ<br>
+<span class="Special">CTRL-B</span>&nbsp;または&nbsp;<span class="Special">&lt;Home&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-B" name="c_CTRL-B">*c_CTRL-B*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<Home>" name="c_&lt;Home&gt;">*c_&lt;Home&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_Home" name="c_Home">*c_Home*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルをコマンドライン先頭へ<br>
+<span class="Special">CTRL-E</span>&nbsp;または&nbsp;<span class="Special">&lt;End&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-E" name="c_CTRL-E">*c_CTRL-E*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<End>" name="c_&lt;End&gt;">*c_&lt;End&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_End" name="c_End">*c_End*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルをコマンドライン末尾へ<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<LeftMouse>" name="c_&lt;LeftMouse&gt;">*c_&lt;LeftMouse&gt;*</a><br>
+<span class="Special">&lt;LeftMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; カーソルをマウスでクリックした所へ移動する<br>
+<br>
+<span class="Special">CTRL-H</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<BS>" name="c_&lt;BS&gt;">*c_&lt;BS&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-H" name="c_CTRL-H">*c_CTRL-H*</a>&nbsp;<a class="Constant" href="cmdline.html#c_BS" name="c_BS">*c_BS*</a><br>
+<span class="Special">&lt;BS&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル前の文字を削除する (<span class="Special">&lt;BS&gt;</span>&nbsp;キーが思い通り働かないときは<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="options.html#:fixdel">|:fixdel|</a>&nbsp;を参照)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<Del>" name="c_&lt;Del&gt;">*c_&lt;Del&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_Del" name="c_Del">*c_Del*</a><br>
+<span class="Special">&lt;Del&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソル下の文字を削除する (行の最後では: カーソル前の文字)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="Special">&lt;Del&gt;</span>&nbsp;キーが思い通り働かないときは&nbsp;<a class="Identifier" href="options.html#:fixdel">|:fixdel|</a>&nbsp;を参照。)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-W" name="c_CTRL-W">*c_CTRL-W*</a><br>
+<span class="Special">CTRL-W</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルの前の&nbsp;<a class="Identifier" href="motion.html#word">|word|</a>&nbsp;を削除<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-U" name="c_CTRL-U">*c_CTRL-U*</a><br>
+<span class="Special">CTRL-U</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;行頭とカーソル位置の間の全ての文字を削除する。Vimの以前の<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ヴァージョンでは行内の文字を全て削除していた。その動作の方がよ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;いなら、次の行をファイル .vimrc に加えること。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cnoremap &lt;C-U&gt; &lt;C-E&gt;&lt;C-U&gt;</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<Insert>" name="c_&lt;Insert&gt;">*c_&lt;Insert&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_Insert" name="c_Insert">*c_Insert*</a><br>
+<span class="Special">&lt;Insert&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;挿入／上書の切り替え&nbsp;&nbsp;<span class="Special">{Vi にはない}</span><br>
+<br>
+<span class="Special">{char1}</span>&nbsp;<span class="Special">&lt;BS&gt;</span>&nbsp;<span class="Special">{char2}</span>&nbsp;&nbsp;&nbsp;&nbsp;または&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_digraph" name="c_digraph">*c_digraph*</a><br>
+<span class="Special">CTRL-K</span>&nbsp;<span class="Special">{char1}</span>&nbsp;<span class="Special">{char2}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-K" name="c_CTRL-K">*c_CTRL-K*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ダイグラフの入力 (<a class="Identifier" href="digraph.html#digraphs">|digraphs|</a>&nbsp;を参照)。<span class="Special">{char1}</span>&nbsp;が特殊キーのとき<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;は、そのキーコードは &lt;&gt; 形式で挿入される。&nbsp;<span class="Special">{Vi にはない}</span><br>
+<br>
+<span class="Special">CTRL-R</span>&nbsp;<span class="Special">{0-9a-z&quot;%#:-=.}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-R" name="c_CTRL-R">*c_CTRL-R*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<C-R>" name="c_&lt;C-R&gt;">*c_&lt;C-R&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;番号/名前付きレジスタの内容を挿入する。<span class="Special">CTRL-R</span>&nbsp;を打ち込んで次<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;の文字を打ち込むまでの間、レジスタ名の入力待ちであることを示す<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ため '&quot;' が表示される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;テキストは打ち込まれた通りに挿入され、マッピングや短縮入力は無<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;効である。<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;によるコマンドライン補完も行われない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;またコマンドラインを終了する文字 (<span class="Special">&lt;Esc&gt;</span>,&nbsp;<span class="Special">&lt;CR&gt;</span>,&nbsp;<span class="Special">&lt;NL&gt;</span>,&nbsp;<span class="Special">&lt;C-C&gt;</span>) も<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;文字通り挿入される。<span class="Special">&lt;BS&gt;</span>&nbsp;や&nbsp;<span class="Special">CTRL-W</span>&nbsp;はコマンドラインを終了でき<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;るが、コマンドラインに残っている文字が違うモードで解釈されるこ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;となるので、意図とは異なる動作になるかもしれない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;特殊なレジスタ:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'&quot;'&nbsp;&nbsp;&nbsp;&nbsp; 無名レジスタ、最後の削除やコピーによるテキスト<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を格納する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'%'&nbsp;&nbsp;&nbsp;&nbsp; カレントファイル名<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'#'&nbsp;&nbsp;&nbsp;&nbsp; 代替ファイル名<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'*'&nbsp;&nbsp;&nbsp;&nbsp; クリップボードの内容 (X11: primary selection)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+'&nbsp;&nbsp;&nbsp;&nbsp; クリップボードの内容<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'/'&nbsp;&nbsp;&nbsp;&nbsp; 最後の検索パターン<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;':'&nbsp;&nbsp;&nbsp;&nbsp; 最後のコマンドラインの内容<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'-'&nbsp;&nbsp;&nbsp;&nbsp; 最後の小規模な (1行未満の) 削除の内容<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.'&nbsp;&nbsp;&nbsp;&nbsp; 最後に挿入されたテキスト<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-R_=" name="c_CTRL-R_=">*c_CTRL-R_=*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'='&nbsp;&nbsp;&nbsp;&nbsp; Expression レジスタ: Expression を入力するよう<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;要求される (<a class="Identifier" href="eval.html#expression">|expression|</a>&nbsp;を参照)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Expressionプロンプトでは機能しない。バッファ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;変更やカレントウィンドウ変更などは副作用を避け<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;るため許可されていない)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;結果がリスト&nbsp;<a class="Identifier" href="eval.html#List">|List|</a>&nbsp;である場合、各要素が1行と<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;して挿入される。行の中に改行文字が含まれていて<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;もよい。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;結果が浮動小数点数である場合、自動的に文字列に<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;変換される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;レジスタに関しては&nbsp;<a class="Identifier" href="change.html#registers">|registers|</a>&nbsp;を参照。&nbsp;<span class="Special">{Vi にはない}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;実装上の詳細:&nbsp;<a class="Identifier" href="eval.html#expression">|expression|</a>レジスタを使っているときに<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setcmdpos()を呼ぶと結果文字列を挿入する前の位置をセットする。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;挿入後の位置をセットするには<span class="Special">CTRL-R</span>&nbsp;<span class="Special">CTRL-R</span>を使うこと。<br>
+<br>
+<span class="Special">CTRL-R</span>&nbsp;<span class="Special">CTRL-F</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-R_CTRL-F" name="c_CTRL-R_CTRL-F">*c_CTRL-R_CTRL-F*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<C-R>_<C-F>" name="c_&lt;C-R&gt;_&lt;C-F&gt;">*c_&lt;C-R&gt;_&lt;C-F&gt;*</a><br>
+<span class="Special">CTRL-R</span>&nbsp;<span class="Special">CTRL-P</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-R_CTRL-P" name="c_CTRL-R_CTRL-P">*c_CTRL-R_CTRL-P*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<C-R>_<C-P>" name="c_&lt;C-R&gt;_&lt;C-P&gt;">*c_&lt;C-R&gt;_&lt;C-P&gt;*</a><br>
+<span class="Special">CTRL-R</span>&nbsp;<span class="Special">CTRL-W</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-R_CTRL-W" name="c_CTRL-R_CTRL-W">*c_CTRL-R_CTRL-W*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<C-R>_<C-W>" name="c_&lt;C-R&gt;_&lt;C-W&gt;">*c_&lt;C-R&gt;_&lt;C-W&gt;*</a><br>
+<span class="Special">CTRL-R</span>&nbsp;<span class="Special">CTRL-A</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-R_CTRL-A" name="c_CTRL-R_CTRL-A">*c_CTRL-R_CTRL-A*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<C-R>_<C-A>" name="c_&lt;C-R&gt;_&lt;C-A&gt;">*c_&lt;C-R&gt;_&lt;C-A&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル下にオブジェクトを挿入する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-F</span>&nbsp;&nbsp;カーソル下のファイル名<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-P</span>&nbsp;&nbsp;<a class="Identifier" href="editing.html#gf">|gf|</a>&nbsp;と同様に&nbsp;<a class="Type" href="options.html#'path'">'path'</a>&nbsp;を使って展開された、カー<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ソル下のファイル名<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-W</span>&nbsp;&nbsp;カーソル下の word<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-A</span>&nbsp;&nbsp;カーソル下の WORD;&nbsp;<a class="Identifier" href="motion.html#WORD">|WORD|</a>&nbsp;を参照<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'incsearch'">'incsearch'</a>がセットされてるとき、現在表示されているマッチの末<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;尾のカーソル位置が使われる。<span class="Special">CTRL-W</span>ではwordの一部がすでに入力さ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れているとき、その部分がもう一度入力されることはない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(訳註: wordという単語のrの上にカーソルを置き、:wo<span class="Special">&lt;C-r&gt;&lt;C-w&gt;</span>と<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;してみると、<a class="Type" href="options.html#'incsearch'">'incsearch'</a>の値によって結果が違うことがわかる)<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{Vi にはない}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-F</span>&nbsp;と&nbsp;<span class="Special">CTRL-P</span>:&nbsp;<span class="Special">{Vi mが&nbsp;</span><a class="Identifier" href="various.html#+file_in_path">|+file_in_path|</a><span class="Special">&nbsp;機能付きでコンパイル</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">されたときのみ有効}</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-R_CTRL-R" name="c_CTRL-R_CTRL-R">*c_CTRL-R_CTRL-R*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<C-R>_<C-R>" name="c_&lt;C-R&gt;_&lt;C-R&gt;">*c_&lt;C-R&gt;_&lt;C-R&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-R_CTRL-O" name="c_CTRL-R_CTRL-O">*c_CTRL-R_CTRL-O*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<C-R>_<C-O>" name="c_&lt;C-R&gt;_&lt;C-O&gt;">*c_&lt;C-R&gt;_&lt;C-O&gt;*</a><br>
+<span class="Special">CTRL-R</span>&nbsp;<span class="Special">CTRL-R</span>&nbsp;{0-9a-z&quot;%#:-=.&nbsp;<span class="Special">CTRL-F</span>&nbsp;<span class="Special">CTRL-P</span>&nbsp;<span class="Special">CTRL-W</span>&nbsp;<span class="Special">CTRL-A</span>}<br>
+<span class="Special">CTRL-R</span>&nbsp;<span class="Special">CTRL-O</span>&nbsp;{0-9a-z&quot;%#:-=.&nbsp;<span class="Special">CTRL-F</span>&nbsp;<span class="Special">CTRL-P</span>&nbsp;<span class="Special">CTRL-W</span>&nbsp;<span class="Special">CTRL-A</span>}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル下にレジスタの内容またはオブジェクトを挿入。<a class="Identifier" href="cmdline.html#c_CTRL-R">|c_CTRL-R|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;と同様の動作だが、テキストを文字通り挿入する。例えば、レジスタ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;a の内容が &quot;xy^Hz&quot; (ここで ^H はバックスペース) のとき、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;<span class="Special">CTRL-R</span>&nbsp;a&quot; は &quot;xz&quot; を挿入するのに対し、&quot;<span class="Special">CTRL-R</span>&nbsp;<span class="Special">CTRL-R</span>&nbsp;a&quot; は<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;xy^Hz&quot; を挿入する。<br>
+<br>
+<span class="Special">CTRL-\</span>&nbsp;e&nbsp;<span class="Special">{expr}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-\_e" name="c_CTRL-\_e">*c_CTRL-\_e*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドラインを<span class="Special">{expr}</span>を評価した結果で置き換えます。式を入力し<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Enter&gt;</span>を押せば完了します。マッピングする時に使うと便利です。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#expression">|expression|</a>もご覧ください。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;式の評価を挿入するには<a class="Identifier" href="cmdline.html#c_CTRL-R_=">|c_CTRL-R_=|</a>を使います。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;便利な関数に<a class="Identifier" href="eval.html#getcmdtype()">|getcmdtype()|</a>と<a class="Identifier" href="eval.html#getcmdline()">|getcmdline()|</a>と<a class="Identifier" href="eval.html#getcmdpos()">|getcmdpos()|</a>があ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ります。カーソルが行末になければカーソル位置は変更されません。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルが行末にあるときのコマンドライン変更後のカーソル位置は<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;行末です。<a class="Identifier" href="eval.html#setcmdpos()">|setcmdpos()|</a>を使うとカーソル位置を変更できます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#sandbox">|sandbox|</a>を使うと不要な副作用を避けて式を評価することができま<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例を上げます。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cmap &lt;F7&gt; &lt;C-\&gt;eAppendSome()&lt;CR&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:func AppendSome()</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let cmd = getcmdline() . &quot; Some()&quot;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&quot; place the cursor on the )</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:call setcmdpos(strlen(cmd))</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:return cmd</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:endfunc</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; これは再帰的には機能しません。つまり、すでに式を編集していると<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;きは動作しません。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-Y" name="c_CTRL-Y">*c_CTRL-Y*</a><br>
+<span class="Special">CTRL-Y</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;モードレスセレクションでテキストを選択中のとき、テキストをクリッ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;プボードにコピーする。&nbsp;<a class="Identifier" href="gui.html#modeless-selection">|modeless-selection|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;選択中でないときは、<span class="Special">CTRL-Y</span>&nbsp;は文字として挿入される。<br>
+<br>
+<span class="Special">CTRL-J</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-J" name="c_CTRL-J">*c_CTRL-J*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<NL>" name="c_&lt;NL&gt;">*c_&lt;NL&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<CR>" name="c_&lt;CR&gt;">*c_&lt;CR&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_CR" name="c_CR">*c_CR*</a><br>
+<span class="Special">&lt;CR&gt;</span>&nbsp;または&nbsp;<span class="Special">&lt;NL&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;入力されたコマンドの実行<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<Esc>" name="c_&lt;Esc&gt;">*c_&lt;Esc&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_Esc" name="c_Esc">*c_Esc*</a><br>
+<span class="Special">&lt;Esc&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 打ち込まれたときにオプション&nbsp;<a class="Type" href="options.html#'cpoptions'">'cpoptions'</a>&nbsp;にフラグ 'x' が含まれ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ていなければ、コマンドを実行せずにコマンドラインモードを終了す<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。マクロ内で使われたとき、または&nbsp;<a class="Type" href="options.html#'cpoptions'">'cpoptions'</a>&nbsp;に 'x' が含まれ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ているときは、コマンドラインを実行する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: お使いのキーボードで&nbsp;<span class="Special">&lt;Esc&gt;</span>&nbsp;が押しづらい場合は、<span class="Special">CTRL-[</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を使うよう練習してください。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-C" name="c_CTRL-C">*c_CTRL-C*</a><br>
+<span class="Special">CTRL-C</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドを実行せずにコマンドラインモードを終了する。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<Up>" name="c_&lt;Up&gt;">*c_&lt;Up&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_Up" name="c_Up">*c_Up*</a><br>
+<span class="Special">&lt;Up&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;古いコマンドラインの内容のうち、先頭部分が現在のコマンドライン<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;とマッチするものを履歴から呼び出す (下を参照)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{Vi mが&nbsp;</span><a class="Identifier" href="various.html#+cmdline_hist">|+cmdline_hist|</a><span class="Special">&nbsp;機能付きでコンパイルされたときのみ有効}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<Down>" name="c_&lt;Down&gt;">*c_&lt;Down&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_Down" name="c_Down">*c_Down*</a><br>
+<span class="Special">&lt;Down&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;さらに最近のコマンドラインの内容のうち、先頭部分が現在のコマン<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ドラインとマッチするものを履歴から呼び出す (下を参照)。(訳注:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;変な訳ですが，<span class="Special">&lt;Up&gt;</span>&nbsp;で行き過ぎたら&nbsp;<span class="Special">&lt;Down&gt;</span>&nbsp;で戻るということです)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{Vi mが&nbsp;</span><a class="Identifier" href="various.html#+cmdline_hist">|+cmdline_hist|</a><span class="Special">&nbsp;機能付きでコンパイルされたときのみ有効}</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<S-Up>" name="c_&lt;S-Up&gt;">*c_&lt;S-Up&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<PageUp>" name="c_&lt;PageUp&gt;">*c_&lt;PageUp&gt;*</a><br>
+<span class="Special">&lt;S-Up&gt;</span>&nbsp;または&nbsp;<span class="Special">&lt;PageUp&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;履歴から古いコマンドラインの内容を呼び出す。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{Vi mが&nbsp;</span><a class="Identifier" href="various.html#+cmdline_hist">|+cmdline_hist|</a><span class="Special">&nbsp;機能付きでコンパイルされたときのみ有効}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_<S-Down>" name="c_&lt;S-Down&gt;">*c_&lt;S-Down&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<PageDown>" name="c_&lt;PageDown&gt;">*c_&lt;PageDown&gt;*</a><br>
+<span class="Special">&lt;S-Down&gt;</span>&nbsp;または&nbsp;<span class="Special">&lt;PageDown&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;履歴からさらに最近のコマンドラインの内容を呼び出す。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{Vi mが&nbsp;</span><a class="Identifier" href="various.html#+cmdline_hist">|+cmdline_hist|</a><span class="Special">&nbsp;機能付きでコンパイルされたときのみ有効}</span><br>
+<br>
+<span class="Special">CTRL-D</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドライン補完(<a class="Identifier" href="cmdline.html#cmdline-completion">|cmdline-completion|</a>を参照)<br>
+オプション&nbsp;<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;で指定したキー<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドライン補完 (<a class="Identifier" href="cmdline.html#cmdline-completion">|cmdline-completion|</a>を参照)<br>
+<span class="Special">CTRL-N</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドライン補完 (<a class="Identifier" href="cmdline.html#cmdline-completion">|cmdline-completion|</a>を参照)<br>
+<span class="Special">CTRL-P</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドライン補完 (<a class="Identifier" href="cmdline.html#cmdline-completion">|cmdline-completion|</a>を参照)<br>
+<span class="Special">CTRL-A</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドライン補完 (<a class="Identifier" href="cmdline.html#cmdline-completion">|cmdline-completion|</a>を参照)<br>
+<span class="Special">CTRL-L</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドライン補完 (<a class="Identifier" href="cmdline.html#cmdline-completion">|cmdline-completion|</a>を参照)<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-_" name="c_CTRL-_">*c_CTRL-_*</a><br>
+<span class="Special">CTRL-_</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. キーボードのヘブライ語モードと英語モードを切り替える。これ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;はコマンドラインのみに適用され、<a class="Type" href="options.html#'hkmap'">'hkmap'</a>&nbsp;とは関係ない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドライン、検索や短縮入力等にヘブライ語テキストの項目が必<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;要とされるときに便利である。Vimが&nbsp;<a class="Identifier" href="various.html#+rightleft">|+rightleft|</a>&nbsp;機能付きでコン<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;パイルされ、<a class="Type" href="options.html#'allowrevins'">'allowrevins'</a>&nbsp;がオンのときのみ有効。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="rileft.html">|rileft.txt|</a>&nbsp;を参照。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. キーボードのFarsi語モードと英語モードを切り替える。これはコ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;マンドラインのみに適用され、オプション&nbsp;<a class="Type" href="options.html#'fkmap'">'fkmap'</a>&nbsp;には関係しない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Farsi語モードでは、文字は普段とは反対の方向に挿入される。コマ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ンドライン、検索や短縮入力等にFarsi語テキストの項目が必要とさ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れるときに便利である。Vimが&nbsp;<a class="Identifier" href="various.html#+farsi">|+farsi|</a>&nbsp;機能付きでコンパイルされ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;たときのみ有効。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="farsi.html">|farsi.txt|</a>を参照。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-^" name="c_CTRL-^">*c_CTRL-^*</a><br>
+<span class="Special">CTRL-^</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;言語マッピング&nbsp;<a class="Identifier" href="map.html#:lmap">|:lmap|</a>&nbsp;を切り替えたり、Input Method (IM) を切<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;り替える。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;検索コマンドのためにパターンを入力するとき、オプション<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'imsearch'">'imsearch'</a>&nbsp;が -1 でなければ VAL は&nbsp;<a class="Type" href="options.html#'imsearch'">'imsearch'</a>&nbsp;の値に、そうでな<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ければ VAL は&nbsp;<a class="Type" href="options.html#'iminsert'">'iminsert'</a>&nbsp;の値になる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;言語マッピングが定義されているとき:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- VAL が 1 のとき (言語マッピングが使われているとき) 0 に変わ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る (言語マッピングは使われなくなる).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- VAL が 1 でなければ 1 に変わり、言語マッピングが有効になる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;言語マッピングが全く定義されていないとき:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- VAL が 2 のとき (IMが使われているとき) 0 に変わる (IMは使わ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れなくなる)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- VAL が 2 以外のときは 2 に変わり、IMが有効になる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;普通、言語マッピングは、キーボードが生成するのと違う文字を打ち<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;込むのに使われる。オプション&nbsp;<a class="Type" href="options.html#'keymap'">'keymap'</a>&nbsp;を使えばまとめて設定でき<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドラインに入ったときは、コマンドを打ち込むはずなので、言<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;語マッピングはオフに切り替えられる。<span class="Special">CTRL-^</span>&nbsp;でオンにした後も、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次にコマンドや検索パターンを打ち込むときにはその状態は使われな<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;い。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{Vi にはない}</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-]" name="c_CTRL-]">*c_CTRL-]*</a><br>
+<span class="Special">CTRL-]</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;文字を挿入することなく短縮入力を展開する。<span class="Special">{Vi にはない}</span><br>
+<br>
+コマンドラインをEmacsスタイルで編集する方法については&nbsp;<a class="Identifier" href="tips.html#emacs-keys">|emacs-keys|</a>&nbsp;を参照。<br>
+<br>
+キー&nbsp;<span class="Special">&lt;Up&gt;</span>&nbsp;と&nbsp;<span class="Special">&lt;Down&gt;</span>&nbsp;は現在のコマンドラインを検索文字列として扱う。次／以前のコ<br>
+マンドラインの先頭部分が、この文字列と比較される。マッチした最初の行が新しいコ<br>
+マンドラインとなる。これら2つのキーを繰り返し入力すると、同じ文字列が検索に使<br>
+われる。例えば、以前の置換コマンドを見つけるためにはこうする: &quot;:s&quot; の後&nbsp;<span class="Special">&lt;Up&gt;</span><br>
+を打ち込むこと。同じことは、<span class="Special">&lt;S-Up&gt;</span>&nbsp;を望んだ行が出るまで数回打ち込むことでもで<br>
+きる。(&nbsp;<span class="Todo">Note</span>: シフトキーと矢印キーとの同時押しは、全ての端末で機能するわけでは<br>
+ないことに注意)<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:his" name=":his">*:his*</a>&nbsp;<a class="Constant" href="cmdline.html#:history" name=":history">*:history*</a><br>
+:his[tory]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;最近入力されたコマンドの履歴を表示する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{Vi にはない}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{Vimが&nbsp;<a class="Identifier" href="various.html#+cmdline_hist">|+cmdline_hist|</a>&nbsp;機能付きでコンパイルされたときのみ有効}<br>
+<br>
+:his[tory] [<span class="Special">{name}</span>] [<span class="Special">{first}</span>][, [<span class="Special">{last}</span>]]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{name}</span>&nbsp;の種類の履歴内容を一覧表示する。<span class="Special">{name}</span>&nbsp;に入るものは:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c[md]&nbsp;&nbsp;&nbsp;&nbsp;または :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; コマンドラインの履歴<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s[earch] または /&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 検索文字列の履歴<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e[xpr]&nbsp;&nbsp; または =&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Expression レジスタの履歴<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i[nput]&nbsp;&nbsp;または @&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 入力行の履歴<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d[ebug]&nbsp;&nbsp;または &gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; デバッグコマンドの履歴<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[ll]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 上記のもの全て<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{Viにはない}<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{first}</span>や<span class="Special">{last}</span>が指定されたときは、履歴中の指定された範囲の<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;項目が表示される。これらの数字は次の形式で指定する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:history-indexing" name=":history-indexing">*:history-indexing*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;正数は、&quot;:history&quot; の一覧表示で最初の列に表示される、項目の絶<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;対的な番号を表す。この数字は、他の項目が削除されても固定された<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ままである。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;負数は項目の相対的な位置を示す。これは最も新しい項目 (番号 -1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を持つ) から後ろ向きに数えたものである。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;検索履歴の項目6から12までを一覧表示する。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:history / 6,12</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;全履歴の最近の5項目を一覧表示する。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:history all -5,</span><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+2. コマンドラインの補完&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#cmdline-completion" name="cmdline-completion">*cmdline-completion*</a><br>
+<br>
+コマンドラインの編集をしているとき、いくつかのコマンドを使ってカーソル前の単語<br>
+を補完できる。補完は以下のものに対して有効である。<br>
+<br>
+- コマンド名: コマンドラインの先頭で使われる<br>
+- タグ: コマンド &quot;:tag&quot; の後でのみ使われる<br>
+- ファイル名: ファイル名を取るコマンドの後、またはファイル名に対して設定される<br>
+&nbsp;&nbsp;オプションの設定時のみ使われる。これはファイル名補完と呼ばれる。<br>
+- シェルコマンド名: &quot;:!cmd&quot;、&quot;:r !cmd&quot;、&quot;:w !cmd&quot;の後で使われる。$PATHが考慮さ<br>
+&nbsp;&nbsp;れる。<br>
+- オプション: コマンド &quot;:set&quot; の後でのみ使われる。<br>
+- マッピング: &quot;:map&quot; や類似コマンドの後でのみ使われる。<br>
+- 変数／関数名: &quot;:if&quot;, &quot;:call&quot; や類似コマンドの後でのみ使われる。<br>
+<br>
+Vimが&nbsp;<a class="Identifier" href="various.html#+cmdline_compl">|+cmdline_compl|</a>&nbsp;機能付きでコンパイルされなかったときは、ファイル名、ディ<br>
+レクトリ名、ヘルプの項目のみが補完される。マッチするヘルプ項目の個数には上限が<br>
+ある(現在のところは 300)。非常に多くのマッチがあったとき、遅くなるのを避けるた<br>
+めである。<br>
+<br>
+補完に使えるコマンドは以下の通り。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-D" name="c_CTRL-D">*c_CTRL-D*</a><br>
+<span class="Special">CTRL-D</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルより前のパターンに一致する名前を一覧表示する。ファイル<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名を表示しているときには、ディレクトリは強調表示される (オプショ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ン&nbsp;<a class="Type" href="options.html#'highlight'">'highlight'</a>&nbsp;を参照)。オプション&nbsp;<a class="Type" href="options.html#'suffixes'">'suffixes'</a>&nbsp;の値がマッチした<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名前は、末尾の方に移動される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'wildoptions'">'wildoptions'</a>を&quot;tagfile&quot;にセットすると、マッチするタグを含むファ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;イル名をリストすることができます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-I" name="c_CTRL-I">*c_CTRL-I*</a>&nbsp;<a class="Constant" href="cmdline.html#c_wildchar" name="c_wildchar">*c_wildchar*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<Tab>" name="c_&lt;Tab&gt;">*c_&lt;Tab&gt;*</a><br>
+オプション&nbsp;<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;で指定したキー<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルより前のパターンに対してマッチの検索が行われる。マッチ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(いくつかあるなら、最初のもの) が、そのパターンの位置に挿入さ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れる。(&nbsp;<span class="Todo">Note</span>: これはマクロの中では機能しない。なぜなら&nbsp;<span class="Special">&lt;Tab&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;と&nbsp;<span class="Special">&lt;Esc&gt;</span>&nbsp;は大抵&nbsp;<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;として使われ、またいくつかのマクロ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;の中ではこれらが特別な意味を持つからである) このキーを再び入力<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;すると、複数のマッチがあるときは、次のマッチが挿入される。最後<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;のマッチの後には、最初のマッチが再び使われる (繰り返し)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この動作は、オプション&nbsp;<a class="Type" href="options.html#'wildmode'">'wildmode'</a>&nbsp;で変更できる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-N" name="c_CTRL-N">*c_CTRL-N*</a><br>
+<span class="Special">CTRL-N</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;を使ったら複数のマッチがあったとき、その後に使うと<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次のマッチが挿入される。それ以外のときには、より最近使ったコマ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ンドラインを履歴から呼び出す。<br>
+<span class="Special">&lt;S-Tab&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-P" name="c_CTRL-P">*c_CTRL-P*</a>&nbsp;<a class="Constant" href="cmdline.html#c_<S-Tab>" name="c_&lt;S-Tab&gt;">*c_&lt;S-Tab&gt;*</a><br>
+<span class="Special">CTRL-P</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;を使ったら複数のマッチがあったとき、その後に使うと<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;前のマッチが挿入される。それ以外のときには、より昔に使ったコマ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ンドラインを履歴から呼び出す。<span class="Special">&lt;S-Tab&gt;</span>&nbsp;はGUI版、Amiga版と<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MS-DOS版でのみ機能する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-A" name="c_CTRL-A">*c_CTRL-A*</a><br>
+<span class="Special">CTRL-A</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルより前のパターンに一致する、全ての名前が挿入される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-L" name="c_CTRL-L">*c_CTRL-L*</a><br>
+<span class="Special">CTRL-L</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルより前のパターンに対してマッチの検索が行われる。マッチ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;が1個のときは、それがパターンの位置に挿入される。複数個のマッ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;チがあったときは、最も長い共通部分がパターンの位置に挿入される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;その結果がパターンより短い場合には、補完は行われない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'incsearch'">'incsearch'</a>がセットされていると、&quot;/&quot;や&quot;?&quot;で検索パターンを入力<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;するとき現在のマッチが表示され、<span class="Special">CTRL-L</span>を押すと現在のマッチの末<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;尾から1文字追加する。<a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;と&nbsp;<a class="Type" href="options.html#'smartcase'">'smartcase'</a>&nbsp;がセットされ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ていてコマンドラインに大文字が含まれていないときは、追加された<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;文字は小文字に変換されます。<br>
+<br>
+オプション&nbsp;<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;の既定値は&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;である (Vi互換モードの場合は&nbsp;<span class="Special">CTRL-E</span>&nbsp;で<br>
+ある。以前のヴァージョンでは&nbsp;<span class="Special">&lt;Esc&gt;</span>&nbsp;が使われていた)。パターンがファイル名に対し<br>
+て適用されるときは標準のワイルドカード '*' と '?' が使用できる。'*' はあらゆる<br>
+文字列に一致し、'?' はちょうど 1文字に一致する。<br>
+<br>
+tcshのautolist補完が好みなら、このマッピングが使える。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cnoremap X &lt;C-L&gt;&lt;C-D&gt;</span><br>
+(ここで X は使いたいコマンドキー。<span class="Special">&lt;C-L&gt;</span>&nbsp;は&nbsp;<span class="Special">CTRL-L</span>,&nbsp;<span class="Special">&lt;C-D&gt;</span>&nbsp;は&nbsp;<span class="Special">CTRL-D</span>&nbsp;のこと)<br>
+これは最長のマッチを見つけ、マッチしたファイルを全て一覧表示する。<br>
+<br>
+tcshのautolist補完が好みなら、オプション&nbsp;<a class="Type" href="options.html#'wildmode'">'wildmode'</a>&nbsp;を使ってその動作をエミュ<br>
+レートできる。例えば、次の設定は autolist=ambiguous という設定を真似る。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set wildmode=longest,list</span><br>
+これは、最初の&nbsp;<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;で最長のマッチを見つけ、次はマッチするファイルを全て<br>
+一覧表示する。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#suffixes" name="suffixes">*suffixes*</a><br>
+ファイル名補完では、オプション&nbsp;<a class="Type" href="options.html#'suffixes'">'suffixes'</a>&nbsp;を使い、ほぼ同じ名前のファイル名に優<br>
+先度を設定できる。複数のマッチがあったとき、あるファイルの拡張子が&nbsp;<a class="Type" href="options.html#'suffixes'">'suffixes'</a><br>
+の値に含まれていると、そのファイルは無視される。既定値は<br>
+&quot;.bak,~,.o,.h,.info,.swp&quot; であり、これは &quot;.bak&quot;, &quot;~&quot;, &quot;.o&quot;, &quot;.h&quot;, &quot;.info&quot;,<br>
+&quot;.swp&quot; で終わるファイルが無視されることがあるということである。<br>
+<br>
+空の項目(つまり2つの連続するカンマ)は &quot;.&quot; を含まないファイル名(つまり拡張子を<br>
+持たない)にマッチする。これは &quot;prog&quot; を無視させ、かつ &quot;prog.c&quot; にマッチさせた<br>
+いときに便利である。<br>
+<br>
+例:<br>
+<br>
+&nbsp;&nbsp;<span class="PreProc">パターン:&nbsp;&nbsp;&nbsp;&nbsp; 存在するファイル:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; マッチ:</span><br>
+&nbsp;&nbsp; test*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test.c test.h test.o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test.c<br>
+&nbsp;&nbsp; test*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test.h test.o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; test.h and test.o<br>
+&nbsp;&nbsp; test*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test.i test.h test.c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test.i and test.c<br>
+<br>
+2つのドットを持つ拡張子を無視することはできない。<br>
+<br>
+(オプション&nbsp;<a class="Type" href="options.html#'suffixes'">'suffixes'</a>&nbsp;による除外が行われた後で) マッチするファイルが複数個あ<br>
+るときは、最初のファイル名が挿入される。<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;のキーを2度打ち込んでも補完<br>
+されたマッチが同じだったら、マッチが1つしかないことが分かる。他のマッチは、<br>
+<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;のキーまたは&nbsp;<span class="Special">CTRL-N</span>,&nbsp;<span class="Special">CTRL-P</span>&nbsp;を入力することで得られる。それには<br>
+<a class="Type" href="options.html#'suffixes'">'suffixes'</a>&nbsp;に設定された拡張子にマッチするものも含め、全てのファイルが含まれる。<br>
+<br>
+ある拡張子のファイルを完全に無視するにはオプション&nbsp;<a class="Type" href="options.html#'wildignore'">'wildignore'</a>&nbsp;を使うこと。<br>
+<br>
+入力されたテキストで終わるファイルにのみマッチさせるには、&quot;$&quot; をつけること。例<br>
+として、&quot;.c&quot; で終わるファイルにのみマッチさせるには:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e *.c$</span><br>
+これは &quot;.cpp&quot; で終わるファイルにはマッチしない。&quot;$&quot; をつけないとマッチする。<br>
+<br>
+オプションの、以前に設定された値は、'=' の後で&nbsp;<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;のキーを打ち込むこと<br>
+で得られる。例えば、&quot;:set dir=&quot; の後で&nbsp;<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;のキーを打ち込むと、<a class="Type" href="options.html#'dir'">'dir'</a>&nbsp;の<br>
+現在の値が挿入される。この動作は、ファイル名を取るオプションに対するファイル名<br>
+補完より優先する。<br>
+<br>
+xtermで&nbsp;<span class="Special">&lt;S-Tab&gt;</span>&nbsp;を&nbsp;<span class="Special">CTRL-P</span>&nbsp;として使いたいときは、このコマンドをユーザの .cshrc<br>
+に加えること。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmodmap -e &quot;keysym Tab = Tab Find&quot;</span><br>
+そして次を .vimrc に加えること。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmap &lt;Esc&gt;[1~ &lt;C-P&gt;</span><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+3. Exコマンドライン&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#cmdline-lines" name="cmdline-lines">*cmdline-lines*</a><br>
+<br>
+Exコマンドはいくつかの特徴を持っている。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:quote" name=":quote">*:quote*</a>&nbsp;<a class="Constant" href="cmdline.html#:comment" name=":comment">*:comment*</a><br>
+行の最初に '&quot;' があると、その行全てが無視される。'&quot;' がコマンドの後にあると、<br>
+その行の残りの部分が無視される。これはコメントを加えるために使われる。例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set ai&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;set 'autoindent' option</span><br>
+シェルコマンド &quot;:!cmd&quot;, コマンド &quot;:map&quot; とその他いくつかのコマンドにはコメント<br>
+を付けることができない。これらのコマンドは '&quot;' を引数の一部として認識するから<br>
+である。各コマンドの説明のところにその旨の注意がある。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:bar" name=":bar">*:bar*</a>&nbsp;<a class="Constant" href="cmdline.html#:\bar" name=":\bar">*:\bar*</a><br>
+'|' を使ってコマンドを区切ることができる。これにより一行に複数のコマンドを書き<br>
+込める。引数に '|' を使いたいときは、'\' を前に置くこと。<br>
+<br>
+以下のコマンドは '|' を引数として認識するため、後に他のコマンドを続けることは<br>
+できない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:argdo<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:autocmd<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:bufdo<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:command<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:cscope<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:debug<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:folddoopen<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:folddoclosed<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:function<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:global<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:help<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:helpfind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:lcscope<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:make<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:normal<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:perl<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:perldo<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:promptfind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:promptrepl<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:pyfile<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:python<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:registers<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:read !<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:scscope<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:sign<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:tcl<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:tcldo<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:tclfile<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:vglobal<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:windo<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:write !<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:<span class="Special">[range]</span>!<br>
+&nbsp;&nbsp;&nbsp;&nbsp;引数 &quot;-bar&quot; なしで定義されたユーザコマンド&nbsp;<a class="Identifier" href="map.html#:command">|:command|</a><br>
+<br>
+<span class="Todo">Note</span>: (Viから継承されたのだが) 次の点は混乱を招きやすいので注意: '|' は &quot;:g&quot;<br>
+と共に使うとコマンドの引数に含まれるが、&quot;:s&quot; ではコマンドの区切りになる。<br>
+<br>
+どうしても他のコマンドを使いたいときは、コマンド &quot;:execute&quot; を使うこと。<br>
+例 (バッファに外部コマンド &quot;ls&quot; の出力を追加し、最初の行にジャンプする):<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:execute 'r !ls' | '[</span><br>
+<br>
+例外が1点ある: オプション&nbsp;<a class="Type" href="options.html#'cpoptions'">'cpoptions'</a>&nbsp;にフラグ 'b' が含まれるときは、&quot;:map&quot;,<br>
+&quot;:abbr&quot; またはその類似コマンドの引数に '|' を使うとき、'\' の代わりに&nbsp;<span class="Special">CTRL-V</span><br>
+を使う必要がある。代わりに &quot;<span class="Special">&lt;Bar&gt;</span>&quot; を使うこともできる。<a class="Identifier" href="map.html#map_bar">|map_bar|</a>&nbsp;も参照。<br>
+<br>
+例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:!ls | wc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2つのコマンドの出力を見る</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:r !ls | wc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; その出力をテキストに挿入する</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:%g/foo/p|&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 一致した全ての行をshiftwidth1個分ずらす</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:%s/foo/bar/|&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1つの行をshiftwidth1個分ずらす</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map q 10^V|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;q&quot; に &quot;10|&quot; をマッピングする</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map q 10\| map \ l&nbsp;&nbsp;&nbsp;&nbsp; &quot;q&quot; に &quot;10\&quot; を、&quot;\&quot; に &quot;l&quot; をマッピングする</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;('b' が 'cpoptions' に含まれるとき)</span><br>
+<br>
+<span class="Special">&lt;NL&gt;</span>&nbsp;を使って、'|' と同様にコマンドを区切ることができる。<span class="Special">&lt;NL&gt;</span>&nbsp;を挿入するには<br>
+<span class="Special">CTRL-V</span>&nbsp;<span class="Special">CTRL-J</span>&nbsp;を使うこと。すると &quot;^@&quot; が表示される。'|' を使う方が好ましいが、<br>
+外部コマンドに対しては、'|' が外部コマンドに含まれてしまうため、<span class="Special">&lt;NL&gt;</span>&nbsp;を使わな<br>
+ければならない。<span class="Special">&lt;NL&gt;</span>&nbsp;の特別な作用を避けるためには、前に '\' を置く必要がある。<br>
+例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:r !date&lt;NL&gt;-join</span><br>
+これは現在の日時をファイルに読み込み、それを前の行につなげる。<br>
+<br>
+<span class="Todo">Note</span>: '|' の前のコマンドがエラーを起こしたときは、以降のコマンドは実行されない<br>
+ことに注意。<br>
+<br>
+<br>
+Viとの互換性のために、以下の奇妙なコマンドがサポートされている。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;現在行を表示する (&quot;:p&quot; と同様)</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:3|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3行目を表示する (&quot;:3p&quot; と同様)</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3行目に移動する</span><br>
+<br>
+範囲とコマンド名の間にコロンを入れることができる。このコロンは無視される (これ<br>
+はVi互換の動作である)。例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:1,$:s/パターン/文字列</span><br>
+<br>
+ファイル名が入るべき場所に、文字 '%' または '#' が使われているときは、それらは<br>
+カレントファイル名、代替ファイル名に展開される (&quot;ファイルの編集&quot; の章を参照<br>
+<a class="Identifier" href="cmdline.html#:_%">|:_%|</a>&nbsp;<a class="Identifier" href="cmdline.html#:_#">|:_#|</a>)。<br>
+<br>
+Amigaでは、引数がファイル名1個になるはずのとき、空白を含むファイル名が使用でき<br>
+る。ファイル名末尾の空白は、'\' や&nbsp;<span class="Special">CTRL-V</span>&nbsp;でエスケープされていない限り無視され<br>
+る。&nbsp;<span class="Todo">NOTE</span>: コマンド &quot;:next&quot; では、ファイル名の区切りに空白を使うことに注意。ファ<br>
+イル名に空白を含むには、エスケープすること。例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:next foo\ bar goes\ to school\</span><br>
+こうすると3個のファイル &quot;foo bar&quot;, &quot;goes to&quot;, &quot;school &quot; の編集を開始する。<br>
+<br>
+コマンドで特別な文字 '&quot;', '|' を使いたいとき、あるいはファイル名に '%', '#' を<br>
+使いたいときは、'\' を前に置く。範囲指定やコマンド &quot;:substitute&quot; では '\' は必<br>
+要ない。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:_!" name=":_!">*:_!*</a><br>
+Exコマンドの後に文字 '!' (bang) を置くと、コマンドの動作方法が変わる。'!' はコ<br>
+マンドの直後に置かなければならず、間に空白を入れてはならない。空白を挿入すると、<br>
+'!' はコマンドの引数と見なされ、違った意味を持つことになる。例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:w! name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;現在のバッファをファイル &quot;name&quot; に保存し、ファイルがす</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;でに存在していると上書きする</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:w !name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;現在のバッファを、標準入力からの入力としてコマンド</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;name&quot; に送る</span><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+4. Exコマンドラインの範囲&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#cmdline-ranges" name="cmdline-ranges">*cmdline-ranges*</a>&nbsp;<a class="Constant" href="cmdline.html#[range]" name="[range]">*[range]*</a>&nbsp;<a class="Constant" href="cmdline.html#E16" name="E16">*E16*</a><br>
+<br>
+Exコマンドには、その前に行単位の範囲を指定できるものがある。これは&nbsp;<span class="Special">[range]</span>&nbsp;と<br>
+表記される。それは ',' か ';' で区切られた、1個以上の行指定子から成る。<br>
+<br>
+基本事項はユーザマニュアルの&nbsp;<a class="Identifier" href="usr_10.html#10.3">|10.3|</a>&nbsp;章で説明されている。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:," name=":,">*:,*</a>&nbsp;<a class="Constant" href="cmdline.html#:;" name=":;">*:;*</a><br>
+区切りに ';' を使うと、次の行指定子を解釈する前にカーソル位置がその行に移動<br>
+する。',' ではこうならない。例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4,/この行/</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4行目から、カーソルより後の、&quot;この行&quot; がマッチする行まで。</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5;/あの行/</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5行目から、5行目より後の、&quot;あの行&quot; がマッチする行まで。</span><br>
+<br>
+ほとんどのコマンドでは、範囲の既定値はカーソルのある行である。しかしコマンド<br>
+&quot;:write&quot;, &quot;:global&quot; での既定値はファイル全体 (1,$) である。<br>
+<br>
+コマンドに必要以上の行指定子が指定されたときは、先頭の方に指定されたものから順<br>
+に除外される。<br>
+<br>
+行番号は以下の方法で指定できる:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:range" name=":range">*:range*</a>&nbsp;<a class="Constant" href="cmdline.html#E14" name="E14">*E14*</a>&nbsp;<a class="Constant" href="cmdline.html#{address}" name="{address}">*{address}*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{number}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;絶対的な行番号<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 現在の行&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:." name=":.">*:.*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ファイルの最終行&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:$" name=":$">*:$*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1,$と同じ (ファイル全体)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:%" name=":%">*:%*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;マーク tの位置 (小文字)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:'" name=":'">*:'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'T&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;マーク Tの位置 (大文字); マーク位置が別ファイルにある<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ときには範囲指定には使えない<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/<span class="Special">{pattern}</span>[/]&nbsp;&nbsp; 次に&nbsp;<span class="Special">{pattern}</span>&nbsp;のマッチする行 (下向き)&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:/" name=":/">*:/*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?<span class="Special">{pattern}</span>[?]&nbsp;&nbsp; 次に&nbsp;<span class="Special">{pattern}</span>&nbsp;のマッチする行 (上向き)&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:?" name=":?">*:?*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次に直前の検索パターンのマッチする行 (下向き)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次に直前の検索パターンのマッチする行 (上向き)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&amp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次に直前の置換元パターンのマッチする行 (下向き)<br>
+<br>
+これらの後に '+' または '-' と数値を付けてもよい (複数も可)。この数は直前の行<br>
+番号に加算または減算される。数が省略された場合は 1 が指定されたと見なされる。<br>
+<br>
+<span class="Special">{pattern}</span>&nbsp;の後の &quot;/&quot; と &quot;?&quot; は、パターンとその後の項目とを区別するために必要と<br>
+なる。<br>
+<br>
+&quot;/&quot; と &quot;?&quot; は別の場所指定の後に付くことがある。すると検索はそこから始まる。';'<br>
+との違いは、カーソルが移動しない点である。例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/pat1//pat2/&nbsp;&nbsp;&nbsp;&nbsp;&quot;pat1&quot; を含む行より後の、&quot;pat2&quot; を含む行を見つける。こ</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;のときカーソルは移動しない。</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7;/pat2/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7行目より後の、&quot;pat2&quot; を含む行を見つける。このときカー</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ソルは7行目に留まる。</span><br>
+<br>
+<span class="Special">{number}</span>&nbsp;は 0 からファイルの行数までの数でなければならない。0 (零) を使うと、<br>
+コマンドの大半では 1 と解釈される。その数をカウントとして使うコマンド (<a class="Identifier" href="tagsrch.html#:tag">|:tag|</a>,<br>
+<a class="Identifier" href="tagsrch.html#:pop">|:pop|</a>&nbsp;等) では確かに 0 として使われる。0 を「先頭行の前」として解釈するコマン<br>
+ドもある (<a class="Identifier" href="insert.html#:read">|:read|</a>, 検索パターン等)。<br>
+<br>
+Examples:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.+3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソルの3行下</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/that/+1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次行より下の、&quot;that&quot;を含む行</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.,$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 現在行からファイル末尾まで</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0;/that&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;that&quot; を含む最初の行 (第1行にもマッチ可能)</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1;/that&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 第1行より下の、&quot;that&quot; を含む行</span><br>
+<br>
+いくつかのコマンドには、後にカウントを指定できる。そのコマンドは、最後の行指定<br>
+子で指定された行 (既定値はカーソルの行) から始まる、そのカウントの行数の範囲に<br>
+使われる。カウントを取ることができるのは、範囲指定は取るがファイル名の引数を取<br>
+らないコマンドである (ファイル名は数字でもよいから)。<br>
+<br>
+例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:s/x/X/g 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;現在行から始まる5行で 'x' を 'X' に置換</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:23d 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;第23, 24, 25, 26行を削除</span><br>
+<br>
+<br>
+折り畳みと範囲指定<br>
+<br>
+折り畳みがアクティブなときは、閉じられた折り畳み全体を含むように範囲が切り上げ<br>
+／切り下げられる。&nbsp;<a class="Identifier" href="fold.html#fold-behavior">|fold-behavior|</a>&nbsp;を参照。<br>
+<br>
+<br>
+逆向きの範囲指定&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#E493" name="E493">*E493*</a><br>
+<br>
+範囲には小さい行番号を先に指定しなければならない。そうでないときは、Vimはその<br>
+行番号を入れ替えてよいかを尋ねる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Backwards range given, OK to swap</span><br>
+ただしグローバルコマンド &quot;:g&quot; では尋ねない。<br>
+<br>
+コマンドの前に&quot;:silent&quot;をつけるとこの質問が出ないようになる。そのときは常に範<br>
+囲が入れ替えられる。<br>
+<br>
+<br>
+カウントと範囲指定&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#N:" name="N:">*N:*</a><br>
+<br>
+&quot;:&quot; を入力する前にカウントを指定すると、次のように変換される。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:.,.+(count - 1)</span><br>
+つまりカーソルの行から始まる&nbsp;<span class="Special">[count]</span>&nbsp;行のことである。例: 3行を削除するにはこう<br>
+する。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3:d&lt;CR&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; は&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.,.+2d&lt;CR&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;に変換される</span><br>
+<br>
+<br>
+ヴィジュアルモードと範囲指定&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#v_:" name="v_:">*v_:*</a><br>
+<br>
+<span class="Special">{Visual}</span>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ヴィジュアルに選択された行を範囲として、コマンドライン入力を始<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;める。この範囲指定にはコード &quot;:'&lt;,'&gt;&quot; が使われるので、コマンド<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ライン履歴から同様のコマンド行を呼び出して、別のヴィジュアル選<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;択行にコマンドを繰り返すことができる。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+5. Ex コマンドラインのフラグ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#ex-flags" name="ex-flags">*ex-flags*</a><br>
+<br>
+以下のフラグがExコマンドの選択においてサポートされている。<br>
+これらはコマンドを実行した後にカーソルが移動する位置の行を表示する:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;l&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="various.html#:list">|:list|</a>のように表示する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 行番号をつける<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="various.html#:print">|:print|</a>のように表示する<br>
+<br>
+これらのフラグは組み合わせることができる。つまり&quot;l#&quot;とすると行番号をつけて<br>
+&quot;:list&quot;のスタイルで表示する。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+6. Exコマンド用の特別な文字&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#cmdline-special" name="cmdline-special">*cmdline-special*</a><br>
+<br>
+<span class="Todo">Note</span>: 以下はコマンドラインの実行における特別な文字である。<span class="Special">CTRL-R</span>コマンドを使う<br>
+とこれらの特別な文字列を挿入することができる。例えば&quot;%&quot;は現在のファイル名を表<br>
+す。<span class="Special">CTRL-R</span>&nbsp;%とするとその場に現在のファイル名を挿入する。<a class="Identifier" href="cmdline.html#c_CTRL-R">|c_CTRL-R|</a>を参照。<br>
+<br>
+<span class="Todo">Note</span>: Vim スクリプト内で特別な文字をエスケープするには&nbsp;<a class="Identifier" href="eval.html#fnameescape()">|fnameescape()|</a>&nbsp;を使う<br>
+とよいかもしれない。<br>
+<br>
+Exコマンドの、ファイル名が使えるところでは、以下の文字は特別な意味を持つ。これ<br>
+らは式や関数&nbsp;<a class="Identifier" href="eval.html#expand()">|expand()|</a>&nbsp;内でも使うことができる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カレントファイル名に置き換えられる。&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:_%" name=":_%">*:_%*</a>&nbsp;<a class="Constant" href="cmdline.html#c_%" name="c_%">*c_%*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 代替ファイル名に置き換えられる。&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:_#" name=":_#">*:_#*</a>&nbsp;<a class="Constant" href="cmdline.html#c_#" name="c_#">*c_#*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ここで n は数) バッファ n のファイル名に置き&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:_#0" name=":_#0">*:_#0*</a>&nbsp;<a class="Constant" href="cmdline.html#:_#n" name=":_#n">*:_#n*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;換えられる。&quot;#0&quot; は &quot;#&quot; と同じ。&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_#n" name="c_#n">*c_#n*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;##&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;引数リスト内の全てのファイル名を、空白で区切って&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:_##" name=":_##">*:_##*</a>&nbsp;<a class="Constant" href="cmdline.html#c_##" name="c_##">*c_##*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;列挙したものに置き換えられる。ファイル名の中の空白には、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;全て前に '\' が付けられる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&lt;n&nbsp;&nbsp;&nbsp;&nbsp; (n は &gt; 0 の数値)。&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:_#<" name=":_#&lt;">*:_#&lt;*</a>&nbsp;<a class="Constant" href="cmdline.html#c_#<" name="c_#&lt;">*c_#&lt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n 番目の old file 名に置き換えられる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この番号については&nbsp;<a class="Identifier" href="starting.html#:oldfiles">|:oldfiles|</a>&nbsp;や&nbsp;<a class="Identifier" href="eval.html#v:oldfiles">|v:oldfiles|</a>&nbsp;を参照。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#E809" name="E809">*E809*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<a class="Identifier" href="various.html#+eval">|+eval|</a>&nbsp;と&nbsp;<a class="Identifier" href="various.html#+viminfo">|+viminfo|</a>&nbsp;機能つきでコンパイルされたときのみ有効}<br>
+<br>
+<span class="Todo">Note</span>: &quot;#&lt;n&quot; 以外は、ユーザに打ち込まれた通りのファイル名を与えることに注意 (訳<br>
+注: 普通、カレントディレクトリのファイルは、パスを付けずにファイル名のみを打ち<br>
+込んで編集を始めるはずだが、その形でファイル名が呼び出される)。絶対パスが必要<br>
+なとき(違うディレクトリのファイル名を使うとき) は、&quot;:p&quot; を付け加える必要がある。<br>
+<a class="Identifier" href="cmdline.html#filename-modifiers">|filename-modifiers|</a>を参照。<br>
+<br>
+&quot;#&lt;n&quot; は絶対パスを返す。ただしホームディレクトリ以下のファイルに対しては &quot;~/&quot;<br>
+で始まる。<br>
+<br>
+コマンドが適切に解釈できるように、スペースの前にはバックスラッシュがつく。しか<br>
+しシェルコマンドに対してはこれは行われない。シェルコマンドに対しては、引用符を<br>
+使うとよいかもしれない(しかしこれは引用符とワイルドカードを含む文字列に対して<br>
+は失敗する):<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:!ls &quot;%&quot;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:r !spell &quot;%&quot;</span><br>
+<br>
+'%' と '#' の特別な意味を避けるためには、その前に '\' を挿入する。<br>
+詳細: これらの文字の特別な意味は、'\' がその前に置かれれば、それがいくつあるか<br>
+に関わらず、常にエスケープ (無効化) される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">打ち込むキー:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 結果</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; #&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;代替ファイル名<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; #<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \\#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\#<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:<cword>" name=":&lt;cword&gt;">*:&lt;cword&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#:<cWORD>" name=":&lt;cWORD&gt;">*:&lt;cWORD&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#:<cfile>" name=":&lt;cfile&gt;">*:&lt;cfile&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#<cfile>" name="&lt;cfile&gt;">*&lt;cfile&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:<sfile>" name=":&lt;sfile&gt;">*:&lt;sfile&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#<sfile>" name="&lt;sfile&gt;">*&lt;sfile&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#:<afile>" name=":&lt;afile&gt;">*:&lt;afile&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#<afile>" name="&lt;afile&gt;">*&lt;afile&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:<abuf>" name=":&lt;abuf&gt;">*:&lt;abuf&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#<abuf>" name="&lt;abuf&gt;">*&lt;abuf&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#:<amatch>" name=":&lt;amatch&gt;">*:&lt;amatch&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#<amatch>" name="&lt;amatch&gt;">*&lt;amatch&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#<slnum>" name="&lt;slnum&gt;">*&lt;slnum&gt;*</a>&nbsp;<a class="Constant" href="cmdline.html#E495" name="E495">*E495*</a>&nbsp;<a class="Constant" href="cmdline.html#E496" name="E496">*E496*</a>&nbsp;<a class="Constant" href="cmdline.html#E497" name="E497">*E497*</a>&nbsp;<a class="Constant" href="cmdline.html#E499" name="E499">*E499*</a>&nbsp;<a class="Constant" href="cmdline.html#E500" name="E500">*E500*</a><br>
+<span class="Todo">Note</span>: これらは文字通りに打ち込まれる、これらは特別なキーではない！<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;cword&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;カーソル下の word に置き換えられる (<a class="Identifier" href="pattern.html#star">|star|</a>&nbsp;と同様)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;cWORD&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;カーソル下の WORD に置き換えられる (<a class="Identifier" href="motion.html#WORD">|WORD|</a>&nbsp;を参照)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;cfile&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;カーソル下のパス名に置き換えられる (<a class="Identifier" href="editing.html#gf">|gf|</a>&nbsp;が使うものと同様)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;afile&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;自動コマンドの実行時、ファイルの読み書き用のファイル名に置<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; き換えられる<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;abuf&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; 自動コマンドの実行時、カレントバッファの番号に置き換えられ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; る (&quot;:r file&quot; と&quot;:so file&quot;のときにもカレントバッファの番号<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; に置き換えられる。読み込まれているファイルはバッファ内にな<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; い)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;amatch&gt;</span>&nbsp;&nbsp; 自動コマンドの実行時、この自動コマンドが実行されたときのマッ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; チに置き換えられる。そのファイル名がマッチの検索に使われて<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; いないときのみ、<span class="Special">&lt;afile&gt;</span>&nbsp;と違う値になる (イベント FileType<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; や Syntax、SpellFileMissing 用)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;sfile&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;コマンド &quot;:source&quot; の実行時、取り込まれたファイルのファイル<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 名に置き換えられる。&nbsp;&nbsp;<a class="Constant" href="cmdline.html#E498" name="E498">*E498*</a>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 関数の実行時、&quot;関数 {関数名}&quot; に置き換えられる。関数呼び出<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; しのネスト (入れ子状態) はこのように表される:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;関数 {関数名1}..{関数名2}&quot;。&nbsp;<span class="Todo">Note</span>: 関数内で&nbsp;<span class="Special">&lt;sfile&gt;</span>&nbsp;が使わ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; れている場合、ファイル名修飾子は無効になることに注意。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;slnum&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;コマンド &quot;:source&quot; の実行時、行番号に置き換えられる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#E842" name="E842">*E842*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 関数の中では、関数の先頭からの相対的な行番号になる。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#filename-modifiers" name="filename-modifiers">*filename-modifiers*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:_%:" name=":_%:">*:_%:*</a>&nbsp;<a class="Constant" href="cmdline.html#::8" name="::8">*::8*</a>&nbsp;<a class="Constant" href="cmdline.html#::p" name="::p">*::p*</a>&nbsp;<a class="Constant" href="cmdline.html#::." name="::.">*::.*</a>&nbsp;<a class="Constant" href="cmdline.html#::~" name="::~">*::~*</a>&nbsp;<a class="Constant" href="cmdline.html#::h" name="::h">*::h*</a>&nbsp;<a class="Constant" href="cmdline.html#::t" name="::t">*::t*</a>&nbsp;<a class="Constant" href="cmdline.html#::r" name="::r">*::r*</a>&nbsp;<a class="Constant" href="cmdline.html#::e" name="::e">*::e*</a>&nbsp;<a class="Constant" href="cmdline.html#::s" name="::s">*::s*</a>&nbsp;<a class="Constant" href="cmdline.html#::gs" name="::gs">*::gs*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#%:8" name="%:8">*%:8*</a>&nbsp;<a class="Constant" href="cmdline.html#%:p" name="%:p">*%:p*</a>&nbsp;<a class="Constant" href="cmdline.html#%:." name="%:.">*%:.*</a>&nbsp;<a class="Constant" href="cmdline.html#%:~" name="%:~">*%:~*</a>&nbsp;<a class="Constant" href="cmdline.html#%:h" name="%:h">*%:h*</a>&nbsp;<a class="Constant" href="cmdline.html#%:t" name="%:t">*%:t*</a>&nbsp;<a class="Constant" href="cmdline.html#%:r" name="%:r">*%:r*</a>&nbsp;<a class="Constant" href="cmdline.html#%:e" name="%:e">*%:e*</a>&nbsp;<a class="Constant" href="cmdline.html#%:s" name="%:s">*%:s*</a>&nbsp;<a class="Constant" href="cmdline.html#%:gs" name="%:gs">*%:gs*</a><br>
+ファイル名修飾子は &quot;%&quot;, &quot;#&quot;, &quot;#n&quot;, &quot;<span class="Special">&lt;cfile&gt;</span>&quot;, &quot;<span class="Special">&lt;sfile&gt;</span>&quot;, &quot;<span class="Special">&lt;afile&gt;</span>&quot;, &quot;<span class="Special">&lt;abuf&gt;</span>&quot;<br>
+の後で使うことができる。これらは関数&nbsp;<a class="Identifier" href="eval.html#fnamemodify()">|fnamemodify()|</a>&nbsp;と使うこともできる。Vim<br>
+が&nbsp;<a class="Identifier" href="various.html#+modify_fname">|+modify_fname|</a>&nbsp;機能付きでコンパイルされていなければ、これらの修飾子を使う<br>
+ことはできない。<br>
+これらの修飾子は次の順で指定できる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:p&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイル名を完全パスにする。最初の修飾子でなければならない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;また &quot;~/&quot; (およびUnixやVMSで使われる &quot;~user/&quot; の形式のもの) も<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ホームディレクトリのパスに変換する。これが付けられたものがディ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;レクトリ名に展開されるならば、パスの区切り文字が末尾に追加され<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。これが付けられたものが、ディスク上に存在せず絶対パスを持た<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ないファイルに展開されるときは、結果は予期できない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;パスを短い8.3形式に変換する (現在のところWin32版でのみ)。既存<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;のパス全てに適用される (訳注: 原文はWill act on as much of<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a path that is an existing path)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイル名をホームディレクトリについて相対的な名前に (可能なら<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ば) 切り詰める。ファイルがホームディレクトリの下になければ、ファ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;イル名は修正されない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイル名をカレントディレクトリについて相対的な名前に (可能な<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;らば) 切り詰める。ファイル名がカレントディレクトリの下になけれ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ば、ファイル名は修正されない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;最も短く切り詰めるには &quot;:~:.&quot; を使う。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:h&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイル名のヘッド (末尾の部分と全ての区切りが除かれたもの)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e, :r, :t には使えない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;繰り返すと、末尾から順に複数の部分を取り除くことができる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイル名がパス区切りで終わるときは、パス区切りのみが取り除か<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れる。そのためディレクトリ名に &quot;:p:h&quot; を使うと、(末尾にパス区<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;切りなしの) ディレクトリ名そのものが得られる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイル名が絶対パス (Unixでは &quot;/&quot;; MS-DOS, WIN32, OS/2では<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;x:\&quot;; Amigaでは&quot;drive:&quot; で始まるもの) のときは、この部分は取<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;り除かれない。ヘッドがないときは (パスがカレントディレクトリに<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;対して相対的なとき)、結果は空となる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイル名のテール (名前の末尾の部分)。:r または :e よりも前に<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;指定しなければならない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:r&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイル名のルート (最後の拡張子が取り除かれたもの)。拡張子だ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;けしかないときは ('.' で始まるファイル名、例えば &quot;.vimrc&quot; 等)、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;それは取り除かれない。繰り返し使うと、複数の拡張子を (最後のも<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;のから順に) 取り除くことができる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイル名の拡張子。単独で使われたときのみ意味を持つ。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;拡張子がないときは、結果は空となる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;拡張子だけしかないときは ('.' で始まるファイル名)、結果は空と<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;なる。繰り返すと、複数の拡張子が得られる。繰り返した回数より拡<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;張子の数の方が少ないときは、可能なだけ取り込まれる (しかし最低<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;でも1個はないと取り込まれない)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:s?pat?sub?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;最初に &quot;pat&quot; に一致したものを &quot;sub&quot; に置き換える。これはコマン<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ド&nbsp;<a class="Identifier" href="change.html#:s">|:s|</a>&nbsp;と同様に機能する。&quot;pat&quot; は正規表現である。'?' には任意<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;の文字を使えるが、&quot;pat&quot; や &quot;sub&quot; 内に現れてはならない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この後、上述の修飾子を再び使うことができる。例えば、&quot;:p&quot; では<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;置換した後でフルパスに変える。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:gs?pat?sub?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;pat&quot; に一致したものを全て &quot;sub&quot; に置き換える。その他の点では<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;:s&quot; と同様に機能する。<br>
+<br>
+ファイル名が &quot;src/version.c&quot;、カレントディレクトリが &quot;/home/mool/vim&quot; のときの<br>
+例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:p&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/home/mool/vim/src/version.c</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:p:.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; src/version.c</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:p:~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ~/vim/src/version.c</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:h&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; src</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:p:h&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/home/mool/vim/src</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:p:h:h&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/home/mool/vim</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; version.c</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:p:t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; version.c</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:r&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; src/version</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:p:r&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/home/mool/vim/src/version</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:t:r&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; version</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; c</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:s?version?main?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; src/main.c</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:s?version?main?:p&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/home/mool/vim/src/main.c</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:p:gs?/?\\?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \home\mool\vim\src\version.c</span><br>
+<br>
+ファイル名が &quot;src/version.c.gz&quot; のときの例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:p&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/home/mool/vim/src/version.c.gz</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; gz</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e:e&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; c.gz</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e:e:e&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; c.gz</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e:e:r&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; c</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:r&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; src/version.c</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:r:e&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; c</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:r:r&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; src/version</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:r:r:r&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; src/version</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#extension-removal" name="extension-removal">*extension-removal*</a>&nbsp;<a class="Constant" href="cmdline.html#:_%<" name=":_%&lt;">*:_%&lt;*</a><br>
+&quot;%&quot;, &quot;#&quot;, &quot;#n&quot; または &quot;<span class="Special">CTRL-V</span>&nbsp;p&quot; に &quot;&lt;&quot; を付け加えたとき、ファイル名の拡張子<br>
+(ファイル名の最後の '.' とそれ以降の全て) は取り除かれる。これは<br>
+<span class="Identifier">Vim version 3.0</span>&nbsp;との下位互換性のために残されており、&quot;:r&quot; 形式を使う方がよい。<br>
+例:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カレントファイル名</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;拡張子なしのカレントファイル名</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カレントウィンドウでの代替ファイル名</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;同上、ただし拡張子なし</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#31&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 代替ファイル番号31</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#31&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;同上、ただし拡張子なし</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;cword&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソル下の word</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;cWORD&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソル下の WORD (|WORD| を参照)</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;cfile&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソル下のパス名</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;cfile&gt;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;同上、ただし拡張子なし</span><br>
+<br>
+<span class="Todo">Note</span>: ファイル名が来る筈の所では、ワイルドカードの展開が行われる。Unixでは展開<br>
+にはシェルが使われる。ただしVim内部でできない展開だけである (スピードのため)。<br>
+バッククォート '`' も次のように使える。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:n `echo *.c`</span><br>
+(バッククォートの展開は&nbsp;<a class="Identifier" href="starting.html#restricted-mode">|restricted-mode|</a>&nbsp;ではできない)<br>
+しかし展開は、'%' や '#' 等が展開される前にワイルドカードが存在したときにのみ<br>
+行われる。これはファイル名に含まれるワイルドカードを展開しないためである。<br>
+<span class="Special">&lt;cfile&gt;</span>&nbsp;の結果を展開したいときは、ワイルドカードの文字を追加すればよい。<br>
+例: (代替ファイル名は &quot;?readme?&quot; とする)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">コマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;展開結果&nbsp;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e #&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e ?readme?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e `ls #`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :e {&quot;?readme?&quot; にマッチしたファイル全て}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e #.*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e {&quot;?readme?.*&quot; にマッチしたファイル全て}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cd&nbsp;<span class="Special">&lt;cfile&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; :cd {カーソル下のファイル名}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cd&nbsp;<span class="Special">&lt;cfile&gt;</span>*&nbsp;&nbsp;&nbsp;&nbsp;:cd {カーソル下のファイル名に &quot;*&quot; を加え展開したもの}<br>
+<br>
+展開された後のコマンド引数に &quot;!&quot; に含まれていて、それがシェルコマンドに使われ<br>
+る (&quot;:!cmd&quot;, &quot;:r !cmd&quot; や &quot;:w !cmd&quot;) とき、&quot;!&quot; は '\' でエスケープされ、前回の<br>
+コマンドに展開されるのを防ぐ。オプション&nbsp;<a class="Type" href="options.html#'shell'">'shell'</a>&nbsp;の値が &quot;sh&quot; を含むときは、エ<br>
+スケープは2回行われ、シェルが &quot;!&quot; を展開するのを防ぐ。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#filename-backslash" name="filename-backslash">*filename-backslash*</a><br>
+'\' をディレクトリの区切りに使うファイルシステム (MS-DOS、Windows、OS/2) では、<br>
+次のキャラクタの特別な意味をエスケープする目的の '\' を認識するのが少し困難で<br>
+ある。一般的な規則は次の通り。'\' が普通のファイル名の文字の後にある場合は、特<br>
+別な意味を持たない。したがって、&quot;\file\foo&quot; は有効なファイル名であり、'\' を2<br>
+度打つ必要はない。<br>
+<br>
+例外は '$' 記号である。これはファイル名で有効な文字である。しかし &quot;$home&quot; のよ<br>
+うなファイル名が環境変数として解釈されるのを避けるため、'\' をこの前に付ける必<br>
+要がある。従ってルートディレクトリのファイル &quot;$home&quot; の指定には、&quot;/\$home&quot; を<br>
+使う必要がある。いくつかの例:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">ファイル名&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;その解釈</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$home&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 環境変数 $home の値に展開される<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\$home&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カレントディレクトリのファイル &quot;$home&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/\$home&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ルートディレクトリのファイル &quot;$home&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\\$home&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;\\&quot; の後に $home の値を付け加えた名前のファイル<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+7. コマンドラインウィンドウ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#cmdline-window" name="cmdline-window">*cmdline-window*</a>&nbsp;<a class="Constant" href="cmdline.html#cmdwin" name="cmdwin">*cmdwin*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#command-line-window" name="command-line-window">*command-line-window*</a><br>
+<br>
+コマンドラインウィンドウでは、普通のウィンドウでテキストを編集するのと同じよう<br>
+にコマンドラインを編集できる。コマンドラインウィンドウは特殊なウィンドウで、普<br>
+通の方法でそこから出ることはできない。<br>
+<span class="Special">{Vi mが&nbsp;</span><a class="Identifier" href="various.html#+cmdline_hist">|+cmdline_hist|</a><span class="Special">&nbsp;機能と&nbsp;</span><a class="Identifier" href="various.html#+vertsplit">|+vertsplit|</a><span class="Special">&nbsp;機能付きでコンパイルされたときのみ</span><br>
+<span class="Special">有効である。}</span><br>
+<br>
+<br>
+開 始&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-F" name="c_CTRL-F">*c_CTRL-F*</a>&nbsp;<a class="Constant" href="cmdline.html#q:" name="q:">*q:*</a>&nbsp;<a class="Constant" href="cmdline.html#q/" name="q/">*q/*</a>&nbsp;<a class="Constant" href="cmdline.html#q?" name="q?">*q?*</a><br>
+<br>
+コマンドラインウィンドウを開くには2通りの方法がある。<br>
+1. コマンドラインモードで、オプション&nbsp;<a class="Type" href="options.html#'cedit'">'cedit'</a>&nbsp;で指定されたキーを使う。<br>
+&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'compatible'">'compatible'</a>&nbsp;がオフのときの既定値は&nbsp;<span class="Special">CTRL-F</span>&nbsp;である。<br>
+2. ノーマルモードで、コマンド &quot;q:&quot;, &quot;q/&quot; または &quot;q?&quot; を使う。<br>
+&nbsp;&nbsp; &quot;q:&quot; でExコマンドラインの編集を始め、&quot;q/&quot; または &quot;q?&quot; で文字列を検索する。<br>
+&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: 打ち込んだキーの記録中にはこの方法は使えないことに注意 (そのときは<br>
+&nbsp;&nbsp; &quot;q&quot; では記録が終了する)。<br>
+<br>
+コマンドラインウィンドウが開かれたとき、中にはコマンドラインの履歴が並んでいる。<br>
+末尾の行には、その時点までに打ち込まれたコマンドが含まれる。左の列には、編集さ<br>
+れているコマンドラインの種類を表す1文字が表示される。<a class="Identifier" href="cmdline.html#cmdwin-char">|cmdwin-char|</a>&nbsp;を参照。<br>
+<br>
+コマンドラインウィンドウが開かれたとき、Vimはノーマルモードに移るが、オプショ<br>
+ン&nbsp;<a class="Type" href="options.html#'insertmode'">'insertmode'</a>&nbsp;がオンのときは挿入モードに移る。<br>
+<br>
+コマンドラインウィンドウの高さはオプション&nbsp;<a class="Type" href="options.html#'cmdwinheight'">'cmdwinheight'</a>&nbsp;で指定できる (ただし<br>
+余裕がないとこれより低くなる)。常に幅は最大になり、場所はコマンドラインの直上<br>
+である。<br>
+<br>
+<br>
+編 集<br>
+<br>
+コマンドラインウィンドウ内では、コマンドを使ってあちこちへ移動したり、ウィンド<br>
+ウ内のテキストを編集できる。ノーマルモードと挿入モードが使える。<br>
+<br>
+&quot;:&quot; や &quot;/&quot; を始めとする、コマンドラインを使うコマンドも使えるが、そこから別の<br>
+コマンドラインウィンドウを開くことはできない。コマンドラインウィンドウはネスト<br>
+(入れ子状になること) できない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#E11" name="E11">*E11*</a><br>
+コマンドラインウィンドウは普通のウィンドウではないので、別のウィンドウに移動し<br>
+たり、別のバッファを編集したりはできない。コマンドラインウィンドウでは、それら<br>
+を行うコマンドは無効化されている。もちろんコマンドラインウィンドウで入力したコ<br>
+マンドならどんなものでも 実 行 可 能 である。他のテキスト編集はコマンドライン<br>
+ウィンドウを閉じるときに破棄される。<br>
+<br>
+<br>
+終 了&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#E199" name="E199">*E199*</a><br>
+<br>
+コマンドラインウィンドウを終了するには、以下の通りの方法がある。<br>
+<br>
+<span class="Special">&lt;CR&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル下のコマンドラインを実行する。挿入モードとNormalモー<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ドの両方で有効である。<br>
+<span class="Special">CTRL-C</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドラインモードとして継続する。カーソル下のコマンドライン<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;が引き継がれる。挿入モードとノーマルモードの両方で有効である。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンド &quot;:close&quot; も使える。再描画は行われないので、ウィンドウ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;は可視状態のままになる。<br>
+:quit&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; コマンドラインを破棄してノーマルモードに戻る。コマンド &quot;:exit&quot;,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;:xit&quot; や&nbsp;<span class="Special">CTRL-\</span>&nbsp;<span class="Special">CTRL-N</span>&nbsp;も有効である。<br>
+:qall&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Vimを終了する (他のバッファに変更がない限り)。<br>
+:qall!&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Vimを終了し、どのバッファの変更も破棄する。<br>
+<br>
+コマンドラインウィンドウが閉じられると、他のウィンドウのサイズは復元される。実<br>
+行されたコマンドはコマンドラインウィンドウの開始元のウィンドウやバッファに適用<br>
+される。これはコマンドラインウィンドウがなかったかのように動作するが、画面の再<br>
+描画だけは余計に行われる。<br>
+コマンドラインウィンドウに使われたバッファは削除される。<span class="Special">&lt;CR&gt;</span>&nbsp;で実行された行以<br>
+外に対する変更は、全て失われる。<br>
+<br>
+カーソル下のコマンドを実行した後、もう一度コマンドラインウィンドウを開きたけれ<br>
+ば、このマップを使うとよいかもしれない:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:autocmd CmdwinEnter * map &lt;buffer&gt; &lt;F5&gt; &lt;CR&gt;q:</span><br>
+<br>
+<br>
+そ の 他<br>
+<br>
+コマンドラインウィンドウは、以下のときには使えない。<br>
+- 既にコマンドラインウィンドウを開いているとき (ネストすなわち入れ子は不可)<br>
+- 暗号化キーの入力時や関数&nbsp;<a class="Identifier" href="eval.html#inputsecret()">|inputsecret()|</a>&nbsp;の使用時<br>
+- Vimが&nbsp;<a class="Identifier" href="various.html#+vertsplit">|+vertsplit|</a>&nbsp;機能付きでコンパイルされていないとき<br>
+<br>
+コマンドラインウィンドウが開かれると、以下のオプションの設定が変わる。<br>
+<a class="Type" href="options.html#'filetype'">'filetype'</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;vim&quot; (Exコマンドラインの編集時に) これは、可能ならVimスクリプ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;トに対する構文強調表示を開始する<br>
+<a class="Type" href="options.html#'rightleft'">'rightleft'</a>&nbsp;&nbsp;&nbsp;&nbsp; オフ<br>
+<a class="Type" href="options.html#'modifiable'">'modifiable'</a>&nbsp;&nbsp;&nbsp;&nbsp;オン<br>
+<a class="Type" href="options.html#'buftype'">'buftype'</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;nofile&quot;<br>
+<a class="Type" href="options.html#'swapfile'">'swapfile'</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;オフ<br>
+<br>
+コマンドラインウィンドウの内容をファイルに書き出すことができる。こうすれば、簡<br>
+単にコマンドライン履歴を保存し、後で読み込むことができる。<br>
+<br>
+オプション&nbsp;<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;が&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;であり、コマンドラインウィンドウがExコマンドに<br>
+対して使われているときは、以下の2個のマッピングが追加され、コマンドラインウィ<br>
+ンドウ内でも&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;で補完ができるようになる。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:imap &lt;buffer&gt; &lt;Tab&gt; &lt;C-X&gt;&lt;C-V&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:nmap &lt;buffer&gt; &lt;Tab&gt; a&lt;C-X&gt;&lt;C-V&gt;</span><br>
+<span class="Todo">Note</span>: ノーマルモードで&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;を打ち込むと、カーソルの次の文字の位置で補完を行<br>
+うことに注意。この方法なら行末でも補完が行われる。<br>
+それらのマッピングを望まないなら、次のようにして無効化すること。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;au CmdwinEnter [:&gt;] iunmap &lt;Tab&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;au CmdwinEnter [:&gt;] nunmap &lt;Tab&gt;</span><br>
+ユーザの .vimrc ファイルに上の行を書き込んでおけばよい。<br>
+<br>
+コマンドラインウィンドウ内では、マウスでカーソルを別のウィンドウに移したり、別<br>
+のウィンドウのステータスラインをドラッグしたりはできない。コマンドラインウィン<br>
+ドウ自身のステータスラインはドラッグできる。上向きにずっとドラッグすると、直上<br>
+のウィンドウのステータスラインも動き、コマンドラインウィンドウがさらに広くなる。<br>
+<br>
+<br>
+自動コマンド の 適 用<br>
+<br>
+2種類の 自動コマンドのイベントが使われる:&nbsp;<a class="Identifier" href="autocmd.html#CmdwinEnter">|CmdwinEnter|</a>&nbsp;と&nbsp;<a class="Identifier" href="autocmd.html#CmdwinLeave">|CmdwinLeave|</a>。コマ<br>
+ンドラインウィンドウは特別なウィンドウなので、イベント WinEnter, WinLeave,<br>
+BufEnter, BufLeave は発生しない。コマンドラインウィンドウに対して特別に設定を<br>
+するには、イベント Cmdwin を使う。副作用を引き起こさないよう注意！<br>
+例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:au CmdwinEnter :&nbsp;&nbsp;let b:cpt_save = &amp;cpt | set cpt=.</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:au CmdwinLeave :&nbsp;&nbsp;let &amp;cpt = b:cpt_save</span><br>
+これはカレントウィンドウで&nbsp;<a class="Identifier" href="insert.html#i_CTRL-N">|i_CTRL-N|</a>&nbsp;によって補完を行うよう&nbsp;<a class="Type" href="options.html#'complete'">'complete'</a>&nbsp;を設定<br>
+する。<br>
+別の例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:au CmdwinEnter [/?]&nbsp;&nbsp;startinsert</span><br>
+こうすれば、コマンドラインウィンドウではVimは挿入モードに移る。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#cmdwin-char" name="cmdwin-char">*cmdwin-char*</a><br>
+パターンに使われる文字は、コマンドラインの種類を表す。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 普通のExコマンド<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; デバッグモードのコマンド&nbsp;<a class="Identifier" href="repeat.html#debug-mode">|debug-mode|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 前方検索に使われる文字列<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 後方検索に使われる文字列<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Expressionレジスタ &quot;= 用の expression&nbsp;<a class="Identifier" href="eval.html#expr-register">|expr-register|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 関数&nbsp;<a class="Identifier" href="eval.html#input()">|input()|</a>&nbsp;に対して入力する文字列<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; コマンド&nbsp;<a class="Identifier" href="insert.html#:insert">|:insert|</a>&nbsp;や&nbsp;<a class="Identifier" href="insert.html#:append">|:append|</a>&nbsp;に対して入力する文字列<br>
+<br>
+&nbsp;vim:tw=78:ts=8:ft=help:norl:<br>
+<hr>
+<a href="#top">top</a> - <a href="index.html">main help file</a><br>
+
+</body>
+</html>

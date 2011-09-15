@@ -1,0 +1,903 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Vim documentation: term</title>
+<meta name="Generator" content="Vim/7.3">
+<meta name="plugin-version" content="vim7.3_v6">
+<meta name="syntax" content="help">
+<meta name="settings" content="use_css,no_pre">
+<style type="text/css">
+<!--
+.MissingTag { background-color: black; color: white; }
+.EnglishTag { background-color: gray; color: white; }
+body { color: #000000; background-color: #ffffff; font-family: monospace; }
+.Special { color: #ff40ff; }
+.Comment { color: #8080ff; }
+.Ignore { color: #ffffff; font-weight: bold; }
+.PreProc { color: #ff40ff; }
+.Todo { color: #808080; background-color: #ffff00; }
+-->
+</style>
+</head>
+<body>
+
+<a name="top"></a><h1>Vim documentation: term</h1>
+<a href="index.html">main help file</a>
+<hr>
+<a class="Constant" href="term.html" name="term.txt">*term.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For Vim バージョン 7.3.&nbsp;&nbsp;Last change: 2011 Feb 16<br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar<br>
+<br>
+<br>
+端末情報&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#terminal-info" name="terminal-info">*terminal-info*</a><br>
+<br>
+Vim はユーザが使っている端末の情報にもとづいて、ユーザがどのキーを押したかを認<br>
+識します。この情報が正しくないと、スクリーンは乱れ、キーが認識されなくなってし<br>
+まいます。スクリーンに対する操作は、キーコードのシーケンスを出力することで実現<br>
+されています。特殊なキーを押すとコードのシーケンスが出力されます。これらのシー<br>
+ケンスは端末オプションに保存されています。<a class="Identifier" href="term.html#terminal-options">|terminal-options|</a>を参照。<br>
+<br>
+<span class="Todo">NOTE</span>:&nbsp;<a class="Identifier" href="gui.html#GUI">|GUI|</a>&nbsp;で実行しているときは、このドキュメントのほとんどの事柄は関係ありま<br>
+せん。<br>
+<br>
+1. 起動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="term.html#startup-terminal">|startup-terminal|</a><br>
+2. 端末オプション&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="term.html#terminal-options">|terminal-options|</a><br>
+3. ウィンドウサイズ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="term.html#window-size">|window-size|</a><br>
+4. 端末の速度&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="term.html#slow-fast-terminal">|slow-fast-terminal|</a><br>
+5. マウスの使用&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="term.html#mouse-using">|mouse-using|</a><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+1. 起動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#startup-terminal" name="startup-terminal">*startup-terminal*</a><br>
+<br>
+Vim の起動時はデフォルトの端末タイプ向けの設定になっています。これは Amiga で<br>
+は標準の CLI ウィンドウ、MS-DOS では PC の端末、Unix では ANSI 端末です。<br>
+他に 2, 3 の端末が常に使用可能です。後述の&nbsp;<a class="Identifier" href="term.html#builtin-terms">|builtin-terms|</a>&nbsp;を参照。<br>
+<br>
+Vim の引数 '-T' により端末名を指定することができます。これが指定されない場合、<br>
+環境変数 TERM から端末名を取得しようとします。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#termcap" name="termcap">*termcap*</a>&nbsp;<a class="Constant" href="term.html#terminfo" name="terminfo">*terminfo*</a>&nbsp;<a class="Constant" href="term.html#E557" name="E557">*E557*</a>&nbsp;<a class="Constant" href="term.html#E558" name="E558">*E558*</a>&nbsp;<a class="Constant" href="term.html#E559" name="E559">*E559*</a><br>
+Unix では terminfo データベースや termcap ファイルが使われます。全てのドキュメ<br>
+ントを通して、これのことを &quot;termcap&quot; と呼びます。コンパイル時に、configure に<br>
+より terminfo と termcap を使うかどうかが自動的に決定されます。&quot;:version&quot; の出<br>
+力に&nbsp;<a class="Identifier" href="various.html#+terminfo">|+terminfo|</a>&nbsp;が含まれていれば terminfo を使用しています。<a class="Identifier" href="tips.html#xterm-screens">|xterm-screens|</a>も<br>
+参照。<br>
+<br>
+Unix 以外のシステムでは、TERMCAP を定義してコンパイルしたときのみ termcap を使<br>
+用できます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#builtin-terms" name="builtin-terms">*builtin-terms*</a>&nbsp;<a class="Constant" href="term.html#builtin_terms" name="builtin_terms">*builtin_terms*</a><br>
+どの組み込み端末が利用できるかは、feature.h で定義されているマクロに依存します。<br>
+これらはコンパイル時に設定しなければなりません:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;:version&quot; の出力&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 組み込まれる端末</span><br>
+NO_BUILTIN_TCAPS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-builtin_terms&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
+SOME_BUILTIN_TCAPS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+builtin_terms&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一般的なもの (デフォルト)<br>
+ALL_BUILTIN_TCAPS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ++builtin_terms&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 全て使用可能<br>
+<br>
+利用可能な組み込み端末のリストを見るには &quot;:set term=xxx&quot; とします(GUI でないと<br>
+きのみ)。<a class="Identifier" href="various.html#+builtin_terms">|+builtin_terms|</a>も参照。<br>
+<br>
+termcap のコードが組み込まれているときは、termcap ファイルと組み込みの<br>
+termpcap から、使われている端末用のキーシーケンスを取得しようとします。使われ<br>
+ている端末のエントリがあるならば、その両方が使われます。どちらが先に使われるか<br>
+はオプション&nbsp;<a class="Type" href="options.html#'ttybuiltin'">'ttybuiltin'</a>&nbsp;に依存します。<br>
+<br>
+<a class="Type" href="options.html#'ttybuiltin'">'ttybuiltin'</a>&nbsp;on&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1: 組み込み termcap&nbsp;&nbsp;&nbsp;&nbsp; 2: 外部 termcap<br>
+<a class="Type" href="options.html#'ttybuiltin'">'ttybuiltin'</a>&nbsp;off&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1: 外部 termcap&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2: 組み込み termcap<br>
+<br>
+ある端末オプションが片方にないときは、もう一方から取得します。ある端末オプショ<br>
+ンが両方にあるときは、先に見つかった方が使われます。<br>
+<br>
+どの外部 termcap ファイルが使われるかはシステムによって異なり、環境変数<br>
+&quot;TERMCAP&quot; と &quot;TERMPATH&quot; に依存します。&quot;man tgetent&quot; を参照してください。<br>
+<br>
+端末によって設定を切り替える&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#term-dependent-settings" name="term-dependent-settings">*term-dependent-settings*</a><br>
+<br>
+端末名によってオプションやマッピングを切り替えるには .vimrc で行うのがベスト<br>
+です。例:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp; if &amp;term == &quot;xterm&quot;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; ... xterm 用のマッピングと設定 ...</span><br>
+<span class="Comment">&nbsp;&nbsp; elseif &amp;term =~ &quot;vt10.&quot;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp; ... vt100, vt102 用のマッピングと設定 ...</span><br>
+<span class="Comment">&nbsp;&nbsp; endif</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#raw-terminal-mode" name="raw-terminal-mode">*raw-terminal-mode*</a><br>
+通常の編集に入るとき、端末は raw モードになります。このとき、<a class="Type" href="term.html#'t_ti'">'t_ti'</a>&nbsp;と&nbsp;<a class="Type" href="term.html#'t_ks'">'t_ks'</a><br>
+で定義されるシーケンスが端末に送信されます。これらのシーケンスにより、端末は<br>
+termcap のコードが有効になり、カーソルキーとファンクションキーが使えるようにな<br>
+ります。Vim が終了するとき、端末を起動前のモードに戻します。このとき<a class="Type" href="term.html#'t_te'">'t_te'</a>&nbsp;と<br>
+<a class="Type" href="term.html#'t_ke'">'t_ke'</a>&nbsp;で定義されるシーケンスが端末に送信されます。Amiga では、外部プログラム<br>
+を起動するコマンド(例: &quot;!!&quot;)を実行するとき、一時的に端末が通常モードになります。<br>
+そのため、print キーを押してスクリーンへの出力を止めることができます。<span class="Special">&lt;BS&gt;</span>&nbsp;を<br>
+押すと出力が再開します。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#cs7-problem" name="cs7-problem">*cs7-problem*</a><br>
+<span class="Todo">Note</span>: Vim を起動した後で端末の設定を変えると、設定が一貫しない状態になるかもし<br>
+れません。Solaris 2.5 で &quot;stty cs8 parenb&quot; が &quot;stty cs7 parenb&quot; に復元されてし<br>
+まうという報告が上がっています。代わりに &quot;stty cs8 -parenb -istrip&quot; を使ってく<br>
+ださい。これは正しく復元されます。<br>
+<br>
+<a class="Type" href="term.html#'t_ks'">'t_ks'</a>&nbsp;を送った後では、カーソルキーが termcap で定義されているのとは異なるコー<br>
+ドを送るという意味で、ある種の termcap エントリは正しくありません。この問題を<br>
+避けるには<a class="Type" href="term.html#'t_ks'">'t_ks'</a>&nbsp;(と<a class="Type" href="term.html#'t_ke'">'t_ke'</a>)を空文字列にします。これは初期化の最中に行わねばな<br>
+りません(<a class="Identifier" href="starting.html#initialization">|initialization|</a>&nbsp;を参照)。そうでないと手遅れです。<br>
+<br>
+いくつかの termcap エントリは、最上位ビットが常にオフになっていると仮定してい<br>
+ます。例: Amiga のカーソル↑エントリは例えば &quot;:ku=\E[A:&quot; です。しかし実際には<br>
+&quot;\233A&quot; が送られます。これは、シリアル回線上で使っているときなど、最上位ビット<br>
+がオフならば正しく動作します。カーソルキーが使えない場合はこのエントリを<br>
+&quot;:ku=\233A:&quot; にしてみてください。<br>
+<br>
+&quot;:ku=\E[A:&quot; というエントリをもつ termcap エントリがあります。しかし実際には<br>
+&quot;\233A&quot; が送られます。出力において &quot;\E[&quot; と &quot;\233&quot; はしばしば同値であり、入力<br>
+においてはそうでありません。この問題を解決するには、termcap エントリを変更する<br>
+か、:set コマンドでキーコードを変更するしかありません。<br>
+<br>
+多くのカーソルキーのコードは&nbsp;<span class="Special">&lt;Esc&gt;</span>&nbsp;から始まります。Vim はこれが 1 つの&nbsp;<span class="Special">&lt;Esc&gt;</span>&nbsp;<br>
+キーを押下したものか、カーソルキーのシーケンスのはじまりかを判定しなければなり<br>
+ません。そのため、次の文字が届くのを待ちます。1 秒以内に次のキーが届かない場合<br>
+は&nbsp;<span class="Special">&lt;Esc&gt;</span>&nbsp;が押されたとみなします。非常に遅いシステムではこれが誤判定され、カー<br>
+ソルキーが使えなくなることがあります。この問題に出会った場合は&nbsp;<a class="Type" href="options.html#'timeout'">'timeout'</a>&nbsp;をオ<br>
+フにしてください。Vim は&nbsp;<span class="Special">&lt;Esc&gt;</span>&nbsp;の後に届く文字を待ちます。1 つの&nbsp;<span class="Special">&lt;Esc&gt;</span>&nbsp;を入力す<br>
+るには 2 回押さなければなりません。<a class="Type" href="options.html#'esckeys'">'esckeys'</a>&nbsp;をオフにすると、インサートモード<br>
+でのこの問題を解決できます。しかしインサートモードでカーソルキーとファンクショ<br>
+ンキーが使えなくなってしまいます。<br>
+<br>
+Amiga でウィンドウリサイズを認識するには、端末名が &quot;amiga&quot; か &quot;builtin_amiga&quot;<br>
+でなければなりません。<br>
+<br>
+ある種の端末ではカーソルキーに混乱を招きやすいコードを割り当てています。<br>
+televideo 925 はその一例です。televideo 925 はカーソル左キーで&nbsp;<span class="Special">CTRL-H</span>&nbsp;を送りま<br>
+す。そのためバックスペースとカーソル左を区別することは不可能です。この問題のた<br>
+め&nbsp;<span class="Special">CTRL-H</span>&nbsp;は常にカーソル左と認識されます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#vt100-cursor-keys" name="vt100-cursor-keys">*vt100-cursor-keys*</a>&nbsp;<a class="Constant" href="term.html#xterm-cursor-keys" name="xterm-cursor-keys">*xterm-cursor-keys*</a><br>
+vt100 や xterm などの端末ではカーソルキーを押すと&nbsp;<span class="Special">&lt;Esc&gt;</span>0A や&nbsp;<span class="Special">&lt;Esc&gt;</span>0B などが送<br>
+られます。不運なことに、これらは「挿入を終了し、上に新規行を作成して 'A' や<br>
+'B' を挿入する」というインサートモードでのコマンドでもあります。<br>
+このコマンドを実行するのでなく、カーソルキーのシーケンスが入力されたのだと誤認<br>
+識してしまうかもしれません。これを防ぎ、意図通りの動作をさせるには次の設定を使<br>
+います<br>
+:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set notimeout&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; マッピングについてタイムアウトしない</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set ttimeout&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot; 端末のキーコードについてタイムアウトする</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set timeoutlen=100&nbsp;&nbsp;&nbsp;&nbsp; &quot; 100 ミリ秒後にタイムアウトする</span><br>
+この設定をすると、キーコードが 100 ミリ秒以内に送られた場合のみカーソルキーと<br>
+認識されます。ユーザが普通に入力するときはそんなに速くないので、たとえまったく<br>
+同じキーコードのシーケンスを送信しても、個々のコマンドと認識されます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#vt100-function-keys" name="vt100-function-keys">*vt100-function-keys*</a>&nbsp;<a class="Constant" href="term.html#xterm-function-keys" name="xterm-function-keys">*xterm-function-keys*</a><br>
+xterm は vt100 互換モードと非互換モードの両方のモードで F1 から F4 のファンク<br>
+ションキーを送信できます。Vim は xterm がどちらのコードを送信するかわからない<br>
+ので、両方のタイプのキーを認識するようになっています。<span class="Special">&lt;Home&gt;</span>&nbsp;と&nbsp;<span class="Special">&lt;End&gt;</span>&nbsp;について<br>
+も同様です。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">通常&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vt100</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F1&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;t_k1&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Esc&gt;</span>[11~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xF1&gt;</span>&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Esc&gt;</span>OP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xF1>-xterm" name="&lt;xF1&gt;-xterm">*&lt;xF1&gt;-xterm*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F2&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;t_k2&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Esc&gt;</span>[12~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xF2&gt;</span>&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Esc&gt;</span>OQ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xF2>-xterm" name="&lt;xF2&gt;-xterm">*&lt;xF2&gt;-xterm*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F3&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;t_k3&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Esc&gt;</span>[13~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xF3&gt;</span>&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Esc&gt;</span>OR&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xF3>-xterm" name="&lt;xF3&gt;-xterm">*&lt;xF3&gt;-xterm*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F4&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;t_k4&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Esc&gt;</span>[14~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xF4&gt;</span>&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Esc&gt;</span>OS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xF4>-xterm" name="&lt;xF4&gt;-xterm">*&lt;xF4&gt;-xterm*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Home&gt;</span>&nbsp;&nbsp;t_kh&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Esc&gt;</span>[7~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xHome&gt;</span>&nbsp;<span class="Special">&lt;Esc&gt;</span>OH&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xHome>-xterm" name="&lt;xHome&gt;-xterm">*&lt;xHome&gt;-xterm*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;End&gt;</span>&nbsp;&nbsp; t_@7&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Esc&gt;</span>[4~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xEnd&gt;</span>&nbsp;&nbsp;<span class="Special">&lt;Esc&gt;</span>OF&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xEnd>-xterm" name="&lt;xEnd&gt;-xterm">*&lt;xEnd&gt;-xterm*</a><br>
+<br>
+Vim が起動したときに&nbsp;<span class="Special">&lt;xF1&gt;</span>&nbsp;が&nbsp;<span class="Special">&lt;F1&gt;</span>へ、<span class="Special">&lt;xF2&gt;</span>&nbsp;が&nbsp;<span class="Special">&lt;F2&gt;</span>&nbsp;へマッピングされます。これ<br>
+により、デフォルトではどちらのコードも同じ動作になります。<span class="Special">&lt;xF2&gt;</span>&nbsp;へのマッピング<br>
+を作ると、デフォルトのマッピングが上書きされます。そして&nbsp;<span class="Special">&lt;F2&gt;</span>&nbsp;と&nbsp;<span class="Special">&lt;xF2&gt;</span>&nbsp;に別の<br>
+動作をさせることができます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#xterm-shifted-keys" name="xterm-shifted-keys">*xterm-shifted-keys*</a><br>
+新しいバージョンの xterm はシフトキーとファンクションキー、特殊キーの組み合わ<br>
+せをサポートしています。Vim はこれらのほとんどを認識します。&quot;:set termcap&quot; に<br>
+よりどれがサポートされているか、そのコードは何かを調べることができます。大抵の<br>
+場合、これらは termcap には入っていません。 builtin_xterm の termcap でのみサ<br>
+ポートされています。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#xterm-modifier-keys" name="xterm-modifier-keys">*xterm-modifier-keys*</a><br>
+新しいバージョンの xterm は Alt と Ctrl キーとほとんどのファンクションキーの組<br>
+み合わせをサポートしています。全てのキーに対する Alt、Ctrl、Shift の組み合わせ<br>
+全てを termcap に追加しなくてもいいように、termcap エントリの最後に &quot;;*X&quot; とい<br>
+う特殊なシーケンスを追加することができます。この &quot;X&quot; はどんな文字でもよく、'~'<br>
+がよく使われます。&quot;;*&quot; は省略可能な修飾キー引数を意味します。&quot;;2&quot; は<br>
+Shift、&quot;;3&quot; は Alt、&quot;;5&quot; はCtrl、&quot;;9&quot; は Meta (Alt と異なる場合)。これらを組み<br>
+合わせることができます。例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set &lt;F8&gt;=^[[19;*~</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set &lt;Home&gt;=^[[1;*H</span><br>
+これらのコードのもう1つの特殊な性質は、他のコードで上書きできないことです。<br>
+xterm から直接得られたコードが&nbsp;<a class="Identifier" href="term.html#t_RV">|t_RV|</a>&nbsp;それらを上書きするのを避けるためです。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#xterm-scroll-region" name="xterm-scroll-region">*xterm-scroll-region*</a><br>
+Sun などのプラットフォームのデフォルトの xterm 用の termcap エントリには領域の<br>
+スクロール用のエントリが入っていません。/etc/termcap の xterm エントリに<br>
+&quot;:cs=\E[%i%d;%dr:&quot; を追加すれば全てうまく動作するでしょう。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#xterm-end-home-keys" name="xterm-end-home-keys">*xterm-end-home-keys*</a><br>
+いくつかのシステム(少なくとも FreeBSD と XFree86 3.1.2)では、&nbsp;<span class="Special">&lt;End&gt;</span>&nbsp;と&nbsp;<span class="Special">&lt;Home&gt;</span><br>
+キーが送信するキーに&nbsp;<span class="Special">&lt;NUL&gt;</span>&nbsp;文字が含まれています。これらのキーが適切なキーコー<br>
+ドを送信するようにするために、次の行を ~/.Xdefaults に追加してください:<br>
+<br>
+*VT100.Translations:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#override \n\<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Key&gt;</span>Home: string(&quot;0x1b&quot;) string(&quot;[7~&quot;) \n\<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Key&gt;</span>End: string(&quot;0x1b&quot;) string(&quot;[8~&quot;)<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#xterm-8bit" name="xterm-8bit">*xterm-8bit*</a>&nbsp;<a class="Constant" href="term.html#xterm-8-bit" name="xterm-8-bit">*xterm-8-bit*</a><br>
+xterm は 8 ビットエスケープシーケンスを使うモードで動作させることができます。<br>
+このモードでは&nbsp;<span class="Special">&lt;Esc&gt;</span>[ の代わりに CSI コードが使われます。この利点は、インサー<br>
+トモードで&nbsp;<span class="Special">&lt;Esc&gt;</span>&nbsp;が即座に認識されることです。なぜなら、特殊キーの開始と紛らわ<br>
+しくないためです。<br>
+組み込みの termcap エントリでは、オプション&nbsp;<a class="Type" href="options.html#'term'">'term'</a>&nbsp;のどこかに &quot;8bit&quot; が含まれ<br>
+ていないか確認されます。含まれていると、termcap エントリ、マウス等に 8 ビット<br>
+文字が使われます。シェルにおいて $TERM を &quot;xterm-8bit&quot; に設定しておくと、Vim&nbsp;<br>
+はそれに気づいて自動的に 8 ビットの設定を使うようになります。<br>
+Vim がシーケンス&nbsp;<a class="Identifier" href="term.html#t_RV">|t_RV|</a>&nbsp;(バージョン要求)への応答を受け取ったとき、それが CSI&nbsp;<br>
+で始まっていれば、その端末は 8 ビットモードであると認識し、全てのキーシーケン<br>
+スを 8 ビット版に変換します。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+2. 端末オプション&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#terminal-options" name="terminal-options">*terminal-options*</a>&nbsp;<a class="Constant" href="term.html#termcap-options" name="termcap-options">*termcap-options*</a>&nbsp;<a class="Constant" href="term.html#E436" name="E436">*E436*</a><br>
+<br>
+端末オプションは普通のオプションとまったく同じように設定できます。しかし端末オ<br>
+プションは &quot;:set all&quot; コマンドでは表示されないので、代わりに &quot;:set termcap&quot; を<br>
+使ってください。<br>
+<br>
+termcap コードに対応するオプションを設定することによって、そのシーケンスを変更<br>
+することができます。例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set t_ce=^V^[[K&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(CTRL-V, &lt;Esc&gt;, [, K)</span><br>
+<br>
+<span class="Special">{Vi: 端末オプションは存在しない。Vi を終了し、termcap エントリを編集して再起動</span><br>
+<span class="Special">しなければならない}</span><br>
+<br>
+端末オプションの一覧を後で載せます。対応する termcap のコードと、それに対応す<br>
+るオプション名の最後の2文字が等しくなっています。絶対に必要な termcap コードは<br>
+カーソルを移動させる&nbsp;<a class="Type" href="term.html#'t_cm'">'t_cm'</a>&nbsp;の1つだけです。<br>
+<br>
+オプション&nbsp;<a class="Type" href="term.html#'t_da'">'t_da'</a>,&nbsp;<a class="Type" href="term.html#'t_db'">'t_db'</a>,&nbsp;<a class="Type" href="term.html#'t_ms'">'t_ms'</a>,&nbsp;<a class="Type" href="term.html#'t_xs'">'t_xs'</a>&nbsp;は termcap におけるフラグに対応して<br>
+います。termcap にこれらのフラグが存在すると、対応するオプションに &quot;y&quot; が設定<br>
+されます。空でない文字列を設定するとオンになり、空文字列を設定するとオフになり<br>
+ます。<a class="Type" href="term.html#'t_CS'">'t_CS'</a>&nbsp;もこれと同様ですが、termcap フラグではありません。<br>
+<br>
+出力コード<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">option&nbsp;&nbsp;意味</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_AB&nbsp;&nbsp;&nbsp;&nbsp;背景色を設定 (ANSI)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_AB" name="t_AB">*t_AB*</a>&nbsp;<a class="Constant" href="term.html#'t_AB'" name="'t_AB'">*'t_AB'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_AF&nbsp;&nbsp;&nbsp;&nbsp;文字色を設定 (ANSI)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_AF" name="t_AF">*t_AF*</a>&nbsp;<a class="Constant" href="term.html#'t_AF'" name="'t_AF'">*'t_AF'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_AL&nbsp;&nbsp;&nbsp;&nbsp;指定数の空行を追加する&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_AL" name="t_AL">*t_AL*</a>&nbsp;<a class="Constant" href="term.html#'t_AL'" name="'t_AL'">*'t_AL'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_al&nbsp;&nbsp;&nbsp;&nbsp;空行を追加する&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_al" name="t_al">*t_al*</a>&nbsp;<a class="Constant" href="term.html#'t_al'" name="'t_al'">*'t_al'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_bc&nbsp;&nbsp;&nbsp;&nbsp;バックスペース文字&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_bc" name="t_bc">*t_bc*</a>&nbsp;<a class="Constant" href="term.html#'t_bc'" name="'t_bc'">*'t_bc'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_cd&nbsp;&nbsp;&nbsp;&nbsp;スクリーンの最後までクリア&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_cd" name="t_cd">*t_cd*</a>&nbsp;<a class="Constant" href="term.html#'t_cd'" name="'t_cd'">*'t_cd'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_ce&nbsp;&nbsp;&nbsp;&nbsp;行末までクリア&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_ce" name="t_ce">*t_ce*</a>&nbsp;<a class="Constant" href="term.html#'t_ce'" name="'t_ce'">*'t_ce'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_cl&nbsp;&nbsp;&nbsp;&nbsp;画面をクリア&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_cl" name="t_cl">*t_cl*</a>&nbsp;<a class="Constant" href="term.html#'t_cl'" name="'t_cl'">*'t_cl'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_cm&nbsp;&nbsp;&nbsp;&nbsp;カーソル移動 (必須!)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#E437" name="E437">*E437*</a>&nbsp;<a class="Constant" href="term.html#t_cm" name="t_cm">*t_cm*</a>&nbsp;<a class="Constant" href="term.html#'t_cm'" name="'t_cm'">*'t_cm'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_Co&nbsp;&nbsp;&nbsp;&nbsp;色数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_Co" name="t_Co">*t_Co*</a>&nbsp;<a class="Constant" href="term.html#'t_Co'" name="'t_Co'">*'t_Co'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_CS&nbsp;&nbsp;&nbsp;&nbsp;空でなければカーソルをスクロール範囲に相対的に&nbsp;&nbsp;<a class="Constant" href="term.html#t_CS" name="t_CS">*t_CS*</a>&nbsp;<a class="Constant" href="term.html#'t_CS'" name="'t_CS'">*'t_CS'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_cs&nbsp;&nbsp;&nbsp;&nbsp;スクロール範囲を定義&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_cs" name="t_cs">*t_cs*</a>&nbsp;<a class="Constant" href="term.html#'t_cs'" name="'t_cs'">*'t_cs'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_CV&nbsp;&nbsp;&nbsp;&nbsp;縦スクロール範囲を定義&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_CV" name="t_CV">*t_CV*</a>&nbsp;<a class="Constant" href="term.html#'t_CV'" name="'t_CV'">*'t_CV'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_da&nbsp;&nbsp;&nbsp;&nbsp;空でない場合は上の行からスクロールダウンする&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_da" name="t_da">*t_da*</a>&nbsp;<a class="Constant" href="term.html#'t_da'" name="'t_da'">*'t_da'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_db&nbsp;&nbsp;&nbsp;&nbsp;空でない場合は下の行からスクロールアップする&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_db" name="t_db">*t_db*</a>&nbsp;<a class="Constant" href="term.html#'t_db'" name="'t_db'">*'t_db'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_DL&nbsp;&nbsp;&nbsp;&nbsp;複数行を削除&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_DL" name="t_DL">*t_DL*</a>&nbsp;<a class="Constant" href="term.html#'t_DL'" name="'t_DL'">*'t_DL'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_dl&nbsp;&nbsp;&nbsp;&nbsp;行を削除&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_dl" name="t_dl">*t_dl*</a>&nbsp;<a class="Constant" href="term.html#'t_dl'" name="'t_dl'">*'t_dl'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_fs&nbsp;&nbsp;&nbsp;&nbsp;ウィンドウタイトルの終端を設定(ステータスラインから)&nbsp;<a class="Constant" href="term.html#t_fs" name="t_fs">*t_fs*</a>&nbsp;<a class="Constant" href="term.html#'t_fs'" name="'t_fs'">*'t_fs'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_ke&nbsp;&nbsp;&nbsp;&nbsp;キーパッド使用終了&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_ke" name="t_ke">*t_ke*</a>&nbsp;<a class="Constant" href="term.html#'t_ke'" name="'t_ke'">*'t_ke'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_ks&nbsp;&nbsp;&nbsp;&nbsp;キーパッド使用開始&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_ks" name="t_ks">*t_ks*</a>&nbsp;<a class="Constant" href="term.html#'t_ks'" name="'t_ks'">*'t_ks'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_le&nbsp;&nbsp;&nbsp;&nbsp;カーソルを1文字分左へ移動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_le" name="t_le">*t_le*</a>&nbsp;<a class="Constant" href="term.html#'t_le'" name="'t_le'">*'t_le'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_mb&nbsp;&nbsp;&nbsp;&nbsp;点滅モード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_mb" name="t_mb">*t_mb*</a>&nbsp;<a class="Constant" href="term.html#'t_mb'" name="'t_mb'">*'t_mb'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_md&nbsp;&nbsp;&nbsp;&nbsp;太字モード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_md" name="t_md">*t_md*</a>&nbsp;<a class="Constant" href="term.html#'t_md'" name="'t_md'">*'t_md'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_me&nbsp;&nbsp;&nbsp;&nbsp;通常モード (t_mr, t_mb, t_md, 色設定を解除)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_me" name="t_me">*t_me*</a>&nbsp;<a class="Constant" href="term.html#'t_me'" name="'t_me'">*'t_me'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_mr&nbsp;&nbsp;&nbsp;&nbsp;反転モード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_mr" name="t_mr">*t_mr*</a>&nbsp;<a class="Constant" href="term.html#'t_mr'" name="'t_mr'">*'t_mr'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_ms" name="t_ms">*t_ms*</a>&nbsp;<a class="Constant" href="term.html#'t_ms'" name="'t_ms'">*'t_ms'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_ms&nbsp;&nbsp;&nbsp;&nbsp;空でない場合は強調・反転モードでカーソルを移動できる<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_nd&nbsp;&nbsp;&nbsp;&nbsp;non destructive space character&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_nd" name="t_nd">*t_nd*</a>&nbsp;<a class="Constant" href="term.html#'t_nd'" name="'t_nd'">*'t_nd'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_op&nbsp;&nbsp;&nbsp;&nbsp;元の色のペアに戻す&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_op" name="t_op">*t_op*</a>&nbsp;<a class="Constant" href="term.html#'t_op'" name="'t_op'">*'t_op'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_RI&nbsp;&nbsp;&nbsp;&nbsp;カーソルを指定数右へ移動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_RI" name="t_RI">*t_RI*</a>&nbsp;<a class="Constant" href="term.html#'t_RI'" name="'t_RI'">*'t_RI'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_Sb&nbsp;&nbsp;&nbsp;&nbsp;背景色を設定&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_Sb" name="t_Sb">*t_Sb*</a>&nbsp;<a class="Constant" href="term.html#'t_Sb'" name="'t_Sb'">*'t_Sb'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_Sf&nbsp;&nbsp;&nbsp;&nbsp;文字色を設定&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_Sf" name="t_Sf">*t_Sf*</a>&nbsp;<a class="Constant" href="term.html#'t_Sf'" name="'t_Sf'">*'t_Sf'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_se&nbsp;&nbsp;&nbsp;&nbsp;強調終了&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_se" name="t_se">*t_se*</a>&nbsp;<a class="Constant" href="term.html#'t_se'" name="'t_se'">*'t_se'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_so&nbsp;&nbsp;&nbsp;&nbsp;強調モード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_so" name="t_so">*t_so*</a>&nbsp;<a class="Constant" href="term.html#'t_so'" name="'t_so'">*'t_so'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_sr&nbsp;&nbsp;&nbsp;&nbsp;逆スクロール&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_sr" name="t_sr">*t_sr*</a>&nbsp;<a class="Constant" href="term.html#'t_sr'" name="'t_sr'">*'t_sr'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_te&nbsp;&nbsp;&nbsp;&nbsp;&quot;termcap&quot; モードから抜ける&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_te" name="t_te">*t_te*</a>&nbsp;<a class="Constant" href="term.html#'t_te'" name="'t_te'">*'t_te'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_ti&nbsp;&nbsp;&nbsp;&nbsp;端末を &quot;termcap&quot; モードにする&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_ti" name="t_ti">*t_ti*</a>&nbsp;<a class="Constant" href="term.html#'t_ti'" name="'t_ti'">*'t_ti'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_ts&nbsp;&nbsp;&nbsp;&nbsp;(ステータスラインに)ウィンドウタイトル設定開始&nbsp;&nbsp;<a class="Constant" href="term.html#t_ts" name="t_ts">*t_ts*</a>&nbsp;<a class="Constant" href="term.html#'t_ts'" name="'t_ts'">*'t_ts'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_ue&nbsp;&nbsp;&nbsp;&nbsp;下線終了&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_ue" name="t_ue">*t_ue*</a>&nbsp;<a class="Constant" href="term.html#'t_ue'" name="'t_ue'">*'t_ue'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_us&nbsp;&nbsp;&nbsp;&nbsp;下線モード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_us" name="t_us">*t_us*</a>&nbsp;<a class="Constant" href="term.html#'t_us'" name="'t_us'">*'t_us'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_Ce&nbsp;&nbsp;&nbsp;&nbsp;下波線終了&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_Ce" name="t_Ce">*t_Ce*</a>&nbsp;<a class="Constant" href="term.html#'t_Ce'" name="'t_Ce'">*'t_Ce'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_Cs&nbsp;&nbsp;&nbsp;&nbsp;下波線モード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_Cs" name="t_Cs">*t_Cs*</a>&nbsp;<a class="Constant" href="term.html#'t_Cs'" name="'t_Cs'">*'t_Cs'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_ut&nbsp;&nbsp;&nbsp;&nbsp;現在の背景色を使ってクリア&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_ut" name="t_ut">*t_ut*</a>&nbsp;<a class="Constant" href="term.html#'t_ut'" name="'t_ut'">*'t_ut'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_vb&nbsp;&nbsp;&nbsp;&nbsp;ビジュアルベル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_vb" name="t_vb">*t_vb*</a>&nbsp;<a class="Constant" href="term.html#'t_vb'" name="'t_vb'">*'t_vb'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_ve&nbsp;&nbsp;&nbsp;&nbsp;カーソル表示&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_ve" name="t_ve">*t_ve*</a>&nbsp;<a class="Constant" href="term.html#'t_ve'" name="'t_ve'">*'t_ve'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_vi&nbsp;&nbsp;&nbsp;&nbsp;カーソル非表示&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_vi" name="t_vi">*t_vi*</a>&nbsp;<a class="Constant" href="term.html#'t_vi'" name="'t_vi'">*'t_vi'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_vs&nbsp;&nbsp;&nbsp;&nbsp;カーソル強調表示&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_vs" name="t_vs">*t_vs*</a>&nbsp;<a class="Constant" href="term.html#'t_vs'" name="'t_vs'">*'t_vs'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_xs" name="t_xs">*t_xs*</a>&nbsp;<a class="Constant" href="term.html#'t_xs'" name="'t_xs'">*'t_xs'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_xs&nbsp;&nbsp;&nbsp;&nbsp;空でない場合は強調が上書きによって消されない(hpterm)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_ZH&nbsp;&nbsp;&nbsp;&nbsp;斜体モード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_ZH" name="t_ZH">*t_ZH*</a>&nbsp;<a class="Constant" href="term.html#'t_ZH'" name="'t_ZH'">*'t_ZH'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_ZR&nbsp;&nbsp;&nbsp;&nbsp;斜体終了&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_ZR" name="t_ZR">*t_ZR*</a>&nbsp;<a class="Constant" href="term.html#'t_ZR'" name="'t_ZR'">*'t_ZR'*</a><br>
+<br>
+Vim 独自のもの (標準的なコードはないもの):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_IS&nbsp;&nbsp;&nbsp;&nbsp;アイコンテキスト設定開始&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_IS" name="t_IS">*t_IS*</a>&nbsp;<a class="Constant" href="term.html#'t_IS'" name="'t_IS'">*'t_IS'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_IE&nbsp;&nbsp;&nbsp;&nbsp;アイコンテキスト設定終了&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_IE" name="t_IE">*t_IE*</a>&nbsp;<a class="Constant" href="term.html#'t_IE'" name="'t_IE'">*'t_IE'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_WP&nbsp;&nbsp;&nbsp;&nbsp;ウィンドウ位置 (Y, X) をピクセルで指定&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_WP" name="t_WP">*t_WP*</a>&nbsp;<a class="Constant" href="term.html#'t_WP'" name="'t_WP'">*'t_WP'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_WS&nbsp;&nbsp;&nbsp;&nbsp;ウィンドウサイズ (height, width) を文字数で指定&nbsp;<a class="Constant" href="term.html#t_WS" name="t_WS">*t_WS*</a>&nbsp;<a class="Constant" href="term.html#'t_WS'" name="'t_WS'">*'t_WS'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_SI&nbsp;&nbsp;&nbsp;&nbsp;インサートモード開始 (バー型のカーソル)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_SI" name="t_SI">*t_SI*</a>&nbsp;<a class="Constant" href="term.html#'t_SI'" name="'t_SI'">*'t_SI'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_EI&nbsp;&nbsp;&nbsp;&nbsp;インサートモード終了(ブロック型カーソル)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_EI" name="t_EI">*t_EI*</a>&nbsp;<a class="Constant" href="term.html#'t_EI'" name="'t_EI'">*'t_EI'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="term.html#termcap-cursor-shape">|termcap-cursor-shape|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_RV&nbsp;&nbsp;&nbsp;&nbsp;端末バージョン文字列を要求 (xterm 用)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_RV" name="t_RV">*t_RV*</a>&nbsp;<a class="Constant" href="term.html#'t_RV'" name="'t_RV'">*'t_RV'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="term.html#xterm-8bit">|xterm-8bit|</a>&nbsp;<a class="Identifier" href="eval.html#v:termresponse">|v:termresponse|</a>&nbsp;<a class="Identifier" href="options.html#'ttymouse'">|'ttymouse'|</a>&nbsp;<a class="Identifier" href="term.html#xterm-codes">|xterm-codes|</a><br>
+<br>
+キーコード<br>
+<span class="Todo">Note</span>: 可能なかぎり &lt;&gt; 形式を使ってください。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">オプション名&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;意味</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_ku&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Up&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル上&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_ku" name="t_ku">*t_ku*</a>&nbsp;<a class="Constant" href="term.html#'t_ku'" name="'t_ku'">*'t_ku'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_kd&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Down&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル下&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_kd" name="t_kd">*t_kd*</a>&nbsp;<a class="Constant" href="term.html#'t_kd'" name="'t_kd'">*'t_kd'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_kr&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Right&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソル右&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_kr" name="t_kr">*t_kr*</a>&nbsp;<a class="Constant" href="term.html#'t_kr'" name="'t_kr'">*'t_kr'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_kl&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Left&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル左&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_kl" name="t_kl">*t_kl*</a>&nbsp;<a class="Constant" href="term.html#'t_kl'" name="'t_kl'">*'t_kl'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xUp&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソル上の代替&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xUp>" name="&lt;xUp&gt;">*&lt;xUp&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xDown&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソル下の代替&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xDown>" name="&lt;xDown&gt;">*&lt;xDown&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xRight&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル右の代替&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xRight>" name="&lt;xRight&gt;">*&lt;xRight&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xLeft&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソル左の代替&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xLeft>" name="&lt;xLeft&gt;">*&lt;xLeft&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-Up&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋カーソル上<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-Down&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋カーソル下<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_%i&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-Right&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; シフト＋カーソル右&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_%i" name="t_%i">*t_%i*</a>&nbsp;<a class="Constant" href="term.html#'t_%i'" name="'t_%i'">*'t_%i'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_#4&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-Left&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋カーソル左&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_#4" name="t_#4">*t_#4*</a>&nbsp;<a class="Constant" href="term.html#'t_#4'" name="'t_#4'">*'t_#4'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_k1&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F1&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_k1" name="t_k1">*t_k1*</a>&nbsp;<a class="Constant" href="term.html#'t_k1'" name="'t_k1'">*'t_k1'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xF1&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; もう1つの F1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xF1>" name="&lt;xF1&gt;">*&lt;xF1&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_k2&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F2&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F2>" name="&lt;F2&gt;">*&lt;F2&gt;*</a>&nbsp;&nbsp;<a class="Constant" href="term.html#t_k2" name="t_k2">*t_k2*</a>&nbsp;<a class="Constant" href="term.html#'t_k2'" name="'t_k2'">*'t_k2'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xF2&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; もう1つのF2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xF2>" name="&lt;xF2&gt;">*&lt;xF2&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_k3&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F3&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F3>" name="&lt;F3&gt;">*&lt;F3&gt;*</a>&nbsp;&nbsp;<a class="Constant" href="term.html#t_k3" name="t_k3">*t_k3*</a>&nbsp;<a class="Constant" href="term.html#'t_k3'" name="'t_k3'">*'t_k3'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xF3&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; もう1つのF3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xF3>" name="&lt;xF3&gt;">*&lt;xF3&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_k4&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F4&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F4>" name="&lt;F4&gt;">*&lt;F4&gt;*</a>&nbsp;&nbsp;<a class="Constant" href="term.html#t_k4" name="t_k4">*t_k4*</a>&nbsp;<a class="Constant" href="term.html#'t_k4'" name="'t_k4'">*'t_k4'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xF4&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; もう1つのF4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xF4>" name="&lt;xF4&gt;">*&lt;xF4&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_k5&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F5&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F5>" name="&lt;F5&gt;">*&lt;F5&gt;*</a>&nbsp;&nbsp;<a class="Constant" href="term.html#t_k5" name="t_k5">*t_k5*</a>&nbsp;<a class="Constant" href="term.html#'t_k5'" name="'t_k5'">*'t_k5'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_k6&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F6&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F6>" name="&lt;F6&gt;">*&lt;F6&gt;*</a>&nbsp;&nbsp;<a class="Constant" href="term.html#t_k6" name="t_k6">*t_k6*</a>&nbsp;<a class="Constant" href="term.html#'t_k6'" name="'t_k6'">*'t_k6'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_k7&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F7&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F7>" name="&lt;F7&gt;">*&lt;F7&gt;*</a>&nbsp;&nbsp;<a class="Constant" href="term.html#t_k7" name="t_k7">*t_k7*</a>&nbsp;<a class="Constant" href="term.html#'t_k7'" name="'t_k7'">*'t_k7'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_k8&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F8&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F8>" name="&lt;F8&gt;">*&lt;F8&gt;*</a>&nbsp;&nbsp;<a class="Constant" href="term.html#t_k8" name="t_k8">*t_k8*</a>&nbsp;<a class="Constant" href="term.html#'t_k8'" name="'t_k8'">*'t_k8'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_k9&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F9&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F9>" name="&lt;F9&gt;">*&lt;F9&gt;*</a>&nbsp;&nbsp;<a class="Constant" href="term.html#t_k9" name="t_k9">*t_k9*</a>&nbsp;<a class="Constant" href="term.html#'t_k9'" name="'t_k9'">*'t_k9'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_k;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F10&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F10>" name="&lt;F10&gt;">*&lt;F10&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_k;" name="t_k;">*t_k;*</a>&nbsp;<a class="Constant" href="term.html#'t_k;'" name="'t_k;'">*'t_k;'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_F1&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F11&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F11&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F11>" name="&lt;F11&gt;">*&lt;F11&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_F1" name="t_F1">*t_F1*</a>&nbsp;<a class="Constant" href="term.html#'t_F1'" name="'t_F1'">*'t_F1'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_F2&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F12&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F12&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F12>" name="&lt;F12&gt;">*&lt;F12&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_F2" name="t_F2">*t_F2*</a>&nbsp;<a class="Constant" href="term.html#'t_F2'" name="'t_F2'">*'t_F2'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_F3&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F13&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F13&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F13>" name="&lt;F13&gt;">*&lt;F13&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_F3" name="t_F3">*t_F3*</a>&nbsp;<a class="Constant" href="term.html#'t_F3'" name="'t_F3'">*'t_F3'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_F4&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F14&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F14&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F14>" name="&lt;F14&gt;">*&lt;F14&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_F4" name="t_F4">*t_F4*</a>&nbsp;<a class="Constant" href="term.html#'t_F4'" name="'t_F4'">*'t_F4'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_F5&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F15&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F15&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F15>" name="&lt;F15&gt;">*&lt;F15&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_F5" name="t_F5">*t_F5*</a>&nbsp;<a class="Constant" href="term.html#'t_F5'" name="'t_F5'">*'t_F5'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_F6&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F16&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F16&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F16>" name="&lt;F16&gt;">*&lt;F16&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_F6" name="t_F6">*t_F6*</a>&nbsp;<a class="Constant" href="term.html#'t_F6'" name="'t_F6'">*'t_F6'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_F7&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F17&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F17&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F17>" name="&lt;F17&gt;">*&lt;F17&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_F7" name="t_F7">*t_F7*</a>&nbsp;<a class="Constant" href="term.html#'t_F7'" name="'t_F7'">*'t_F7'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_F8&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F18&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F18&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F18>" name="&lt;F18&gt;">*&lt;F18&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_F8" name="t_F8">*t_F8*</a>&nbsp;<a class="Constant" href="term.html#'t_F8'" name="'t_F8'">*'t_F8'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_F9&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;F19&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F19&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<F19>" name="&lt;F19&gt;">*&lt;F19&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_F9" name="t_F9">*t_F9*</a>&nbsp;<a class="Constant" href="term.html#'t_F9'" name="'t_F9'">*'t_F9'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-F1&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋F1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-xF1&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; もう1つの<span class="Special">&lt;S-F1&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-xF1>" name="&lt;S-xF1&gt;">*&lt;S-xF1&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-F2&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋F2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-F2>" name="&lt;S-F2&gt;">*&lt;S-F2&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-xF2&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; もう1つの<span class="Special">&lt;S-F2&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-xF2>" name="&lt;S-xF2&gt;">*&lt;S-xF2&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-F3&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋F3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-F3>" name="&lt;S-F3&gt;">*&lt;S-F3&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-xF3&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; もう1つの<span class="Special">&lt;S-F3&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-xF3>" name="&lt;S-xF3&gt;">*&lt;S-xF3&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-F4&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋F4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-F4>" name="&lt;S-F4&gt;">*&lt;S-F4&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-xF4&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; もう1つの<span class="Special">&lt;S-F4&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-xF4>" name="&lt;S-xF4&gt;">*&lt;S-xF4&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-F5&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋F5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-F5>" name="&lt;S-F5&gt;">*&lt;S-F5&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-F6&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋F6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-F6>" name="&lt;S-F6&gt;">*&lt;S-F6&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-F7&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋F7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-F7>" name="&lt;S-F7&gt;">*&lt;S-F7&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-F8&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋F8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-F8>" name="&lt;S-F8&gt;">*&lt;S-F8&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-F9&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋F9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-F9>" name="&lt;S-F9&gt;">*&lt;S-F9&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-F10&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; シフト＋F10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-F10>" name="&lt;S-F10&gt;">*&lt;S-F10&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-F11&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; シフト＋F11&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-F11>" name="&lt;S-F11&gt;">*&lt;S-F11&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-F12&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; シフト＋F12&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-F12>" name="&lt;S-F12&gt;">*&lt;S-F12&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_%1&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Help&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ヘルプキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_%1" name="t_%1">*t_%1*</a>&nbsp;<a class="Constant" href="term.html#'t_%1'" name="'t_%1'">*'t_%1'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_&amp;8&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Undo&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;アンドゥキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_&8" name="t_&amp;8">*t_&amp;8*</a>&nbsp;<a class="Constant" href="term.html#'t_&8'" name="'t_&amp;8'">*'t_&amp;8'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_kI&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Insert&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;インサートキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_kI" name="t_kI">*t_kI*</a>&nbsp;<a class="Constant" href="term.html#'t_kI'" name="'t_kI'">*'t_kI'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_kD&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Del&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; デリートキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_kD" name="t_kD">*t_kD*</a>&nbsp;<a class="Constant" href="term.html#'t_kD'" name="'t_kD'">*'t_kD'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_kb&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;BS&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;バックスペースキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_kb" name="t_kb">*t_kb*</a>&nbsp;<a class="Constant" href="term.html#'t_kb'" name="'t_kb'">*'t_kb'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_kB&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-Tab&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; バックタブ(シフト＋タブ)&nbsp;<a class="Constant" href="term.html#<S-Tab>" name="&lt;S-Tab&gt;">*&lt;S-Tab&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_kB" name="t_kB">*t_kB*</a>&nbsp;<a class="Constant" href="term.html#'t_kB'" name="'t_kB'">*'t_kB'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_kh&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Home&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ホームキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_kh" name="t_kh">*t_kh*</a>&nbsp;<a class="Constant" href="term.html#'t_kh'" name="'t_kh'">*'t_kh'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_#2&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-Home&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シフト＋ホームキー&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-Home>" name="&lt;S-Home&gt;">*&lt;S-Home&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_#2" name="t_#2">*t_#2*</a>&nbsp;<a class="Constant" href="term.html#'t_#2'" name="'t_#2'">*'t_#2'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xHome&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; もう1つのホームキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xHome>" name="&lt;xHome&gt;">*&lt;xHome&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_@7&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;End&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; エンドキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_@7" name="t_@7">*t_@7*</a>&nbsp;<a class="Constant" href="term.html#'t_@7'" name="'t_@7'">*'t_@7'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_*7&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;S-End&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; シフト＋エンドキー&nbsp;<a class="Constant" href="term.html#<S-End>" name="&lt;S-End&gt;">*&lt;S-End&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_star7" name="t_star7">*t_star7*</a>&nbsp;<a class="Constant" href="term.html#'t_star7'" name="'t_star7'">*'t_star7'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;xEnd&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;もう1つのエンドキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<xEnd>" name="&lt;xEnd&gt;">*&lt;xEnd&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_kP&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;PageUp&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ページアップキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_kP" name="t_kP">*t_kP*</a>&nbsp;<a class="Constant" href="term.html#'t_kP'" name="'t_kP'">*'t_kP'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_kN&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;PageDown&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ページダウンキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_kN" name="t_kN">*t_kN*</a>&nbsp;<a class="Constant" href="term.html#'t_kN'" name="'t_kN'">*'t_kN'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_K1&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;kHome&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; キーパッドホームキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_K1" name="t_K1">*t_K1*</a>&nbsp;<a class="Constant" href="term.html#'t_K1'" name="'t_K1'">*'t_K1'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_K4&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;kEnd&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッドエンドキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_K4" name="t_K4">*t_K4*</a>&nbsp;<a class="Constant" href="term.html#'t_K4'" name="'t_K4'">*'t_K4'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_K3&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;kPageUp&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; キーパッドページアップキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_K3" name="t_K3">*t_K3*</a>&nbsp;<a class="Constant" href="term.html#'t_K3'" name="'t_K3'">*'t_K3'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_K5&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;kPageDown&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; キーパッドページダウンキー&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_K5" name="t_K5">*t_K5*</a>&nbsp;<a class="Constant" href="term.html#'t_K5'" name="'t_K5'">*'t_K5'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_K6&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;kPlus&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; キーパッドプラスキー&nbsp;<a class="Constant" href="term.html#<kPlus>" name="&lt;kPlus&gt;">*&lt;kPlus&gt;*</a>&nbsp;&nbsp;<a class="Constant" href="term.html#t_K6" name="t_K6">*t_K6*</a>&nbsp;<a class="Constant" href="term.html#'t_K6'" name="'t_K6'">*'t_K6'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_K7&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;kMinus&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッドマイナスキー&nbsp;<a class="Constant" href="term.html#<kMinus>" name="&lt;kMinus&gt;">*&lt;kMinus&gt;*</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_K7" name="t_K7">*t_K7*</a>&nbsp;<a class="Constant" href="term.html#'t_K7'" name="'t_K7'">*'t_K7'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_K8&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;kDivide&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; キーパッド /&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<kDivide>" name="&lt;kDivide&gt;">*&lt;kDivide&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_K8" name="t_K8">*t_K8*</a>&nbsp;<a class="Constant" href="term.html#'t_K8'" name="'t_K8'">*'t_K8'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_K9&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;kMultiply&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; キーパッド *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<kMultiply>" name="&lt;kMultiply&gt;">*&lt;kMultiply&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_K9" name="t_K9">*t_K9*</a>&nbsp;<a class="Constant" href="term.html#'t_K9'" name="'t_K9'">*'t_K9'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_KA&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;kEnter&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッドエンターキー&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<kEnter>" name="&lt;kEnter&gt;">*&lt;kEnter&gt;*</a>&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_KA" name="t_KA">*t_KA*</a>&nbsp;<a class="Constant" href="term.html#'t_KA'" name="'t_KA'">*'t_KA'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_KB&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;kPoint&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッド .&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<kPoint>" name="&lt;kPoint&gt;">*&lt;kPoint&gt;*</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#t_KB" name="t_KB">*t_KB*</a>&nbsp;<a class="Constant" href="term.html#'t_KB'" name="'t_KB'">*'t_KB'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_KC&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;k0&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッド 0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<k0>" name="&lt;k0&gt;">*&lt;k0&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_KC" name="t_KC">*t_KC*</a>&nbsp;<a class="Constant" href="term.html#'t_KC'" name="'t_KC'">*'t_KC'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_KD&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;k1&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッド 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<k1>" name="&lt;k1&gt;">*&lt;k1&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_KD" name="t_KD">*t_KD*</a>&nbsp;<a class="Constant" href="term.html#'t_KD'" name="'t_KD'">*'t_KD'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_KE&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;k2&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッド 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<k2>" name="&lt;k2&gt;">*&lt;k2&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_KE" name="t_KE">*t_KE*</a>&nbsp;<a class="Constant" href="term.html#'t_KE'" name="'t_KE'">*'t_KE'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_KF&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;k3&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッド 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<k3>" name="&lt;k3&gt;">*&lt;k3&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_KF" name="t_KF">*t_KF*</a>&nbsp;<a class="Constant" href="term.html#'t_KF'" name="'t_KF'">*'t_KF'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_KG&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;k4&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッド 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<k4>" name="&lt;k4&gt;">*&lt;k4&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_KG" name="t_KG">*t_KG*</a>&nbsp;<a class="Constant" href="term.html#'t_KG'" name="'t_KG'">*'t_KG'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_KH&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;k5&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッド 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<k5>" name="&lt;k5&gt;">*&lt;k5&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_KH" name="t_KH">*t_KH*</a>&nbsp;<a class="Constant" href="term.html#'t_KH'" name="'t_KH'">*'t_KH'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_KI&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;k6&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッド 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<k6>" name="&lt;k6&gt;">*&lt;k6&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_KI" name="t_KI">*t_KI*</a>&nbsp;<a class="Constant" href="term.html#'t_KI'" name="'t_KI'">*'t_KI'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_KJ&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;k7&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッド 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<k7>" name="&lt;k7&gt;">*&lt;k7&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_KJ" name="t_KJ">*t_KJ*</a>&nbsp;<a class="Constant" href="term.html#'t_KJ'" name="'t_KJ'">*'t_KJ'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_KK&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;k8&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッド 8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<k8>" name="&lt;k8&gt;">*&lt;k8&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_KK" name="t_KK">*t_KK*</a>&nbsp;<a class="Constant" href="term.html#'t_KK'" name="'t_KK'">*'t_KK'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_KL&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;k9&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;キーパッド 9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<k9>" name="&lt;k9&gt;">*&lt;k9&gt;*</a>&nbsp;<a class="Constant" href="term.html#t_KL" name="t_KL">*t_KL*</a>&nbsp;<a class="Constant" href="term.html#'t_KL'" name="'t_KL'">*'t_KL'*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Mouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; マウスコードの先頭部分&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<Mouse>" name="&lt;Mouse&gt;">*&lt;Mouse&gt;*</a><br>
+<br>
+<span class="Todo">Note</span>&nbsp;t_so と t_mrについて: termcap に &quot;so&quot; エントリがない場合は &quot;mr&quot; が使われ<br>
+ます。逆に &quot;mr&quot; がない場合は &quot;so&quot; が使われます。&quot;se&quot; と &quot;me&quot; も同じ関係にあり<br>
+ます。お使いの端末が反転と強調の両方をサポートしているならば、これらは別々のモー<br>
+ドとして表示されます。これらの片方しかサポートしていない場合は、どちらも同じよ<br>
+うに表示されます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#keypad-comma" name="keypad-comma">*keypad-comma*</a><br>
+キーパッドのキーは、何かにマップされていないときは通常のキーと等価です。ただ 1<br>
+つだけ例外があります。小数点キーがあるべき場所にコンマキーがあるキーパッドの場<br>
+合でも Vim では小数点として認識されます。これを修正するには次のマッピングを<br>
+使ってください:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap &lt;kPoint&gt; ,</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap! &lt;kPoint&gt; ,</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#xterm-codes" name="xterm-codes">*xterm-codes*</a><br>
+キーコードを取得するトリックがあります。これは現在のところ xterm でだけ動作し<br>
+ます。<a class="Identifier" href="term.html#t_RV">|t_RV|</a>&nbsp;が定義されていて、xterm のパッチレベルが 141 以上であることを示す<br>
+返信を受け取った場合、Vim は特別なエスケープシーケンスを使って xterm から直接<br>
+キーコードを要求します。その返信を使って様々な t_ のコードを調整します。これに<br>
+よって xterm がモード (8-bit, VT102, VT220 など) によって異なるコードを出力す<br>
+るという問題に対応することができます。そのため、<span class="Special">&lt;xF1&gt;</span>&nbsp;のようなコードは必要なく<br>
+なります。<br>
+<span class="Todo">Note</span>: これは起動時にのみ行われます。Vim が起動した後で xterm のオプションが変<br>
+更された場合は、これらのエスケープシーケンスは認識されなくなる可能性があります。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#xterm-resize" name="xterm-resize">*xterm-resize*</a><br>
+xterm でのウィンドウサイズ変更はリソース allowWindowOps が有効なときのみ動作し<br>
+ます。システムや xterm のバージョンによっては、セキュリティ上の問題になるとの<br>
+考えにより、既定では無効になっていることがあります。それが本当に問題になるかど<br>
+うかは明らかではありません。<br>
+<br>
+既定値を上書きするには、次の行を ~/.Xdefaults または ~/.Xresources に書きま<br>
+す:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;XTerm*allowWindowOps:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; true</span><br>
+<br>
+そして &quot;xrdb -merge .Xresources&quot; を実行し、この設定を有効化します。コンテキス<br>
+トメニュー(CTRL キーを押しながらマウス右ボタン)でこの値を確認できます。<br>
+allow-window-pos にチェックが入っているはずです。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#termcap-colors" name="termcap-colors">*termcap-colors*</a><br>
+色についての&nbsp;<span class="Todo">Note</span>:&nbsp;<a class="Type" href="term.html#'t_Co'">'t_Co'</a>&nbsp;は利用できる色の数を示します。この値が 0 でなければ<br>
+<a class="Type" href="term.html#'t_AB'">'t_AB'</a>&nbsp;と&nbsp;<a class="Type" href="term.html#'t_AF'">'t_AF'</a>&nbsp;の値を使って色を設定します。これらのうちどれかが存在しない場<br>
+合は&nbsp;<a class="Type" href="term.html#'t_Sb'">'t_Sb'</a>&nbsp;と&nbsp;<a class="Type" href="term.html#'t_Sf'">'t_Sf'</a>&nbsp;が使われます。色をデフォルトに戻すのには&nbsp;<a class="Type" href="term.html#'t_me'">'t_me'</a>&nbsp;が使われ<br>
+ます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#termcap-cursor-shape" name="termcap-cursor-shape">*termcap-cursor-shape*</a>&nbsp;<a class="Constant" href="term.html#termcap-cursor-color" name="termcap-cursor-color">*termcap-cursor-color*</a><br>
+インサートモードに入るとき、エスケープシーケンス&nbsp;<a class="Type" href="term.html#'t_SI'">'t_SI'</a>&nbsp;が送られます。インサー<br>
+トモードを抜けるときは&nbsp;<a class="Type" href="term.html#'t_EI'">'t_EI'</a>&nbsp;が送られます。ただし、両方が定義されているときの<br>
+みです。これを利用して、インサートモードにおけるカーソルの形や色を変えることが<br>
+できます。これらは標準的な termcap/terminfo エントリではないので、自分で設定す<br>
+る必要があります。<br>
+以下は xterm でカーソルの色を変える例です:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;if &amp;term =~ &quot;xterm&quot;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;t_SI = &quot;\&lt;Esc&gt;]12;purple\x7&quot;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;t_EI = &quot;\&lt;Esc&gt;]12;blue\x7&quot;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;endif</span><br>
+<span class="Todo">NOTE</span>: Vim を終了するとき、ノーマルモードでのカーソル設定がそのまま残ります。<br>
+Vim を起動する前のカーソル設定は復元されません。<br>
+{<a class="Identifier" href="various.html#+cursorshape">|+cursorshape|</a>&nbsp;つきでコンパイルしたときのみ利用可能}<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#termcap-title" name="termcap-title">*termcap-title*</a><br>
+文字列を送ってタイトルを変更できる端末の場合は&nbsp;<a class="Type" href="term.html#'t_ts'">'t_ts'</a>&nbsp;と&nbsp;<a class="Type" href="term.html#'t_fs'">'t_fs'</a>&nbsp;を使ってウィン<br>
+ドウタイトルを変更できます。これらがタイトル文字列の前後に送られます。同様に<br>
+<a class="Type" href="term.html#'t_IS'">'t_IS'</a>&nbsp;と&nbsp;<a class="Type" href="term.html#'t_IE'">'t_IE'</a>&nbsp;を使ってアイコンテキストが設定されます。これらの termcap エン<br>
+トリは Vim 独自の拡張であり、外部の termcap からこれらを取得することはできませ<br>
+ん。しかし組み込みの termcap に xterm と iris-ansi 用のエントリが含まれており、<br>
+これらを自分で設定する必要はありません。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#hpterm" name="hpterm">*hpterm*</a><br>
+もしも反転などの強調が正常に機能しない場合は、<a class="Type" href="term.html#'t_xs'">'t_xs'</a>&nbsp;を空でない文字列に設定し<br>
+てみてください。すると&nbsp;<a class="Type" href="term.html#'t_ce'">'t_ce'</a>&nbsp;コードを使って行から強調を取り除くようになります。<br>
+&quot;hpterm&quot; に対してはこれが必要です。<a class="Type" href="options.html#'weirdinvert'">'weirdinvert'</a>&nbsp;を設定すると&nbsp;<a class="Type" href="term.html#'t_xs'">'t_xs'</a>&nbsp;を空でな<br>
+い値にするのと同じ効果があります。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#scroll-region" name="scroll-region">*scroll-region*</a><br>
+端末が領域スクロールをサポートしているのに&nbsp;<span class="MissingTag">'cs'</span>&nbsp;エントリを含まない termcap があ<br>
+ります。例えば Sun の xterm がそうです。この場合は builtin_xterm を使うか、<br>
+t_cs を自分で定義します。例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set t_cs=^V^[[%i%d;%dr</span><br>
+^V は&nbsp;<span class="Special">CTRL-V</span>、^[ は&nbsp;<span class="Special">&lt;Esc&gt;</span>&nbsp;を表します。<br>
+<br>
+t_CV (領域縦スクロール) は標準的な termcap コードではありません。Vim はこれを<br>
+GUI モードで内部的に使っています。しかし、領域縦スクロールに対応している端末が<br>
+あるなら、その端末でもこれを定義することができます。2つの引数は、スクロールを<br>
+制限する領域の左右の桁を表します。t_cs が行の上端と下端を定義するのと同じです。<br>
+t_CV を定義すると垂直分割したウィンドウのスクロールがとても速くなります。t_da<br>
+または t_db を設定したときは t_CV を設定しないでください(スクロールするときテ<br>
+キストが消去されなくなります)。<br>
+<br>
+残念ながら、領域スクロールを使用しているとき、カーソルの位置がどう変わるかを<br>
+termcap から推測することは不可能です。スクリーンの始点から相対的またはスクロー<br>
+ルさせる領域の始点から相対的になります。ほとんどの端末では前者となります。よく<br>
+知られた例外は MS-DOS コンソール(pcterm)です。カーソル位置がスクロールさせる領<br>
+域の始点から相対的となる場合は&nbsp;<a class="Type" href="term.html#'t_CS'">'t_CS'</a>&nbsp;オプションになんらかの文字列を設定しなけ<br>
+ればなりません。そうでなければ空文字列となります。<a class="Type" href="options.html#'term'">'term'</a>&nbsp;が &quot;pcterm&quot;のときはデ<br>
+フォルトで &quot;yes&quot; になります。<br>
+<br>
+xterm ユーザへの注意: 通常、Shift + カーソルキーは使用できません。xmodmap コマ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ンドと Vim でマッピングを使えば、これらを使用できるようになります。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;以下のコマンドを xterm の中で実行します:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmodmap -e &quot;keysym Up = Up F13&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmodmap -e &quot;keysym Down = Down F16&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmodmap -e &quot;keysym Left = Left F18&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmodmap -e &quot;keysym Right = Right F19&quot;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;そして次のマッピングを Vim の中で実行します:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map&nbsp;<span class="Special">&lt;t_F3&gt;</span>&nbsp;<span class="Special">&lt;S-Up&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map!&nbsp;<span class="Special">&lt;t_F3&gt;</span>&nbsp;<span class="Special">&lt;S-Up&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map&nbsp;<span class="Special">&lt;t_F6&gt;</span>&nbsp;<span class="Special">&lt;S-Down&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map!&nbsp;<span class="Special">&lt;t_F6&gt;</span>&nbsp;<span class="Special">&lt;S-Down&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map&nbsp;<span class="Special">&lt;t_F8&gt;</span>&nbsp;<span class="Special">&lt;S-Left&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map!&nbsp;<span class="Special">&lt;t_F8&gt;</span>&nbsp;<span class="Special">&lt;S-Left&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map&nbsp;<span class="Special">&lt;t_F9&gt;</span>&nbsp;<span class="Special">&lt;S-Right&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map!&nbsp;<span class="Special">&lt;t_F9&gt;</span>&nbsp;<span class="Special">&lt;S-Right&gt;</span><br>
+<br>
+Shift+カーソル上キーに対して&nbsp;<span class="Special">&lt;S-Up&gt;</span>&nbsp;以外のコマンドを割り当てることもできます。<br>
+<span class="Todo">Note</span>: 左側にキーがある Sun のキーボードを使っている人を助けるために、以下の<br>
+キーは使われません。<br>
+F14 (アンドゥキーと混乱するため)<br>
+F15 (ウィンドウを全面に移動するキーであるため)<br>
+F17 (ウィンドウを閉じるキーであるため)<br>
+他のシステムではこれらも使用できるでしょう。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+3. ウィンドウサイズ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#window-size" name="window-size">*window-size*</a><br>
+<br>
+[これは Vim 自身のウィンドウのサイズのことです。&quot;:split&quot; コマンドで分割できる<br>
+ウィンドウのことではありません。]<br>
+<br>
+Amiga 上では端末名が &quot;amiga&quot; または &quot;builtin_amiga&quot; であればアミーガ固有のウィ<br>
+ンドウリサイズ処理が有効になります。Unix ではウィンドウサイズを取得するために<br>
+3 種類の方法が試行されます:<br>
+<br>
+- ioctl 呼び出し (システムによって TIOCGSIZE か TIOCGWINSZ のどちらか)<br>
+- 環境変数 &quot;LINES&quot; と &quot;COLUMNS&quot;<br>
+- termcap エントリ &quot;li&quot; と &quot;co&quot;<br>
+<br>
+これら全てが失敗した場合はデフォルトの 24 行 80 桁とみなされます。ウィンドウ<br>
+サイズ変更のシグナルを受け取るとそのサイズに再設定されます。ウィンドウサイズが<br>
+正しくない場合は、オプション&nbsp;<a class="Type" href="options.html#'lines'">'lines'</a>&nbsp;と&nbsp;<a class="Type" href="options.html#'columns'">'columns'</a>&nbsp;で正しい値を設定することがで<br>
+きます。<br>
+<br>
+スクリーンサイズを設定するには次のコマンドを使います:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#:mod" name=":mod">*:mod*</a>&nbsp;<a class="Constant" href="term.html#:mode" name=":mode">*:mode*</a>&nbsp;<a class="Constant" href="term.html#E359" name="E359">*E359*</a>&nbsp;<a class="Constant" href="term.html#E362" name="E362">*E362*</a><br>
+:mod[e]&nbsp;<span class="Special">[mode]</span><br>
+<br>
+引数が指定されない場合はスクリーンサイズを検出し、スクリーンを再描画します。<br>
+MS-DOS ではスクリーンモードを切り替えることが可能です。[mode] は以下のうちのど<br>
+れか1つです。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;bw40&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;40 桁 白黒<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;c40&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 40 桁 カラー<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;bw80&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;80 桁 白黒<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;c80&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 80 桁 カラー (ほとんどの場合はこれ)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;mono&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;80 桁 モノクロ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;c4350&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 43 or 50 行 EGA/VGA モード<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;モード番号。ビデオカードに依存<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+4. 端末の速度&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#slow-fast-terminal" name="slow-fast-terminal">*slow-fast-terminal*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#slow-terminal" name="slow-terminal">*slow-terminal*</a><br>
+<br>
+高速な端末を使用している場合はオプション&nbsp;<a class="Type" href="options.html#'ruler'">'ruler'</a>&nbsp;をオンにするとよいでしょう。<br>
+するとステータスラインにカーソル位置が表示されます。水平スクロールをオンにして<br>
+いる(<a class="Type" href="options.html#'wrap'">'wrap'</a>&nbsp;をオフ)にしているなら&nbsp;<a class="Type" href="options.html#'sidescroll'">'sidescroll'</a>&nbsp;を小さい値にするとよいでしょう。<br>
+<br>
+遅い端末を使用している場合はオプション&nbsp;<a class="Type" href="options.html#'showcmd'">'showcmd'</a>&nbsp;をオフにするとよいでしょう。<br>
+するとコマンド文字列がステータスラインに表示されなくなります。端末のスクロール<br>
+が非常に遅いなら、<a class="Type" href="options.html#'scrolljump'">'scrolljump'</a>&nbsp;を5ぐらいにしてください。(&quot;j&quot; などで)カーソルが<br>
+スクリーンから出たとき、一度に5行スクロールするようになります。もう1つの方法は、<br>
+&quot;z<span class="Special">{height}&lt;CR&gt;</span>&quot; でスクリーンの中で Vim が使う行数を減らすことです。<br>
+<br>
+端末から文字が届く間隔が1秒以上になる場合は&nbsp;<a class="Type" href="options.html#'timeout'">'timeout'</a>&nbsp;と&nbsp;<a class="Type" href="options.html#'ttimeout'">'ttimeout'</a>&nbsp;を設定しな<br>
+おすとよいでしょう。オプションの章を参照してください&nbsp;<a class="Identifier" href="options.html#options">|options|</a>。<br>
+<br>
+お使いの端末が領域のスクロールをサポートしていないが、行の挿入・削除コマンドを<br>
+サポートしている場合、複数のウィンドウを開いた状態でスクロールすると、行が上下<br>
+するかもしれません。これが好ましくない場合は&nbsp;<a class="Type" href="options.html#'ttyfast'">'ttyfast'</a>&nbsp;をオンにしてください。<br>
+するとウィンドウをスクロールするのでなく再描画するようになります。<br>
+<br>
+お使いの端末におけるスクロールが非常に遅いが再描画は遅くないという場合は、<br>
+<a class="Type" href="options.html#'ttyscroll'">'ttyscroll'</a>&nbsp;を 3 などの小さな値にしてください。すると、 3 行より多くスクロール<br>
+する場合はスクロールでなく画面を再描画するようになります。<br>
+<br>
+低速なカラー端末をお使いの場合は、次のコマンドを実行してください:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hi NonText cterm=NONE ctermfg=NONE</span><br>
+すると、異なる属性を持つスペースを送信しないようになります。ほとんどの端末では<br>
+どちらにせよそれは目に見えません。<br>
+<br>
+低速なシリアル回線上で Vim を使っている場合は、&quot;screen&quot; プログラム上で Vim を<br>
+実行するとよいかもしれません。screen は端末の入出力をほんの少し最適化します。<br>
+<br>
+termcap オプションをテストする際、何が起こっているかを見たいならば&nbsp;<a class="Type" href="options.html#'writedelay'">'writedelay'</a><br>
+をオンにするとよいかもしれません。これがゼロでない場合、一度に1つの文字が端末<br>
+に送られます(MS-DOS では機能しません)。そうすると画面の更新がとても遅くなり、<br>
+何が起こっているかが見えるようになります。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+5. マウスの使用&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#mouse-using" name="mouse-using">*mouse-using*</a><br>
+<br>
+この節では端末や端末エミュレータ上でマウスを使う方法を説明します。GUI のウィン<br>
+ドウでマウスを使う方法については&nbsp;<a class="Identifier" href="gui.html#gui-mouse">|gui-mouse|</a>&nbsp;で説明されています。マウスホイー<br>
+ルでスクロールする方法については&nbsp;<a class="Identifier" href="scroll.html#scroll-mouse-wheel">|scroll-mouse-wheel|</a>&nbsp;を参照してください。<br>
+<br>
+次のコマンドでマウスを有効にしてください:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set mouse=a</span><br>
+これを行わないと、Vim はどのモード(<a class="Type" href="options.html#'mouse'">'mouse'</a>&nbsp;を参照)でもマウスを認識できません。<br>
+<br>
+現時点では Unix の xterm、<a class="Identifier" href="term.html#sysmouse">|sysmouse|</a>&nbsp;つきの *BSD コンソール、Linux コンソール<br>
+(GPM マウスにも対応&nbsp;<a class="Identifier" href="term.html#gpm-mouse">|gpm-mouse|</a>)、MS-DOS、Windows コンソールにおいてマウスがサ<br>
+ポートされています。<br>
+マウスクリックによってカーソル位置の設定、領域の選択、ペーストを行えます。<br>
+<br>
+<a class="Type" href="options.html#'mouse'">'mouse'</a>&nbsp;オプションに以下の文字を含めることにより、どの状況でマウスを有効にする<br>
+かを設定します:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ノーマルモード<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ビジュアルモード<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; インサートモード<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; コマンドラインモード<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;h&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ヘルプファイルを閲覧しているときの上記の4モード全て<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 上記の4モード全て<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;r&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="message.html#hit-enter">|hit-enter|</a>&nbsp;プロンプトが出ているとき<br>
+<br>
+<a class="Type" href="options.html#'mouse'">'mouse'</a>&nbsp;の既定値は空で、マウスは無効になっています。普通は次のようにしてマウス<br>
+を有効にします:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set mouse=a</span><br>
+これは&nbsp;<a class="Type" href="options.html#'mouse'">'mouse'</a>&nbsp;の値を &quot;nvich&quot; にすることと同値です。<br>
+特定のモードでだけマウスを使いたい場合や、2つの質問のために使いたい場合は、こ<br>
+れらの文字を組み合わせます。<br>
+例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set mouse=nv</span><br>
+上の例はノーマルモードとビジュアルモードでのみマウスを有効にします。<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set mouse=h</span><br>
+上の例はヘルプファイルでのみマウスを有効にします (&quot;g<span class="Special">&lt;LeftMouse&gt;</span>&quot; でタグジャン<br>
+プができるようになります)<br>
+<br>
+マウスで選択を開始した場合、ビジュアルモードとセレクトモードのどちらになるかは<br>
+<a class="Type" href="options.html#'selectmode'">'selectmode'</a>&nbsp;に &quot;mouse&quot; が含まれているかどうかによります。<br>
+<br>
+xterm において、現在有効になっているモードが&nbsp;<a class="Type" href="options.html#'mouse'">'mouse'</a>&nbsp;オプションに含まれている<br>
+ときマウスをクリックすると、それは Vim によって処理されます。Shift や Ctrl<br>
+キーを押しながらクリックすると xterm に伝わります。現在有効なモードが&nbsp;<a class="Type" href="options.html#'mouse'">'mouse'</a><br>
+に含まれていない場合、すべてのクリックは xterm に伝わります。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#xterm-clipboard" name="xterm-clipboard">*xterm-clipboard*</a><br>
+Athena と Motif の GUI 版では、端末の中で動作しているときも、X サーバとの接続<br>
+があれば(DISPLAY がセットされていれば)、コピーとペーストが GUI 版と同様に動作<br>
+します。そうでないときは真ん中ボタンクリックで無名レジスタが挿入されます。この<br>
+場合、テキストをコピー＆ペーストする方法は次の通りです:<br>
+<br>
+ビジュアルモードでマウスを使ってコピー＆ペーストする方法(<a class="Type" href="options.html#'mouse'">'mouse'</a>&nbsp;がセットされ<br>
+ていなければなりません。上記参照):<br>
+1. コピーしたいテキストの最初の文字の上で左ボタンを押して最後の文字の上までマ<br>
+&nbsp;&nbsp; ウスポインタを動かし、ボタンを離します。するとビジュアルモードが開始し、選<br>
+&nbsp;&nbsp; 択したテキストが強調されます。<br>
+2. &quot;y&quot; を押して選択したテキストを無名レジスタにヤンクします。<br>
+3. ペーストしたい位置で左ボタンをクリックします。<br>
+4. 真ん中ボタンをクリックします。<br>
+<br>
+ショートカット: ペーストしたい位置が選択したテキストと同時に画面に見えている場<br>
+合は、ペーストしたい位置で真ん中ボタンをクリックすることにより、2, 3, 4 のス<br>
+テップを一度に行えます:<br>
+<br>
+<span class="Todo">Note</span>: コマンドライン引数&nbsp;<a class="Identifier" href="starting.html#-X">|-X|</a>&nbsp;が指定されていると Vim は X サーバに接続せず、<br>
+X のクリップボード(セレクション)へのコピー＆ペーストは機能しません。Shift キー<br>
+を押しながらクリックすることにより、xterm に選択を行わせることができます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#xterm-command-server" name="xterm-command-server">*xterm-command-server*</a><br>
+X サーバのクリップボードを利用できるときは、コマンドライン引数 --servername を<br>
+指定すると&nbsp;<a class="Identifier" href="remote.html#x11-clientserver">|x11-clientserver|</a>&nbsp;で説明されているコマンドサーバが有効になります。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#xterm-copy-paste" name="xterm-copy-paste">*xterm-copy-paste*</a><br>
+<span class="Todo">NOTE</span>: 古い xterm では95桁目を越えてカーソルを移動できない場合があります。これ<br>
+は xterm の問題であり、Vim の問題ではありません。新しい xterm を入手してくださ<br>
+い&nbsp;<a class="Identifier" href="syntax.html#color-xterm">|color-xterm|</a>。<br>
+現在、制限は 223 桁です。<br>
+<br>
+xterm でコピー＆ペーストする方法(<a class="Type" href="options.html#'mouse'">'mouse'</a>&nbsp;に現在のモードが含まれていないとき):<br>
+1. テキストの最初の文字の上で左ボタンを押し、最後の文字までマウスポインタを動<br>
+&nbsp;&nbsp; かしてからボタンを離します。<br>
+2. 普通の Vim のコマンドを使ってカーソルをペーストしたい位置まで動かします。<br>
+3. &quot;a&quot; を押してインサートモードを開始します。<br>
+4. 真ん中ボタンを押します。<br>
+5. ESC を押してインサートモードを抜けます。<br>
+(<a class="Type" href="options.html#'mouse'">'mouse'</a>&nbsp;に含まれているモードにいる場合も、Shift キーを押しながらマウスを操作<br>
+することによりどの操作も同じようにできます)<br>
+<br>
+<span class="Todo">Note</span>: ペーストするときに8ビット目が失われてしまう(特殊文字が他の文字に変換され<br>
+てしまう)ときは、Vim を起動する前にシェルで &quot;stty cs8 -istrip -parenb&quot; としな<br>
+ければならないかもしれません。<br>
+<br>
+xterm では Shift と Ctrl キーを押しながらマウスを使うことはできません。CTRL 修<br>
+飾子を必要とするマウスコマンドは、マウス操作の前に &quot;g&quot; を押すことでシミュレー<br>
+トできます:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;g<span class="Special">&lt;LeftMouse&gt;</span>&quot;&nbsp;&nbsp;は &quot;<span class="Special">&lt;C-LeftMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (クリックした位置のタグへジャンプ)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;g<span class="Special">&lt;RightMouse&gt;</span>&quot; は &quot;<span class="Special">&lt;C-RightMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(&quot;<span class="Special">CTRL-T</span>&quot;)<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#mouse-mode-table" name="mouse-mode-table">*mouse-mode-table*</a>&nbsp;<a class="Constant" href="term.html#mouse-overview" name="mouse-overview">*mouse-overview*</a><br>
+以下は、<a class="Type" href="options.html#'mousemodel'">'mousemodel'</a>&nbsp;が &quot;extend&quot; の場合のマウスボタンの機能の概略です:<br>
+<br>
+ノーマルモード:<br>
+<span class="PreProc">イベント&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル&nbsp;&nbsp;&nbsp;&nbsp; 選択範囲&nbsp;&nbsp;&nbsp;&nbsp; ウィンドウ 動作</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">移動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 切替</span><br>
+<span class="Special">&lt;LeftMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yes<br>
+<span class="Special">&lt;C-LeftMouse&gt;</span>&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yes&nbsp;&nbsp;&nbsp;&nbsp;&quot;<span class="Special">CTRL-]</span>&quot; (2)<br>
+<span class="Special">&lt;S-LeftMouse&gt;</span>&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; no change&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp;&quot;*&quot; (2)&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-LeftMouse>" name="&lt;S-LeftMouse&gt;">*&lt;S-LeftMouse&gt;*</a><br>
+<span class="Special">&lt;LeftDrag&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yes&nbsp;&nbsp;&nbsp;&nbsp; start or extend (1) no&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<LeftDrag>" name="&lt;LeftDrag&gt;">*&lt;LeftDrag&gt;*</a><br>
+<span class="Special">&lt;LeftRelease&gt;</span>&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp; start or extend (1) no<br>
+<span class="Special">&lt;MiddleMouse&gt;</span>&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if not active&nbsp;&nbsp;&nbsp;&nbsp; no&nbsp;&nbsp;&nbsp;&nbsp; put<br>
+<span class="Special">&lt;MiddleMouse&gt;</span>&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if active&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; no&nbsp;&nbsp;&nbsp;&nbsp; yank and put<br>
+<span class="Special">&lt;RightMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;yes&nbsp;&nbsp;&nbsp;&nbsp; start or extend&nbsp;&nbsp;&nbsp;&nbsp; yes<br>
+<span class="Special">&lt;A-RightMouse&gt;</span>&nbsp;&nbsp;yes start or extend blockw. yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<A-RightMouse>" name="&lt;A-RightMouse&gt;">*&lt;A-RightMouse&gt;*</a><br>
+<span class="Special">&lt;S-RightMouse&gt;</span>&nbsp;&nbsp;yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;no change&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yes&nbsp;&nbsp;&nbsp;&nbsp;&quot;#&quot; (2)&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<S-RightMouse>" name="&lt;S-RightMouse&gt;">*&lt;S-RightMouse&gt;*</a><br>
+<span class="Special">&lt;C-RightMouse&gt;</span>&nbsp;&nbsp;no&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; no change&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;no&nbsp;&nbsp;&nbsp;&nbsp; &quot;<span class="Special">CTRL-T</span>&quot;<br>
+<span class="Special">&lt;RightDrag&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; extend&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;no&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<RightDrag>" name="&lt;RightDrag&gt;">*&lt;RightDrag&gt;*</a><br>
+<span class="Special">&lt;RightRelease&gt;</span>&nbsp;&nbsp;yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; extend&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;no&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<RightRelease>" name="&lt;RightRelease&gt;">*&lt;RightRelease&gt;*</a><br>
+<br>
+インサート/置換モード:<br>
+<span class="PreProc">イベント&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル&nbsp;&nbsp;&nbsp;&nbsp; 選択範囲&nbsp;&nbsp;&nbsp;&nbsp; ウィンドウ 動作</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">移動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 切替</span><br>
+<span class="Special">&lt;LeftMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp; (cannot be active)&nbsp;&nbsp;yes<br>
+<span class="Special">&lt;C-LeftMouse&gt;</span>&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp; (cannot be active)&nbsp;&nbsp;yes&nbsp;&nbsp;&nbsp;&nbsp;&quot;<span class="Special">CTRL-O</span>^]&quot; (2)<br>
+<span class="Special">&lt;S-LeftMouse&gt;</span>&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp; (cannot be active)&nbsp;&nbsp;yes&nbsp;&nbsp;&nbsp;&nbsp;&quot;<span class="Special">CTRL-O</span>*&quot; (2)<br>
+<span class="Special">&lt;LeftDrag&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yes&nbsp;&nbsp;&nbsp;&nbsp; start or extend (1) no&nbsp;&nbsp;&nbsp;&nbsp; like&nbsp;<span class="Special">CTRL-O</span>&nbsp;(1)<br>
+<span class="Special">&lt;LeftRelease&gt;</span>&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp; start or extend (1) no&nbsp;&nbsp;&nbsp;&nbsp; like&nbsp;<span class="Special">CTRL-O</span>&nbsp;(1)<br>
+<span class="Special">&lt;MiddleMouse&gt;</span>&nbsp;&nbsp; no&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(cannot be active)&nbsp;&nbsp;no&nbsp;&nbsp;&nbsp;&nbsp; put register<br>
+<span class="Special">&lt;RightMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;yes&nbsp;&nbsp;&nbsp;&nbsp; start or extend&nbsp;&nbsp;&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp;like&nbsp;<span class="Special">CTRL-O</span><br>
+<span class="Special">&lt;A-RightMouse&gt;</span>&nbsp;&nbsp;yes start or extend blockw. yes<br>
+<span class="Special">&lt;S-RightMouse&gt;</span>&nbsp;&nbsp;yes&nbsp;&nbsp;&nbsp;&nbsp; (cannot be active)&nbsp;&nbsp;yes&nbsp;&nbsp;&nbsp;&nbsp;&quot;<span class="Special">CTRL-O</span>#&quot; (2)<br>
+<span class="Special">&lt;C-RightMouse&gt;</span>&nbsp;&nbsp;no&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(cannot be active)&nbsp;&nbsp;no&nbsp;&nbsp;&nbsp;&nbsp; &quot;<span class="Special">CTRL-O</span>&nbsp;<span class="Special">CTRL-T</span>&quot;<br>
+<br>
+ヘルプウィンドウ:<br>
+<span class="PreProc">イベント&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;位置&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 選択&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 変更&nbsp;&nbsp;動作</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">カーソル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ウィンドウ</span><br>
+<span class="Special">&lt;2-LeftMouse&gt;</span>&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp; (cannot be active)&nbsp;&nbsp;no&nbsp;&nbsp;&nbsp;&nbsp; &quot;^]&quot; (jump to help tag)<br>
+<br>
+<a class="Type" href="options.html#'mousemodel'">'mousemodel'</a>&nbsp;が &quot;popup&quot; の場合は次のように異なります:<br>
+<br>
+ノーマルモード:<br>
+<span class="PreProc">イベント&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル&nbsp;&nbsp;&nbsp;&nbsp; 選択範囲&nbsp;&nbsp;&nbsp;&nbsp; ウィンドウ 動作</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">移動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 切替</span><br>
+<span class="Special">&lt;S-LeftMouse&gt;</span>&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp; start or extend (1) no<br>
+<span class="Special">&lt;A-LeftMouse&gt;</span>&nbsp;&nbsp; yes start or extend blockw. no&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<A-LeftMouse>" name="&lt;A-LeftMouse&gt;">*&lt;A-LeftMouse&gt;*</a><br>
+<span class="Special">&lt;RightMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;no&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;popup menu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;no<br>
+<br>
+インサート/置換モード:<br>
+<span class="PreProc">イベント&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル&nbsp;&nbsp;&nbsp;&nbsp; 選択範囲&nbsp;&nbsp;&nbsp;&nbsp; ウィンドウ 動作</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">移動&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 切替</span><br>
+<span class="Special">&lt;S-LeftMouse&gt;</span>&nbsp;&nbsp; yes&nbsp;&nbsp;&nbsp;&nbsp; start or extend (1) no&nbsp;&nbsp;&nbsp;&nbsp; like&nbsp;<span class="Special">CTRL-O</span>&nbsp;(1)<br>
+<span class="Special">&lt;A-LeftMouse&gt;</span>&nbsp;&nbsp; yes start or extend blockw. no<br>
+<span class="Special">&lt;RightMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;no&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;popup menu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;no<br>
+<br>
+(1) 押してからマウスポインタが移動したときのみ<br>
+(2) 同一バッファでクリックしたときのみ<br>
+<br>
+左ボタンをクリックするとカーソルが移動します。他のウィンドウ内でクリックすると<br>
+そのウィンドウがアクティブになります。コマンドラインを編集中はコマンドライン内<br>
+でカーソルが移動します。インサートモードでクリックしたときはインサートモードの<br>
+ままです。<a class="Type" href="options.html#'scrolloff'">'scrolloff'</a>&nbsp;がセットされている場合は、ウィンドウの境界から<br>
+<a class="Type" href="options.html#'scrolloff'">'scrolloff'</a>&nbsp;行数内の範囲にカーソルが移動し、テキストがスクロールします。<br>
+<br>
+選択は、左ボタンを押すと始まり、カーソルを移動してボタンを離すことで行います。<br>
+ボタンを離すまでは選択が見えるようにならない場合もあります。GUI, MS-DOS, WIN32<br>
+などいくつかのバージョンでのみドラッグが即座に表示されます。<a class="Type" href="options.html#'scrolloff'">'scrolloff'</a>&nbsp;がゼロ<br>
+でない場合、ウィンドウの最初/最後の行で1文字以上動かすとテキストがスクロールす<br>
+る可能性があることに注意してください。<br>
+<br>
+ノーマルモード、ビジュアルモード、セレクトモードで右ボタンをクリックすると選択<br>
+範囲が拡大します。ただし、<a class="Type" href="options.html#'mousemodel'">'mousemodel'</a>&nbsp;が &quot;popup&quot; のときは、Shift キーを押した<br>
+ままで左ボタンをクリックします。他のバッファを開いているウィンドウの中をクリッ<br>
+クするとビジュアルモードとセレクトモードは中止されます。<br>
+<br>
+ノーマルモード、ビジュアルモード、セレクトモードで Alt キーを押したまま右ボタ<br>
+ンをクリックすると、選択範囲がブロック指向になります。ただし、<a class="Type" href="options.html#'mousemodel'">'mousemodel'</a>&nbsp;が<br>
+&quot;popup&quot;のときは、Alt キーを押しながら左ボタンをクリックします。Alt キーを押し<br>
+ているときはマウスイベントをウィンドウマネージャが処理(ウィンドウ移動など)して<br>
+しまうシステムでは機能しないことに注意してください。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#double-click" name="double-click">*double-click*</a><br>
+MS-DOS、Win32、xterm (関数 gettimeofday() が使用できるとき)において、GUI が有<br>
+効なときはダブル、トリプル、クアドラプルクリックが使用できます。テキストを選択<br>
+しているときさらにクリックすると選択範囲が拡大します:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">クリック&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;選択範囲</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ダブル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;単語または % でのマッチ&nbsp;<a class="Constant" href="term.html#<2-LeftMouse>" name="&lt;2-LeftMouse&gt;">*&lt;2-LeftMouse&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;トリプル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;行&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<3-LeftMouse>" name="&lt;3-LeftMouse&gt;">*&lt;3-LeftMouse&gt;*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;クアドラプル&nbsp;&nbsp;&nbsp;&nbsp;矩形範囲&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<4-LeftMouse>" name="&lt;4-LeftMouse&gt;">*&lt;4-LeftMouse&gt;*</a><br>
+例外: ヘルプウィンドウでダブルクリックすると、その下にある単語のヘルプへジャン<br>
+プします。<br>
+単語の上でダブルクリックするとその単語を選択します。単語を構成する文字は<br>
+<a class="Type" href="options.html#'iskeyword'">'iskeyword'</a>&nbsp;によって決まります。対応する文字がある文字の上でダブルクリックする<br>
+とそのマッチまでを選択します(&quot;v%&quot; と同様)。そのマッチが #if/#else/#endif であ<br>
+る場合、選択は行指向になります。<br>
+MS-DOS と xterm ではダブルクリックの間隔は&nbsp;<a class="Type" href="options.html#'mousetime'">'mousetime'</a>&nbsp;で設定できます。他のシ<br>
+ステムでは、この間隔は Vim の外部で設定されています。<br>
+例: ダブルクリックでカーソル下のタグへジャンプする<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map &lt;2-LeftMouse&gt; :exe &quot;tag &quot;. expand(&quot;&lt;cword&gt;&quot;)&lt;CR&gt;</span><br>
+<br>
+ダブルクリックによるドラッグ(押す、離す、押してドラッグ)をすると単語全体が選択<br>
+されるようになります。これはボタンが離されるまで続き、ボタンを離すと文字単位に<br>
+戻ります。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#gpm-mouse" name="gpm-mouse">*gpm-mouse*</a><br>
+GPM マウスは&nbsp;<a class="Identifier" href="various.html#+mouse_gpm">|+mouse_gpm|</a>&nbsp;機能を有効にしてコンパイルしたときのみサポートされま<br>
+す。GPM マウスドライバ(Linux コンソール)はクアドラプルクリックに対応していませ<br>
+ん。<br>
+<br>
+インサートモードで選択を開始すると、一時的にノーマルモードへ移行します。ビジュ<br>
+アルモードまたはセレクトモードが終了するとインサートモードへ戻ります。インサー<br>
+トモードにおける&nbsp;<span class="Special">CTRL-O</span>&nbsp;と同様です。<a class="Type" href="options.html#'selectmode'">'selectmode'</a>&nbsp;オプションが &quot;mouse&quot; を含んで<br>
+いるとセレクトモードになります。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#sysmouse" name="sysmouse">*sysmouse*</a><br>
+sysmouse は、コンパイル時に&nbsp;<a class="Identifier" href="various.html#+mouse_sysmouse">|+mouse_sysmouse|</a>&nbsp;機能が有効化されている場合のみサ<br>
+ポートされます。sysmouse ドライバ(*BSD コンソール)はキーボード修飾子には対応し<br>
+ていません。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#drag-status-line" name="drag-status-line">*drag-status-line*</a><br>
+ウィンドウを複数に分割しているとき、マウスでステータスラインをドラッグすると<br>
+ウィンドウのサイズを変更できます。マウスをステータスライン上へ持っていき、左ボ<br>
+タンを押し、ステータスラインを望みの位置まで動かしてボタンを離します。単にス<br>
+テータスラインをクリックすると、カーソルを動かさずにそのウィンドウをカレントに<br>
+します。ステータスラインのドラッグは、ウィンドウを選択して位置やサイズが変わる<br>
+と混乱を招きがちです。しかしこれは確かに動作します(試してみてください)。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#<MiddleRelease>" name="&lt;MiddleRelease&gt;">*&lt;MiddleRelease&gt;*</a>&nbsp;<a class="Constant" href="term.html#<MiddleDrag>" name="&lt;MiddleDrag&gt;">*&lt;MiddleDrag&gt;*</a><br>
+マウスクリックイベントもマップすることができます。マウスクリックに対するコード<br>
+は次の通りです:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">コード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; マウスボタン&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通常の動作</span><br>
+&nbsp;<span class="Special">&lt;LeftMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; 左ボタン押下&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソル位置設定<br>
+&nbsp;<span class="Special">&lt;LeftDrag&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;左ボタンを押しながら移動&nbsp;&nbsp; 選択範囲を拡張<br>
+&nbsp;<span class="Special">&lt;LeftRelease&gt;</span>&nbsp;&nbsp; 左ボタン放す&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 選択を終了<br>
+&nbsp;<span class="Special">&lt;MiddleMouse&gt;</span>&nbsp;&nbsp; 中央ボタン押下&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カーソル位置にテキストを貼りつけ<br>
+&nbsp;<span class="Special">&lt;MiddleDrag&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;中央ボタンを押しながら移動 -<br>
+&nbsp;<span class="Special">&lt;MiddleRelease&gt;</span>&nbsp;中央ボタン放す&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -<br>
+&nbsp;<span class="Special">&lt;RightMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;右ボタン押下&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 選択を拡張<br>
+&nbsp;<span class="Special">&lt;RightDrag&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; 右ボタンをお品が雷同&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 選択を拡張<br>
+&nbsp;<span class="Special">&lt;RightRelease&gt;</span>&nbsp;&nbsp;右ボタン放す&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 選択を終了<br>
+&nbsp;<span class="Special">&lt;X1Mouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; X1 ボタン押下&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#X1Mouse" name="X1Mouse">*X1Mouse*</a><br>
+&nbsp;<span class="Special">&lt;X1Drag&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X1 ボタンを押しながら移動&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#X1Drag" name="X1Drag">*X1Drag*</a><br>
+&nbsp;<span class="Special">&lt;X1Release&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; X1 ボタン放す&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#X1Release" name="X1Release">*X1Release*</a><br>
+&nbsp;<span class="Special">&lt;X2Mouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; X2 ボタン押下&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#X2Mouse" name="X2Mouse">*X2Mouse*</a><br>
+&nbsp;<span class="Special">&lt;X2Drag&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X2 ボタンを押しながら移動&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#X2Drag" name="X2Drag">*X2Drag*</a><br>
+&nbsp;<span class="Special">&lt;X2Release&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; X2 ボタン放す&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#X2Release" name="X2Release">*X2Release*</a><br>
+<br>
+X1 ボタンと X2 ボタンは、ある種のマウスについている4番目、5番目のボタンのこと<br>
+です。'Microsoft Explorer' マウスの場合、これらのボタンは右親指の位置について<br>
+います。現在のところ、X1 と X2 は Win32 環境でのみ機能します。<br>
+<br>
+例:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap &lt;MiddleMouse&gt; &lt;LeftMouse&gt;&lt;MiddleMouse&gt;</span><br>
+マウス中央ボタンをクリックしたとき、クリックした位置に貼り付けます(通常はカー<br>
+ソル位置に貼り付けます)。<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap &lt;LeftRelease&gt; &lt;LeftRelease&gt;y</span><br>
+ビジュアルモードで選択範囲を即座にヤンクします。<br>
+<br>
+<span class="Todo">Note</span>&nbsp;再帰マッピングにならないように &quot;map&quot; でなく &quot;noremap&quot; を使っています。<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map &lt;X1Mouse&gt; &lt;C-O&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:map &lt;X2Mouse&gt; &lt;C-I&gt;</span><br>
+X1 と X2 ボタンでジャンプリストの前後に移動するようにマップします。<br>
+<a class="Identifier" href="motion.html#CTRL-O">|CTRL-O|</a>&nbsp;と&nbsp;<a class="Identifier" href="motion.html#CTRL-I">|CTRL-I|</a>&nbsp;を参照。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#mouse-swap-buttons" name="mouse-swap-buttons">*mouse-swap-buttons*</a><br>
+左右のマウスボタンの意味を交換するには次のようにします:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;LeftMouse&gt;&nbsp;&nbsp;&nbsp;&nbsp; &lt;RightMouse&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;LeftDrag&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;RightDrag&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;LeftRelease&gt;&nbsp;&nbsp; &lt;RightRelease&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;RightMouse&gt;&nbsp;&nbsp;&nbsp;&nbsp;&lt;LeftMouse&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;RightDrag&gt;&nbsp;&nbsp;&nbsp;&nbsp; &lt;LeftDrag&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;RightRelease&gt;&nbsp;&nbsp;&lt;LeftRelease&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;g&lt;LeftMouse&gt;&nbsp;&nbsp;&nbsp;&nbsp;&lt;C-RightMouse&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;g&lt;RightMouse&gt;&nbsp;&nbsp; &lt;C-LeftMouse&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap!&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;LeftMouse&gt;&nbsp;&nbsp;&nbsp;&nbsp; &lt;RightMouse&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap!&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;LeftDrag&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;RightDrag&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap!&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;LeftRelease&gt;&nbsp;&nbsp; &lt;RightRelease&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap!&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;RightMouse&gt;&nbsp;&nbsp;&nbsp;&nbsp;&lt;LeftMouse&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap!&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;RightDrag&gt;&nbsp;&nbsp;&nbsp;&nbsp; &lt;LeftDrag&gt;</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noremap!&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;RightRelease&gt;&nbsp;&nbsp;&lt;LeftRelease&gt;</span><br>
+<br>
+&nbsp;vim:tw=78:ts=8:ft=help:norl:<br>
+<hr>
+<a href="#top">top</a> - <a href="index.html">main help file</a><br>
+
+</body>
+</html>
