@@ -4,5 +4,5 @@
 all:
 
 html:
-	cd html && gvim -u build.vim
+	gvim -u tools/buildhtml.vim
 

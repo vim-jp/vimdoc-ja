@@ -3,7 +3,7 @@
 if has('vim_starting')
   set nocompatible
   set loadplugins
-  call feedkeys(":source " . expand('<sfile>:t') . "\<CR>")
+  call feedkeys(":source " . expand('<sfile>') . "\<CR>")
   finish
 endif
 
@@ -21,15 +21,15 @@ source $VIMDOCROOT/tools/makehtml.vim
 
 function! s:main()
   " clean
-  for f in split(glob('tmp/*'), '\n')
+  for f in split(glob('html/*'), '\n')
     call delete(f)
   endfor
 
-  if !isdirectory('tmp')
-    call mkdir('tmp')
+  if !isdirectory('html')
+    call mkdir('html')
   endif
 
-  cd tmp
+  cd html
 
   "
   " copy dist files
