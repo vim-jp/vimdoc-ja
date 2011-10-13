@@ -9,6 +9,7 @@ endif
 
 set nocompatible
 set nomore
+set encoding=utf-8
 syntax on
 colorscheme delek
 
