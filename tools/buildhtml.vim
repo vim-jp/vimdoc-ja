@@ -57,10 +57,16 @@ function! s:main()
   " 2html.vim escape modeline.  But it doesn't escape /^vim:/.
   set nomodeline
   args *.html
-  argdo call s:FixIE8() | call s:AddHeaderFooter() | update
+  argdo call s:PostEdit() | update
   quit
 
   cd -
+endfunction
+
+function! s:PostEdit()
+  call s:FixIE8()
+  call s:AddHeaderFooter()
+  call s:StyleToLink()
 endfunction
 
 function! s:FixIE8()
@@ -90,6 +96,12 @@ function! s:AddHeaderFooter()
         \ '<a href="https://github.com/vim-jp/vimdoc-ja">Vim日本語ドキュメント</a><br>',
         \ '</div>',
         \ ])
+endfunction
+
+function! s:StyleToLink()
+  1;/^<style/,/^<\/style/change
+<link rel="stylesheet" href="style.css" type="text/css" />
+.
 endfunction
 
 try
