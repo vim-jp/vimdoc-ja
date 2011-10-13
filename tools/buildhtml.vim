@@ -36,8 +36,6 @@ function! s:main()
   "
   args $VIMDOCROOT/runtime/doc/* $VIMDOCROOT/vim_faq/vim_faq.jax
   argdo saveas %:t
-  " add non-ascii char
-  edit vim_faq_help.jax | 1s/$/ 和訳/ | update
 
   " generate tags
   try
