@@ -98,12 +98,13 @@ function! s:AddHeaderFooter()
         \ '</script>',
         \ '<link rel="stylesheet" href="//www.google.com/cse/style/look/default.css" type="text/css" />',
         \ '<a href="http://vim-jp.org/">vim-jp</a>',
-        \ '&gt; <a href="http://vim-jp.org/vimdoc-ja/">vimdoc-ja</a>',
-        \ '&gt; ' . expand('%:t'),
+        \ '/ <a href="http://vim-jp.org/vimdoc-ja/">vimdoc-ja</a>',
+        \ '/ ' . expand('%:t'),
         \ ])
   call append(search('^</body', 'wn') - 1, [
         \ '<div style="text-align:right;">',
         \ 'Translated by <a href="https://github.com/vim-jp/vimdoc-ja">vimdoc-ja プロジェクト</a><br />',
+        \ '<a href="https://github.com/vim-jp/vimdoc-ja/zipball/master">ダウンロード</a><br />',
         \ '間違いを見つけたら<a href="http://groups.google.com/group/vimdoc-ja">メーリングリスト</a>か<a href="https://github.com/vim-jp/vimdoc-ja/issues">issueトラッカー</a>でお知らせください。<br />',
         \ '<a href="https://github.com/vim-jp/vimdoc-ja/wiki/HowToContribute">参加者募集中。</a><br />',
         \ '</div>',
