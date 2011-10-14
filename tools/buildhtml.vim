@@ -10,6 +10,7 @@ endif
 set nocompatible
 set nomore
 set encoding=utf-8
+set fileencodings=utf-8
 syntax on
 colorscheme delek
 
@@ -65,6 +66,7 @@ function! s:main()
 endfunction
 
 function! s:PostEdit()
+  set fileformat=unix
   call s:FixIE8()
   call s:AddHeaderFooter()
   call s:StyleToLink()
@@ -77,6 +79,10 @@ function! s:FixIE8()
 endfunction
 
 function! s:AddHeaderFooter()
+  call append(search('^<body', 'wn')-1, [
+        \ '<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript"></script>',
+        \ '<script src="vimdoc-ja.js" type="text/javascript"></script>',
+        \ ])
   call append(search('^<body', 'wn'), [
         \ '<div id="cse-search-form" style="float:right;">Loading</div>',
         \ '<script src="//www.google.com/jsapi" type="text/javascript"></script>',
