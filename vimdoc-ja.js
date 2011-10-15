@@ -1,6 +1,8 @@
 $(function() {
     // Mark an item of current page in <nav>.
-    var tag = $('nav a[href="' + location.pathname + '"]');
+    var name = location.pathname.match(/[^/]+\.html/);
+    name = name ? name[0] : 'index.html';
+    var tag = $('nav a[href="' + name + '"]');
     if (tag) {
         tag.addClass('CurrentPage');
     }
