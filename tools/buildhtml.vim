@@ -67,54 +67,27 @@ endfunction
 
 function! s:PostEdit()
   set fileformat=unix
-  call s:FixIE8()
-  call s:AddHeaderFooter()
-  call s:StyleToLink()
+  call s:ToJekyll()
 endfunction
 
-function! s:FixIE8()
-  " IE8はHTMLがインライン要素のみの長いテキストだった場合にテキストの選
-  " 択が激しく遅くなるようなので、適当にブロック要素を入れる。
-  %s@^<br>$@<div><br></div>@e
-endfunction
-
-function! s:AddHeaderFooter()
-  call append(search('^<body', 'wn')-1, [
-        \ '<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript"></script>',
-        \ '<script src="vimdoc-ja.js" type="text/javascript"></script>',
+function! s:ToJekyll()
+  let helpname = expand('%:t:r')
+  if helpname == 'index'
+    let helpname = 'help'
+  endif
+  " remove header
+  1,/^<hr>/delete _
+  " remove footer
+  /^<hr>/,$delete _
+  " escape jekyll tags
+  %s/{\{2,}\|{%/{{ "\0" }}/ge
+  " YAML front matter
+  call append(0, [
+        \ '---',
+        \ 'layout: vimdoc',
+        \ printf("helpname: '%s'", helpname),
+        \ '---',
         \ ])
-  call append(search('^<body', 'wn'), [
-        \ '<div id="cse-search-form" style="float:right;">Loading</div>',
-        \ '<script src="//www.google.com/jsapi" type="text/javascript"></script>',
-        \ '<script type="text/javascript"> ',
-        \ '  google.load("search", "1", {language : "ja"});',
-        \ '  google.setOnLoadCallback(function() {',
-        \ '    var customSearchControl = new google.search.CustomSearchControl("001325159752250591701:65aunpq8rlg");',
-        \ '    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);',
-        \ '    var options = new google.search.DrawOptions();',
-        \ '    options.enableSearchboxOnly("http://www.google.com/cse?cx=001325159752250591701:65aunpq8rlg");',
-        \ '    customSearchControl.draw("cse-search-form", options);',
-        \ '  }, true);',
-        \ '</script>',
-        \ '<link rel="stylesheet" href="//www.google.com/cse/style/look/default.css" type="text/css" />',
-        \ '<a href="http://vim-jp.org/">vim-jp</a>',
-        \ '/ <a href="http://vim-jp.org/vimdoc-ja/">vimdoc-ja</a>',
-        \ '/ ' . expand('%:t'),
-        \ ])
-  call append(search('^</body', 'wn') - 1, [
-        \ '<div style="text-align:right;">',
-        \ 'Translated by <a href="https://github.com/vim-jp/vimdoc-ja">vimdoc-ja プロジェクト</a><br />',
-        \ '<a href="https://github.com/vim-jp/vimdoc-ja/zipball/master">ヘルプ一式ダウンロード</a><br />',
-        \ '間違いを見つけたら<a href="http://groups.google.com/group/vimdoc-ja">メーリングリスト</a>か<a href="https://github.com/vim-jp/vimdoc-ja/issues">issueトラッカー</a>でお知らせください。<br />',
-        \ '<a href="https://github.com/vim-jp/vimdoc-ja/wiki/HowToContribute">参加者募集中。</a><br />',
-        \ '</div>',
-        \ ])
-endfunction
-
-function! s:StyleToLink()
-  1;/^<style/,/^<\/style/change
-<link rel="stylesheet" href="style.css" type="text/css" />
-.
 endfunction
 
 try
