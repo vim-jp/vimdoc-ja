@@ -2,7 +2,7 @@
 layout: vimdoc
 helpname: 'syntax'
 ---
-<a class="Constant" href="syntax.html" name="syntax.txt">*syntax.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 7.3.</span>&nbsp;&nbsp;Last change: 2011 Jul 18<br>
+<a class="Constant" href="syntax.html" name="syntax.txt">*syntax.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 7.3.</span>&nbsp;&nbsp;Last change: 2011 Sep 21<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar<br>
@@ -2513,8 +2513,42 @@ syntax/sh.vim は構文ベースの折り畳みを数種類用意している:<b
 デフォルトはsh_minlinesの2倍の値が使われる。表示を高速化するにはこれをもっと小<br>
 さい値にすること。欠点はハイライト間違いが出るかもしれないことである。<br>
 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#g:sh_isk" name="g:sh_isk">*g:sh_isk*</a>&nbsp;<a class="Constant" href="syntax.html#g:sh_noisk" name="g:sh_noisk">*g:sh_noisk*</a><br>
+shell 言語では &quot;.&quot; は単語やコマンドなどの一部として扱われるので、sh.vim では<br>
+isk の中にその値を含むべきです。syntax/sh.vim の v116 の時点で、syntax/sh.vim<br>
+はデフォルトで&nbsp;<a class="Type" href="options.html#'iskeyword'">'iskeyword'</a>&nbsp;に &quot;.&quot; を追加します。次のように設定することでこの動<br>
+作を制御できます:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:sh_isk&nbsp;&nbsp;= '..iskeywordに設定した値'</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:sh_noisk= 1&nbsp;&nbsp;&quot; sh_iskを設定しない場合、この変数を定義すると isk</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot; は変更されない。</span><br>
 <br>
-SPEEDUP (AspenTech plant simulator)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#spup.vim" name="spup.vim">*spup.vim*</a>&nbsp;<a class="Constant" href="syntax.html#ft-spup-syntax" name="ft-spup-syntax">*ft-spup-syntax*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#sh-embed" name="sh-embed">*sh-embed*</a>&nbsp;&nbsp;<a class="Constant" href="syntax.html#sh-awk" name="sh-awk">*sh-awk*</a><br>
+&nbsp;Sh: 埋め込み言語<br>
+<br>
+sh に言語を埋め込みたい場合。Lorance Stinson が awk を埋め込む例を出してくれた<br>
+のでそれを載せます。以下のファイルを $HOME/.vim/after/syntax/sh/awkembed.vim<br>
+に置いてください:<br>
+<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&quot; AWK Embedding: {{ "{{{" }}1</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&quot; ==============</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&quot; Shamelessly ripped from aspperl.vim by Aaron Hope.</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;if exists(&quot;b:current_syntax&quot;)</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unlet b:current_syntax</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;endif</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;syn include @AWKScript syntax/awk.vim</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;syn region AWKScriptCode matchgroup=AWKCommand start=+[=\\]\@&lt;!'+ skip=+\\'+ end=+'+ contains=@AWKScript contained</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;syn region AWKScriptEmbedded matchgroup=AWKCommand start=+\&lt;awk\&gt;+ skip=+\\$+ end=+[=\\]\@&lt;!'+me=e-1 contains=@shIdList,@shExprList2 nextgroup=AWKScriptCode</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;syn cluster shCommandSubList add=AWKScriptEmbedded</span><br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;hi def link AWKCommand Type</span><br>
+<br>
+この例では次のようなシングルクォートで囲まれた awk コードが awk 言語として強調<br>
+表示されるようになります:<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;awk '...awk code here...'</span><br>
+これは他の言語にも応用できます。<br>
+<br>
+<br>
+<span class="Statement">SPEEDUP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="syntax.html#spup.vim" name="spup.vim">*spup.vim*</a>&nbsp;<a class="Constant" href="syntax.html#ft-spup-syntax" name="ft-spup-syntax">*ft-spup-syntax*</a><br>
+(AspenTech plant simulator)<br>
 <br>
 Speedup構文ファイルにはいくつかのオプションがある:<br>
 <br>
@@ -2590,6 +2624,8 @@ tcsh_minlines に &quot;fromstart&quot; をセットすると、ファイルの�
 :set fdm=syntaxとする。後者をLaTeXファイルの末尾にモードラインとして書いておく<br>
 といいかもしれない:<br>
 <span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;% vim&#0058; fdm=syntax</span><br>
+これによってシステムが遅くなり過ぎる場合は次のリンクを参照してください<br>
+<span class="Comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://vimhelp.appspot.com/vim_faq.txt.html#faq-29.7">https://vimhelp.appspot.com/vim_faq.txt.html#faq-29.7</a></span><br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#tex-nospell" name="tex-nospell">*tex-nospell*</a><br>
 &nbsp;<span class="PreProc">Tex: コメントの中ではスペルチェックを行わせたくない場合</span><br>
@@ -2629,6 +2665,9 @@ texZone, texMathZoneの3つの主な区間・範囲がサポートされてい�
 (特に後者を)。速いコンピュータを使っているならこれらの値を増やしてもよい。これ<br>
 らは第一にシンクロナイズ(つまり、画面最上行のテキストがどのグループに入るか)に<br>
 影響を与える。<br>
+<br>
+構文による折り畳みによって遅くなる場合もあります。回避方法については<br>
+<a class="Identifier" href="syntax.html#tex-folding">|tex-folding|</a>&nbsp;を参照してください。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#tex-morecommands" name="tex-morecommands">*tex-morecommands*</a>&nbsp;<a class="Constant" href="syntax.html#tex-package" name="tex-package">*tex-package*</a><br>
 &nbsp;<span class="PreProc">Tex: もっとコマンドをハイライトさせるには</span><br>
