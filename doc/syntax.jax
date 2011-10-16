@@ -1,4 +1,4 @@
-*syntax.txt*	For Vim バージョン 7.3.  Last change: 2011 Jul 18
+*syntax.txt*	For Vim バージョン 7.3.  Last change: 2011 Sep 21
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -2509,8 +2509,42 @@ syntax/sh.vim は構文ベースの折り畳みを数種類用意している: >
 デフォルトはsh_minlinesの2倍の値が使われる。表示を高速化するにはこれをもっと小
 さい値にすること。欠点はハイライト間違いが出るかもしれないことである。
 
+						*g:sh_isk* *g:sh_noisk*
+shell 言語では "." は単語やコマンドなどの一部として扱われるので、sh.vim では
+isk の中にその値を含むべきです。syntax/sh.vim の v116 の時点で、syntax/sh.vim
+はデフォルトで 'iskeyword' に "." を追加します。次のように設定することでこの動
+作を制御できます: >
+	let g:sh_isk  = '..iskeywordに設定した値'
+	let g:sh_noisk= 1  " sh_iskを設定しない場合、この変数を定義すると isk
+			   " は変更されない。
+<
+						*sh-embed*  *sh-awk*
+ Sh: 埋め込み言語
 
-SPEEDUP (AspenTech plant simulator)		*spup.vim* *ft-spup-syntax*
+sh に言語を埋め込みたい場合。Lorance Stinson が awk を埋め込む例を出してくれた
+のでそれを載せます。以下のファイルを $HOME/.vim/after/syntax/sh/awkembed.vim
+に置いてください: >
+
+    " AWK Embedding: {{{1
+    " ==============
+    " Shamelessly ripped from aspperl.vim by Aaron Hope.
+    if exists("b:current_syntax")
+      unlet b:current_syntax
+    endif
+    syn include @AWKScript syntax/awk.vim
+    syn region AWKScriptCode matchgroup=AWKCommand start=+[=\\]\@<!'+ skip=+\\'+ end=+'+ contains=@AWKScript contained
+    syn region AWKScriptEmbedded matchgroup=AWKCommand start=+\<awk\>+ skip=+\\$+ end=+[=\\]\@<!'+me=e-1 contains=@shIdList,@shExprList2 nextgroup=AWKScriptCode
+    syn cluster shCommandSubList add=AWKScriptEmbedded
+    hi def link AWKCommand Type
+<
+この例では次のようなシングルクォートで囲まれた awk コードが awk 言語として強調
+表示されるようになります: >
+	awk '...awk code here...'
+これは他の言語にも応用できます。
+
+
+SPEEDUP						*spup.vim* *ft-spup-syntax*
+(AspenTech plant simulator)
 
 Speedup構文ファイルにはいくつかのオプションがある:
 
@@ -2586,6 +2620,8 @@ TEX						*tex.vim* *ft-tex-syntax*
 :set fdm=syntaxとする。後者をLaTeXファイルの末尾にモードラインとして書いておく
 といいかもしれない: >
 	% vim: fdm=syntax
+これによってシステムが遅くなり過ぎる場合は次のリンクを参照してください >
+	https://vimhelp.appspot.com/vim_faq.txt.html#faq-29.7
 <
 								*tex-nospell*
  Tex: コメントの中ではスペルチェックを行わせたくない場合 ~
@@ -2625,6 +2661,9 @@ texZone, texMathZoneの3つの主な区間・範囲がサポートされてい�
 (特に後者を)。速いコンピュータを使っているならこれらの値を増やしてもよい。これ
 らは第一にシンクロナイズ(つまり、画面最上行のテキストがどのグループに入るか)に
 影響を与える。
+
+構文による折り畳みによって遅くなる場合もあります。回避方法については
+|tex-folding| を参照してください。
 
 					    *tex-morecommands* *tex-package*
  Tex: もっとコマンドをハイライトさせるには ~
