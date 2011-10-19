@@ -14,29 +14,36 @@ set fileencodings=utf-8
 syntax on
 colorscheme delek
 
-let $VIMDOCROOT = expand('<sfile>:p:h:h')
-
-" for ja custom syntax
-set runtimepath+=$VIMDOCROOT/runtime
-
-source $VIMDOCROOT/tools/makehtml.vim
+source <sfile>:h:h/tools/makehtml.vim
 
 function! s:main()
-  " clean
-  for f in split(glob('html/*'), '\n')
-    call delete(f)
-  endfor
-
-  if !isdirectory('html')
-    call mkdir('html')
+  if isdirectory('html')
+    call s:rmdir('html')
   endif
-
+  call s:system('git clone . html')
   cd html
+  call s:system('git branch -f master origin/master')
+  call s:system('git branch -f gh-pages origin/gh-pages')
+  call s:system('git checkout master')
+  call s:system('git checkout-index --prefix=master/ -a')
+  call s:system('git checkout devel')
+  call s:system('git checkout-index --prefix=devel/ -a')
+  call s:system('git checkout gh-pages')
+  " for ja custom syntax
+  let &runtimepath .= ',' . fnamemodify('./master', ':p')
+  call s:BuildHtml()
+  call s:system('git commit -a -m "update html"')
+  cd ..
+endfunction
+
+function! s:BuildHtml()
+  call mkdir('tmp')
+  cd tmp
 
   "
   " copy dist files
   "
-  args $VIMDOCROOT/runtime/doc/* $VIMDOCROOT/vim_faq/vim_faq.jax
+  args ../master/doc/* ../devel/vim_faq/vim_faq.jax
   argdo saveas %:t
 
   " generate tags
@@ -59,10 +66,24 @@ function! s:main()
   " 2html.vim escape modeline.  But it doesn't escape /^vim:/.
   set nomodeline
   args *.html
-  argdo call s:PostEdit() | update
-  quit
+  argdo call s:PostEdit() | saveas! ../%:t
 
-  cd -
+  cd ..
+endfunction
+
+function! s:system(cmd)
+  call system(a:cmd)
+  if v:shell_error
+    throw 'system() failed: ' . a:cmd
+  endif
+endfunction
+
+function! s:rmdir(path)
+  if executable('rm')
+    call s:system('rm -rf ' . shellescape(a:path))
+  else
+    call s:system('rmdir /s /q ' . shellescape(a:path))
+  endif
 endfunction
 
 function! s:PostEdit()
