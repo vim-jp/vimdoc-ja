@@ -1,18 +1,19 @@
 #!gvim -u
 
-if has('vim_starting')
-  set nocompatible
-  set loadplugins
-  call feedkeys(":source " . expand('<sfile>') . "\<CR>")
-  finish
-endif
-
 set nocompatible
 set nomore
 set encoding=utf-8
 set fileencodings=utf-8
 syntax on
 colorscheme delek
+
+
+" TODO: argument parser
+enew!
+let g:argv = argv()
+argdelete *
+
+runtime plugin/tohtml.vim
 
 source <sfile>:h:h/tools/makehtml.vim
 
@@ -111,7 +112,16 @@ function! s:ToJekyll()
         \ ])
 endfunction
 
-try
-  call s:main()
-endtry
+if index(g:argv, "--batch") != -1
+  try
+    call s:main()
+  catch
+    cquit
+  endtry
+  qall!
+else
+  try
+    call s:main()
+  endtry
+endif
 
