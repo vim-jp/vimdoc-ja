@@ -33,7 +33,11 @@ function! s:main()
   " for ja custom syntax
   let &runtimepath .= ',' . fnamemodify('./master', ':p')
   call s:BuildHtml()
-  call s:system('git commit -a -m "update html"')
+  try
+    call s:system('git commit -a -m "update html"')
+  catch
+    " pass: nothing to be committed
+  endtry
   cd ..
 endfunction
 
@@ -118,6 +122,8 @@ if index(g:argv, "--batch") != -1
   catch
     cquit
   endtry
+  " XXX: (ex-mode) To quit with state 0, use :visual.  See main.c:1307
+  silent! visual
   qall!
 else
   try

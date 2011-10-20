@@ -10,5 +10,5 @@ htmlbatch:
 	git show-branch devel || git branch -t devel origin/devel
 	git show-branch gh-pages || git branch -t gh-pages origin/gh-pages
 	vim -u tools/buildhtml.vim -e -s -- --batch
-	cd html && push ..
+	cd html && git push ..
 
