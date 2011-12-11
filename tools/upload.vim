@@ -102,6 +102,18 @@ function! s:github_repos_downloads_get_by_name(user, repos, name)
   throw 'Not Found'
 endfunction
 
+function! s:github_repos_downloads_replace(auth_user, auth_password, user, repos, file, name, description, content_type)
+  try
+    let download = s:github_repos_downloads_get_by_name(a:user, a:repos, a:name)
+  catch /Not Found/
+    let download = {}
+  endtry
+  if !empty(download)
+    call s:github_repos_downloads_delete(a:auth_user, a:auth_password, a:user, a:repos, download.id)
+  endif
+  call s:github_repos_downloads_create(a:auth_user, a:auth_password, a:user, a:repos, a:file, a:name, a:description, a:content_type)
+endfunction
+
 function! s:main()
   if isdirectory('vimdoc-ja')
     call s:rmdir('vimdoc-ja')
@@ -109,25 +121,19 @@ function! s:main()
   if filereadable('vimdoc-ja.zip')
     call delete('vimdoc-ja.zip')
   endif
+  if filereadable('vimdoc-ja.tar.gz')
+    call delete('vimdoc-ja.tar.gz')
+  endif
   call s:system('git clone -b master . vimdoc-ja')
   call s:rmdir('vimdoc-ja/.git')
   silent! helptags vimdoc-ja/doc
   call s:system('zip -r vimdoc-ja.zip vimdoc-ja')
-  echo "Please enter github user/password to upload package."
+  call s:system('tar czf vimdoc-ja.tar.gz vimdoc-ja')
+  echo 'Please enter github user/password to upload package to vim-jp/vimdoc-ja project.'
   let auth_user = input('user: ')
   let auth_password = inputsecret('password: ')
-  let user = 'vim-jp'
-  let repos = 'vimdoc-ja'
-  let file = 'vimdoc-ja.zip'
-  try
-    let download = s:github_repos_downloads_get_by_name(user, repos, file)
-  catch /Not Found/
-    let download = {}
-  endtry
-  if !empty(download)
-    call s:github_repos_downloads_delete(auth_user, auth_password, user, repos, download.id)
-  endif
-  call s:github_repos_downloads_create(auth_user, auth_password, user, repos, file, file, '', '')
+  call s:github_repos_downloads_replace(auth_user, auth_password, 'vim-jp', 'vimdoc-ja', 'vimdoc-ja.zip', 'vimdoc-ja.zip', '', '')
+  call s:github_repos_downloads_replace(auth_user, auth_password, 'vim-jp', 'vimdoc-ja', 'vimdoc-ja.tar.gz', 'vimdoc-ja.tar.gz', '', '')
 endfunction
 
 function! s:system(cmd)
