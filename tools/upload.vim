@@ -109,8 +109,8 @@ function! s:main()
   if filereadable('vimdoc-ja.zip')
     call delete('vimdoc-ja.zip')
   endif
-  call mkdir('vimdoc-ja')
-  call s:system('git archive master | tar -x -C vimdoc-ja')
+  call s:system('git clone -b master . vimdoc-ja')
+  call s:rmdir('vimdoc-ja/.git')
   silent! helptags vimdoc-ja/doc
   call s:system('zip -r vimdoc-ja.zip vimdoc-ja')
   echo "Please enter github user/password to upload package."
