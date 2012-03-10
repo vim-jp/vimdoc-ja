@@ -1,4 +1,4 @@
-*autocmd.txt*   For Vim バージョン 7.3.  Last change: 2011 Oct 26
+*autocmd.txt*   For Vim バージョン 7.3.  Last change: 2012 Feb 22
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -33,7 +33,7 @@
 装することができる。圧縮ファイルを編集するといったような機能だ (|gzip-example|
 を参照)。こういった自動コマンドはファイル .vimrc かファイル .exrc に書き込む。
 
-							*E203* *E204* *E143*
+						*E203* *E204* *E143* *E855*
 注意:自動コマンドは大変強力であるので、思いも寄らない副作用をもたらすことがあ
 る。テキストを壊さないように注意しなければならない。
 - 捨ててもよいようなファイルのコピーに対して、最初にテストしておくのがよい。例
@@ -697,7 +697,8 @@ MenuPopup			(マウス右ボタンで)ポップアップメニューを表示す
 QuickFixCmdPre			QuickFixコマンドが実行される前 (|:make|,
 				|:lmake|, |:grep|, |:lgrep|, |:grepadd|,
 				|:lgrepadd|, |:vimgrep|, |:lvimgrep|,
-				|:vimgrepadd|, |:lvimgrepadd|, |:cscope|)。
+				|:vimgrepadd|, |:lvimgrepadd|, |:cscope|,
+				|:helpgrep|, |:lhelpgrep|)。
 				パターンには実行されるコマンドを記述する。
 				|:grep| が書かれていると、'grepprg' が
 				"internal" にセットされていても実行される。
@@ -708,7 +709,10 @@ QuickFixCmdPre			QuickFixコマンドが実行される前 (|:make|,
 							*QuickFixCmdPost*
 QuickFixCmdPost			QuickFixCmdPreと同様だが、QuickFixコマンドが実
 				行された後、最初の位置にジャンプする前に発生す
-				る。|QuickFixCmdPost-example| を参照。
+				る。|:cfile| コマンドと |:lfile| コマンドの場
+				合はイベントはエラーファイルを読み込んだ後、最
+				初のエラーに移動する前に実行される。
+				|QuickFixCmdPost-example| を参照。
 							*RemoteReply*
 RemoteReply			サーバとして働くVimからの応答を受け取ったとき
 				|server2client()|。パターンは{serverid}に対し
@@ -1049,7 +1053,7 @@ NOTE オプション 'eventignore' はここにも適用されることに注意
 イベントでは、どんな自動コマンドも実行されない。
 
 					*:do* *:doau* *:doautocmd* *E217*
-:do[autocmd] [group] {event} [fname]
+:do[autocmd] [<nomodeline>] [group] {event} [fname]
 			[fname] (省略するとカレントファイルの名前) にマッチす
 			る、{event} のための自動コマンドをカレントバッファに
 			適用する。カレントファイル名が正しいファイルパターンに
@@ -1066,15 +1070,19 @@ NOTE オプション 'eventignore' はここにも適用されることに注意
 			引数 [group] が省かれると、全てのグループの
 			自動コマンドが実行される。 [group] が指定されると、そ
 			れにマッチするグループの自動コマンドのみが実行される。
-			NOTE 定義されていないグループ名を使うと、エラーメッセー
-			ジが表示される。
+			NOTE 定義されていないグループ名を使うと、エラーメッ
+			セージが表示される。
 
-			自動コマンドを適用した後にモードラインが処理される。ファ
-			イルを編集するときと同じように、自動コマンドでなされた
-			設定を上書きするためである。
+							*<nomodeline>*
+			自動コマンドを適用した後にモードラインが処理される。
+			ファイルを編集するときと同じように、自動コマンドでなさ
+			れた設定を上書きするためである。<nomodeline> が指定さ
+			れている場合はモードラインは処理されない。バッファの
+			ロード以外で使われるイベント (例えば |User|) などは
+			<nomodeline> を指定したほうがいいかもしれません。
 
 						*:doautoa* *:doautoall*
-:doautoa[ll] [group] {event} [fname]
+:doautoa[ll] [<nomodeline>] [group] {event} [fname]
 			":doautocmd" と似ているが、読み込まれたバッファそれぞ
 			れに自動コマンドを適用する。[fname]は自動コマンドを選
 			択するのに使われます。コマンドを適用するバッファではあ
