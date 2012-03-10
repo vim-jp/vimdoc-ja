@@ -1,4 +1,4 @@
-*eval.txt*	For Vim version 7.3.  Last change: 2011 Dec 14
+*eval.txt*	For Vim version 7.3.  Last change: 2012 Jan 28
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -1746,7 +1746,8 @@ exists( {expr})			Number	TRUE if {expr} exists
 extend( {expr1}, {expr2} [, {expr3}])
 				List/Dict insert items of {expr2} into {expr1}
 exp( {expr})			Float	exponential of {expr}
-expand( {expr} [, {flag}])	String	expand special keywords in {expr}
+expand( {expr} [, {nosuf} [, {list}]])
+				any	expand special keywords in {expr}
 feedkeys( {string} [, {mode}])	Number	add key sequence to typeahead buffer
 filereadable( {file})		Number	TRUE if {file} is a readable file
 filewritable( {file})		Number	TRUE if {file} is a writable file
@@ -1800,7 +1801,8 @@ gettabwinvar( {tabnr}, {winnr}, {name})
 getwinposx()			Number	X coord in pixels of GUI Vim window
 getwinposy()			Number	Y coord in pixels of GUI Vim window
 getwinvar( {nr}, {varname})	any	variable {varname} in window {nr}
-glob( {expr} [, {flag}])	String	expand file wildcards in {expr}
+glob( {expr} [, {nosuf} [, {list}]])
+				any	expand file wildcards in {expr}
 globpath( {path}, {expr} [, {flag}])
 				String	do glob({expr}) for all dirs in {path}
 has( {feature})			Number	TRUE if feature {feature} supported
@@ -2802,10 +2804,10 @@ expand({expr} [, {flag}])				*expand()*
 		When {expr} does not start with '%', '#' or '<', it is
 		expanded like a file name is expanded on the command line.
 		'suffixes' and 'wildignore' are used, unless the optional
-		{flag} argument is given and it is non-zero.  Names for
-		non-existing files are included.  The "**" item can be used to
-		search in a directory tree.  For example, to find all "README"
-		files in the current directory and below: >
+		{nosuf} argument is given and it is non-zero.
+		Names for non-existing files are included.  The "**" item can
+		be used to search in a directory tree.  For example, to find
+		all "README" files in the current directory and below: >
 			:echo expand("**/README")
 <
 		Expand() can also be used to expand variables and environment
@@ -3941,11 +3943,12 @@ line2byte({lnum})					*line2byte()*
 		Return the byte count from the start of the buffer for line
 		{lnum}.  This includes the end-of-line character, depending on
 		the 'fileformat' option for the current buffer.  The first
-		line returns 1.
+		line returns 1. 'encoding' matters, 'fileencoding' is ignored.
 		This can also be used to get the byte count for the line just
 		below the last line: >
 			line2byte(line("$") + 1)
-<		This is the file size plus one.
+<		This is the buffer size plus one.  If 'fileencoding' is empty
+		it is the file size plus one.
 		When {lnum} is invalid, or the |+byte_offset| feature has been
 		disabled at compile time, -1 is returned.
 		Also see |byte2line()|, |go| and |:goto|.
@@ -4813,6 +4816,10 @@ search({pattern} [, {flags} [, {stopline} [, {timeout}]]])	*search()*
 		Search for regexp pattern {pattern}.  The search starts at the
 		cursor position (you can use |cursor()| to set it).
 
+		If there is no match a 0 is returned and the cursor doesn't
+		move.  No error message is given.
+		When a match has been found its line number is returned.
+
 		{flags} is a String, which can contain these character flags:
 		'b'	search backward instead of forward
 		'c'	accept a match at the cursor position
@@ -4846,9 +4853,6 @@ search({pattern} [, {flags} [, {stopline} [, {timeout}]]])	*search()*
 		giving the argument.
 		{only available when compiled with the |+reltime| feature}
 
-		If there is no match a 0 is returned and the cursor doesn't
-		move.  No error message is given.
-		When a match has been found its line number is returned.
 							*search()-sub-match*
 		With the 'p' flag the returned value is one more than the
 		first sub-match in \(\).  One if none of them matched but the
@@ -5067,7 +5071,8 @@ setcmdpos({pos})					*setcmdpos()*
 		line.
 
 setline({lnum}, {text})					*setline()*
-		Set line {lnum} of the current buffer to {text}.
+		Set line {lnum} of the current buffer to {text}.  To insert
+		lines use |append()|.
 		{lnum} is used like with |getline()|.
 		When {lnum} is just below the last line the {text} will be
 		added as a new line.
@@ -6156,7 +6161,7 @@ xor({expr}, {expr})					*xor()*
 		to a number.  A List, Dict or Float argument causes an error.
 		Example: >
 			:let bits = xor(bits, 0x80)
-
+<
 
 
 							*feature-list*
@@ -6339,6 +6344,7 @@ windows			Compiled with support for more than one window.
 writebackup		Compiled with 'writebackup' default on.
 xfontset		Compiled with X fontset support |xfontset|.
 xim			Compiled with X input method support |xim|.
+xpm_w32			Compiled with pixmap support for Win32.
 xsmp			Compiled with X session management support.
 xsmp_interact		Compiled with interactive X session management support.
 xterm_clipboard		Compiled with support for xterm clipboard.
