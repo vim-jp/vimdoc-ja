@@ -16,7 +16,7 @@ function! s:github_repos_downloads_list(user, repos)
   if v:shell_error
     throw 'fails to list downloads'
   endif
-  let downloads = json#decode(res)
+  let downloads = webapi#json#decode(res)
   if type(downloads) == type({}) && has_key(downloads, 'message')
     throw 'fails to list downloads: ' . downloads.message
   endif
@@ -30,7 +30,7 @@ function! s:github_repos_downloads_get(user, repos, id)
   if v:shell_error
     throw 'fails to get download'
   endif
-  let download = json#decode(res)
+  let download = webapi#json#decode(res)
   if has_key(download, 'message')
     throw 'fails to get download: ' . download.message
   endif
@@ -49,12 +49,12 @@ function! s:github_repos_downloads_create(auth_user, auth_password, user, repos,
   if a:content_type != ''
     let data.content_type = a:content_type
   endif
-  let cmd = printf('curl --silent --user %s --data %s %s', shellescape(a:auth_user . ':' . a:auth_password), shellescape(json#encode(data)), shellescape(url))
+  let cmd = printf('curl --silent --user %s --data %s %s', shellescape(a:auth_user . ':' . a:auth_password), shellescape(webapi#json#encode(data)), shellescape(url))
   let res = system(cmd)
   if v:shell_error
     throw 'fails to create new download'
   endif
-  let download = json#decode(res)
+  let download = webapi#json#decode(res)
   if has_key(download, 'message')
     throw 'fails to create new download: ' . download.message
   endif
@@ -87,7 +87,7 @@ function! s:github_repos_downloads_delete(auth_user, auth_password, user, repos,
     throw 'fails to delete download'
   endif
   if res != ''
-    let err = json#decode(res)
+    let err = webapi#json#decode(res)
     throw 'fails to delete download: ' . err.message
   endif
 endfunction
