@@ -87,6 +87,7 @@ function! MakeHtml(fname)
     endfor
   endif
 
+  silent! %foldopen!
   TOhtml
 
   let lang = s:GetLang(a:fname)
