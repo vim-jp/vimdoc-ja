@@ -156,6 +156,14 @@ function! s:MakeLink(lang, hlname, tagname)
     else
       let res = printf('<a class="%s" href="%s">%s%s%s</a>', s:attr_save[a:hlname], href, sep, a:tagname, sep)
     endif
+  elseif has_key(tags, ":" . tagname)
+    let href = tags[":" . tagname]["html"]
+    let href .= '#:' . tagname
+    if a:hlname == "helpHyperTextEntry"
+      let res = printf('<a class="%s" href="%s" name="%s">%s%s%s</a>', s:attr_save[a:hlname], href, a:tagname, sep, a:tagname, sep)
+    else
+      let res = printf('<a class="%s" href="%s">%s%s%s</a>', s:attr_save[a:hlname], href, sep, a:tagname, sep)
+    endif
   else
     " missing tag or not translated or typo.  use English if possible.
     call s:Log("%s: tag error: %s", bufname("%"), tagname)
