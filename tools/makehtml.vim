@@ -81,7 +81,7 @@ function! MakeHtml(fname)
   " set dumy highlight to keep syntax identity
   if !exists("s:attr_save")
     let s:attr_save = {}
-    for name in ["helpStar", "helpBar", "helpHyperTextEntry", "helpHyperTextJump", "helpOption"]
+    for name in ["helpStar", "helpBar", "helpHyperTextEntry", "helpHyperTextJump", "helpOption", "helpExample"]
       let s:attr_save[name] = synIDattr(synIDtrans(hlID(name)), "name")
       execute printf("hi %s term=bold cterm=bold gui=bold", name)
     endfor
@@ -94,6 +94,7 @@ function! MakeHtml(fname)
   silent %s@<span class="\(helpHyperTextEntry\|helpHyperTextJump\|helpOption\)">\([^<]*\)</span>@\=s:MakeLink(lang, submatch(1), submatch(2))@ge
   silent %s@^<span class="Ignore">&lt;</span>\ze&nbsp;@\&nbsp;@ge
   silent %s@<span class="\(helpStar\|helpBar\|Ignore\)">[^<]*</span>@@ge
+  call s:TranslateHelpExampleBlock()
   " remove style
   g/^\.\(helpBar\|helpStar\|helpHyperTextEntry\|helpHyperTextJump\|helpOption\)/silent delete _
 
@@ -102,6 +103,27 @@ function! MakeHtml(fname)
 
   wq! `=s:HtmlName(a:fname)`
   quit!
+endfunction
+
+" <span>...</span>  -> <div>...
+" <span>...</span>     ...</div>
+function! s:TranslateHelpExampleBlock()
+  let mx = '^<span class="helpExample">\zs.*\ze</span><br>$'
+  let i = 1
+  while i <= line('$')
+    if getline(i) =~ mx
+      let start = i
+      while i <= line('$') && getline(i) =~ mx
+        call setline(i, matchstr(getline(i), mx) . '<br>')
+        let i += 1
+      endwhile
+      let end = i - 1
+      call setline(start, '<div class="helpExample">' . getline(start))
+      call setline(end, matchstr(getline(end), '.*\ze<br>') . '</div>')
+    else
+      let i += 1
+    endif
+  endwhile
 endfunction
 
 function! s:Header()
