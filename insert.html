@@ -2,7 +2,7 @@
 layout: vimdoc
 helpname: 'insert'
 ---
-<a class="Constant" href="insert.html" name="insert.txt">*insert.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 7.3.</span>&nbsp;&nbsp;Last change: 2012 Jan 26<br>
+<a class="Constant" href="insert.html" name="insert.txt">*insert.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 7.3.</span>&nbsp;&nbsp;Last change: 2012 May 18<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar<br>
@@ -372,8 +372,11 @@ U&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 あることに注意。<br>
 <br>
 <span class="Special">CTRL-O</span>&nbsp;コマンドでノーマルモードに移動できるが、そこでさらにインサートモードに<br>
-入ってもモードは入れ子にならない。例えば &quot;a<span class="Special">&lt;C-O&gt;</span>a&quot; と入力してから&nbsp;<span class="Special">&lt;Esc&gt;</span>&nbsp;を押す<br>
-とノーマルモードに帰ってくる。<span class="Special">&lt;Esc&gt;</span>&nbsp;を二回押す必要はない。<br>
+入っても、通常はモードは入れ子にならない。例えば &quot;a<span class="Special">&lt;C-O&gt;</span>a&quot; と入力してから<br>
+<span class="Special">&lt;Esc&gt;</span>&nbsp;を押すとノーマルモードに帰ってくる。<span class="Special">&lt;Esc&gt;</span>&nbsp;を二回押す必要はない。<br>
+例外は、例えばマッピングを実行しているときやスクリプトを source しているときな<br>
+ど、コマンドを入力していないときである。このとき、マッピングは一時的に挿入モー<br>
+ドに切り替わるように働く。<br>
 <br>
 Shiftキーを押しながらのカーソルキー操作は、全ての端末で可能なわけではない。<br>
 <br>
@@ -385,7 +388,12 @@ Shiftキーを押しながらのカーソルキー操作は、全ての端末で
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:inoremap &lt;C-H&gt; &lt;C-G&gt;u&lt;C-H&gt;</div>
 <br>
 これは undo できるバックスペースキーを再定義している。これで以前の入力を変<br>
-更することなく&nbsp;<span class="Special">CTRL-O</span>&nbsp;u を使ってバックスペースの結果を元に戻せる。<br>
+更することなく&nbsp;<span class="Special">CTRL-O</span>&nbsp;u を使ってバックスペースの結果を元に戻せる。もう一つの<br>
+例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:inoremap &lt;CR&gt; &lt;C-]&gt;&lt;C-G&gt;u&lt;CR&gt;</div>
+<br>
+これは改行ごとに undo を分割する。また、それを行う前に短縮入力の展開も行う。<br>
 <br>
 <span class="Special">CTRL-O</span>&nbsp;は undo 位置を分割する。つまり、その前後に入力したテキストが別々にundo&nbsp;<br>
 されるようになる。これを避けたい場合(マッピングの中などで)は&nbsp;<span class="Special">CTRL-R</span>&nbsp;=<br>
@@ -951,9 +959,12 @@ C++ 用の最初のバージョンが存在する。<br>
 これらの関数は補完するテキストの始点の桁番号を返す責任を負う。桁番号は 0 以上<br>
 &quot;col('.')&quot; 未満でなければならない。この桁番号はカーソルの直前の文字列を含み、<br>
 補完候補の一部となる文字列を含む。この桁とカーソル位置の間のテキストが補完さ<br>
-れ、候補で置き換わることになる。補完を行えないときは -1 を返すと、補完はキャン<br>
-セルされ、エラーメッセージが表示される。メッセージなしでキャンセルしたい場合は<br>
--2 を返す。<br>
+れ、候補で置き換わることになる。<br>
+<br>
+特別な戻り値:<br>
+&nbsp;&nbsp; -1 補完を行えない場合。補完はキャンセルされ、エラーメッセージが表示される。<br>
+&nbsp;&nbsp; -2 メッセージなしでキャンセルし、補完モードに留まりたい場合。<br>
+&nbsp;&nbsp; -3 メッセージなしでキャンセルし、補完モードから抜けたい場合。<br>
 <br>
 2番目の形での呼び出しでは、次の引数が与えられる:<br>
 &nbsp;&nbsp; a:findstart&nbsp;&nbsp;0<br>
