@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 7.3.  Last change: 2012 Mar 07
+*eval.txt*	For Vim バージョン 7.3.  Last change: 2012 May 18
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1494,16 +1494,19 @@ v:profiling	通常時は0。":profile start" を実行すると1が代入され�
 		|profiling|を参照。
 
 					*v:progname* *progname-variable*
-v:progname	Vimを起動したときのプログラム名(パスは除かれる)。"view"、
-		"evim" などの名前やシンボリックリンクなどで起動した場合に特別な
+v:progname	Vimを起動したときのプログラム名(パスは除かれる)。|view|、
+		|evim| などの名前やシンボリックリンクなどで起動した場合に特別な
 		初期化を行うのに便利。
 		読出し専用。
 
 					*v:register* *register-variable*
-v:register	現在のノーマルモードコマンドに適用されるレジスタの名前。レジス
-		タが指定されなかったときはデフォルトレジスタ '"' にな
-		る。'clipboard' に "unnamed" か "unnamedplus" が含まれていると
-		きはデフォルトはそれぞれ '*' か '+' になる。
+v:register	現在のノーマルモードコマンドに適用されるレジスタの名前 (そのコ
+		マンドが実際にレジスタを使うかどうかには依らない)。または、現
+		在実行しているノーマルモードマッピング用のレジスタの名前 (レジ
+		スタを使うカスタムコマンドの中で使う)。レジスタが指定されなかっ
+		たときはデフォルトレジスタ '"' になる。'clipboard' に
+		"unnamed" か "unnamedplus" が含まれているときはデフォルトはそ
+		れぞれ '*' か '+' になる。
 		|getreg()| と |setreg()| も参照。
 
 					*v:scrollstart* *scrollstart-variable*
@@ -1797,6 +1800,7 @@ localtime()			数値	現在時刻
 log( {expr})			浮動小数点数	{expr}の自然対数(底e)
 log10( {expr})			浮動小数点数	浮動小数点数 {expr} の 10 を底
 						とする対数
+luaeval( {expr}[, {expr}])	任意	|Lua| の式を評価する
 map( {expr}, {string})		リスト/辞書  {expr}の各要素を{expr}に変える
 matchadd( {group}, {pattern}[, {priority}[, {id}]])
 				数値	{pattern} を {group} で強調表示する
@@ -3138,7 +3142,8 @@ getcmdline()						*getcmdline()*
 getcmdpos()						*getcmdpos()*
 		コマンドラインにおけるカーソル位置をバイト単位で取得する。最初
 		の桁は1となる。コマンドラインを編集しているときのみ動作する。
-		つまり|c_CTRL-\_e|または|c_CTRL-R_=|を使っているときのみ有効。
+		つまり|c_CTRL-\_e|または|c_CTRL-R_=|または式マッピングを使って
+		いるときのみ有効。そうでないときは 0 を返す。
 		|getcmdtype()|, |setcmdpos()|, |getcmdline()|も参照。
 
 getcmdtype()						*getcmdtype()*
@@ -3150,8 +3155,8 @@ getcmdtype()						*getcmdtype()*
 		    @	|input()| コマンド
 		    -	|:insert| または |:append| コマンド
 		コマンドラインを編集しているときのみ動作する。つまり
-		|c_CTRL-\_e|または|c_CTRL-R_=|を使っているときのみ有効。そうで
-		ないときは空文字列を返す。
+		|c_CTRL-\_e|または|c_CTRL-R_=|または式マッピングを使っていると
+		きのみ有効。そうでないときは空文字列を返す。
 		|getcmdpos()|, |setcmdpos()|, |getcmdline()|も参照。
 
 							*getcwd()*
@@ -3368,7 +3373,8 @@ glob({expr} [, {nosuf} [, {list}]])				*glob()*
 		があるときはそれらは文字 <NL> で区切られる。
 
 		展開が失敗した場合、空の文字列またはリストが返される。存在しな
-		いファイル名は結果に含まれない。
+		いファイル名は結果に含まれない。シンボリックリンクは、それが存
+		在するファイルを指す場合のみ含まれる。
 
 		多くのシステムではバッククォート(「`」という文字のこと)を、外
 		部コマンドの実行結果からファイル名を取得するために使用できる。
@@ -3872,6 +3878,19 @@ log10({expr})						*log10()*
 <			-2.0
 		{|+float| 機能つきでコンパイルされたときのみ有効}
 		
+luaeval({expr}[, {expr}])					*luaeval()*
+		Lua の式 {expr} を評価し、その結果を Vim のデータ構造に変換し
+		たものを返す。2番目の {expr} は、最初の {expr} の中では _A と
+		してアクセスできる追加の引数を保持する。
+		文字列はそのまま返される。
+		ブーリアンオブジェクトは数値に変換される。
+		数値は、vim が |+float| つきでコンパイルされたときは |Float|
+		値に変換され、そうでなければ数値に変換される。
+		vim.eval() で取得される辞書とリストはそのまま返される。
+		それ以外のオブジェクトは 0 が返され、エラーにはならない。
+		詳細は |lua-luaeval| を参照。
+		{|+lua| 機能つきでコンパイルされたときのみ有効}
+
 map({expr}, {string})					*map()*
 		{expr}はリスト|List|または辞書|Dictionary|。
 		{expr}の各要素を、{string}を評価した結果で置き換える。
@@ -4899,7 +4918,7 @@ setline({lnum}, {text})					*setline()*
 		要素をセットする。例: >
 			:call setline(5, ['aaa', 'bbb', 'ccc'])
 <		上の例は次と同値である: >
-			:for [n, l] in [[5, 6, 7], ['aaa', 'bbb', 'ccc']]
+			:for [n, l] in [[5, 'aaa'], [6, 'bbb'], [7, 'ccc']]
 			:  call setline(n, l)
 			:endfor
 <		Note: マーク '[ と '] はセットされない。
@@ -5571,9 +5590,9 @@ tabpagebuflist([{arg}])					*tabpagebuflist()*
 		の番号を指定する。省略したときはカレントタブページを対象とする。
 		{arg}が無効なときは数値0を返す。
 		全タブページ中の全バッファのリストを得るには次のようにする: >
-			tablist = []
+			let buflist = []
 			for i in range(tabpagenr('$'))
-			   call extend(tablist, tabpagebuflist(i + 1))
+			   call extend(buflist, tabpagebuflist(i + 1))
 			endfor
 <		1つのバッファが複数のウィンドウに表示されている場合があること
 		に注意。
@@ -5736,6 +5755,8 @@ undofile({name})					*undofile()*
 		クされない。
 		{name} は常に絶対パスに展開される (内部では絶対パスを使ってい
 		るため)。
+		{name} が空の場合 undofile() は空文字列を返す。ファイル名のな
+		いバッファはアンドゥファイルを書かないからである。
 		|:wundo| や |:rundo| と組み合わせて使うと便利だろう。
 		+persistent_undo オプションを無効にしてコンパイルされた場合は
 		この関数は常に空文字列を返す。
@@ -5790,7 +5811,7 @@ virtcol({expr})						*virtcol()*
 		スクリーン座標(の桁)でどこに存在するかである。<Tab>(タブ文字)
 		が指定した位置にあった場合には、戻り値はそのタブの最後のカラム
 		(桁)位置になる。具体的に、'ts' が8に設定された状態で第1桁に
-		<Tab>があった場合、戻り値は8になる。
+		<Tab>があった場合、戻り値は8になる。|conceal| は無視される。
 		バイト位置については |col()| を使う。
 		{expr}の解釈の仕方については|col()|を参照。
 		'virtualedit' がオンのときは[lnum, col, off]というリストを指定
