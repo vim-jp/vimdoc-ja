@@ -1,4 +1,4 @@
-*syntax.txt*	For Vim バージョン 7.3.  Last change: 2012 Feb 11
+*syntax.txt*	For Vim バージョン 7.3.  Last change: 2012 Jul 16
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -198,7 +198,8 @@ NOTE: 長い行があって表示が遅く、構文ハイライトをオフに�
 標準の構文ファイルが気に入らない場合や、新しいバージョンをダウンロードした際に
 は、上で述べた|mysyntaxfile|に従えば良い。ただ 'runtimepath' で、前の方に記され
 たディレクトリに構文ファイルを置くように気を付ければ良い。Vimは適合する構文ファ
-イルのうち最初に見つけた1つだけを読込む。
+イルのうち最初に見つけた1つだけを読込む (それが b:current_syntax を設定すると
+想定している)。
 
 
 名前付けの慣習			*group-name* *{group-name}* *E669* *W18*
@@ -375,182 +376,17 @@ Vimはロードした構文の名前を変数 "b:current_syntax" に記憶して
 これは構文ファイルではなくて、現在のウィンドウの内容をHTMLに変換するスクリプト
 である。Vimは新しいウィンドウを作成しそこにHTMLファイルを構築する。
 
+変換結果を保存すればブラウザでそれを表示できる。Vim での表示と同じ色で表示され
+るはずである。
+
 使う際にはオプション 'filetype' や 'syntax' に "2html" を設定してはならない!
 現在のファイルをコンバートするためにはこのスクリプトを読込む: >
 
 	:runtime! syntax/2html.vim
 <
-							*:TOhtml*
-またはユーザコマンド ":TOhtml" を使ってもよい。これは標準プラグイン中で定義さ
-れている。":TOhtml" は範囲指定やビジュアルモードにも対応している: >
-
-	:10,40TOhtml
-
-警告: 遅いかも!  スクリプトはすべての行のすべての文字を処理しなければならない。
-処理に時間が掛かるので、初期設定では、処理経過を表示するためのプログレスバーが
-ステータスラインに表示される。プログレスバーを非表示にしたい場合は次のコマンド
-でそれを無効化できる。ほんの少しだけ早くなる: >
-
-	let g:html_no_progress = 1
-
-":TOhtml" には差分モード用の特別な機能があり、すべての関連するウィンドウの内容
-が HTML として生成される。これは g:html_diff_one_file を設定することで無効化で
-きる: >
-
-	let g:html_diff_one_file = 1
-
-出力結果をファイルに保存すれば、好きなブラウザでそれを観ることができる。Vimで
-表示されるのと寸分たがわぬ色が再現される。
-
-変換の範囲を指定するには、|:TOhtml| コマンドに範囲を指定するか、
-"g:html_start_line" と "g:html_end_line" に変換したい範囲の最初と最後の行を設
-定する。例えば、最後に選択された範囲だけを変換するには: >
-
-	:let g:html_start_line = line("'<")
-	:let g:html_end_line = line("'>")
-
-オプション 'number' が設定されている場合には、各行にNumberでハイライトされた行
-番号が付加される。"html_number_lines" に非0の値を設定すれば、HTMLの出力へ強制
-的に行番号を付加することができる: >
-   :let g:html_number_lines = 1
-この変数に0を設定すれば行番号を強制的に省略できる: >
-   :let g:html_number_lines = 0
-この変数を削除すれば元通り 'number' に従うように戻すことができる: >
-   :unlet g:html_number_lines
-
-デフォルトでは、カスケーディングスタイルシート (CSS1) を使用した正当 (valid)
-な HTML 4.01 の HTML が生成される。古いブラウザや、CSS をサポートしていない他
-のユーザーエージェント向けに HTML を生成したい場合は次のように設定すること: >
-   :let g:html_use_css = 0
-
-Conceal されたテキストは HTML には表示されず、'conceallevel' の現在の設定に応
-じて |:syn-cchar| や 'listchars' の文字が代わりに表示される。すべてのテキスト
-を表示したい場合は 2html を呼ぶ前に 'conceallevel' をゼロに設定するか、次の変
-数を設定すること: >
-   :let g:html_ignore_conceal = 1
-
-同様に、閉じた折り畳みは、画面表示通りに HTML に出力される。これが好ましくない
-なら、2html を呼ぶ前にコマンド |zR| を使うか、または次のようにする: >
-   :let g:html_ignore_folding = 1
-
-ブラウザ上でも Vim と同じように折り畳みの開閉を行えるようにしたいことがある
-だろう。そんなときは次の設定をすると、動的な折り畳みの HTML が生成される: >
-   :let g:html_dynamic_folds = 1
-
-html_dynamic_folds を使うと、html_use_css も自動的にセットされる。古いブラウ
-ザで動的な折り畳みを実現するのは非常に難しいからである。html_ignore_folding
-を設定していると html_dynamic_folds はオフになる。
-
-html_dynamic_folds を使うと、HTML でも Vim と同じような折畳表示カラム
-(foldcolumn) が表示される。これをクリックすると JavaScript によって折り畳み
-が開閉される。この折畳表示カラムの幅は |'foldcolumn'| の設定値から始まり、文
-書の最大の折り畳みレベルまで増えていく。折畳表示カラムをまったく表示させない
-ようにするには次のようにする: >
-   :let g:html_no_foldcolumn = 1
-
-このオプションをセットすると、HTML の中で折り畳みを開くための折畳表示カラム
-がすべてなくなってしまう。そこで、html_hover_unfold というオプションが用意さ
-れている。このオプションをセットすると、CSS 2.0 を使い、折り畳みの上にマウス
-を持っていくだけで折り畳みを開くことができるようになる。古いブラウザ(特に
-Internet Explorer 6)はこの機能に対応していないことに注意。IE6 でも表示できる
-ように CSS1 を使った専用のマークアップが入っているが、IE6 では折畳を開くこと
-はできない。html_hover_unfold を有効にしているとき、新しいブラウザなら
-JavaScript を無効にしていても閉じた折畳の中を見られることに注意。このオプショ
-ンを有効にするには次のようにする: >
-   :let g:html_hover_unfold = 1
-
-html_no_foldcolumn と html_dynamic_folds をセットすると、自動的に
-html_hover_unfold もセットされる。そうしないと折畳が閉じたままになってしまう
-からである。
-
-デフォルトでは、テキストの周りに "<pre>" と "</pre>" がつけられる。変換される
-ウィンドウの 'wrap' がオンになっている場合、テキストを折り返し表示するために
-CSS 2.0 の "white-space:pre-wrap" が使われる。折り返しを明示的に有効化するには
-次のように設定する: >
-   :let g:html_pre_wrap = 1
-無効化するには次のように設定する: >
-   :let g:html_pre_wrap = 0
-生成される HTML は Vim ウィンドウでの表示に近いものになるが、'showbreak' やラ
-インブレイクなどは HTML には反映されない。
-
-HTML で折り返しを有効にするもう一つ方法がある。ただし表示がさらに違うものに
-なってしまうかもしれない。次のように設定する: >
-   :let g:html_no_pre = 1
-こうすると、各行末に<br>を使い、連続するスペースに "&nbsp;" を使うようになる。
-この方法は古いブラウザとの互換性が高い。しかし最近のブラウザは "white-space"
-をサポートしている。
-
-"<pre>" タグを使う場合、テキスト中の <Tab> 文字は、それがテキストの見た目に影
-響せず、ドキュメントの中で故意に使用されているようなら、そのまま出力に含まれ
-る。その場合、HTML 出力をブラウザで表示してそれをコピー&ペーストしたときに、元
-のドキュメントの実際の空白文字をそのままコピーできる。
-
-具体的に言うと、<Tab> 文字が含まれるのは、'tabstop' オプションが初期設定の 8
-に設定されていて、'expandtab' がオフになっていて、foldcolumn も 行番号も HTML
-出力に含まれないときである (上述のオプション参照)。これらの条件に満たないとき
-は、<Tab> 文字は適切な数のスペースに展開される。
-
-"<pre>" が含まれるとき、他の条件に関わらずタブ文字をそのままにしたい場合は次の
-ように設定する: >
-   :let g:html_expand_tabs = 0
-Note: おそらく HTML 内のテキストのインデントや整列が崩れる。
-
-強制的にタブ文字を展開したい場合は次のように設定する: >
-   :let g:html_expand_tabs = 1
-
-シングルファイルの差分モード (g:html_diff_one_file 設定) では、4 行以上の詰
-め行 {訳注: 他方のファイルに行が挿入されていることを示す行} は 3 行で表示され、
-何行挿入されているかが真ん中の行に表示される。横並び表示の diff のように挿入
-された行をすべて表示したい場合は次のように設定する: >
-    :let g:html_whole_filler = 1
-3 行で表示するように戻すには次のように設定する: >
-    :unlet g:html_whole_filler
-<
-ほとんどのバッファでは、TOhtml は 'fileencoding' が設定されていればその値を、
-設定されていなければ 'encoding' の値を使い、HTML ファイルの文字セットと
-'fileencoding' を決定する。特定の 'buftype' では常に 'encoding' が使われる。
-|encoding-names| の説明で名前が出てくるようなエンコーディングであればたいてい
-は機能するが、TOhtml で自動的に使用されるのは広くサポートされているエンコーディ
-ングだけである。特定のエンコーディングが初期設定で自動的に認識されない場合には
-自分でそれを指定することができる。
-
-自動的な文字セットの認識を停止するには、g:html_use_encoding に使用したい文字
-セットの名前を設定する。TOhtml は文字セットを見て適当な 'fileencoding' を設定
-するが、TOhtml がエンコーディングを決定できなかった場合は自分で設定する必要が
-ある。ウェブサーバーに上げるような場合には、UTF-8 のような広くサポートされてい
-る文字セットを設定することが推奨される: >
-   :let g:html_use_encoding = "UTF-8"
-文字セット指定の行を含めたくない場合は g:html_use_encoding に空文字を設定する
-こと: >
-   :let g:html_use_encoding = ""
-自動的に判断する設定に戻すには変数 g:html_use_encoding を削除する: >
-   :unlet g:html_use_encoding
-
-g:html_use_encoding を設定したときに TOhtml によって適切な 'fileencoding' が自
-動的に設定されない場合は、g:html_encoding_override を使うことで正しいエンコー
-ディングが選択されるように設定できる。
-これは文字セット-エンコーディング組の辞書で、TOhtml が使用する組を置き換えたり
-追加したりできる。例えば HTML 文字セットの "windows-1252" を "8bit-cp1252"
-エンコーディングに対応させるには次のように設定する: >
-   :let g:html_encoding_override = {'windows-1252': '8bit-cp1252'}
-<
-g:html_charset_override も同様である。これは TOhtml が 'fileencoding' や
-'encoding' から HTML 文字セットを自動的に決定できない場合に、それをできるよう
-にする。既定のエンコーディング-文字セット組を上書きすることもできる。例えば、
-初期設定ではすべての Unicode/UCS エンコーディングに対しては UTF-8 が使用される
-が、代わりに UTF-16 や UTF-32 を使うにするには次のように設定する: >
-   :let g:html_charset_override = {'ucs-4': 'UTF-32', 'utf-16': 'UTF-16'}
-
-Note: UTF-32 か UTF-16 でエンコードされたドキュメントは少なくとも一つのメ
-ジャーブラウザで互換性の問題があることが知られている。
-
-					    *convert-to-XML* *convert-to-XHTML*
-プレーン HTML が好みでない場合は代わりに XHTML (XML 準拠の HTML) を生成するこ
-ともできる。"html_use_xhtml" 変数を設定すること: >
-    :let g:html_use_xhtml = 1
-
-上述の on/off オプションは明示的に希望の値を設定することで有効化または無効化で
-きる。|:unlet| を使って変数を削除することで初期設定に戻すことができる。
+2html.vim に影響する変数はたくさんある。下記参照。下記の on/off オプションは指
+定された値を明示的に設定することで有効化/無効化できる。また、|:unlet| で変数を
+削除することで初期設定に戻すことができる。
 
 覚書き:
 - いくつかの本当に古いブラウザでは背景色が表示されないことがある。
@@ -559,8 +395,296 @@ Note: UTF-32 か UTF-16 でエンコードされたドキュメントは少な�
   ポートのようないくつかの機能は動作しない。また、GUI サポート無しでコンパイル
   された古い Vim では色がおかしくなるかもしれない。
 
-ここではUNIXのシェル上で全ての.cと.hをコンバートする方法を例として示す: >
+例えば次の Unix シェルスクリプトですべての .c と .h ファイルを変換できる: >
    for f in *.[ch]; do gvim -f +"syn on" +"run! syntax/2html.vim" +"wq" +"q" $f; done
+<
+変換の範囲を指定するには、|:TOhtml| コマンドに範囲を指定するか、
+"g:html_start_line" と "g:html_end_line" に変換したい範囲の最初と最後の行を設
+定する。例えば、最後に選択された範囲だけを変換するには: >
+
+	:let g:html_start_line = line("'<")
+	:let g:html_end_line = line("'>")
+	:runtime! syntax/2html.vim
+<
+							*:TOhtml*
+
+[range]TOhtml		":TOhtml" コマンドは標準プラグインで定義されている。
+			このコマンドは |2html.vim| を実行する。範囲が指定され
+			た場合は |g:html_start_line| と |g:html_end_line| をそ
+			の範囲に設定する。範囲省略時はファイル全体が対象とな
+			る。
+
+			もしカレントウィンドウが |diff| の一部で、
+			|g:html_diff_one_file| が設定されていない場合、:TOhtml
+			はカレントタブ内の diff を表示しているすべてのウィンド
+			ウを変換して <table> 要素で並べた HTML を生成する。
+
+			例: >
+
+	:10,40TOhtml " convert lines 10-40 to html
+	:'<,'>TOhtml " convert current/last visual selection
+	:TOhtml      " convert entire buffer
+<
+							*g:html_diff_one_file*
+初期設定: 0
+0 なら、カレントタブ内の |diff| を表示しているすべてのウィンドウが変換され、
+<table> 要素で並べられた HTML が生成される。
+1 なら、カレントバッファのみが変換される。
+例: >
+
+	let g:html_diff_one_file = 1
+<
+							 *g:html_whole_filler*
+初期設定: 0
+0 なら、もし |g:html_diff_one_file| が 1 なら、3 行以上の連続した詰め行は 3 行
+で表示され、真ん中の行に挿入された行数の合計が表示される。
+1 なら、|g:html_diff_one_file| が設定されていないときのように、常に挿入された
+行が表示される。
+
+				     *TOhtml-performance* *g:html_no_progress*
+初期設定: 0
+0 なら、2html.vim の変換過程の各段階で進行状況のプログレスバーをステータスライ
+ンに表示する。
+1 なら、プログレスバーを表示しない。若干スピードは速くなるが、変換がいつごろ終
+わるかを知ることはできない。大きなファイルならとても時間がかかるのに!
+例: >
+
+	let g:html_no_progress = 1
+
+Vim を非対話で実行すれば、スクリプトでバッファやウィンドウなどを走査するごとに
+表示を更新しなくてもよくなるので、速度はもっと速くなる: >
+
+  vim -E -s -c "let g:html_no_progress=1" -c "syntax on" -c "set ft=c" -c "runtime syntax/2html.vim" -cwqa myfile.c
+<
+Note -s フラグは .vimrc とプラグインの読み込みを抑制する。したがって、HTML 変
+換に必要な設定などは明示的に読み込まなければならない。詳細は |-E| と |-s-ex|
+を参照。このように各コマンドを指定して実行するよりは、上記の -c で設定している
+ようなことがらをすべてスクリプトファイルに書き込み、 -u フラグで読み込んで実行
+するといいだろう。
+
+							 *g:html_number_lines*
+初期設定: 現在の 'number' の設定
+0 なら、バッファのテキストは行番号なしで HTML に表示される。
+1 なら、生成される HTML に行番号が付加される。色は Vim の行番号表示と同じ
+(|hl-LineNr|)。
+'number' がオフでも強制的に行番号を表示するなら: >
+   :let g:html_number_lines = 1
+強制的に行番号を表示しないようにするなら: >
+   :let g:html_number_lines = 0
+'number' の設定に従うように戻すには: >
+   :unlet g:html_number_lines
+<
+							      *g:html_use_css*
+初期設定: 1
+1 なら、CSS1 で装飾された HTML 4.01 準拠の HTML が生成される。最新のブラウザと
+ほとんどの古いブラウザでサポートされている。
+0 なら、<font> タグで装飾された時代遅れの HTML が生成される。これは推奨されて
+いないが、古いブラウザ、あるいはメーラーや掲示板の投稿など、CSS が使えない場合
+には必要だろう。
+例: >
+   :let g:html_use_css = 0
+<
+						       *g:html_ignore_conceal*
+初期設定: 0
+0 なら、Conceal されたテキストは HTML には表示されず、'conceallevel' の現在の
+設定に応じて |:syn-cchar| や 'listchars' の文字が代わりに表示される。
+1 なら、Conceal されていてもされていなくても、すべてのテキストが HTML に表示さ
+れる。
+
+次のコマンドでバッファ内のすべてのテキストを HTML に表示することができる (折り
+畳まれてなければ): >
+   :let g:html_ignore_conceal = 1
+   :setl conceallevel=0
+<
+						       *g:html_ignore_folding*
+初期設定: 0
+0 なら、折り畳みで閉じられたテキストは Vim で折り畳み表示されているテキストに
+置き換えられる (|fold-foldtext|)。Vim で折り畳みを開けるのと同じように、HTML
+でも開けるようにしたい場合は |g:html_dynamic_folds| を参照。
+1 なら、バッファのすべてのテキストを HTML に含める。テキストが折り畳まれている
+かどうかは無視される。|g:html_dynamic_folds| は機能しない。
+
+次のコマンドでバッファ内のすべてのテキストを HTML に表示することができる
+(Conceal されてなければ): >
+   zR
+   :let g:html_ignore_folding = 1
+<
+							*g:html_dynamic_folds*
+初期設定: 0
+0 なら、折り畳まれたテキストは HTML に含まれない。
+1 なら、Vim の動作と同じように折り畳みを開いたり閉じたりするための、javascript
+が生成される。
+
+この変数を 1 に設定すると、|g:html_use_css| の設定にかかわらず、2html.vim は常
+に CSS を使うようになる。
+
+この変数は |g:html_ignore_folding| が設定されているときは無視される。
+>
+   :let g:html_dynamic_folds = 1
+<
+							*g:html_no_foldcolumn*
+初期設定: 0
+0 なら、もし |g:html_dynamic_folds| が 1 なら、Vim の foldcolumn
+(|fold-foldcolumn|) に似たテキストを生成する。ユーザーはそれをクリックすること
+で折り畳みを開いたり閉じたりできる。生成されるテキスト幅の最小値は現在の
+'foldcolumn' の設定で決まる。
+1 なら、その列を生成しない。代わりに、マウスを折り畳みの上にもっていくことで折
+り畳みが開くようになる (|g:html_hover_unfold| が設定されたときのように)。
+>
+   :let g:html_no_foldcolumn = 1
+<
+				*TOhtml-uncopyable-text* *g:html_prevent_copy*
+初期設定: 空文字列
+このオプションは、例えば生成された HTML をブラウザで開いて全体を選択してコピー
+したときに、 特定の範囲がコピーされないようにできる。これは foldcolumn や行番
+号が表示されていても、ソーステキストのみコピーできるようにしたい場合に便利であ
+る。範囲の指定は次のようにする:
+	f:	foldcolumn
+	n:	行番号 (折り畳みテキスト内のも)
+	t:	折り畳みテキスト
+	d:	差分詰め文字
+
+例えば、foldcolumn と行番号をコピーできないようにするには: >
+	:let g:html_prevent_copy = "fn"
+<
+この機能は現在、コピー抑制エリアに読み込み専用の <input> 要素を挿入することで
+実装されている。これはすべての場合で機能するわけではない。他の、HTML を解釈す
+るアプリケーションにペーストすると、<input> 要素もペーストされる。しかしプレイ
+ンテキストとしてのペーストなら常に機能するだろう。
+
+							   *g:html_no_invalid*
+初期設定: 0
+0 なら、もし |g:html_prevent_copy| が空でなければ、コピー抑制エリアのための
+<input> エレメントに不正な属性が意図的に挿入される。これによって、<input> 要素
+がペーストされてしまうような場合でもいくつかのアプリケーションは対応可能とな
+る。特に、Microsoft Word は不正な属性を持つ <input> 要素をペーストしない。
+1 なら、不正な属性は挿入されない。正しいページが生成される。ただ
+し、|g:html_prevent_copy| が空でないときに、Microsoft Word にペーストするには
+注意が必要である。<input> 要素がペーストされないようにするのは困難だ。
+
+							 *g:html_hover_unfold*
+初期設定: 0
+0 なら、2html.vim で |g:html_dynamic_folds| 付きで生成された HTML の折り畳みを
+開く方法は、生成された折り畳み列をクリックする方法だけになる。
+1 なら、CSS 2.0 を使って、マウスを折り畳みの上にもっていくことで折り畳みを開け
+るようにする。javascript を無効にしていても折り畳みを開けるようにしたい場合に
+便利である。
+
+Note 古いブラウザ (特に Internet Explorer 6) はこの機能をサポートしていない。
+通常の CSS1 を使った IE6 用のマークアップが挿入され、IE6 でも表示できるように
+はなっているが、foldcolumn がないとそれを開くことはできない。
+>
+   :let g:html_hover_unfold = 1
+<
+					  *TOhtml-wrap-text* *g:html_pre_wrap*
+初期設定: 現在の 'wrap' の設定
+0 なら、もし |g:html_no_pre| が 0 または未設定なら、生成された HTML のテキスト
+はブラウザの端で折り返されない。
+1 なら、もし |g:html_use_css| が 1 なら、CSS 2.0 の "white-space:pre-wrap" が
+使われ、テキストはブラウザの端で折り返される。
+明示的に折り返しを有効にするには: >
+   :let g:html_pre_wrap = 1
+明示的に折り返しを無効にするには: >
+   :let g:html_pre_wrap = 0
+初期設定に戻し、'wrap' の設定が反映されるようにするには: >
+   :unlet g:html_pre_wrap
+<
+							       *g:html_no_pre*
+初期設定: 0
+0 なら、テキストは <pre>...</pre> タグで囲まれる。スペース文字の連続はそのまま
+Vim 内での表示と同じように表示され、タブ文字もそのまま含むことができる
+(|g:html_expand_tabs| 参照)。
+1 なら (非推奨)、<pre> タグは使われず、代わりに <div> タグが使われる。スペース
+文字は &nbsp; 文字参照に変換され、改行には <br> が使われる。これは HTML で折り
+返し (|g:html_pre_wrap|) をするためのもう一つの方法で、古いブラウザでも動作す
+るが、Vim の表示とは違うページが生成されるかもしれない。
+>
+   :let g:html_no_pre = 1
+<
+							  *g:html_expand_tabs*
+初期設定: 'tabstop' が 8 で 'expandtab' が 0 で foldcolumn と行番号がない場合
+		は 1。
+	そうでない場合は 0。
+0 なら、<Tab> 文字は同等のスペース文字、または &nbsp; (|g:html_no_pre| が 1 の
+場合) に置換される。
+1 なら、もし |g:html_no_pre| が 0 または未設定なら、<Tab> 文字はそのまま HTML
+に出力される。これはブラウザで表示したときに、もとのテキストのままコピー&ペー
+ストできるようにしたい場合に便利である。Note これはテキストの整列やインデント
+が崩れやすい (初期設定として設定された場合は別)。
+
+強制的に <Tab> 文字を維持したい場合は: >
+   :let g:html_expand_tabs = 0
+<
+強制的にタブ文字を展開したい場合は: >
+   :let g:html_expand_tabs = 1
+<
+				    *TOhtml-encoding-detect* *TOhtml-encoding*
+ウェブサーバーにコンテンツを置くような場合は、使用したいエンコーディング名を
+|g:html_use_encoding| で指定することを強く推奨する。
+
+エンコーディングが指定されていない場合は、'fileencoding' が設定されていれば
+'fileencoding' の値から、設定されていなければ 'encoding' の値から、適切な IANA
+名が使用される。特定の 'buftype' に対しては 'encoding' が常に使用される。
+'fileencoding' は選択されたドキュメントエンコーディングに合うように設定され
+る。
+
+自動設定は |encoding-names| に挙げられたエンコーディング名に対して機能するが、
+TOhtml は多くのブラウザでサポートされているエンコーディングのみ自動設定する。
+自動設定の対象外のエンコーディングを使用したい場合は明示的にそれを設定すること
+ができる (下記オプション参照)。IANA 名については
+http://www.iana.org/assignments/character-sets を参照。
+
+Note 初期設定ではすべてのユニコードエンコーディングは BOM なし UTF-8 として
+HTML 生成される (W3C 推奨):
+
+	http://www.w3.org/International/questions/qa-choosing-encodings
+	http://www.w3.org/International/questions/qa-byte-order-mark
+
+							 *g:html_use_encoding*
+初期設定: なし。上述のとおり、'fileencoding' の値に応じて IANA 名が使われる。
+文字セットの自動設定を上書きするには、g:html_use_encoding に使用したい文字セッ
+トの名前を設定する。ウェブサーバーに上げるような場合には、UTF-8 のような広くサ
+ポートされている文字セットを設定することが推奨される: >
+   :let g:html_use_encoding = "UTF-8"
+文字セット指定の行を含めたくない場合は g:html_use_encoding に空文字を設定する
+(非推奨): >
+   :let g:html_use_encoding = ""
+自動的に判断する設定に戻すには変数 |g:html_use_encoding| を削除する: >
+   :unlet g:html_use_encoding
+<
+						    *g:html_encoding_override*
+初期設定: なし。|encoding-names| で挙げられているエンコーディングに対しては
+		autoload/tohtml.vim で既定の変換が定義されている。
+自動設定されない文字セットを |g:html_use_encoding| で明示的に設定したときに、
+それに対応する 'fileencoding' を指定することができる。
+
+これは文字セット-エンコーディング組の辞書で、TOhtml が使用する組を置き換えたり
+追加したりできる。
+
+例えば HTML 文字セットの "windows-1252" を "8bit-cp1252" エンコーディングに対
+応させるなら: >
+   :let g:html_encoding_override = {'windows-1252': '8bit-cp1252'}
+<
+						     *g:html_charset_override*
+初期設定: なし。|encoding-names| で挙げられているエンコーディングに対しては
+		autoload/tohtml.vim で既定の変換が定義されている。それは多くの
+		ブラウザでサポートされている。
+|2html.vim| が 'fileencoding' や 'encoding' から適切な HTML 文字セットを自動的
+に決定できない場合に設定する。既定のエンコーディング-文字セット組を上書きする
+こともできる。例えば、TOhtml はすべての Unicode/UCS エンコーディングに対しては
+UTF-8 を使用するが、代わりに UTF-16 や UTF-32 を使うようにするには次のように設
+定する: >
+   :let g:html_charset_override = {'ucs-4': 'UTF-32', 'utf-16': 'UTF-16'}
+
+Note: UTF-32 か UTF-16 でエンコードされたドキュメントはいくつかのメジャーブラ
+ウザで互換性の問題があることが知られている。
+
+			*convert-to-XML* *convert-to-XHTML* *g:html_use_xhtml*
+初期設定: 0
+0 なら、標準 HTML 4.01 を生成する (可能なら strict)。
+1 なら、XHTML 1.0 を生成する (XML 準拠の HTML)。
+>
+    :let g:html_use_xhtml = 1
 <
 
 ABEL						*abel.vim* *ft-abel-syntax*
@@ -636,7 +760,10 @@ apacheの構文ファイルはApache HTTPサーバのバージョンに基づい
 	asmsyntax=nasm
 ここで、"nasm" は実際に使用するアセンブリ構文の名前に置き換えること。この記
 述はファイルの先頭 5 行以内に書いてなければならない。この文字列の前後に非空
-白文字があってはならない。
+白文字があってはならない。Note asmsyntax=foo を指定するのはモードライン
+(|modeline|) で ft=foo と設定するのと同じであり、設定がぶつかったときはモード
+ラインの設定が先に処理される (特に、例えばモードラインで ft=asm と設定すると、
+asmsyntax があっても GNU 構文強調表示が使われることになる)。
 
 構文の種類はバッファ変数b:asmsyntaxを設定することで常にそちらが優先される: >
 	:let b:asmsyntax = "nasm"
@@ -742,7 +869,8 @@ c_no_ansi		ANSI標準の型と定数をハイライトしない
 c_ansi_typedefs		 ... 但し標準ANSI型はハイライトする
 c_ansi_constants	 ... 但し標準ANSI定数はハイライトする
 c_no_utf		文字列中の\uと\Uをハイライトしない
-c_syntax_for_h		ファイル*.hにC++ではなくCの構文を適用する
+c_syntax_for_h		ファイル *.h に C++ ではなく C の構文を適用し、objcpp
+			ではなく objc の構文を適用する。
 c_no_if0		"#if 0" のブロックをコメントとしてハイライトしない
 c_no_cformat		文字列中の "%" によるフォーマットをハイライトしない
 c_no_c99		C99の標準アイテムをハイライトしない
@@ -2611,7 +2739,14 @@ LaTeX ファイルのコメントの中にソースコードのようなもの�
 コメントの中ではスペルチェックを無効にしたいという人もいる。そのようにするには
 次の行を .vimrc に加える: >
       let g:tex_comment_nospell= 1
-<
+次のコメント行は >
+	% nospell{
+	...
+	% nospell}
+囲まれた範囲のスペルチェックを抑制する。これらのコメント行のスペルチェック制御
+は壊れやすいことがわかっている。例えば、セクションコマンド (\part, \chapter,
+\section, \paragraph, etc) や環境 (math など) が nospell ブロック内にあっては
+いけない。
 								*tex-verb*
  Tex: Verbatim ゾーンをスペルチェックするには?~
 
@@ -2720,6 +2855,7 @@ g:tex_conceal を <.vimrc> で設定することで Conceal モードの表示�
 初期設定は "admgs" で、これは次の文字セットが Conceal 表示される: >
 
 	a = アクセント/合字 (accents/ligatures)
+	b = 太字と斜体 (bold and italic)
 	d = 区切り記号 (delimiters)
 	m = 数学記号 (math symbols)
 	g = ギリシア文字 (Greek)
@@ -2728,6 +2864,16 @@ g:tex_conceal を <.vimrc> で設定することで Conceal モードの表示�
 これらの文字を設定から外すことで、それに関連した文字が Conceal 表示されなくな
 る。
 
+						*g:tex_isk*
+ Tex: 何がキーワードかを制御する~
+
+(La)Tex キーワードは普通は 0-9,a-z,A-Z,192-255 の文字だけを使い、"_" だけが問
+題となる。したがって、初期設定では、syntax/tex.vim は通常の |'iskeyword'| の設
+定を (|:setlocal| を使って) 上書きし、LaTeX でも機能するようにしている。
+
+この iskeyword 再設定の動作は g:tex_isk 変数を設定することで変更できる。代わり
+に使用したい値を .vimrc で設定するとよい。
+ 
 
 TF						*tf.vim* *ft-tf-syntax*
 
@@ -4243,6 +4389,9 @@ IncSearch	'incsearch' のハイライト; ":s///c" で置換されたテキス�
 LineNr		":number" と ":#" コマンドの行番号。'number' オプションか
 		'relativenumber' オプションが設定されているときにはその表示に
 		も使われる。
+							*hl-CursorLineNr*
+CursorLineNr	LineNr と同じだが 'cursorline' が設定されているときに現在行に
+		使われる。
 							*hl-MatchParen*
 MatchParen	カーソル下の文字、または直後の文字が括弧であるとき、その文字と
 		対応する括弧に使われる。|pi_paren.txt|

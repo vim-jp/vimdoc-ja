@@ -6,13 +6,14 @@
 
 VimのPythonインターフェイス				*python* *Python*
 
-1. コマンド			|python-commands|
-2. vimモジュール		|python-vim|
-3. バッファオブジェクト		|python-buffer|
-4. レンジオブジェクト		|python-range|
-5. ウィンドウオブジェクト	|python-window|
-6. 動的ローディング		|python-dynamic|
-7. Python 3			|python3|
+1. コマンド					|python-commands|
+2. vimモジュール				|python-vim|
+3. バッファオブジェクト				|python-buffer|
+4. レンジオブジェクト				|python-range|
+5. ウィンドウオブジェクト			|python-window|
+6. Vim 関数 pyeval() と py3eval()		|python-pyeval|
+7. 動的ローディング				|python-dynamic|
+8. Python 3					|python3|
 
 {Vi にはこれらのコマンドはない}
 
@@ -146,6 +147,22 @@ vim.eval(str)						*python-eval*
 <	最後のコマンドはPython辞書のPythonリストを返します。例:
 	[{'cmd': '/^eval_expr(arg, nextcmd)$/', 'static': 0, 'name':
 	'eval_expr', 'kind': 'f', 'filename': './src/eval.c'}]
+
+vim.bindeval(str)					*python-bindeval*
+	|python-eval| と似ていますが、
+	1. 式が |List| または |Dictionary| として評価された場合、返り値は
+	   vimlist 型 または vimdictionary 型になり、その型は元のリスト/辞書型
+	   に接続される。したがって、そのオブジェクトを変更すると、元のオブ
+	   ジェクトも変更される。
+	2. 式が関数参照として評価された場合、返り値は呼び出し可能な
+	   vimfunction オブジェクトになる。self キーワード引数を使って辞書関数
+	   の |self| オブジェクトを指定できる。
+
+	Note: この関数は |lua-eval| と同じ動作をします (ただし lua は vim 関数
+	      の実行はサポートしてません)。|python-eval| は互換性のために残さ
+	      れます。例えば vim.eval() がオブジェクトをコピーすることに、ある
+	      いは vim.eval("1") が文字列を返すことに依存しているスクリプトの
+	      ため。
 
 "vim" モジュールのエラーオブジェクト
 
@@ -314,7 +331,13 @@ heightはスクリーンが水平方向に分割されているときのみ書�
 widthはスクリーンが垂直方向に分割されているときのみ書き込み可能です。
 
 ==============================================================================
-6. 動的ローディング					*python-dynamic*
+6. Vim 関数 pyeval() と py3eval()			*python-pyeval*
+
+双方向インターフェースを容易にするため、|pyeval()| 関数と |py3eval()| 関数を
+使って Python の式を評価して、その値を VimL に渡すことができます。
+
+==============================================================================
+7. 動的ローディング					*python-dynamic*
 
 MS-WindowsではPythonライブラリを動的に読み込むことが可能です。これを行うと
 |:version| の出力に |+python/dyn| が含まれるようになります。
@@ -332,12 +355,13 @@ DLLの名前はVimをコンパイルした時のPythonのバージョンに一�
 には、"gvim.exe" を開き、"python\d*.dll\c" を検索してください。
 
 ==============================================================================
-7. Python 3						*python3*
+8. Python 3						*python3*
 
 							*:py3* *:python3*
 |:py3| コマンドと |:python3| コマンドは |:python| と同様に機能します。
 							*:py3file*
 |:py3file| コマンドは |:pyfile| と同様に機能します。
+
 
 Vim のビルドは 4 種類あります (:version の出力):
 1. Python サポートなし	    (-python, -python3)

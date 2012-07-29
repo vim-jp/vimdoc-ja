@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 7.3.  Last change: 2012 May 18
+*eval.txt*	For Vim バージョン 7.3.  Last change: 2012 Jul 10
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1833,6 +1833,8 @@ pow( {x}, {y})			浮動小数点数	{x} の {y} 乗
 prevnonblank( {lnum})		数値	{lnum}行目以前の空行でない行の行番号
 printf( {fmt}, {expr1}...)	文字列  文字列を組み立てる
 pumvisible()			数値    ポップアップメニューが表示されているか
+pyeval( {expr})			任意	|Python| の式を評価する
+py3eval( {expr})		任意	|python3| の式を評価する
 range( {expr} [, {max} [, {stride}]])
 				リスト	{expr}から{max}までの要素のリスト
 readfile( {fname} [, {binary} [, {max}]])
@@ -3459,6 +3461,9 @@ histadd({history}, {item})				*histadd()*
 			"search" or "/"   検索パターン履歴
 			"expr"   or "="   タイプされた式の履歴
 			"input"  or "@"	  input()の履歴
+			"debug"  or ">"   デバッグコマンドの履歴
+		{history} 文字列はフルネームで指定する必要はありません。頭文字
+		だけでも構いません。
 		{item}が履歴内に既に存在する場合、それが最新の項目の位置へシフ
 		トされる。結果は数値:操作が成功した場合1、そうでなければ0
 
@@ -3908,7 +3913,7 @@ map({expr}, {string})					*map()*
 
 		この操作はその場で(in-place)行われる。リストや辞書を変更したく
 		ない場合は最初にコピーを作ること: >
-			:let tlist = map(copy(mylist), ' & . "\t"')
+			:let tlist = map(copy(mylist), ' v:val . "\t"')
 
 <		式を適用した結果の{expr}を返す。{string}を評価している最中にエ
 		ラーが発生した場合は、それ以降の要素は処理されない。
@@ -4442,6 +4447,27 @@ pumvisible()						*pumvisible()*
 		れていないときは0を返す。|ins-completion-menu|を参照。
 		ポップアップメニューを消してしまうような操作を避けるために使わ
 		れる。
+
+							*E860* *E861*
+py3eval({expr})						*py3eval()*
+		Python の式 {expr} を評価して、結果を Vim のデータ形式にして返
+		す。
+		数値と文字列はそのまま返る (ただし文字列はコピーされ、ユニコー
+		ドから 'encoding' に変換される)。
+		リストは Vim の |List| 型に変換される。
+		辞書は Vim の |Dictionary| 型に変換される。辞書のキーは文字列
+		に変換される。
+		{|+python3| 機能付きでコンパイルされたときのみ利用可能}
+
+							*E858* *E859*
+pyeval({expr})						*pyeval()*
+		Python の式 {expr} を評価して、結果を Vim のデータ形式にして返
+		す。
+		数値と文字列はそのまま返る (ただし文字列はコピーされる)。
+		リストは Vim の |List| 型に変換される。
+		辞書は Vim の |Dictionary| 型に変換される。辞書のキーは文字列
+		に変換される。
+		{|+python| 機能付きでコンパイルされたときのみ利用可能}
 
 							*E726* *E727*
 range({expr} [, {max} [, {stride}]])				*range()*
@@ -5997,6 +6023,7 @@ balloon_eval		|balloon-eval| をサポート
 balloon_multiline	複数行バルーンをサポート
 beos			BeOSバージョン
 browse			|:browse|をサポートし、browseが恐らく動作する
+browsefilter		|browsefilter| をサポート
 builtin_terms		幾つかの組込みターミナルが有効
 byte_offset		'statusline' において 'o' がサポートされる
 cindent			'cindent' をサポート
