@@ -2,7 +2,7 @@
 layout: vimdoc
 helpname: 'editing'
 ---
-<a class="Constant" href="editing.html" name="editing.txt">*editing.txt*</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 7.3.</span>&nbsp;&nbsp;Last change: 2012 Apr 03<br>
+<a class="Constant" href="editing.html" name="editing.txt">*editing.txt*</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 7.3.</span>&nbsp;&nbsp;Last change: 2012 Jul 10<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar<br>
@@ -381,7 +381,8 @@ Vim はバッファが変更されたかどうかを記憶していて、変更�
 ならない。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="editing.html#wildcard" name="wildcard">*wildcard*</a>&nbsp;<a class="Constant" href="editing.html#wildcards" name="wildcards">*wildcards*</a><br>
-<span class="Special">{file}</span>&nbsp;内のワイルドカードは展開される。使用できるワイルドカードの種類は、シス<br>
+<span class="Special">{file}</span>&nbsp;内のワイルドカードは展開される。ただし、ファイル名補完と同様に<br>
+<a class="Type" href="options.html#'wildignore'">'wildignore'</a>&nbsp;と&nbsp;<a class="Type" href="options.html#'suffixes'">'suffixes'</a>&nbsp;が適用される。使用できるワイルドカードの種類はシス<br>
 テムによって異なる。以下は標準的なものである。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; あらゆる1文字にマッチ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 何もないのも含め、全てにマッチ<br>
@@ -424,8 +425,10 @@ Unix などではファイル名にバッククォート '`' も使える。例:
 できる。そのためには `=<span class="Special">{expr}</span>` という構文を使えばよい。例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:e `=tempname()`</div>
 この式はほとんど何を含んでもよい。そのため、これを使って '&quot;', '|', '%', '#' の<br>
-特別な意味を打ち消すこともできる。引数は改行で区切られる。式の結果がリスト<br>
-<a class="Identifier" href="eval.html#List">|List|</a>&nbsp;になるときは、各要素が名前になる。改行も引数の区切りになる。<br>
+特別な意味を打ち消すこともできる。ただし、他のワイルドカードと同様に<br>
+<a class="Type" href="options.html#'wildignore'">'wildignore'</a>&nbsp;は適用される。<br>
+式が文字列を返したときは名前は改行で区切られる。式の結果がリスト (<a class="Identifier" href="eval.html#List">|List|</a>) のと<br>
+きは各要素が名前として扱われる。改行によっても名前は区切られる。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="editing.html#++opt" name="++opt">*++opt*</a>&nbsp;<a class="Constant" href="editing.html#[++opt]" name="[++opt]">*[++opt]*</a><br>
 引数のうち&nbsp;<span class="Special">[++opt]</span>&nbsp;はオプション&nbsp;<a class="Type" href="options.html#'fileformat'">'fileformat'</a>,&nbsp;<a class="Type" href="options.html#'fileencoding'">'fileencoding'</a>&nbsp;または<br>
@@ -1067,6 +1070,7 @@ MS-DOSとMS-Windowsでは、デバイスは名前から判断される:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;他のタブページが存在するとき、カレントタブページ内の最<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;後のウィンドウを閉じるとカレントタブページが閉じられる。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="tabpage.html#tab-page">|tab-page|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="autocmd.html#QuitPre">|QuitPre|</a>&nbsp;オートコマンドイベントが発行される。<br>
 <br>
 :conf[irm] q[uit]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 終了だが、変更点があるときや、引数リスト内で末尾にない<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイルを編集しているときにはプロンプトを表示する。<br>
@@ -1213,19 +1217,19 @@ Vimのファイル選択ダイアログをサポートしないバージョン�
 実行される。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="editing.html#browsefilter" name="browsefilter">*browsefilter*</a><br>
-MS-WindowsのVimでは、ファイル選択ダイアログで使われるフィルタを指定できる。グ<br>
-ローバル変数 g:browsefilter かローカル変数 b:browsefilter を設定すると、フィル<br>
-タをグローバルにまたはバッファについてローカルに変更できる。この変数を指定する<br>
-際の書式は &quot;{filter label}\t<span class="Special">{pattern}</span>;<span class="Special">{pattern}</span>\n&quot; で、{filter label} はコンボ<br>
-ボックス「ファイルの種類」に使われるテキスト、<span class="Special">{pattern}</span>&nbsp;はファイル名を選別する<br>
-フィルタである。';' で区切れば複数のパターンを指定できる。<br>
+MS-Windows と GTK では、ファイル選択ダイアログで使われるフィルタを指定できる。<br>
+グローバル変数 g:browsefilter かローカル変数 b:browsefilter を設定すると、フィ<br>
+ルタをグローバルにまたはバッファについてローカルに変更できる。この変数を指定す<br>
+る際の書式は &quot;{filter label}\t<span class="Special">{pattern}</span>;<span class="Special">{pattern}</span>\n&quot; で、{filter label} はコン<br>
+ボボックス「ファイルの種類」に使われるテキスト、<span class="Special">{pattern}</span>&nbsp;はファイル名を選別す<br>
+るフィルタである。';' で区切れば複数のパターンを指定できる。<br>
 <br>
 Motif上のVimでは同じ書式が使えるが、実際には1番目のパターンだけが使われる<br>
 (Motifではパターンは1種類しか使えないが、それをユーザが編集できる)。<br>
 <br>
 例えばダイアログでVim関連ファイルだけを表示するには、以下のコマンドを使う。<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp; let g:browsefilter=&quot;Vim Scripts\t*.vim\nVim Startup Files\t*vimrc\n&quot;</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp; let g:browsefilter = &quot;Vim Scripts\t*.vim\nVim Startup Files\t*vimrc\n&quot;</div>
 <br>
 フィルタは、変数 b:browsefilter を設定することでバッファ毎に設定できる。<br>
 b:browsefilter はファイルタイププラグインで設定することが一番多いだろう。<br>
@@ -1233,6 +1237,13 @@ b:browsefilter はファイルタイププラグインで設定することが�
 補が表示される。弊害: 別の種類のファイルの編集が始め辛くなる。対策は、フィルタ<br>
 の最後の項目に &quot;All Files\t*.*\n&quot; を加え、ユーザが望みのファイルにアクセスでき<br>
 る道を残すことだ。<br>
+<br>
+Vim が browsefilter をサポートしていないときにそれを設定しないようにするには、<br>
+has(&quot;browsefilter&quot;) が使えます:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if has(&quot;browsefilter&quot;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; let g:browsefilter = &quot;whatever&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif</div>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 7. カレントディレクトリ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="editing.html#current-directory" name="current-directory">*current-directory*</a><br>
