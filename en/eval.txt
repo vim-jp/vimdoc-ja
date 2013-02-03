@@ -1,4 +1,4 @@
-*eval.txt*	For Vim version 7.3.  Last change: 2012 Sep 05
+*eval.txt*	For Vim version 7.3.  Last change: 2013 Jan 23
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -91,8 +91,8 @@ For boolean operators Numbers are used.  Zero is FALSE, non-zero is TRUE.
 Note that in the command >
 	:if "foo"
 "foo" is converted to 0, which means FALSE.  To test for a non-empty string,
-use strlen(): >
-	:if strlen("foo")
+use empty(): >
+	:if !empty("foo")
 <				*E745* *E728* *E703* *E729* *E730* *E731*
 List, Dictionary and Funcref types are not automatically converted.
 
@@ -1716,7 +1716,7 @@ call( {func}, {arglist} [, {dict}])
 				any	call {func} with arguments {arglist}
 ceil( {expr})			Float	round {expr} up
 changenr()			Number	current change number
-char2nr( {expr})		Number	ASCII value of first char in {expr}
+char2nr( {expr}[, {utf8}])	Number	ASCII/UTF8 value of first char in {expr}
 cindent( {lnum})		Number	C indent for line {lnum}
 clearmatches()			none	clear all matches
 col( {expr})			Number	column nr of cursor or mark
@@ -1873,7 +1873,7 @@ mkdir( {name} [, {path} [, {prot}]])
 mode( [expr])			String	current editing mode
 mzeval( {expr})			any	evaluate |MzScheme| expression
 nextnonblank( {lnum})		Number	line nr of non-blank line >= {lnum}
-nr2char( {expr})		String	single char with ASCII value {expr}
+nr2char( {expr}[, {utf8}])	String	single char with ASCII/UTF8 value {expr}
 or( {expr}, {expr})		Number  bitwise OR
 pathshorten( {expr})		String	shorten directory names in a path
 pow( {x}, {y})			Float	{x} to the power of {y}
@@ -1903,6 +1903,8 @@ repeat( {expr}, {count})	String	repeat {expr} {count} times
 resolve( {filename})		String	get filename a shortcut points to
 reverse( {list})		List	reverse {list} in-place
 round( {expr})			Float	round off {expr}
+screencol()			Number	current cursor column
+screenrow()			Number	current cursor row
 search( {pattern} [, {flags} [, {stopline} [, {timeout}]]])
 				Number	search for {pattern}
 searchdecl( {name} [, {global} [, {thisblock}]])
@@ -1932,6 +1934,7 @@ setwinvar( {nr}, {varname}, {val})	set {varname} in window {nr} to {val}
 shellescape( {string} [, {special}])
 				String	escape {string} for use as shell
 					command argument
+shiftwidth()			Number	effective value of 'shiftwidth'
 simplify( {filename})		String	simplify filename as much as possible
 sin( {expr})			Float	sine of {expr}
 sinh( {expr})			Float	hyperbolic sine of {expr}
@@ -2291,14 +2294,16 @@ changenr()						*changenr()*
 		redo it is the number of the redone change.  After undo it is
 		one less than the number of the undone change.
 
-char2nr({expr})						*char2nr()*
+char2nr({expr}[, {utf8}])					*char2nr()*
 		Return number value of the first char in {expr}.  Examples: >
 			char2nr(" ")		returns 32
 			char2nr("ABC")		returns 65
-<		The current 'encoding' is used.  Example for "utf-8": >
+<		When {utf8} is omitted or zero, the current 'encoding' is used.
+		Example for "utf-8": >
 			char2nr("á")		returns 225
 			char2nr("á"[0])		returns 195
-<		A combining character is a separate character.
+<		With {utf8} set to 1, always treat as utf-8 characters.
+		A combining character is a separate character.
 		|nr2char()| does the opposite.
 
 cindent({lnum})						*cindent()*
@@ -3754,10 +3759,10 @@ inputdialog({prompt} [, {text} [, {cancelreturn}]])		*inputdialog()*
 		Like |input()|, but when the GUI is running and text dialogs
 		are supported, a dialog window pops up to input the text.
 		Example: >
-			:let n = inputdialog("value for shiftwidth", &sw)
-			:if n != ""
-			:  let &sw = n
-			:endif
+		   :let n = inputdialog("value for shiftwidth", shiftwidth())
+		   :if n != ""
+		   :  let &sw = n
+		   :endif
 <		When the dialog is cancelled {cancelreturn} is returned.  When
 		omitted an empty string is returned.
 		Hitting <Enter> works like pressing the OK button.  Hitting
@@ -4368,14 +4373,16 @@ nextnonblank({lnum})					*nextnonblank()*
 		below it, zero is returned.
 		See also |prevnonblank()|.
 
-nr2char({expr})						*nr2char()*
+nr2char({expr}[, {utf8}])				*nr2char()*
 		Return a string with a single character, which has the number
 		value {expr}.  Examples: >
 			nr2char(64)		returns "@"
 			nr2char(32)		returns " "
-<		The current 'encoding' is used.  Example for "utf-8": >
+<		When {utf8} is omitted or zero, the current 'encoding' is used.
+		Example for "utf-8": >
 			nr2char(300)		returns I with bow character
-<		Note that a NUL character in the file is specified with
+<		With {utf8} set to 1, always return utf-8 characters.
+		Note that a NUL character in the file is specified with
 		nr2char(10), because NULs are represented with newline
 		characters.  nr2char(0) is a real NUL and terminates the
 		string, thus results in an empty string.
@@ -4450,6 +4457,7 @@ printf({fmt}, {expr1} ...)				*printf()*
 
 		Often used items are:
 		  %s	string
+		  %6S	string right-aligned in 6 display cells
 		  %6s	string right-aligned in 6 bytes
 		  %.9s	string truncated to 9 bytes
 		  %c	single byte
@@ -4564,6 +4572,10 @@ printf({fmt}, {expr1} ...)				*printf()*
 		s	The text of the String argument is used.  If a
 			precision is specified, no more bytes than the number
 			specified are used.
+		S	The text of the String argument is used.  If a
+			precision is specified, no more display cells than the
+			number specified are used.  Without the |+multi_byte|
+			feature works just like 's'.
 
 							*printf-f* *E807*
 		f	The Float argument is converted into a string of the 
@@ -4866,15 +4878,34 @@ round({expr})							*round()*
 			echo round(-4.5)
 <			-5.0
 		{only available when compiled with the |+float| feature}
-		
-		
+
+screencol()							*screencol()*
+		The result is a Number, which is the current screen column of
+		the cursor. The leftmost column has number 1.
+		This function is mainly used for testing.
+
+		Note: Always returns the current screen column, thus if used
+		in a command (e.g. ":echo screencol()") it will return the
+		column inside the command line, which is 1 when the command is
+		executed. To get the cursor position in the file use one of
+		the following mappings: >
+			nnoremap <expr> GG ":echom ".screencol()."\n"
+			nnoremap <silent> GG :echom screencol()<CR>
+<
+screenrow()							*screenrow()*
+		The result is a Number, which is the current screen row of the
+		cursor.  The top line has number one.
+		This function is mainly used for testing.
+
+		Note: Same restrictions as with |screencol()|.
+
 search({pattern} [, {flags} [, {stopline} [, {timeout}]]])	*search()*
 		Search for regexp pattern {pattern}.  The search starts at the
 		cursor position (you can use |cursor()| to set it).
 
+		When a match has been found its line number is returned.
 		If there is no match a 0 is returned and the cursor doesn't
 		move.  No error message is given.
-		When a match has been found its line number is returned.
 
 		{flags} is a String, which can contain these character flags:
 		'b'	search backward instead of forward
@@ -5331,6 +5362,23 @@ shellescape({string} [, {special}])			*shellescape()*
 		    :call system("chmod +w -- " . shellescape(expand("%")))
 
 
+shiftwidth()						*shiftwidth()*
+		Returns the effective value of 'shiftwidth'. This is the
+		'shiftwidth' value unless it is zero, in which case it is the
+		'tabstop' value.  To be backwards compatible in indent
+		plugins, use this: >
+			if exists('*shiftwidth')
+			  func s:sw()
+			    return shiftwidth()
+			  endfunc
+			else
+			  func s:sw()
+			    return &sw
+			  endfunc
+			endif
+<		And then use s:sw() instead of &sw.
+
+
 simplify({filename})					*simplify()*
 		Simplify the file name as much as possible without changing
 		the meaning.  Shortcuts (on MS-Windows) or symbolic links (on
@@ -5460,7 +5508,8 @@ split({expr} [, {pattern} [, {keepempty}]])			*split()*
 		empty each white-separated sequence of characters becomes an
 		item.
 		Otherwise the string is split where {pattern} matches,
-		removing the matched characters.
+		removing the matched characters. 'ignorecase' is not used
+		here, add \c to ignore case. |/\c|
 		When the first or last item is empty it is omitted, unless the
 		{keepempty} argument is given and it's non-zero.
 		Other empty items are kept when {pattern} matches at least one
@@ -5670,8 +5719,10 @@ substitute({expr}, {pat}, {sub}, {flags})		*substitute()*
 		This works like the ":substitute" command (without any flags).
 		But the matching with {pat} is always done like the 'magic'
 		option is set and 'cpoptions' is empty (to make scripts
-		portable).  'ignorecase' is still relevant.  'smartcase' is
-		not used.  See |string-match| for how {pat} is used.
+		portable).  'ignorecase' is still relevant, use |/\c| or |/\C|
+		if you want to ignore or match case and ignore 'ignorecase'.
+		'smartcase' is not used.  See |string-match| for how {pat} is
+		used.
 
 		A "~" in {sub} is not replaced with the previous {sub}.
 		Note that some codes in {sub} have a special meaning
@@ -5892,8 +5943,9 @@ taglist({expr})							*taglist()*
 		If there are no matching tags, then an empty list is returned.
 
 		To get an exact tag match, the anchors '^' and '$' should be
-		used in {expr}.  Refer to |tag-regexp| for more information
-		about the tag search regular expression pattern.
+		used in {expr}.  This also make the function work faster.
+		Refer to |tag-regexp| for more information about the tag
+		search regular expression pattern.
 
 		Refer to |'tags'| for information about how the tags file is
 		located by Vim. Refer to |tags-file-format| for the format of
@@ -6136,8 +6188,9 @@ winline()	The result is a Number, which is the screen line of the cursor
 winnr([{arg}])	The result is a Number, which is the number of the current
 		window.  The top window has number 1.
 		When the optional argument is "$", the number of the
-		last window is returned (the window count).
-		When the optional argument is "#", the number of the last
+		last window is returned (the window count). >
+			let window_count = winnr('$')
+<		When the optional argument is "#", the number of the last
 		accessed window is returned (where |CTRL-W_p| goes to).
 		If there is no previous window or it is in another tab page 0
 		is returned.
@@ -6508,6 +6561,8 @@ See |:verbose-cmd| for more information.
 			is excluded, ":{range}call" will call the function for
 			each line in the range, with the cursor on the start
 			of each line.  See |function-range-example|.
+			The cursor is still moved to the first line of the
+			range, as is the case with all Ex commands.
 
 			When the [abort] argument is added, the function will
 			abort as soon as an error is detected.

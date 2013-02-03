@@ -1,4 +1,4 @@
-*if_pyth.txt*   For Vim version 7.3.  Last change: 2012 Feb 04
+*if_pyth.txt*   For Vim version 7.3.  Last change: 2013 Jan 30
 
 
 		  VIM REFERENCE MANUAL    by Paul Moore
@@ -27,7 +27,9 @@ The Python 3 interface is available only when Vim was compiled with the
 
 					*:python* *:py* *E205* *E263* *E264*
 :[range]py[thon] {stmt}
-			Execute Python statement {stmt}.
+			Execute Python statement {stmt}.  A simple check if
+			the `:python` command is working: >
+				:python print "Hello"
 
 :[range]py[thon] << {endmarker}
 {script}
@@ -52,8 +54,8 @@ Example: >
 	EOF
 	endfunction
 <
-Note: Python is very sensitive to the indenting.  Also make sure the "class"
-line and "EOF" do not have any indent.
+Note: Python is very sensitive to the indenting.  Make sure the "class" line
+and "EOF" do not have any indent.
 
 							*:pyfile* *:pyf*
 :[range]pyf[ile] {file}
@@ -157,6 +159,26 @@ vim.bindeval(str)					*python-bindeval*
 	   vimlist or vimdictionary python type that are connected to original 
 	   list or dictionary. Thus modifications to these objects imply 
 	   modifications of the original.
+
+	   Additionally, vimlist and vimdictionary type have read-write 
+	   `.locked` attribute that returns
+	     Value           Meaning ~
+	     zero            Variable is not locked
+	     vim.VAR_LOCKED  Variable is locked, but can be unlocked
+	     vim.VAR_FIXED   Variable is locked and can't be unlocked
+	   integer constants. If variable is not fixed, you can do 
+	   `var.locked=True` to lock it and `var.locked=False` to unlock. 
+	   There is no recursive locking like |:lockvar|! does. There is also 
+	   no way to lock a specific key or check whether it is locked (in any 
+	   case these locks are ignored by anything except |:let|: |extend()| 
+	   does not care, neither does python interface).
+
+	   Vimdictionary type also supports `.scope` attribute which is one of
+	     Value              Meaning ~
+	     zero               Dictionary is not a scope one
+	     vim.VAR_DEF_SCOPE  Function-local or global scope dictionary
+	     vim.VAR_SCOPE      Other scope dictionary
+
 	2. if expression evaluates to a function reference, then it returns 
 	   callable vimfunction object. Use self keyword argument to assign 
 	   |self| object for dictionary functions.
@@ -362,8 +384,10 @@ sure edit "gvim.exe" and search for "python\d*.dll\c".
 8. Python 3						*python3*
 
 							*:py3* *:python3*
-The |:py3| and |:python3| commands work similar to |:python|.
-							*:py3file*
+The |:py3| and |:python3| commands work similar to |:python|.  A simple check
+if the `:py3` command is wrong: >
+	:py3 print("Hello")
+<							*:py3file*
 The |:py3file| command works similar to |:pyfile|.
 
 
