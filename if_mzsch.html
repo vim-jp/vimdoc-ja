@@ -15,7 +15,8 @@ Vim の MzScheme インターフェイス&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb
 3. スレッド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_mzsch.html#mzscheme-threads">|mzscheme-threads|</a><br>
 4. MzScheme から Vim にアクセスする&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_mzsch.html#mzscheme-vim">|mzscheme-vim|</a><br>
 5. mzeval() Vim 関数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_mzsch.html#mzscheme-mzeval">|mzscheme-mzeval|</a><br>
-6. 動的ローディング&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_mzsch.html#mzscheme-dynamic">|mzscheme-dynamic|</a><br>
+6. 関数参照を使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_mzsch.html#mzscheme-funcref">|mzscheme-funcref|</a><br>
+7. 動的ローディング&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_mzsch.html#mzscheme-dynamic">|mzscheme-dynamic|</a><br>
 <br>
 <span class="Special">{Vi にはこれらのコマンドはない}</span><br>
 <br>
@@ -25,10 +26,16 @@ MzScheme インターフェイスは、Vim が&nbsp;<a class="Identifier" href="
 Brent Fulgham の作業にもとづいています。<br>
 動的ローディングは Sergey Khorev によって追加されました。<br>
 <br>
-MzScheme のダウンロードや情報については:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Constant"><a href="http://www.plt-scheme.org/software/mzscheme/">http://www.plt-scheme.org/software/mzscheme/</a></span><br>
+MzScheme と PLT Scheme は Racket という名前になりました。詳しいことは<br>
+<span class="Constant"><a href="http://racket-lang.org">http://racket-lang.org</a></span>&nbsp;を見てください。<br>
 <br>
-<span class="Todo">Note</span>: FreeBSD では &quot;drscheme&quot; port を使ってください。<br>
+Racket 5.x (5.3.1も含む) の futures と places は Vim から作成されたプロセスで<br>
+は機能しません。<br>
+簡単な解決法はそれらの機能を無効にした Racket を自分でビルドすることです。:<br>
+<div class="helpExample">&nbsp;&nbsp;./configure --disable-futures --disable-places --prefix=your-install-prefix</div>
+<br>
+プロセスを高速化するには、--disable-gracket と --disable-docs も指定するといい<br>
+かもしれません。<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 1. コマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_mzsch.html#mzscheme-commands" name="mzscheme-commands">*mzscheme-commands*</a><br>
@@ -158,11 +165,13 @@ MzScheme インターフェイスはスレッドをサポートしています�
 <span class="PreProc">------</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;(command&nbsp;<span class="Special">{command-string}</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Vim の Ex コマンドを実行する。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(eval&nbsp;<span class="Special">{expr-string}</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Vim の式を評価し、対応する MzScheme のオブ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ジェクトに変換する。リスト&nbsp;<a class="Identifier" href="eval.html#Lists">|Lists|</a>&nbsp;は<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Scheme のリストとなり、辞書<a class="Identifier" href="eval.html#Dictionaries">|Dictionaries|</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;はハッシュテーブルとなる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ジェクトに変換する。リスト (<a class="Identifier" href="eval.html#Lists">|Lists|</a>) は<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Scheme のリスト、辞書 (<a class="Identifier" href="eval.html#Dictionaries">|Dictionaries|</a>) は<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;はハッシュテーブル、関数参照 (<a class="Identifier" href="eval.html#Funcref">|Funcref|</a>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;は関数になる。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">NOTE</span>: MzScheme の eval と名前が衝突してい<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;るので、呼び出すにはモジュール限定詞を使っ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;てください。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(range-start)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Scheme コマンドに渡された範囲の開始行<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(range-end)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /終了行を取得<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(beep)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ビープを鳴らす<br>
@@ -247,7 +256,23 @@ MzScheme インターフェイスはスレッドをサポートしています�
 MzScheme の式を評価してその結果を VimL の値に変換したものを返します。<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-6. 動的ローディング&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_mzsch.html#mzscheme-dynamic" name="mzscheme-dynamic">*mzscheme-dynamic*</a>&nbsp;<a class="Constant" href="if_mzsch.html#E815" name="E815">*E815*</a><br>
+6. 関数参照を使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_mzsch.html#mzscheme-funcref" name="mzscheme-funcref">*mzscheme-funcref*</a><br>
+<br>
+MzScheme インターフェースでは関数参照 (<a class="Identifier" href="eval.html#Funcref">|Funcref|</a>) が使えます。Vim の関数を<br>
+Scheme から直接呼び出せます。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;function! MyAdd2(arg)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return a:arg + 2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;endfunction<br>
+&nbsp;&nbsp;&nbsp;&nbsp;mz (define f2 (vim-eval &quot;function(\&quot;MyAdd2\&quot;)&quot;))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;mz (f2 7)</div>
+&nbsp;&nbsp;または :<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;:mz (define indent (vim-eval &quot;function('indent')&quot;))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&quot; return Vim indent for line 12<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:mz (indent 12)</div>
+<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+7. 動的ローディング&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_mzsch.html#mzscheme-dynamic" name="mzscheme-dynamic">*mzscheme-dynamic*</a>&nbsp;<a class="Constant" href="if_mzsch.html#E815" name="E815">*E815*</a><br>
 <br>
 MS-Windows では MzScheme ライブラリを動的に読み込むことが可能です。これを行う<br>
 と&nbsp;<a class="Identifier" href="various.html#:version">|:version|</a>&nbsp;の出力に&nbsp;<a class="Identifier" href="various.html#+mzscheme/dyn">|+mzscheme/dyn|</a>&nbsp;が含まれるようになります。<br>
