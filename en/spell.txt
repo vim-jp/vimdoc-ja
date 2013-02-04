@@ -1,4 +1,4 @@
-*spell.txt*	For Vim version 7.1.  Last change: 2007 May 07
+*spell.txt*	For Vim version 7.3.  Last change: 2011 May 25
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -21,7 +21,7 @@ vimspell" to find about it.  But you will probably want to get rid of the
 plugin and use the 'spell' option instead, it works better.
 
 ==============================================================================
-1. Quick start						*spell-quickstart*
+1. Quick start					*spell-quickstart* *E756*
 
 This command switches on spell checking: >
 
@@ -46,7 +46,7 @@ won't work.
 
 To search for the next misspelled word:
 
-							*]s* *E756*
+							*]s*
 ]s			Move to next misspelled word after the cursor.
 			A count before the command can be used to repeat.
 			'wrapscan' applies.
@@ -335,6 +335,9 @@ A spell file might not be available in the current 'encoding'.  See
 |spell-mkspell| about how to create a spell file.  Converting a spell file
 with "iconv" will NOT work!
 
+Note: on VMS ".{enc}.spl" is changed to "_{enc}.spl" to avoid trouble with
+filenames.
+
 						    *spell-sug-file* *E781*
 If there is a file with exactly the same name as the ".spl" file but ending in
 ".sug", that file will be used for giving better suggestions.  It isn't loaded
@@ -468,8 +471,11 @@ Vim uses a binary file format for spelling.  This greatly speeds up loading
 the word list and keeps it small.
 						    *.aff* *.dic* *Myspell*
 You can create a Vim spell file from the .aff and .dic files that Myspell
-uses.  Myspell is used by OpenOffice.org and Mozilla.  You should be able to
-find them here:
+uses.  Myspell is used by OpenOffice.org and Mozilla. The OpenOffice .oxt 
+files are zip files which contain the .aff and .dic files. You should be able
+to find them here:
+	http://extensions.services.openoffice.org/dictionary
+The older, OpenOffice 2 files may be used if this doesn't work:
 	http://wiki.services.openoffice.org/wiki/Dictionaries
 You can also use a plain word list.  The results are the same, the choice
 depends on what word lists you can find.
@@ -516,7 +522,7 @@ then Vim will try to guess.
 			Up to eight regions can be combined. *E754* *E755*
 			The REP and SAL items of the first .aff file where
 			they appear are used. |spell-REP| |spell-SAL|
-
+								*E845*
 			This command uses a lot of memory, required to find
 			the optimal word tree (Polish, Italian and Hungarian
 			require several hundred Mbyte).  The final result will
@@ -619,7 +625,8 @@ SPELL FILE MISSING		*spell-SpellFileMissing* *spellfile.vim*
 If the spell file for the language you are using is not available, you will
 get an error message.  But if the "spellfile.vim" plugin is active it will
 offer you to download the spell file.  Just follow the instructions, it will
-ask you where to write the file.
+ask you where to write the file (there must be a writable directory in
+'runtimepath' for this).
 
 The plugin has a default place where to look for spell files, on the Vim ftp
 server.  If you want to use another location or another protocol, set the
@@ -830,8 +837,11 @@ Comment lines in the .aff file start with a '#':
 
 	# comment line ~
 
-With some items it's also possible to put a comment after it, but this isn't
-supported in general.
+Items with a fixed number of arguments can be followed by a comment.  But only
+if none of the arguments can contain white space.  The comment must start with
+a "#" character.  Example:
+
+	KEEPCASE =  # fix case for words with this flag ~
 
 
 ENCODING							*spell-SET*
@@ -963,6 +973,9 @@ When using "caplong" the two-character flags all start with a capital: "Aa",
 common items and two-character flags for uncommon items.
 
 Note: When using utf-8 only characters up to 65000 may be used for flags.
+
+Note: even when using "num" or "long" the number of flags available to
+compounding and prefixes is limited to about 250.
 
 
 AFFIXES
@@ -1177,6 +1190,9 @@ word as good.
 The flag also applies to the word with affixes, thus this can be used to mark
 a whole bunch of related words as bad.
 
+							*spell-FORBIDDENWORD*
+FORBIDDENWORD can be used just like BAD.  For compatibility with Hunspell.
+
 							*spell-NEEDAFFIX*
 The NEEDAFFIX flag is used to require that a word is used with an affix.  The
 word itself is not a good word (unless there is an empty affix).  Example:
@@ -1228,6 +1244,7 @@ one or more groups, where each group can be:
 Optionally this may be followed by:
 	*	the group appears zero or more times, e.g., sm*e
 	+	the group appears one or more times, e.g., c+
+	?	the group appears zero times or once, e.g., x?
 
 This is similar to the regexp pattern syntax (but not the same!).  A few
 examples with the sequence of word flags they require:
@@ -1235,6 +1252,7 @@ examples with the sequence of word flags they require:
     COMPOUNDRULE yz	    yz
     COMPOUNDRULE x+z	    xz xxz xxxz etc.
     COMPOUNDRULE yx+	    yx yxx yxxx etc.
+    COMPOUNDRULE xy?z	    xz xyz
 
     COMPOUNDRULE [abc]z    az bz cz
     COMPOUNDRULE [abc]+z   az aaz abaz bz baz bcbz cz caz cbaz etc.
@@ -1266,6 +1284,10 @@ The NEEDCOMPOUND flag is used to require that a word is used as part of a
 compound word.  The word itself is not a good word.  Example:
 
 	NEEDCOMPOUND & ~
+
+							*spell-ONLYINCOMPOUND*
+The ONLYINCOMPOUND does exactly the same as NEEDCOMPOUND.  Supported for
+compatibility with Hunspell.
 
 							*spell-COMPOUNDMIN*
 The minimal character length of a word used for compounding is specified with
@@ -1326,6 +1348,20 @@ The COMPOUNDROOT flag is used for words in the dictionary that are already a
 compound.  This means it counts for two words when checking the compounding
 rules.  Can also be used for an affix to count the affix as a compounding
 word.
+
+						*spell-CHECKCOMPOUNDPATTERN*
+CHECKCOMPOUNDPATTERN is used to define patterns that, when matching at the
+position where two words are compounded together forbids the compound.
+For example:
+	CHECKCOMPOUNDPATTERN o e ~
+
+This forbids compounding if the first word ends in "o" and the second word
+starts with "e".
+
+The arguments must be plain text, no patterns are actually supported, despite
+the item name.  Case is always ignored.
+
+The Hunspell feature to use three arguments and flags is not supported.
 
 							*spell-SYLLABLE*
 The SYLLABLE item defines characters or character sequences that are used to
@@ -1495,6 +1531,10 @@ ignored, not supported or defined in another way.
 ACCENT		(Hunspell)				*spell-ACCENT*
 		Use MAP instead. |spell-MAP|
 
+BREAK		(Hunspell)				*spell-BREAK*
+		Define break points.  Unclear how it works exactly.
+		Not supported.
+
 CHECKCOMPOUNDCASE  (Hunspell)			*spell-CHECKCOMPOUNDCASE*
 		Disallow uppercase letters at compound word boundaries.
 		Not supported.
@@ -1510,9 +1550,6 @@ CHECKCOMPOUNDREP  (Hunspell)			*spell-CHECKCOMPOUNDREP*
 CHECKCOMPOUNDTRIPLE  (Hunspell)			*spell-CHECKCOMPOUNDTRIPLE*
 		Forbid three identical characters when compounding.  Not
 		supported.
-
-CHECKCOMPOUNDPATTERN  (Hunspell)		*spell-CHECKCOMPOUNDPATTERN*
-		Forbid compounding when patterns match.  Not supported.
 
 COMPLEXPREFIXES  (Hunspell)				*spell-COMPLEXPREFIXES*
 		Enables using two prefixes.  Not supported.
@@ -1535,13 +1572,18 @@ COMPOUNDEND	(Hunspell)				*spell-COMPOUNDEND*
 COMPOUNDMIDDLE	(Hunspell)				*spell-COMPOUNDMIDDLE*
 		Use COMPOUNDRULE instead. |spell-COMPOUNDRULE|
 
+COMPOUNDRULES	(Hunspell)				*spell-COMPOUNDRULES*
+		Number of COMPOUNDRULE lines following.  Ignored, but the
+		argument must be a number.
+
 COMPOUNDSYLLABLE  (Hunspell)			*spell-COMPOUNDSYLLABLE*
 		Use SYLLABLE and COMPOUNDSYLMAX instead. |spell-SYLLABLE|
 		|spell-COMPOUNDSYLMAX|
 
-FORBIDDENWORD	(Hunspell)				*spell-FORBIDDENWORD*
-		Use BAD instead. |spell-BAD|
-
+KEY		(Hunspell)				*spell-KEY*
+		Define characters that are close together on the keyboard.
+		Used to give better suggestions.  Not supported.
+		
 LANG		(Hunspell)				*spell-LANG*
 		This specifies language-specific behavior.  This actually
 		moves part of the language knowledge into the program,
@@ -1552,10 +1594,7 @@ LEMMA_PRESENT	(Hunspell)				*spell-LEMMA_PRESENT*
 		Only needed for morphological analysis.
 
 MAXNGRAMSUGS	(Hunspell)				*spell-MAXNGRAMSUGS*
-		Not supported.
-
-ONLYINCOMPOUND	(Hunspell)				*spell-ONLYINCOMPOUND*
-		Use NEEDCOMPOUND instead. |spell-NEEDCOMPOUND|
+		Set number of n-gram suggestions.  Not supported.
 
 PSEUDOROOT	(Hunspell)				*spell-PSEUDOROOT*
 		Use NEEDAFFIX instead. |spell-NEEDAFFIX|
