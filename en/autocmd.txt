@@ -1,4 +1,4 @@
-*autocmd.txt*   For Vim version 7.3.  Last change: 2013 Mar 13
+*autocmd.txt*   For Vim version 7.3.  Last change: 2013 May 19
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -519,8 +519,9 @@ CursorMoved			After the cursor was moved in Normal mode.
 				Not triggered when there is typeahead or when
 				an operator is pending.
 				For an example see |match-parens|.
-				Careful: Don't do anything that the user does
-				not expect or that is slow.
+				Careful: This is triggered very often, don't
+				do anything that the user does not expect or
+				that is slow.
 							*CursorMovedI*
 CursorMovedI			After the cursor was moved in Insert mode.
 				Not triggered when the popup menu is visible.
@@ -690,8 +691,11 @@ InsertCharPre			When a character is typed in Insert mode,
 InsertEnter			Just before starting Insert mode.  Also for
 				Replace mode and Virtual Replace mode.  The
 				|v:insertmode| variable indicates the mode.
-				Be careful not to move the cursor or do
-				anything else that the user does not expect.
+				Be careful not to do anything else that the
+				user does not expect.
+				The cursor is restored afterwards.  If you do
+				not want that set |v:char| to a non-empty
+				string.
 							*InsertLeave*
 InsertLeave			When leaving Insert mode.  Also when using
 				CTRL-O |i_CTRL-O|.  But not for |i_CTRL-C|.
@@ -831,12 +835,27 @@ TermResponse			After the response to |t_RV| is received from
 				triggered halfway executing another event,
 				especially if file I/O, a shell command or
 				anything else that takes time is involved.
+							*TextChanged*
+TextChanged			After a change was made to the text in the
+				current buffer in Normal mode.  That is when
+				|b:changedtick| has changed.
+				Not triggered when there is typeahead or when
+				an operator is pending.
+				Careful: This is triggered very often, don't
+				do anything that the user does not expect or
+				that is slow.
+							*TextChangedI*
+TextChangedI			After a change was made to the text in the
+				current buffer in Insert mode.
+				Not triggered when the popup menu is visible.
+				Otherwise the same as TextChanged.
 							*User*
 User				Never executed automatically.  To be used for
 				autocommands that are only executed with
 				":doautocmd".
 							*UserGettingBored*
-UserGettingBored		When the user hits CTRL-C.  Just kidding! :-)
+UserGettingBored		When the user presses the same key 42 times.
+				Just kidding! :-)
 							*VimEnter*
 VimEnter			After doing all the startup stuff, including
 				loading .vimrc files, executing the "-c cmd"
