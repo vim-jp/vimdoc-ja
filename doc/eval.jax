@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 7.3.  Last change: 2013 Mar 10
+*eval.txt*	For Vim バージョン 7.3.  Last change: 2013 May 21
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1108,14 +1108,14 @@ function(expr1, ...)	関数呼出
 	:    unlet s:[k]
 	:endfor
 <
-						*buffer-variable* *b:var*
+						*buffer-variable* *b:var* *b:*
 "b:" で始まる変数名は、カレントバッファに局所的な変数を意味する。このように一
 つ一つのバッファ毎に、変数 "b:foo" を別々に使用することができる。この種の変数
 はバッファが掃除(wipe out)された時や、":bdelete" で削除された時に一緒に削除さ
 れる。
 
 1つのバッファローカル変数が定義済:
-					*b:changedtick-variable* *changetick*
+					*b:changedtick* *changetick*
 b:changedtick	現在のバッファに対する総変更の回数。変更を行うたびに増加する。
 		これには一回のアンドゥ操作もカウントされる。この変数はバッファ
 		に変更が行われた際にだけアクションを起こしたい時に利用できる。
@@ -1125,21 +1125,21 @@ b:changedtick	現在のバッファに対する総変更の回数。変更を行
 		    :   call My_Update()
 		    :endif
 <
-						*window-variable* *w:var*
+						*window-variable* *w:var* *w:*
 "w:" で始まる変数名は、カレントウィンドウにローカルな変数を意味する。これはウィ
 ンドウを閉じるときに破棄される。
 
-						*tabpage-variable* *t:var*
+						*tabpage-variable* *t:var* *t:*
 "t:" で始まる変数名は、カレントタブページにローカルな変数を意味する。これはタ
 ブページを閉じるときに破棄される。{|+windows| 機能つきでコンパイルしたときのみ
 利用可能}
 
-						*global-variable* *g:var*
+						*global-variable* *g:var* *g:*
 関数の中からグローバル変数へアクセスするには、"g:" を付けた名前を使用する。こ
 れが省略された場合は関数ローカルな変数にアクセスする。ただし "g:" 自体は、関数
 の外でも使うことができる。
 
-						*local-variable* *l:var*
+						*local-variable* *l:var* *l:*
 関数の中からそのローカル変数にアクセスするには何も前置しなければ良い。明示的
 に "l:" を付けることも可能である。ただし "l:" をつけないと予約されている変数名
 と衝突してしまうことがある。例: "count" とすると "v:count" を参照してしまう。
@@ -1219,7 +1219,7 @@ Note これはつまり、ファイルタイププラグインはバッファご
 |b:var|を使うこと。
 
 
-Vimの定義済変数:				*vim-variable* *v:var*
+Vimの定義済変数:				*vim-variable* *v:var* *v:*
 
 					*v:beval_col* *beval_col-variable*
 v:beval_col	マウスポインタがある桁の桁番号。|v:beval_lnum|行目のバイトイン
@@ -1252,7 +1252,7 @@ v:beval_winnr	マウスポインタがあるウィンドウの番号。オプシ
 v:char		'formatexpr' を評価しているときの引数。また、短縮入力
 		|:map-<expr>| で <expr> を指定しているとき、タイプされた文字を
 		保持する。
-		これは |InsertCharPre| イベントでも使われる。
+		これは |InsertCharPre| と |InsertEnter| イベントでも使われる。
 
 			*v:charconvert_from* *charconvert_from-variable*
 v:charconvert_from
@@ -4469,7 +4469,7 @@ pumvisible()						*pumvisible()*
 		ポップアップメニューを消してしまうような操作を避けるために使わ
 		れる。
 
-							*E860* *E861*
+							*E860*
 py3eval({expr})						*py3eval()*
 		Python の式 {expr} を評価して、結果を Vim のデータ形式にして返
 		す。
@@ -5112,8 +5112,6 @@ settabvar({tabnr}, {varname}, {val})			*settabvar()*
 		定する。 |t:var|
 		Note: 指定する変数名は "t:" を除いた名前。
 		タブの番号は 1 から始まる。
-		Vim が一時的にタブページ {tabnr} に移動するため、TabLeave と
-		TabEnter の自動コマンドが実行される。
 		この関数はサンドボックス (|sandbox|) の中では使えない。
 
 settabwinvar({tabnr}, {winnr}, {varname}, {val})	*settabwinvar()*
@@ -5128,8 +5126,6 @@ settabwinvar({tabnr}, {winnr}, {varname}, {val})	*settabwinvar()*
 		バッファローカルオプションを設定した場合、グローバル値は変更さ
 		れない。
 		Note 変数名には "w:" をつけてはならない。
-		内部的に、一時的にタブページ{tabnr}に移動する。そのためオート
-		コマンドTabLeaveとTabEnterが発生する。
 		例: >
 			:call settabwinvar(1, 1, "&list", 0)
 			:call settabwinvar(3, 2, "myvar", "foobar")
