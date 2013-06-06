@@ -41,6 +41,7 @@ Vimは全ての端末で構文ハイライトをサポートしている。し�
 15. 関数名などのハイライト&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="syntax.html#tag-highlight">|tag-highlight|</a><br>
 16. ウィンドウローカル構文&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="syntax.html#:ownsyntax">|:ownsyntax|</a><br>
 17. カラー対応xterm&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="syntax.html#xterm-color">|xterm-color|</a><br>
+18. シンタックスが遅い時には&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="syntax.html#:syntime">|:syntime|</a><br>
 <br>
 <span class="Special">{Vi にはこれらのコマンドはない}</span><br>
 <br>
@@ -4878,5 +4879,65 @@ xtermのパッチレベル107以上を使い(入手場所は上を参照)、以�
 また、TTproのSetup→Window→Full Colorが有効になっていることと、<br>
 Setup→Font→Enable Boldが無効になっていることを確認すること。<br>
 (この情報はJohn Love-Jensen &lt;eljay@Adobe.COM&gt;によって提供された)<br>
+<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+18. シンタックスが遅い時には&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#:syntime" name=":syntime">*:syntime*</a><br>
+<br>
+この章はシンタックスファイルを作る人向けである。<br>
+<br>
+もしあなたの作ったシンタックスにより再描画が遅くなってしまったら、ここに書いた<br>
+方法でそれを速くできるかもしれない。<a class="Identifier" href="fold.html#folding">|folding|</a>&nbsp;や&nbsp;<a class="Type" href="options.html#'relativenumber'">'relativenumber'</a>&nbsp;といった機能<br>
+を有効化すると、それらが干渉して遅くなる場合もある。<br>
+<br>
+時間のかかっているシンタックスパターンを発見するために、以下の様な手順で概要を<br>
+得られる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;:syntime on<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[ CTRL-L で最低でも一度は再描画を実行する ]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;:syntime report</div>
+<br>
+これにより利用されたシンタックスパターンが、マッチにかかった時間の多い順にソー<br>
+トして表示される。<br>
+<br>
+:syntime on&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; シンタックスにかかる時間の測定を開始する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;測定をするにはシンタックスパターンのマッチに多少のオーバーヘッドが<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;発生する。<br>
+<br>
+:syntime off&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シンタックスの計測を終了する。<br>
+<br>
+:syntime clear&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;全部のカウンタを 0 にし、計測をやり直す。<br>
+<br>
+:syntime report&nbsp;&nbsp;&nbsp;&nbsp; 現在のウィンドウで &quot;:syntime on&quot; してから使用されたシンタ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ックス要素を表示する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;出力される内容をちゃんと読むには幅の広いディスプレイを使ったほうが<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;良い。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リストは総時間(TOTAL)でソートされている。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リストには以下のカラムからなる:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TOTAL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; パターンのマッチにかかった総時間<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;COUNT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; パターンが使われた回数<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MATCH&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; パターンが実際にマッチした回数<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SLOWEST&nbsp;&nbsp;&nbsp;&nbsp; マッチ1回あたりの最長時間<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AVERAGE&nbsp;&nbsp;&nbsp;&nbsp; マッチ1回あたりの平均時間<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NAME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;シンタックス要素の名前。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>:&nbsp;&nbsp;一意な名前ではないことに注意。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PATTERN&nbsp;&nbsp;&nbsp;&nbsp; 使用されたパターン<br>
+<br>
+パターンマッチングは多くの可能性を試さなければならないときに遅くなる。<br>
+パターンにできる限り多くのリテラルテキストを含むことで、パターンが無駄にマッチ<br>
+する可能性を減らすよう試してみると良い。<br>
+<br>
+&quot;\@&lt;=&quot; や &quot;\@&lt;!&quot; 要素を使用する時は、マッチする最大サイズを指定すると現在以降<br>
+の行の全部の位置でパターンを試すことを避けられる。<br>
+たとえば要素のマッチするものがリテラルテキストならば、そのテキストのサイズをバ<br>
+イト数で指定すると良い。<br>
+<br>
+&quot;&lt;\@&lt;=span&quot;&nbsp;&nbsp;&nbsp;&nbsp; &quot;&lt;span&quot; 中の &quot;span&quot; にマッチする。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;これは &quot;&lt;&quot; があるかどうか多くの場所でマッチを試みる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ゆえに遅くなりやすい)<br>
+&quot;&lt;\@1&lt;=span&quot;&nbsp;&nbsp;&nbsp;&nbsp;同じものにマッチするが、&quot;span&quot; の前の1バイトだけをチェックする<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;。<br>
+<br>
 <br>
 &nbsp;vim&#0058;tw=78:sw=4:ts=8:ft=help:norl:<br>
