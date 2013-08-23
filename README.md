@@ -4,14 +4,14 @@ Vimの付属ドキュメントを日本語に翻訳するためのプロジェ�
 
 間違いを見つけたらメーリングリストかissueトラッカーでお知らせください。
 
-Gitリポジトリ  
+Gitリポジトリ
 https://github.com/vim-jp/vimdoc-ja
 
-Web版  
+Web版
 http://vim-jp.org/vimdoc-ja/
 
-issueトラッカー  
+issueトラッカー
 https://github.com/vim-jp/vimdoc-ja/issues
 
-メーリングリスト  
+メーリングリスト
 http://groups.google.com/group/vimdoc-ja
