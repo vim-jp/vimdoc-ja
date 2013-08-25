@@ -1,0 +1,1632 @@
+---
+layout: vimdoc
+helpname: 'spell'
+---
+<div id='vimCodeElement'>
+<a class="Constant" href="spell.html" name="spell.txt">*spell.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 7.4.</span>&nbsp;&nbsp;Last change: 2013 Jul 17<br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; by Bram Moolenaar</span><br>
+<br>
+<br>
+スペルチェック&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell" name="spell">*spell*</a><br>
+<br>
+1. はじめに&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#spell-quickstart">|spell-quickstart|</a><br>
+2. スペルチェックの注意点&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#spell-remarks">|spell-remarks|</a><br>
+3. スペルファイルの生成&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#spell-mkspell">|spell-mkspell|</a><br>
+4. スペルファイルの形式&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#spell-file-format">|spell-file-format|</a><br>
+<br>
+<span class="Special">{Vi にはこれらのコマンドはない}</span><br>
+<br>
+コンパイル時に&nbsp;<a class="Identifier" href="various.html#+syntax">|+syntax|</a>&nbsp;機能を無効にした場合にはスペルチェックは利用すること<br>
+ができない。<br>
+<br>
+<span class="Todo">Note</span>: または vimspell プラグインがある。プラグインを入れていればそのプラグイン<br>
+について調べるために &quot;:help vimspell&quot; を実行できる。しかし、おそらくそのプラグ<br>
+インを削除し、代わりに&nbsp;<a class="Type" href="options.html#'spell'">'spell'</a>&nbsp;オプションを使いたいと思うだろう。そちらのほう<br>
+がうまく機能する。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+1. はじめに&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-quickstart" name="spell-quickstart">*spell-quickstart*</a>&nbsp;<a class="Constant" href="spell.html#E756" name="E756">*E756*</a><br>
+<br>
+このコマンドで、スペルチェックがオンになる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal spell spelllang=en_us</div>
+<br>
+<a class="Type" href="options.html#'spell'">'spell'</a>&nbsp;オプションをオンにし、アメリカ英語のチェックを指定する。<br>
+<br>
+認識されない単語は以下のようにハイライトされる:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SpellBad&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;認識されない単語&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="syntax.html#hl-SpellBad">|hl-SpellBad|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SpellCap&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;頭文字が大文字化されていない単語&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="syntax.html#hl-SpellCap">|hl-SpellCap|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SpellRare&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; まれな単語&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="syntax.html#hl-SpellRare">|hl-SpellRare|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SpellLocal&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;選択された地域では間違った綴り&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="syntax.html#hl-SpellLocal">|hl-SpellLocal|</a><br>
+<br>
+Vim は単語の綴りのみをチェックし、文法はチェックしない。<br>
+<br>
+If the&nbsp;<a class="Type" href="options.html#'mousemodel'">'mousemodel'</a>&nbsp;option is set to &quot;popup&quot; and the cursor is on a badly<br>
+spelled word or it is &quot;popup_setpos&quot; and the mouse pointer is on a badly<br>
+spelled word, then the popup menu will contain a submenu to replace the bad<br>
+word.&nbsp;&nbsp;<span class="Todo">Note</span>: this slows down the appearance of the popup menu.&nbsp;&nbsp;<span class="Todo">Note</span>&nbsp;for GTK:<br>
+don't release the right mouse button until the menu appears, otherwise it<br>
+won't work.<br>
+<br>
+次の綴りの間違った単語を探すには:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#]s" name="]s">*]s*</a><br>
+]s&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルの後の、次の綴りの間違った単語に移動する。コマ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ンドの前に count を指定することで、繰り返しができる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'wrapscan'">'wrapscan'</a>&nbsp;が適用される。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#[s" name="[s">*[s*</a><br>
+[s&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;]s&quot; と同様であるが後方検索を行い、カーソルより前の綴<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;りの間違った単語を探す。2行に渡った単語は認識しないた<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;め、間違いとしてハイライトされていない単語で止まること<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;がある。行頭の大文字化されていない単語では止まらない。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#]S" name="]S">*]S*</a><br>
+]S&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;]s&quot; と同様であるが、間違った単語のみで止まり、まれな<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;単語や他の地域の単語では止まらない。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#[S" name="[S">*[S*</a><br>
+[S&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;]S&quot; と同様であるが、後方検索を行う。<br>
+<br>
+<br>
+単語をあなた自身の単語リストに追加するには:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#zg" name="zg">*zg*</a><br>
+zg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルの下の単語を正しい (good) 単語として、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'spellfile'">'spellfile'</a>&nbsp;の最初のファイルに追加する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドの前に count を指定することで、<a class="Type" href="options.html#'spellfile'">'spellfile'</a>&nbsp;内<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;の項目を指定することができる。count として 2 を指定す<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ると、二番目の項目が使われる。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ビジュアルモードで選択された文字は単語として追加される<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(スペースを含む!)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルが間違った綴りとしてマークされた文章の上にある<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;時、そのマークされた文章が使われる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;その一方で単語ではない文字で分けられたカーソルの下の単<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;語が使われる。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If the word is explicitly marked as bad word in<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;another spell file the result is unpredictable.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#zG" name="zG">*zG*</a><br>
+zG&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;zg&quot; と同様であるが、その単語を内部単語リスト<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#internal-wordlist">|internal-wordlist|</a>&nbsp;に加える。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#zw" name="zw">*zw*</a><br>
+zw&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;zg&quot; と同様であるが、間違った (wrong) 単語としてマーク<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;する。もしその単語がすでに&nbsp;<a class="Type" href="options.html#'spellfile'">'spellfile'</a>&nbsp;にある場合は、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コメント行に変更される。それらを取り除くには<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#spellfile-cleanup">|spellfile-cleanup|</a>&nbsp;を参照する。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#zW" name="zW">*zW*</a><br>
+zW&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;zw&quot; と同様であるが、その単語を内部単語リスト<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#internal-wordlist">|internal-wordlist|</a>&nbsp;に加える。<br>
+<br>
+zuw&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#zug" name="zug">*zug*</a>&nbsp;<a class="Constant" href="spell.html#zuw" name="zuw">*zuw*</a><br>
+zug&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#zw">|zw|</a>&nbsp;や&nbsp;<a class="Identifier" href="spell.html#zg">|zg|</a>&nbsp;をundoして、<a class="Type" href="options.html#'spellfile'">'spellfile'</a>&nbsp;の項目からその単<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;語を削除する。count は&nbsp;<a class="Identifier" href="spell.html#zg">|zg|</a>&nbsp;と同様に使われる。<br>
+<br>
+zuW&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#zuG" name="zuG">*zuG*</a>&nbsp;<a class="Constant" href="spell.html#zuW" name="zuW">*zuW*</a><br>
+zuG&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#zW">|zW|</a>&nbsp;や&nbsp;<a class="Identifier" href="spell.html#zG">|zG|</a>&nbsp;をundoして、内部単語リストからその単語を<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;削除する。count は&nbsp;<a class="Identifier" href="spell.html#zg">|zg|</a>&nbsp;と同様に使われる。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#:spe" name=":spe">*:spe*</a>&nbsp;<a class="Constant" href="spell.html#:spellgood" name=":spellgood">*:spellgood*</a><br>
+:<span class="Special">[count]</span>spe[llgood]&nbsp;<span class="Special">{word}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#zg">|zg|</a>&nbsp;と同様に、<span class="Special">{word}</span>&nbsp;を正しい単語として&nbsp;<a class="Type" href="options.html#'spellfile'">'spellfile'</a>に<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;加える。 Without count the first name is used, with a<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count of two the second entry, etc.<br>
+<br>
+:spe[llgood]!&nbsp;<span class="Special">{word}</span>&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#zG">|zG|</a>&nbsp;と同様に、<span class="Special">{word}</span>&nbsp;を正しい単語として内部単語リスト<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;に加える。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#:spellw" name=":spellw">*:spellw*</a>&nbsp;<a class="Constant" href="spell.html#:spellwrong" name=":spellwrong">*:spellwrong*</a><br>
+:<span class="Special">[count]</span>spellw[rong]&nbsp;<span class="Special">{word}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#zw">|zw|</a>&nbsp;と同様に、<span class="Special">{word}</span>&nbsp;を間違った (wrong) 単語として<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'spellfile'">'spellfile'</a>&nbsp;に加える。Without count the first name is<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;used, with a count of two the second entry, etc.<br>
+<br>
+:spellw[rong]!&nbsp;<span class="Special">{word}</span>&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#zW">|zW|</a>&nbsp;と同様に、<span class="Special">{word}</span>&nbsp;を間違った (wrong) 単語として内<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;部単語リストに追加する。<br>
+<br>
+:<span class="Special">[count]</span>spellu[ndo]&nbsp;<span class="Special">{word}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#:spellu" name=":spellu">*:spellu*</a>&nbsp;<a class="Constant" href="spell.html#:spellundo" name=":spellundo">*:spellundo*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#zuw">|zuw|</a>&nbsp;と同様である。<span class="Special">[count]</span>&nbsp;は&nbsp;<a class="Identifier" href="spell.html#:spellgood">|:spellgood|</a>&nbsp;と同様に使<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;われる。<br>
+<br>
+:spellu[ndo]!&nbsp;<span class="Special">{word}</span>&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#zuW">|zuW|</a>&nbsp;と同様である。<span class="Special">[count]</span>&nbsp;は&nbsp;<a class="Identifier" href="spell.html#:spellgood">|:spellgood|</a>&nbsp;と同様に使<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;われる。<br>
+<br>
+<br>
+After adding a word to&nbsp;<a class="Type" href="options.html#'spellfile'">'spellfile'</a>&nbsp;with the above commands its associated<br>
+&quot;.spl&quot; file will automatically be updated and reloaded.&nbsp;&nbsp;If you change<br>
+<a class="Type" href="options.html#'spellfile'">'spellfile'</a>&nbsp;manually you need to use the&nbsp;<a class="Identifier" href="spell.html#:mkspell">|:mkspell|</a>&nbsp;command.&nbsp;&nbsp;This sequence of<br>
+commands mostly works well:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:edit &lt;file in 'spellfile'&gt;</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (make changes to the spell file)<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:mkspell! %</div>
+<br>
+More details about the&nbsp;<a class="Type" href="options.html#'spellfile'">'spellfile'</a>&nbsp;format below&nbsp;<a class="Identifier" href="spell.html#spell-wordlist-format">|spell-wordlist-format|</a>.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#internal-wordlist" name="internal-wordlist">*internal-wordlist*</a><br>
+内部単語リストは&nbsp;<a class="Type" href="options.html#'spell'">'spell'</a>&nbsp;がセットされた全てのバッファで使われる。内部単語リス<br>
+トは蓄えられず、Vim が終了する時に失われる。また&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;がセットされた時に<br>
+クリアされる。<br>
+<br>
+<br>
+Finding suggestions for bad words:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#z=" name="z=">*z=*</a><br>
+z=&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For the word under/after the cursor suggest correctly<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spelled words.&nbsp;&nbsp;This also works to find alternatives<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for a word that is not highlighted as a bad word,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.g., when the word after it is bad.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;In Visual mode the highlighted text is taken as the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;word to be replaced.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The results are sorted on similarity to the word being<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;replaced.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This may take a long time.&nbsp;&nbsp;Hit&nbsp;<span class="Special">CTRL-C</span>&nbsp;when you get<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bored.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If the command is used without a count the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alternatives are listed and you can enter the number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;of your choice or press&nbsp;<span class="Special">&lt;Enter&gt;</span>&nbsp;if you don't want to<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;replace.&nbsp;&nbsp;You can also use the mouse to click on your<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;choice (only works if the mouse can be used in Normal<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mode and when there are no line wraps).&nbsp;&nbsp;Click on the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;first line (the header) to cancel.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The suggestions listed normally replace a highlighted<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bad word.&nbsp;&nbsp;Sometimes they include other text, in that<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case the replaced text is also listed after a &quot;&lt;&quot;.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If a count is used that suggestion is used, without<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;prompting.&nbsp;&nbsp;For example, &quot;1z=&quot; always takes the first<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;suggestion.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;<a class="Type" href="options.html#'verbose'">'verbose'</a>&nbsp;is non-zero a score will be displayed<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;with the suggestions to indicate the likeliness to the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;badly spelled word (the higher the score the more<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;different).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When a word was replaced the redo command &quot;.&quot; will<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;repeat the word replacement.&nbsp;&nbsp;This works like &quot;ciw&quot;,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the good word and&nbsp;<span class="Special">&lt;Esc&gt;</span>.&nbsp;&nbsp;This does NOT work for Thai<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;and other languages without spaces between words.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#:spellr" name=":spellr">*:spellr*</a>&nbsp;<a class="Constant" href="spell.html#:spellrepall" name=":spellrepall">*:spellrepall*</a>&nbsp;<a class="Constant" href="spell.html#E752" name="E752">*E752*</a>&nbsp;<a class="Constant" href="spell.html#E753" name="E753">*E753*</a><br>
+:spellr[epall]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Repeat the replacement done by&nbsp;<a class="Identifier" href="spell.html#z=">|z=|</a>&nbsp;for all matches<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;with the replaced word in the current window.<br>
+<br>
+In Insert mode, when the cursor is after a badly spelled word, you can use<br>
+<span class="Special">CTRL-X</span>&nbsp;s to find suggestions.&nbsp;&nbsp;This works like Insert mode completion.&nbsp;&nbsp;Use<br>
+<span class="Special">CTRL-N</span>&nbsp;to use the next suggestion,&nbsp;<span class="Special">CTRL-P</span>&nbsp;to go back.&nbsp;<a class="Identifier" href="insert.html#i_CTRL-X_s">|i_CTRL-X_s|</a><br>
+<br>
+<a class="Type" href="options.html#'spellsuggest'">'spellsuggest'</a>&nbsp;オプションは候補のリストがどのように生成、ソートされるかに影響<br>
+する。<a class="Identifier" href="options.html#'spellsuggest'">|'spellsuggest'|</a>&nbsp;を参照せよ。<br>
+<br>
+The&nbsp;<a class="Type" href="options.html#'spellcapcheck'">'spellcapcheck'</a>&nbsp;option is used to check the first word of a sentence<br>
+starts with a capital.&nbsp;&nbsp;This doesn't work for the first word in the file.<br>
+When there is a line break right after a sentence the highlighting of the next<br>
+line may be postponed.&nbsp;&nbsp;Use&nbsp;<a class="Identifier" href="various.html#CTRL-L">|CTRL-L|</a>&nbsp;when needed.&nbsp;&nbsp;Also see&nbsp;<a class="Identifier" href="spell.html#set-spc-auto">|set-spc-auto|</a>&nbsp;for<br>
+how it can be set automatically when&nbsp;<a class="Type" href="options.html#'spelllang'">'spelllang'</a>&nbsp;is set.<br>
+<br>
+Vim counts the number of times a good word is encountered.&nbsp;&nbsp;This is used to<br>
+sort the suggestions: words that have been seen before get a small bonus,<br>
+words that have been seen often get a bigger bonus.&nbsp;&nbsp;The COMMON item in the<br>
+affix file can be used to define common words, so that this mechanism also<br>
+works in a new or short file&nbsp;<a class="Identifier" href="spell.html#spell-COMMON">|spell-COMMON|</a>.<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+2. スペルチェックの注意点&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-remarks" name="spell-remarks">*spell-remarks*</a><br>
+<br>
+性能<br>
+<br>
+Vim はオンザフライのスペルチェックをする。スペルチェックを速くするために単語リ<br>
+ストはメモリにロードされる。だがこのために多くのメモリ(1 Mbyte以上)が使われる<br>
+。 There might also be a noticeable delay when the word list is loaded, which<br>
+happens when&nbsp;<a class="Type" href="options.html#'spell'">'spell'</a>&nbsp;is set and when&nbsp;<a class="Type" href="options.html#'spelllang'">'spelllang'</a>&nbsp;is set while&nbsp;<a class="Type" href="options.html#'spell'">'spell'</a>&nbsp;was<br>
+already set.&nbsp;&nbsp;To minimize the delay each word list is only loaded once, it is<br>
+not deleted when&nbsp;<a class="Type" href="options.html#'spelllang'">'spelllang'</a>&nbsp;is made empty or&nbsp;<a class="Type" href="options.html#'spell'">'spell'</a>&nbsp;is reset.&nbsp;&nbsp;When<br>
+<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;is set all the word lists are reloaded, thus you may notice a delay<br>
+then too.<br>
+<br>
+<br>
+地域<br>
+<br>
+単語はそれぞれの地域で綴りが異なるかもしれない。例えば、英語は少なくともこれ<br>
+らの差異がある。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;en&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;全ての地域<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;en_au&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; オーストラリア<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;en_ca&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カナダ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;en_gb&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; イギリス<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;en_nz&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ニュージーランド<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;en_us&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; アメリカ<br>
+<br>
+ある地域では使われないが別の地域では使われる単語は SpellLocal&nbsp;<a class="Identifier" href="syntax.html#hl-SpellLocal">|hl-SpellLocal|</a><br>
+でハイライトされる。<br>
+<br>
+常に言語名や地域名には小文字を使う。<br>
+<br>
+<a class="Identifier" href="spell.html#zg">|zg|</a>&nbsp;や別のコマンドで単語が追加された時、その単語は常に全ての地域に追加される<br>
+。これは&nbsp;<a class="Type" href="options.html#'spellfile'">'spellfile'</a>&nbsp;を手動で編集することで変更できる。<a class="Identifier" href="spell.html#spell-wordlist-format">|spell-wordlist-format|</a><br>
+を参照せよ。&nbsp;&nbsp;<span class="Todo">Note</span>&nbsp;that the regions as specified in the files in&nbsp;<a class="Type" href="options.html#'spellfile'">'spellfile'</a><br>
+are only used when all entries in&nbsp;<a class="Type" href="options.html#'spelllang'">'spelllang'</a>&nbsp;specify the same region (not<br>
+counting files specified by their .spl name).<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-german" name="spell-german">*spell-german*</a><br>
+Specific exception: For German these special regions are used:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;de&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all German words accepted<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;de_de&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; old and new spelling<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;de_19&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; old spelling<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;de_20&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; new spelling<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;de_at&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Austria<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;de_ch&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Switzerland<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-russian" name="spell-russian">*spell-russian*</a><br>
+Specific exception: For Russian these special regions are used:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ru&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all Russian words accepted<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ru_ru&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;IE&quot; letter spelling<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ru_yo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;YO&quot; letter spelling<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-yiddish" name="spell-yiddish">*spell-yiddish*</a><br>
+Yiddish requires using &quot;utf-8&quot; encoding, because of the special characters<br>
+used.&nbsp;&nbsp;If you are using latin1 Vim will use transliterated (romanized) Yiddish<br>
+instead.&nbsp;&nbsp;If you want to use transliterated Yiddish with utf-8 use &quot;yi-tr&quot;.<br>
+In a table:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'spelllang'">'spelllang'</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;utf-8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; yi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Yiddish<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;latin1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;transliterated Yiddish<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;utf-8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; yi-tr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; transliterated Yiddish<br>
+<br>
+<br>
+スペルファイル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-load" name="spell-load">*spell-load*</a><br>
+<br>
+Vim searches for spell files in the &quot;spell&quot; subdirectory of the directories in<br>
+<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>.&nbsp;&nbsp;The name is: LL.EEE.spl, where:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the language name<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;EEE&nbsp;&nbsp;&nbsp;&nbsp; the value of&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a><br>
+<br>
+The value for &quot;LL&quot; comes from&nbsp;<a class="Type" href="options.html#'spelllang'">'spelllang'</a>, but excludes the region name.<br>
+Examples:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">'spelllang'&nbsp;&nbsp;&nbsp;&nbsp; LL</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;en_us&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; en<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;en-rare&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; en-rare<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;medical_ca&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;medical<br>
+<br>
+Only the first file is loaded, the one that is first in&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>.&nbsp;&nbsp;If<br>
+this succeeds then additionally files with the name LL.EEE.add.spl are loaded.<br>
+All the ones that are found are used.<br>
+<br>
+If no spell file is found the&nbsp;<a class="Identifier" href="autocmd.html#SpellFileMissing">|SpellFileMissing|</a>&nbsp;autocommand event is<br>
+triggered.&nbsp;&nbsp;This may trigger the&nbsp;<a class="Identifier" href="spell.html#spellfile.vim">|spellfile.vim|</a>&nbsp;plugin to offer you<br>
+downloading the spell file.<br>
+<br>
+Additionally, the files related to the names in&nbsp;<a class="Type" href="options.html#'spellfile'">'spellfile'</a>&nbsp;are loaded.&nbsp;&nbsp;These<br>
+are the files that&nbsp;<a class="Identifier" href="spell.html#zg">|zg|</a>&nbsp;and&nbsp;<a class="Identifier" href="spell.html#zw">|zw|</a>&nbsp;add good and wrong words to.<br>
+<br>
+Exceptions:<br>
+- Vim uses &quot;latin1&quot; when&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;is &quot;iso-8859-15&quot;.&nbsp;&nbsp;The euro sign doesn't<br>
+&nbsp;&nbsp;matter for spelling.<br>
+- When no spell file for&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;is found &quot;ascii&quot; is tried.&nbsp;&nbsp;This only<br>
+&nbsp;&nbsp;works for languages where nearly all words are ASCII, such as English.&nbsp;&nbsp;It<br>
+&nbsp;&nbsp;helps when&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;is not &quot;latin1&quot;, such as iso-8859-2, and English text<br>
+&nbsp;&nbsp;is being edited.&nbsp;&nbsp;For the &quot;.add&quot; files the same name as the found main<br>
+&nbsp;&nbsp;spell file is used.<br>
+<br>
+For example, with these values:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;is &quot;~/.vim,/usr/share/vim70,~/.vim/after&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;&nbsp;&nbsp;&nbsp;is &quot;iso-8859-2&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'spelllang'">'spelllang'</a>&nbsp;&nbsp; is &quot;pl&quot;<br>
+<br>
+Vim will look for:<br>
+1. ~/.vim/spell/pl.iso-8859-2.spl<br>
+2. /usr/share/vim70/spell/pl.iso-8859-2.spl<br>
+3. ~/.vim/spell/pl.iso-8859-2.add.spl<br>
+4. /usr/share/vim70/spell/pl.iso-8859-2.add.spl<br>
+5. ~/.vim/after/spell/pl.iso-8859-2.add.spl<br>
+<br>
+This assumes 1. is not found and 2. is found.<br>
+<br>
+If&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;is &quot;latin1&quot; Vim will look for:<br>
+1. ~/.vim/spell/pl.latin1.spl<br>
+2. /usr/share/vim70/spell/pl.latin1.spl<br>
+3. ~/.vim/after/spell/pl.latin1.spl<br>
+4. ~/.vim/spell/pl.ascii.spl<br>
+5. /usr/share/vim70/spell/pl.ascii.spl<br>
+6. ~/.vim/after/spell/pl.ascii.spl<br>
+<br>
+This assumes none of them are found (Polish doesn't make sense when leaving<br>
+out the non-ASCII characters).<br>
+<br>
+Spelling for EBCDIC is currently not supported.<br>
+<br>
+A spell file might not be available in the current&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>.&nbsp;&nbsp;See<br>
+<a class="Identifier" href="spell.html#spell-mkspell">|spell-mkspell|</a>&nbsp;about how to create a spell file.&nbsp;&nbsp;Converting a spell file<br>
+with &quot;iconv&quot; will NOT work!<br>
+<br>
+<span class="Todo">Note</span>: on VMS &quot;.<span class="Special">{enc}</span>.spl&quot; is changed to &quot;_<span class="Special">{enc}</span>.spl&quot; to avoid trouble with<br>
+filenames.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-sug-file" name="spell-sug-file">*spell-sug-file*</a>&nbsp;<a class="Constant" href="spell.html#E781" name="E781">*E781*</a><br>
+If there is a file with exactly the same name as the &quot;.spl&quot; file but ending in<br>
+&quot;.sug&quot;, that file will be used for giving better suggestions.&nbsp;&nbsp;It isn't loaded<br>
+before suggestions are made to reduce memory use.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#E758" name="E758">*E758*</a>&nbsp;<a class="Constant" href="spell.html#E759" name="E759">*E759*</a>&nbsp;<a class="Constant" href="spell.html#E778" name="E778">*E778*</a>&nbsp;<a class="Constant" href="spell.html#E779" name="E779">*E779*</a>&nbsp;<a class="Constant" href="spell.html#E780" name="E780">*E780*</a>&nbsp;<a class="Constant" href="spell.html#E782" name="E782">*E782*</a><br>
+When loading a spell file Vim checks that it is properly formatted.&nbsp;&nbsp;If you<br>
+get an error the file may be truncated, modified or intended for another Vim<br>
+version.<br>
+<br>
+<br>
+<span class="Statement">SPELLFILE CLEANUP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spellfile-cleanup" name="spellfile-cleanup">*spellfile-cleanup*</a><br>
+<br>
+The&nbsp;<a class="Identifier" href="spell.html#zw">|zw|</a>&nbsp;command turns existing entries in&nbsp;<a class="Type" href="options.html#'spellfile'">'spellfile'</a>&nbsp;into comment lines.<br>
+This avoids having to write a new file every time, but results in the file<br>
+only getting longer, never shorter.&nbsp;&nbsp;To clean up the comment lines in all<br>
+&quot;.add&quot; spell files do this:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:runtime spell/cleanadd.vim</div>
+<br>
+This deletes all comment lines, except the ones that start with &quot;##&quot;.&nbsp;&nbsp;Use<br>
+&quot;##&quot; lines to add comments that you want to keep.<br>
+<br>
+You can invoke this script as often as you like.&nbsp;&nbsp;A variable is provided to<br>
+skip updating files that have been changed recently.&nbsp;&nbsp;Set it to the number of<br>
+seconds that has passed since a file was changed before it will be cleaned.<br>
+For example, to clean only files that were not changed in the last hour:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:spell_clean_limit = 60 * 60</div>
+The default is one second.<br>
+<br>
+<br>
+単語<br>
+<br>
+Vim uses a fixed method to recognize a word.&nbsp;&nbsp;This is independent of<br>
+<a class="Type" href="options.html#'iskeyword'">'iskeyword'</a>, so that it also works in help files and for languages that<br>
+include characters like '-' in&nbsp;<a class="Type" href="options.html#'iskeyword'">'iskeyword'</a>.&nbsp;&nbsp;The word characters do depend on<br>
+<a class="Type" href="options.html#'encoding'">'encoding'</a>.<br>
+<br>
+The table with word characters is stored in the main .spl file.&nbsp;&nbsp;Therefore it<br>
+matters what the current locale is when generating it!&nbsp;&nbsp;A .add.spl file does<br>
+not contain a word table though.<br>
+<br>
+For a word that starts with a digit the digit is ignored, unless the word as a<br>
+whole is recognized.&nbsp;&nbsp;Thus if &quot;3D&quot; is a word and &quot;D&quot; is not then &quot;3D&quot; is<br>
+recognized as a word, but if &quot;3D&quot; is not a word then only the &quot;D&quot; is marked as<br>
+bad.&nbsp;&nbsp;Hex numbers in the form 0x12ab and 0X12AB are recognized.<br>
+<br>
+<br>
+単語の組み合わせ<br>
+<br>
+It is possible to spell-check words that include a space.&nbsp;&nbsp;This is used to<br>
+recognize words that are invalid when used by themselves, e.g. for &quot;et al.&quot;.<br>
+It can also be used to recognize &quot;the the&quot; and highlight it.<br>
+<br>
+The number of spaces is irrelevant.&nbsp;&nbsp;In most cases a line break may also<br>
+appear.&nbsp;&nbsp;However, this makes it difficult to find out where to start checking<br>
+for spelling mistakes.&nbsp;&nbsp;When you make a change to one line and only that line<br>
+is redrawn Vim won't look in the previous line, thus when &quot;et&quot; is at the end<br>
+of the previous line &quot;al.&quot; will be flagged as an error.&nbsp;&nbsp;And when you type<br>
+&quot;the<span class="Special">&lt;CR&gt;</span>the&quot; the highlighting doesn't appear until the first line is redrawn.<br>
+Use&nbsp;<a class="Identifier" href="various.html#CTRL-L">|CTRL-L|</a>&nbsp;to redraw right away.&nbsp;&nbsp;&quot;[s&quot; will also stop at a word combination<br>
+with a line break.<br>
+<br>
+When encountering a line break Vim skips characters such as '*', '&gt;' and '&quot;',<br>
+so that comments in C, shell and Vim code can be spell checked.<br>
+<br>
+<br>
+構文ハイライト&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-syntax" name="spell-syntax">*spell-syntax*</a><br>
+<br>
+Files that use syntax highlighting can specify where spell checking should be<br>
+done:<br>
+<br>
+1.&nbsp;&nbsp;everywhere&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; default<br>
+2.&nbsp;&nbsp;in specific items&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;use &quot;contains=@Spell&quot;<br>
+3.&nbsp;&nbsp;everywhere but specific items&nbsp;&nbsp;use &quot;contains=@NoSpell&quot;<br>
+<br>
+For the second method adding the @NoSpell cluster will disable spell checking<br>
+again.&nbsp;&nbsp;This can be used, for example, to add @Spell to the comments of a<br>
+program, and add @NoSpell for items that shouldn't be checked.<br>
+Also see&nbsp;<a class="Identifier" href="syntax.html#:syn-spell">|:syn-spell|</a>&nbsp;for text that is not in a syntax item.<br>
+<br>
+<br>
+VIM スクリプト<br>
+<br>
+If you want to write a Vim script that does something with spelling, you may<br>
+find these functions useful:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;spellbadword()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;find badly spelled word at the cursor<br>
+&nbsp;&nbsp;&nbsp;&nbsp;spellsuggest()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get list of spelling suggestions<br>
+&nbsp;&nbsp;&nbsp;&nbsp;soundfold()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; get the sound-a-like version of a word<br>
+<br>
+<br>
+<a class="Type" href="options.html#'spellcapcheck'">'spellcapcheck'</a>&nbsp;の自動設定&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#set-spc-auto" name="set-spc-auto">*set-spc-auto*</a><br>
+<br>
+After the&nbsp;<a class="Type" href="options.html#'spelllang'">'spelllang'</a>&nbsp;option has been set successfully, Vim will source the<br>
+files &quot;spell/LANG.vim&quot; in&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>.&nbsp;&nbsp;&quot;LANG&quot; is the value of&nbsp;<a class="Type" href="options.html#'spelllang'">'spelllang'</a><br>
+up to the first comma, dot or underscore.&nbsp;&nbsp;This can be used to set options<br>
+specifically for the language, especially&nbsp;<a class="Type" href="options.html#'spellcapcheck'">'spellcapcheck'</a>.<br>
+<br>
+The distribution includes a few of these files.&nbsp;&nbsp;Use this command to see what<br>
+they do:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:next $VIMRUNTIME/spell/*.vim</div>
+<br>
+<span class="Todo">Note</span>&nbsp;that the default scripts don't set&nbsp;<a class="Type" href="options.html#'spellcapcheck'">'spellcapcheck'</a>&nbsp;if it was changed from<br>
+the default value.&nbsp;&nbsp;This assumes the user prefers another value then.<br>
+<br>
+<br>
+<span class="Statement">DOUBLE SCORING&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-double-scoring" name="spell-double-scoring">*spell-double-scoring*</a><br>
+<br>
+The&nbsp;<a class="Type" href="options.html#'spellsuggest'">'spellsuggest'</a>&nbsp;option can be used to select &quot;double&quot; scoring.&nbsp;&nbsp;This<br>
+mechanism is based on the principle that there are two kinds of spelling<br>
+mistakes:<br>
+<br>
+1. You know how to spell the word, but mistype something.&nbsp;&nbsp;This results in a<br>
+&nbsp;&nbsp; small editing distance (character swapped/omitted/inserted) and possibly a<br>
+&nbsp;&nbsp; word that sounds completely different.<br>
+<br>
+2. You don't know how to spell the word and type something that sounds right.<br>
+&nbsp;&nbsp; The edit distance can be big but the word is similar after sound-folding.<br>
+<br>
+Since scores for these two mistakes will be very different we use a list<br>
+for each and mix them.<br>
+<br>
+The sound-folding is slow and people that know the language won't make the<br>
+second kind of mistakes.&nbsp;&nbsp;Therefore&nbsp;<a class="Type" href="options.html#'spellsuggest'">'spellsuggest'</a>&nbsp;can be set to select the<br>
+preferred method for scoring the suggestions.<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+3. スペルファイルの生成&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-mkspell" name="spell-mkspell">*spell-mkspell*</a><br>
+<br>
+Vim uses a binary file format for spelling.&nbsp;&nbsp;This greatly speeds up loading<br>
+the word list and keeps it small.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#.aff" name=".aff">*.aff*</a>&nbsp;<a class="Constant" href="spell.html#.dic" name=".dic">*.dic*</a>&nbsp;<a class="Constant" href="spell.html#Myspell" name="Myspell">*Myspell*</a><br>
+You can create a Vim spell file from the .aff and .dic files that Myspell<br>
+uses.&nbsp;&nbsp;Myspell is used by OpenOffice.org and Mozilla. The OpenOffice .oxt&nbsp;<br>
+files are zip files which contain the .aff and .dic files. You should be able<br>
+to find them here:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Constant"><a href="http://extensions.services.openoffice.org/dictionary">http://extensions.services.openoffice.org/dictionary</a></span><br>
+The older, OpenOffice 2 files may be used if this doesn't work:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Constant"><a href="http://wiki.services.openoffice.org/wiki/Dictionaries">http://wiki.services.openoffice.org/wiki/Dictionaries</a></span><br>
+You can also use a plain word list.&nbsp;&nbsp;The results are the same, the choice<br>
+depends on what word lists you can find.<br>
+<br>
+If you install Aap (from&nbsp;<span class="Constant">www.a-a-p.org</span>) you can use the recipes in the<br>
+runtime/spell/??/ directories.&nbsp;&nbsp;Aap will take care of downloading the files,<br>
+apply patches needed for Vim and build the .spl file.<br>
+<br>
+Make sure your current locale is set properly, otherwise Vim doesn't know what<br>
+characters are upper/lower case letters.&nbsp;&nbsp;If the locale isn't available (e.g.,<br>
+when using an MS-Windows codepage on Unix) add tables to the .aff file<br>
+<a class="Identifier" href="spell.html#spell-affix-chars">|spell-affix-chars|</a>.&nbsp;&nbsp;If the .aff file doesn't define a table then the word<br>
+table of the currently active spelling is used.&nbsp;&nbsp;If spelling is not active<br>
+then Vim will try to guess.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#:mksp" name=":mksp">*:mksp*</a>&nbsp;<a class="Constant" href="spell.html#:mkspell" name=":mkspell">*:mkspell*</a><br>
+:mksp[ell][!]&nbsp;<span class="Special">[-ascii]</span>&nbsp;<span class="Special">{outname}</span>&nbsp;<span class="Special">{inname}</span>&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Generate a Vim spell file from word lists.&nbsp;&nbsp;Example:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:mkspell /tmp/nl nl_NL.words</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#E751" name="E751">*E751*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When&nbsp;<span class="Special">{outname}</span>&nbsp;ends in &quot;.spl&quot; it is used as the output<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;file name.&nbsp;&nbsp;Otherwise it should be a language name,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;such as &quot;en&quot;, without the region name.&nbsp;&nbsp;The file<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;written will be &quot;<span class="Special">{outname}</span>.<span class="Special">{encoding}</span>.spl&quot;, where<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{encoding}</span>&nbsp;is the value of the&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;option.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When the output file already exists [!] must be used<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to overwrite it.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When the&nbsp;<span class="Special">[-ascii]</span>&nbsp;argument is present, words with<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;non-ascii characters are skipped.&nbsp;&nbsp;The resulting file<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ends in &quot;ascii.spl&quot;.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The input can be the Myspell format files&nbsp;<span class="Special">{inname}</span>.aff<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;and&nbsp;<span class="Special">{inname}</span>.dic.&nbsp;&nbsp;If&nbsp;<span class="Special">{inname}</span>.aff does not exist then<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{inname}</span>&nbsp;is used as the file name of a plain word<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;list.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Multiple&nbsp;<span class="Special">{inname}</span>&nbsp;arguments can be given to combine<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;regions into one Vim spell file.&nbsp;&nbsp;Example:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:mkspell ~/.vim/spell/en /tmp/en_US /tmp/en_CA /tmp/en_AU</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; This combines the English word lists for US, CA and AU<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;into one en.spl file.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up to eight regions can be combined.&nbsp;<a class="Constant" href="spell.html#E754" name="E754">*E754*</a>&nbsp;<a class="Constant" href="spell.html#E755" name="E755">*E755*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The REP and SAL items of the first .aff file where<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;they appear are used.&nbsp;<a class="Identifier" href="spell.html#spell-REP">|spell-REP|</a>&nbsp;<a class="Identifier" href="spell.html#spell-SAL">|spell-SAL|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#E845" name="E845">*E845*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This command uses a lot of memory, required to find<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the optimal word tree (Polish, Italian and Hungarian<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;require several hundred Mbyte).&nbsp;&nbsp;The final result will<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;be much smaller, because compression is used.&nbsp;&nbsp;To<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;avoid running out of memory compression will be done<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;now and then.&nbsp;&nbsp;This can be tuned with the&nbsp;<a class="Type" href="options.html#'mkspellmem'">'mkspellmem'</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;option.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;After the spell file was written and it was being used<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;in a buffer it will be reloaded automatically.<br>
+<br>
+:mksp[ell]&nbsp;<span class="Special">[-ascii]</span>&nbsp;<span class="Special">{name}</span>.<span class="Special">{enc}</span>.add<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Like &quot;:mkspell&quot; above, using&nbsp;<span class="Special">{name}</span>.<span class="Special">{enc}</span>.add as the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;input file and producing an output file in the same<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;directory that has &quot;.spl&quot; appended.<br>
+<br>
+:mksp[ell]&nbsp;<span class="Special">[-ascii]</span>&nbsp;<span class="Special">{name}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Like &quot;:mkspell&quot; above, using&nbsp;<span class="Special">{name}</span>&nbsp;as the input file<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;and producing an output file in the same directory<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;that has &quot;.<span class="Special">{enc}</span>.spl&quot; appended.<br>
+<br>
+Vim will report the number of duplicate words.&nbsp;&nbsp;This might be a mistake in the<br>
+list of words.&nbsp;&nbsp;But sometimes it is used to have different prefixes and<br>
+suffixes for the same basic word to avoid them combining (e.g. Czech uses<br>
+this).&nbsp;&nbsp;If you want Vim to report all duplicate words set the&nbsp;<a class="Type" href="options.html#'verbose'">'verbose'</a><br>
+option.<br>
+<br>
+Since you might want to change a Myspell word list for use with Vim the<br>
+following procedure is recommended:<br>
+<br>
+1. Obtain the xx_YY.aff and xx_YY.dic files from Myspell.<br>
+2. Make a copy of these files to xx_YY.orig.aff and xx_YY.orig.dic.<br>
+3. Change the xx_YY.aff and xx_YY.dic files to remove bad words, add missing<br>
+&nbsp;&nbsp; words, define word characters with FOL/LOW/UPP, etc.&nbsp;&nbsp;The distributed<br>
+&nbsp;&nbsp; &quot;*.diff&quot; files can be used.<br>
+4. Start Vim with the right locale and use&nbsp;<a class="Identifier" href="spell.html#:mkspell">|:mkspell|</a>&nbsp;to generate the Vim<br>
+&nbsp;&nbsp; spell file.<br>
+5. Try out the spell file with &quot;:set spell spelllang=xx&quot; if you wrote it in<br>
+&nbsp;&nbsp; a spell directory in&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>, or &quot;:set spelllang=xx.enc.spl&quot; if you<br>
+&nbsp;&nbsp; wrote it somewhere else.<br>
+<br>
+When the Myspell files are updated you can merge the differences:<br>
+1. Obtain the new Myspell files as xx_YY.new.aff and xx_UU.new.dic.<br>
+2. Use Vimdiff to see what changed:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vimdiff xx_YY.orig.dic xx_YY.new.dic</div>
+3. Take over the changes you like in xx_YY.dic.<br>
+&nbsp;&nbsp; You may also need to change xx_YY.aff.<br>
+4. Rename xx_YY.new.dic to xx_YY.orig.dic and xx_YY.new.aff to xx_YY.new.aff.<br>
+<br>
+<br>
+スペルファイルのバージョン&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#E770" name="E770">*E770*</a>&nbsp;<a class="Constant" href="spell.html#E771" name="E771">*E771*</a>&nbsp;<a class="Constant" href="spell.html#E772" name="E772">*E772*</a><br>
+<br>
+Spell checking is a relatively new feature in Vim, thus it's possible that the<br>
+.spl file format will be changed to support more languages.&nbsp;&nbsp;Vim will check<br>
+the validity of the spell file and report anything wrong.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">E771: Old spell file, needs to be updated</span><br>
+This spell file is older than your Vim.&nbsp;&nbsp;You need to update the .spl file.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">E772: Spell file is for newer version of Vim</span><br>
+This means the spell file was made for a later version of Vim.&nbsp;&nbsp;You need to<br>
+update Vim.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">E770: Unsupported section in spell file</span><br>
+This means the spell file was made for a later version of Vim and contains a<br>
+section that is required for the spell file to work.&nbsp;&nbsp;In this case it's<br>
+probably a good idea to upgrade your Vim.<br>
+<br>
+<br>
+スペルファイルをダンプ<br>
+<br>
+If for some reason you want to check what words are supported by the currently<br>
+used spelling files, use this command:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#:spelldump" name=":spelldump">*:spelldump*</a>&nbsp;<a class="Constant" href="spell.html#:spelld" name=":spelld">*:spelld*</a><br>
+:spelld[ump]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Open a new window and fill it with all currently valid<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;words.&nbsp;&nbsp;Compound words are not included.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: For some languages the result may be enormous,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;causing Vim to run out of memory.<br>
+<br>
+:spelld[ump]!&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Like &quot;:spelldump&quot; and include the word count.&nbsp;&nbsp;This is<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the number of times the word was found while<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;updating the screen.&nbsp;&nbsp;Words that are in COMMON items<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get a starting count of 10.<br>
+<br>
+The format of the word list is used&nbsp;<a class="Identifier" href="spell.html#spell-wordlist-format">|spell-wordlist-format|</a>.&nbsp;&nbsp;You should be<br>
+able to read it with &quot;:mkspell&quot; to generate one .spl file that includes all<br>
+the words.<br>
+<br>
+When all entries to&nbsp;<a class="Type" href="options.html#'spelllang'">'spelllang'</a>&nbsp;use the same regions or no regions at all then<br>
+the region information is included in the dumped words.&nbsp;&nbsp;Otherwise only words<br>
+for the current region are included and no &quot;/regions&quot; line is generated.<br>
+<br>
+Comment lines with the name of the .spl file are used as a header above the<br>
+words that were generated from that .spl file.<br>
+<br>
+<br>
+スペルファイルがないとき&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-SpellFileMissing" name="spell-SpellFileMissing">*spell-SpellFileMissing*</a>&nbsp;<a class="Constant" href="spell.html#spellfile.vim" name="spellfile.vim">*spellfile.vim*</a><br>
+<br>
+If the spell file for the language you are using is not available, you will<br>
+get an error message.&nbsp;&nbsp;But if the &quot;spellfile.vim&quot; plugin is active it will<br>
+offer you to download the spell file.&nbsp;&nbsp;Just follow the instructions, it will<br>
+ask you where to write the file (there must be a writable directory in<br>
+<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;for this).<br>
+<br>
+The plugin has a default place where to look for spell files, on the Vim ftp<br>
+server.&nbsp;&nbsp;If you want to use another location or another protocol, set the<br>
+g:spellfile_URL variable to the directory that holds the spell files.&nbsp;&nbsp;The<br>
+<a class="Identifier" href="pi_netrw.html#netrw">|netrw|</a>&nbsp;plugin is used for getting the file, look there for the specific<br>
+syntax of the URL.&nbsp;&nbsp;Example:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:spellfile_URL = '<a href="http://ftp.vim.org/vim/runtime/spell">http://ftp.vim.org/vim/runtime/spell</a>'</div>
+You may need to escape special characters.<br>
+<br>
+The plugin will only ask about downloading a language once.&nbsp;&nbsp;If you want to<br>
+try again anyway restart Vim, or set g:spellfile_URL to another value (e.g.,<br>
+prepend a space).<br>
+<br>
+To avoid using the &quot;spellfile.vim&quot; plugin do this in your vimrc file:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let loaded_spellfile_plugin = 1</div>
+<br>
+Instead of using the plugin you can define a&nbsp;<a class="Identifier" href="autocmd.html#SpellFileMissing">|SpellFileMissing|</a>&nbsp;autocommand to<br>
+handle the missing file yourself.&nbsp;&nbsp;You can use it like this:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:au SpellFileMissing * call Download_spell_file(expand('&lt;amatch&gt;'))</div>
+<br>
+Thus the&nbsp;<span class="Special">&lt;amatch&gt;</span>&nbsp;item contains the name of the language.&nbsp;&nbsp;Another important<br>
+value is&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>, since every encoding has its own spell file.&nbsp;&nbsp;With two<br>
+exceptions:<br>
+- For ISO-8859-15 (latin9) the name &quot;latin1&quot; is used (the encodings only<br>
+&nbsp;&nbsp;differ in characters not used in dictionary words).<br>
+- The name &quot;ascii&quot; may also be used for some languages where the words use<br>
+&nbsp;&nbsp;only ASCII letters for most of the words.<br>
+<br>
+The default &quot;spellfile.vim&quot; plugin uses this autocommand, if you define your<br>
+autocommand afterwards you may want to use &quot;:au! SpellFileMissing&quot; to overrule<br>
+it.&nbsp;&nbsp;If you define your autocommand before the plugin is loaded it will notice<br>
+this and not do anything.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#E797" name="E797">*E797*</a><br>
+<span class="Todo">Note</span>&nbsp;that the SpellFileMissing autocommand must not change or destroy the<br>
+buffer the user was editing.<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+4. スペルファイルの形式&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-file-format" name="spell-file-format">*spell-file-format*</a><br>
+<br>
+This is the format of the files that are used by the person who creates and<br>
+maintains a word list.<br>
+<br>
+<span class="Todo">Note</span>&nbsp;that we avoid the word &quot;dictionary&quot; here.&nbsp;&nbsp;That is because the goal of<br>
+spell checking differs from writing a dictionary (as in the book).&nbsp;&nbsp;For<br>
+spelling we need a list of words that are OK, thus should not be highlighted.<br>
+Person and company names will not appear in a dictionary, but do appear in a<br>
+word list.&nbsp;&nbsp;And some old words are rarely used while they are common<br>
+misspellings.&nbsp;&nbsp;These do appear in a dictionary but not in a word list.<br>
+<br>
+There are two formats: A straight list of words and a list using affix<br>
+compression.&nbsp;&nbsp;The files with affix compression are used by Myspell (Mozilla<br>
+and OpenOffice.org).&nbsp;&nbsp;This requires two files, one with .aff and one with .dic<br>
+extension.<br>
+<br>
+<br>
+<span class="Statement">FORMAT OF STRAIGHT WORD LIST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-wordlist-format" name="spell-wordlist-format">*spell-wordlist-format*</a><br>
+<br>
+The words must appear one per line.&nbsp;&nbsp;That is all that is required.<br>
+<br>
+Additionally the following items are recognized:<br>
+<br>
+- Empty and blank lines are ignored.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc"># comment</span><br>
+- Lines starting with a # are ignored (comment lines).<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">/encoding=utf-8</span><br>
+- A line starting with &quot;/encoding=&quot;, before any word, specifies the encoding<br>
+&nbsp;&nbsp;of the file.&nbsp;&nbsp;After the second '=' comes an encoding name.&nbsp;&nbsp;This tells Vim<br>
+&nbsp;&nbsp;to setup conversion from the specified encoding to&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>.&nbsp;&nbsp;Thus you can<br>
+&nbsp;&nbsp;use one word list for several target encodings.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">/regions=usca</span><br>
+- A line starting with &quot;/regions=&quot; specifies the region names that are<br>
+&nbsp;&nbsp;supported.&nbsp;&nbsp;Each region name must be two ASCII letters.&nbsp;&nbsp;The first one is<br>
+&nbsp;&nbsp;region 1.&nbsp;&nbsp;Thus &quot;/regions=usca&quot; has region 1 &quot;us&quot; and region 2 &quot;ca&quot;.<br>
+&nbsp;&nbsp;In an addition word list the region names should be equal to the main word<br>
+&nbsp;&nbsp;list!<br>
+<br>
+- Other lines starting with '/' are reserved for future use.&nbsp;&nbsp;The ones that<br>
+&nbsp;&nbsp;are not recognized are ignored.&nbsp;&nbsp;You do get a warning message, so that you<br>
+&nbsp;&nbsp;know something won't work.<br>
+<br>
+- A &quot;/&quot; may follow the word with the following items:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Case must match exactly.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Rare word.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;!&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Bad (wrong) word.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;digit&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A region in which the word is valid.&nbsp;&nbsp;If no regions are<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;specified the word is valid in all regions.<br>
+<br>
+Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# This is an example word list&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/encoding=latin1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;encoding of the file<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/regions=uscagb&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; regions &quot;us&quot;, &quot;ca&quot; and &quot;gb&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; word for all regions<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;blah/12&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; word for regions &quot;us&quot; and &quot;ca&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim/!&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bad word<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Campbell/?3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rare word in region 3 &quot;gb&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'s mornings/=&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; keep-case word<br>
+<br>
+<span class="Todo">Note</span>&nbsp;that when &quot;/=&quot; is used the same word with all upper-case letters is not<br>
+accepted.&nbsp;&nbsp;This is different from a word with mixed case that is automatically<br>
+marked as keep-case, those words may appear in all upper-case letters.<br>
+<br>
+<br>
+<span class="Statement">FORMAT WITH .AFF AND .DIC FILES&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#aff-dic-format" name="aff-dic-format">*aff-dic-format*</a><br>
+<br>
+There are two files: the basic word list and an affix file.&nbsp;&nbsp;The affix file<br>
+specifies settings for the language and can contain affixes.&nbsp;&nbsp;The affixes are<br>
+used to modify the basic words to get the full word list.&nbsp;&nbsp;This significantly<br>
+reduces the number of words, especially for a language like Polish.&nbsp;&nbsp;This is<br>
+called affix compression.<br>
+<br>
+The basic word list and the affix file are combined with the &quot;:mkspell&quot;<br>
+command and results in a binary spell file.&nbsp;&nbsp;All the preprocessing has been<br>
+done, thus this file loads fast.&nbsp;&nbsp;The binary spell file format is described in<br>
+the source code (src/spell.c).&nbsp;&nbsp;But only developers need to know about it.<br>
+<br>
+The preprocessing also allows us to take the Myspell language files and modify<br>
+them before the Vim word list is made.&nbsp;&nbsp;The tools for this can be found in the<br>
+&quot;src/spell&quot; directory.<br>
+<br>
+The format for the affix and word list files is based on what Myspell uses<br>
+(the spell checker of Mozilla and OpenOffice.org).&nbsp;&nbsp;A description can be found<br>
+here:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Constant"><a href="http://lingucomponent.openoffice.org/affix.readme">http://lingucomponent.openoffice.org/affix.readme</a></span>&nbsp;<br>
+<span class="Todo">Note</span>&nbsp;that affixes are case sensitive, this isn't obvious from the description.<br>
+<br>
+Vim supports quite a few extras.&nbsp;&nbsp;They are described below&nbsp;<a class="Identifier" href="spell.html#spell-affix-vim">|spell-affix-vim|</a>.<br>
+Attempts have been made to keep this compatible with other spell checkers, so<br>
+that the same files can often be used.&nbsp;&nbsp;One other project that offers more<br>
+than Myspell is Hunspell (&nbsp;<span class="Constant"><a href="http://hunspell.sf.net">http://hunspell.sf.net</a></span>&nbsp;).<br>
+<br>
+<br>
+<span class="Statement">WORD LIST FORMAT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-dic-format" name="spell-dic-format">*spell-dic-format*</a><br>
+<br>
+A short example, with line numbers:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1234</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; aan</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Als</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Etten-Leur</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; et al.</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 's-Gravenhage</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 's-Gravenhaags</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # word that differs between regions</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; kado/1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cadeau/2</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">11&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TCP,IP</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">12&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/the S affix may add a 's'</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">13&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bedel/S</span><br>
+<br>
+The first line contains the number of words.&nbsp;&nbsp;Vim ignores it, but you do get<br>
+an error message if it's not there.&nbsp;&nbsp;<a class="Constant" href="spell.html#E760" name="E760">*E760*</a><br>
+<br>
+What follows is one word per line.&nbsp;&nbsp;White space at the end of the line is<br>
+ignored, all other white space matters.&nbsp;&nbsp;The encoding is specified in the<br>
+affix file&nbsp;<a class="Identifier" href="spell.html#spell-SET">|spell-SET|</a>.<br>
+<br>
+Comment lines start with '#' or '/'.&nbsp;&nbsp;See the example lines 8 and 12.&nbsp;&nbsp;<span class="Todo">Note</span><br>
+that putting a comment after a word is NOT allowed:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">someword&nbsp;&nbsp; # comment that causes an error!</span><br>
+<br>
+After the word there is an optional slash and flags.&nbsp;&nbsp;Most of these flags are<br>
+letters that indicate the affixes that can be used with this word.&nbsp;&nbsp;These are<br>
+specified with SFX and PFX lines in the .aff file, see&nbsp;<a class="Identifier" href="spell.html#spell-SFX">|spell-SFX|</a>&nbsp;and<br>
+<a class="Identifier" href="spell.html#spell-PFX">|spell-PFX|</a>.&nbsp;&nbsp;Vim allows using other flag types with the FLAG item in the<br>
+affix file&nbsp;<a class="Identifier" href="spell.html#spell-FLAG">|spell-FLAG|</a>.<br>
+<br>
+When the word only has lower-case letters it will also match with the word<br>
+starting with an upper-case letter.<br>
+<br>
+When the word includes an upper-case letter, this means the upper-case letter<br>
+is required at this position.&nbsp;&nbsp;The same word with a lower-case letter at this<br>
+position will not match. When some of the other letters are upper-case it will<br>
+not match either.<br>
+<br>
+The word with all upper-case characters will always be OK,<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">word list&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; matches&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; does not match</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;als&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; als Als ALS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ALs AlS aLs aLS<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Als&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Als&nbsp;&nbsp;ALS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;als ALs AlS aLs aLS<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ALS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; als Als ALs AlS aLs aLS<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AlS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; AlS ALS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; als Als ALs aLs aLS<br>
+<br>
+The KEEPCASE affix ID can be used to specifically match a word with identical<br>
+case only, see below&nbsp;<a class="Identifier" href="spell.html#spell-KEEPCASE">|spell-KEEPCASE|</a>.<br>
+<br>
+<span class="Todo">Note</span>: in line 5 to 7 non-word characters are used.&nbsp;&nbsp;You can include any<br>
+character in a word.&nbsp;&nbsp;When checking the text a word still only matches when it<br>
+appears with a non-word character before and after it.&nbsp;&nbsp;For Myspell a word<br>
+starting with a non-word character probably won't work.<br>
+<br>
+In line 12 the word &quot;TCP/IP&quot; is defined.&nbsp;&nbsp;Since the slash has a special<br>
+meaning the comma is used instead.&nbsp;&nbsp;This is defined with the SLASH item in the<br>
+affix file, see&nbsp;<a class="Identifier" href="spell.html#spell-SLASH">|spell-SLASH|</a>.&nbsp;&nbsp;<span class="Todo">Note</span>&nbsp;that without this SLASH item the word<br>
+will be &quot;TCP,IP&quot;.<br>
+<br>
+<br>
+<span class="Statement">AFFIX FILE FORMAT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-aff-format" name="spell-aff-format">*spell-aff-format*</a>&nbsp;<a class="Constant" href="spell.html#spell-affix-vim" name="spell-affix-vim">*spell-affix-vim*</a><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-affix-comment" name="spell-affix-comment">*spell-affix-comment*</a><br>
+Comment lines in the .aff file start with a '#':<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc"># comment line</span><br>
+<br>
+Items with a fixed number of arguments can be followed by a comment.&nbsp;&nbsp;But only<br>
+if none of the arguments can contain white space.&nbsp;&nbsp;The comment must start with<br>
+a &quot;#&quot; character.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">KEEPCASE =&nbsp;&nbsp;# fix case for words with this flag</span><br>
+<br>
+<br>
+エンコーディング&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-SET" name="spell-SET">*spell-SET*</a><br>
+<br>
+The affix file can be in any encoding that is supported by &quot;iconv&quot;.&nbsp;&nbsp;However,<br>
+in some cases the current locale should also be set properly at the time<br>
+<a class="Identifier" href="spell.html#:mkspell">|:mkspell|</a>&nbsp;is invoked.&nbsp;&nbsp;Adding FOL/LOW/UPP lines removes this requirement<br>
+<a class="Identifier" href="spell.html#spell-FOL">|spell-FOL|</a>.<br>
+<br>
+The encoding should be specified before anything where the encoding matters.<br>
+The encoding applies both to the affix file and the dictionary file.&nbsp;&nbsp;It is<br>
+done with a SET line:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SET utf-8</span><br>
+<br>
+The encoding can be different from the value of the&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;option at the<br>
+time &quot;:mkspell&quot; is used.&nbsp;&nbsp;Vim will then convert everything to&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;and<br>
+generate a spell file for&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>.&nbsp;&nbsp;If some of the used characters to not<br>
+fit in&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;you will get an error message.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-affix-mbyte" name="spell-affix-mbyte">*spell-affix-mbyte*</a><br>
+When using a multi-byte encoding it's possible to use more different affix<br>
+flags.&nbsp;&nbsp;But Myspell doesn't support that, thus you may not want to use it<br>
+anyway.&nbsp;&nbsp;For compatibility use an 8-bit encoding.<br>
+<br>
+<br>
+情報<br>
+<br>
+These entries in the affix file can be used to add information to the spell<br>
+file.&nbsp;&nbsp;There are no restrictions on the format, but they should be in the<br>
+right encoding.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-NAME" name="spell-NAME">*spell-NAME*</a>&nbsp;<a class="Constant" href="spell.html#spell-VERSION" name="spell-VERSION">*spell-VERSION*</a>&nbsp;<a class="Constant" href="spell.html#spell-HOME" name="spell-HOME">*spell-HOME*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-AUTHOR" name="spell-AUTHOR">*spell-AUTHOR*</a>&nbsp;<a class="Constant" href="spell.html#spell-EMAIL" name="spell-EMAIL">*spell-EMAIL*</a>&nbsp;<a class="Constant" href="spell.html#spell-COPYRIGHT" name="spell-COPYRIGHT">*spell-COPYRIGHT*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NAME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name of the language<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VERSION&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1.0.1&nbsp;&nbsp;with fixes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;HOME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Constant"><a href="http://www.myhome.eu">http://www.myhome.eu</a></span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AUTHOR&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;John Doe<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;EMAIL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; john AT Doe DOT net<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;COPYRIGHT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; LGPL<br>
+<br>
+These fields are put in the .spl file as-is.&nbsp;&nbsp;The&nbsp;<a class="Identifier" href="spell.html#:spellinfo">|:spellinfo|</a>&nbsp;command can be<br>
+used to view the info.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#:spellinfo" name=":spellinfo">*:spellinfo*</a>&nbsp;<a class="Constant" href="spell.html#:spelli" name=":spelli">*:spelli*</a><br>
+:spelli[nfo]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Display the information for the spell file(s) used for<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the current buffer.<br>
+<br>
+<br>
+CHARACTER TABLES<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-affix-chars" name="spell-affix-chars">*spell-affix-chars*</a><br>
+When using an 8-bit encoding the affix file should define what characters are<br>
+word characters.&nbsp;&nbsp;This is because the system where &quot;:mkspell&quot; is used may not<br>
+support a locale with this encoding and isalpha() won't work.&nbsp;&nbsp;For example<br>
+when using &quot;cp1250&quot; on Unix.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#E761" name="E761">*E761*</a>&nbsp;<a class="Constant" href="spell.html#E762" name="E762">*E762*</a>&nbsp;<a class="Constant" href="spell.html#spell-FOL" name="spell-FOL">*spell-FOL*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-LOW" name="spell-LOW">*spell-LOW*</a>&nbsp;<a class="Constant" href="spell.html#spell-UPP" name="spell-UPP">*spell-UPP*</a><br>
+Three lines in the affix file are needed.&nbsp;&nbsp;Simplistic example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">FOL&nbsp;&nbsp;aen</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">LOW&nbsp;&nbsp;aen</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">UPP&nbsp;&nbsp;AEN</span><br>
+<br>
+All three lines must have exactly the same number of characters.<br>
+<br>
+The &quot;FOL&quot; line specifies the case-folded characters.&nbsp;&nbsp;These are used to<br>
+compare words while ignoring case.&nbsp;&nbsp;For most encodings this is identical to<br>
+the lower case line.<br>
+<br>
+The &quot;LOW&quot; line specifies the characters in lower-case.&nbsp;&nbsp;Mostly it's equal to<br>
+the &quot;FOL&quot; line.<br>
+<br>
+The &quot;UPP&quot; line specifies the characters with upper-case.&nbsp;&nbsp;That is, a character<br>
+is upper-case where it's different from the character at the same position in<br>
+&quot;FOL&quot;.<br>
+<br>
+An exception is made for the German sharp s s.&nbsp;&nbsp;The upper-case version is<br>
+&quot;SS&quot;.&nbsp;&nbsp;In the FOL/LOW/UPP lines it should be included, so that it's recognized<br>
+as a word character, but use the s character in all three.<br>
+<br>
+ASCII characters should be omitted, Vim always handles these in the same way.<br>
+When the encoding is UTF-8 no word characters need to be specified.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#E763" name="E763">*E763*</a><br>
+Vim allows you to use spell checking for several languages in the same file.<br>
+You can list them in the&nbsp;<a class="Type" href="options.html#'spelllang'">'spelllang'</a>&nbsp;option.&nbsp;&nbsp;As a consequence all spell files<br>
+for the same encoding must use the same word characters, otherwise they can't<br>
+be combined without errors.<br>
+<br>
+If you get an E763 warning that the word tables differ you need to update your<br>
+&quot;.spl&quot; spell files.&nbsp;&nbsp;If you downloaded the files, get the latest version of<br>
+all spell files you use.&nbsp;&nbsp;Otherwise generate the .spl file again with<br>
+<a class="Identifier" href="spell.html#:mkspell">|:mkspell|</a>.&nbsp;&nbsp;If you still get errors check the FOL, LOW and UPP lines in the<br>
+used .aff files.<br>
+<br>
+The XX.ascii.spl spell file generated with the &quot;-ascii&quot; argument will not<br>
+contain the table with characters, so that it can be combine with spell files<br>
+for any encoding.&nbsp;&nbsp;The .add.spl files also do not contain the table.<br>
+<br>
+<br>
+MID-WORD CHARACTERS<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-midword" name="spell-midword">*spell-midword*</a><br>
+Some characters are only to be considered word characters if they are used in<br>
+between two ordinary word characters.&nbsp;&nbsp;An example is the single quote: It is<br>
+often used to put text in quotes, thus it can't be recognized as a word<br>
+character, but when it appears in between word characters it must be part of<br>
+the word.&nbsp;&nbsp;This is needed to detect a spelling error such as they'are.&nbsp;&nbsp;That<br>
+should be they're, but since &quot;they&quot; and &quot;are&quot; are words themselves that would<br>
+go unnoticed.<br>
+<br>
+These characters are defined with MIDWORD in the .aff file.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">MIDWORD '-</span><br>
+<br>
+<br>
+<span class="Statement">FLAG TYPES&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-FLAG" name="spell-FLAG">*spell-FLAG*</a><br>
+<br>
+Flags are used to specify the affixes that can be used with a word and for<br>
+other properties of the word.&nbsp;&nbsp;Normally single-character flags are used.&nbsp;&nbsp;This<br>
+limits the number of possible flags, especially for 8-bit encodings.&nbsp;&nbsp;The FLAG<br>
+item can be used if more affixes are to be used.&nbsp;&nbsp;Possible values:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FLAG long&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; use two-character flags<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FLAG num&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;use numbers, from 1 up to 65000<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FLAG caplong&nbsp;&nbsp;&nbsp;&nbsp;use one-character flags without A-Z and two-character<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;flags that start with A-Z<br>
+<br>
+With &quot;FLAG num&quot; the numbers in a list of affixes need to be separated with a<br>
+comma: &quot;234,2143,1435&quot;.&nbsp;&nbsp;This method is inefficient, but useful if the file is<br>
+generated with a program.<br>
+<br>
+When using &quot;caplong&quot; the two-character flags all start with a capital: &quot;Aa&quot;,<br>
+&quot;B1&quot;, &quot;BB&quot;, etc.&nbsp;&nbsp;This is useful to use one-character flags for the most<br>
+common items and two-character flags for uncommon items.<br>
+<br>
+<span class="Todo">Note</span>: When using utf-8 only characters up to 65000 may be used for flags.<br>
+<br>
+<span class="Todo">Note</span>: even when using &quot;num&quot; or &quot;long&quot; the number of flags available to<br>
+compounding and prefixes is limited to about 250.<br>
+<br>
+<br>
+AFFIXES<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-PFX" name="spell-PFX">*spell-PFX*</a>&nbsp;<a class="Constant" href="spell.html#spell-SFX" name="spell-SFX">*spell-SFX*</a><br>
+The usual PFX (prefix) and SFX (suffix) lines are supported (see the Myspell<br>
+documentation or the Aspell manual:<br>
+<span class="Constant"><a href="http://aspell.net/man-html/Affix-Compression.html">http://aspell.net/man-html/Affix-Compression.html</a></span>).<br>
+<br>
+Summary:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX L Y 2</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX L 0 re [^x]</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX L 0 ro x</span><br>
+<br>
+The first line is a header and has four fields:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SFX&nbsp;<span class="Special">{flag}</span>&nbsp;<span class="Special">{combine}</span>&nbsp;<span class="Special">{count}</span><br>
+<br>
+<span class="Special">{flag}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The name used for the suffix.&nbsp;&nbsp;Mostly it's a single letter,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;but other characters can be used, see&nbsp;<a class="Identifier" href="spell.html#spell-FLAG">|spell-FLAG|</a>.<br>
+<br>
+<span class="Special">{combine}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Can be 'Y' or '<span class="Special">N</span>'.&nbsp;&nbsp;When 'Y' then the word plus suffix can<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;also have a prefix.&nbsp;&nbsp;When '<span class="Special">N</span>' then a prefix is not allowed.<br>
+<br>
+<span class="Special">{count}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The number of lines following.&nbsp;&nbsp;If this is wrong you will get<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;an error message.<br>
+<br>
+For PFX the fields are exactly the same.<br>
+<br>
+The basic format for the following lines is:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SFX&nbsp;<span class="Special">{flag}</span>&nbsp;<span class="Special">{strip}</span>&nbsp;<span class="Special">{add}</span>&nbsp;<span class="Special">{condition}</span>&nbsp;<span class="Special">{extra}</span><br>
+<br>
+<span class="Special">{flag}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Must be the same as the&nbsp;<span class="Special">{flag}</span>&nbsp;used in the first line.<br>
+<br>
+<span class="Special">{strip}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Characters removed from the basic word.&nbsp;&nbsp;There is no check if<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the characters are actually there, only the length is used (in<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bytes).&nbsp;&nbsp;This better match the&nbsp;<span class="Special">{condition}</span>, otherwise strange<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;things may happen.&nbsp;&nbsp;If the&nbsp;<span class="Special">{strip}</span>&nbsp;length is equal to or<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;longer than the basic word the suffix won't be used.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When&nbsp;<span class="Special">{strip}</span>&nbsp;is 0 (zero) then nothing is stripped.<br>
+<br>
+<span class="Special">{add}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Characters added to the basic word, after removing&nbsp;<span class="Special">{strip}</span>.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Optionally there is a '/' followed by flags.&nbsp;&nbsp;The flags apply<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to the word plus affix.&nbsp;&nbsp;See&nbsp;<a class="Identifier" href="spell.html#spell-affix-flags">|spell-affix-flags|</a><br>
+<br>
+<span class="Special">{condition}</span>&nbsp;&nbsp;&nbsp;&nbsp; A simplistic pattern.&nbsp;&nbsp;Only when this matches with a basic<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;word will the suffix be used for that word.&nbsp;&nbsp;This is normally<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for using one suffix letter with different&nbsp;<span class="Special">{add}</span>&nbsp;and&nbsp;<span class="Special">{strip}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fields for words with different endings.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When&nbsp;<span class="Special">{condition}</span>&nbsp;is a . (dot) there is no condition.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The pattern may contain:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Literal characters.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- A set of characters in [].&nbsp;<span class="Special">[abc]</span>&nbsp;matches a, b and c.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A dash is allowed for a range&nbsp;<span class="Special">[a-c]</span>, but this is<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Vim-specific.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- A set of characters that starts with a ^, meaning the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;complement of the specified characters.&nbsp;<span class="Special">[^abc]</span>&nbsp;matches any<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;character but a, b and c.<br>
+<br>
+<span class="Special">{extra}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Optional extra text:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# comment&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Comment is ignored<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Hunspell uses this, ignored<br>
+<br>
+For PFX the fields are the same, but the&nbsp;<span class="Special">{strip}</span>,&nbsp;<span class="Special">{add}</span>&nbsp;and&nbsp;<span class="Special">{condition}</span>&nbsp;apply<br>
+to the start of the word.<br>
+<br>
+<span class="Todo">Note</span>: Myspell ignores any extra text after the relevant info.&nbsp;&nbsp;Vim requires<br>
+this text to start with a &quot;#&quot; so that mistakes don't go unnoticed.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX F 0 in&nbsp;&nbsp; [^i]n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Spion &gt; Spionin&nbsp;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX F 0 nen&nbsp;&nbsp;in&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # Bauerin &gt; Bauerinnen</span><br>
+<br>
+Apparently Myspell allows an affix name to appear more than once.&nbsp;&nbsp;Since this<br>
+might also be a mistake, Vim checks for an extra &quot;S&quot;.&nbsp;&nbsp;The affix files for<br>
+Myspell that use this feature apparently have this flag.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX a Y 1 S</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX a 0 an .</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX a Y 2 S</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX a 0 en .</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX a 0 on .</span><br>
+<br>
+<br>
+<span class="Statement">AFFIX FLAGS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-affix-flags" name="spell-affix-flags">*spell-affix-flags*</a><br>
+<br>
+This is a feature that comes from Hunspell: The affix may specify flags.&nbsp;&nbsp;This<br>
+works similar to flags specified on a basic word.&nbsp;&nbsp;The flags apply to the<br>
+basic word plus the affix (but there are restrictions).&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX S Y 1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX S 0 s .</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX A Y 1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX A 0 able/S .</span><br>
+<br>
+When the dictionary file contains &quot;drink/AS&quot; then these words are possible:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;drink<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;drinks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;uses S suffix<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;drinkable&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; uses A suffix<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;drinkables&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;uses A suffix and then S suffix<br>
+<br>
+Generally the flags of the suffix are added to the flags of the basic word,<br>
+both are used for the word plus suffix.&nbsp;&nbsp;But the flags of the basic word are<br>
+only used once for affixes, except that both one prefix and one suffix can be<br>
+used when both support combining.<br>
+<br>
+Specifically, the affix flags can be used for:<br>
+- Suffixes on suffixes, as in the example above.&nbsp;&nbsp;This works once, thus you<br>
+&nbsp;&nbsp;can have two suffixes on a word (plus one prefix).<br>
+- Making the word with the affix rare, by using the&nbsp;<a class="Identifier" href="spell.html#spell-RARE">|spell-RARE|</a>&nbsp;flag.<br>
+- Exclude the word with the affix from compounding, by using the<br>
+&nbsp;&nbsp;<a class="Identifier" href="spell.html#spell-COMPOUNDFORBIDFLAG">|spell-COMPOUNDFORBIDFLAG|</a>&nbsp;flag.<br>
+- Allow the word with the affix to be part of a compound word on the side of<br>
+&nbsp;&nbsp;the affix with the&nbsp;<a class="Identifier" href="spell.html#spell-COMPOUNDPERMITFLAG">|spell-COMPOUNDPERMITFLAG|</a>.<br>
+- Use the NEEDCOMPOUND flag: word plus affix can only be used as part of a<br>
+&nbsp;&nbsp;compound word.&nbsp;<a class="Identifier" href="spell.html#spell-NEEDCOMPOUND">|spell-NEEDCOMPOUND|</a><br>
+- Compound flags: word plus affix can be part of a compound word at the end,<br>
+&nbsp;&nbsp;middle, start, etc.&nbsp;&nbsp;The flags are combined with the flags of the basic<br>
+&nbsp;&nbsp;word.&nbsp;&nbsp;<a class="Identifier" href="spell.html#spell-compound">|spell-compound|</a><br>
+- NEEDAFFIX: another affix is needed to make a valid word.<br>
+- CIRCUMFIX, as explained just below.<br>
+<br>
+<br>
+<span class="Statement">CIRCUMFIX&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-CIRCUMFIX" name="spell-CIRCUMFIX">*spell-CIRCUMFIX*</a><br>
+<br>
+The CIRCUMFIX flag means a prefix and suffix must be added at the same time.<br>
+If a prefix has the CIRCUMFIX flag than only suffixes with the CIRCUMFIX flag<br>
+can be added, and the other way around.<br>
+An alternative is to only specify the suffix, and give the that suffix two<br>
+flags: The required prefix and the NEEDAFFIX flag.&nbsp;&nbsp;<a class="Identifier" href="spell.html#spell-NEEDAFFIX">|spell-NEEDAFFIX|</a><br>
+<br>
+<br>
+<span class="Statement">PFXPOSTPONE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-PFXPOSTPONE" name="spell-PFXPOSTPONE">*spell-PFXPOSTPONE*</a><br>
+<br>
+When an affix file has very many prefixes that apply to many words it's not<br>
+possible to build the whole word list in memory.&nbsp;&nbsp;This applies to Hebrew (a<br>
+list with all words is over a Gbyte).&nbsp;&nbsp;In that case applying prefixes must be<br>
+postponed.&nbsp;&nbsp;This makes spell checking slower.&nbsp;&nbsp;It is indicated by this keyword<br>
+in the .aff file:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">PFXPOSTPONE</span><br>
+<br>
+Only prefixes without a chop string and without flags can be postponed.<br>
+Prefixes with a chop string or with flags will still be included in the word<br>
+list.&nbsp;&nbsp;An exception if the chop string is one character and equal to the last<br>
+character of the added string, but in lower case.&nbsp;&nbsp;Thus when the chop string<br>
+is used to allow the following word to start with an upper case letter.<br>
+<br>
+<br>
+<span class="Statement">WORDS WITH A SLASH&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-SLASH" name="spell-SLASH">*spell-SLASH*</a><br>
+<br>
+The slash is used in the .dic file to separate the basic word from the affix<br>
+letters and other flags.&nbsp;&nbsp;Unfortunately, this means you cannot use a slash in<br>
+a word.&nbsp;&nbsp;Thus &quot;TCP/IP&quot; is not a word but &quot;TCP&quot; with the flags &quot;IP&quot;.&nbsp;&nbsp;To include<br>
+a slash in the word put a backslash before it: &quot;TCP\/IP&quot;.&nbsp;&nbsp;In the rare case<br>
+you want to use a backslash inside a word you need to use two backslashes.<br>
+Any other use of the backslash is reserved for future expansion.<br>
+<br>
+<br>
+<span class="Statement">KEEP-CASE WORDS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-KEEPCASE" name="spell-KEEPCASE">*spell-KEEPCASE*</a><br>
+<br>
+In the affix file a KEEPCASE line can be used to define the affix name used<br>
+for keep-case words.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">KEEPCASE =</span><br>
+<br>
+This flag is not supported by Myspell.&nbsp;&nbsp;It has the meaning that case matters.<br>
+This can be used if the word does not have the first letter in upper case at<br>
+the start of a sentence.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">word list&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; matches&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; does not match</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;'s morgens/=&nbsp;&nbsp;&nbsp;&nbsp;'s morgens&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'S morgens 's Morgens 'S MORGENS<br>
+&nbsp;&nbsp;&nbsp;&nbsp;'s Morgens&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'s Morgens 'S MORGENS&nbsp;&nbsp; 'S morgens 's morgens<br>
+<br>
+The flag can also be used to avoid that the word matches when it is in all<br>
+upper-case letters.<br>
+<br>
+<br>
+<span class="Statement">RARE WORDS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-RARE" name="spell-RARE">*spell-RARE*</a><br>
+<br>
+In the affix file a RARE line can be used to define the affix name used for<br>
+rare words.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">RARE ?</span><br>
+<br>
+Rare words are highlighted differently from bad words.&nbsp;&nbsp;This is to be used for<br>
+words that are correct for the language, but are hardly ever used and could be<br>
+a typing mistake anyway.&nbsp;&nbsp;When the same word is found as good it won't be<br>
+highlighted as rare.<br>
+<br>
+This flag can also be used on an affix, so that a basic word is not rare but<br>
+the basic word plus affix is rare&nbsp;<a class="Identifier" href="spell.html#spell-affix-flags">|spell-affix-flags|</a>.&nbsp;&nbsp;However, if the word<br>
+also appears as a good word in another way (e.g., in another region) it won't<br>
+be marked as rare.<br>
+<br>
+<br>
+<span class="Statement">BAD WORDS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-BAD" name="spell-BAD">*spell-BAD*</a><br>
+<br>
+In the affix file a BAD line can be used to define the affix name used for<br>
+bad words.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">BAD !</span><br>
+<br>
+This can be used to exclude words that would otherwise be good.&nbsp;&nbsp;For example<br>
+&quot;the the&quot; in the .dic file:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">the the/!</span><br>
+<br>
+Once a word has been marked as bad it won't be undone by encountering the same<br>
+word as good.<br>
+<br>
+The flag also applies to the word with affixes, thus this can be used to mark<br>
+a whole bunch of related words as bad.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-FORBIDDENWORD" name="spell-FORBIDDENWORD">*spell-FORBIDDENWORD*</a><br>
+FORBIDDENWORD can be used just like BAD.&nbsp;&nbsp;For compatibility with Hunspell.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-NEEDAFFIX" name="spell-NEEDAFFIX">*spell-NEEDAFFIX*</a><br>
+The NEEDAFFIX flag is used to require that a word is used with an affix.&nbsp;&nbsp;The<br>
+word itself is not a good word (unless there is an empty affix).&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">NEEDAFFIX +</span><br>
+<br>
+<br>
+<span class="Statement">COMPOUND WORDS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-compound" name="spell-compound">*spell-compound*</a><br>
+<br>
+A compound word is a longer word made by concatenating words that appear in<br>
+the .dic file.&nbsp;&nbsp;To specify which words may be concatenated a character is<br>
+used.&nbsp;&nbsp;This character is put in the list of affixes after the word.&nbsp;&nbsp;We will<br>
+call this character a flag here.&nbsp;&nbsp;Obviously these flags must be different from<br>
+any affix IDs used.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDFLAG" name="spell-COMPOUNDFLAG">*spell-COMPOUNDFLAG*</a><br>
+The Myspell compatible method uses one flag, specified with COMPOUNDFLAG.&nbsp;&nbsp;All<br>
+words with this flag combine in any order.&nbsp;&nbsp;This means there is no control<br>
+over which word comes first.&nbsp;&nbsp;Example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">COMPOUNDFLAG c</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDRULE" name="spell-COMPOUNDRULE">*spell-COMPOUNDRULE*</a><br>
+A more advanced method to specify how compound words can be formed uses<br>
+multiple items with multiple flags.&nbsp;&nbsp;This is not compatible with Myspell 3.0.<br>
+Let's start with an example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">COMPOUNDRULE c+</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">COMPOUNDRULE se</span><br>
+<br>
+The first line defines that words with the &quot;c&quot; flag can be concatenated in any<br>
+order.&nbsp;&nbsp;The second line defines compound words that are made of one word with<br>
+the &quot;s&quot; flag and one word with the &quot;e&quot; flag.&nbsp;&nbsp;With this dictionary:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">bork/c</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">onion/s</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">soup/e</span><br>
+<br>
+You can make these words:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bork<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;borkbork<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;borkborkbork<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(etc.)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onion<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soup<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onionsoup<br>
+<br>
+The COMPOUNDRULE item may appear multiple times.&nbsp;&nbsp;The argument is made out of<br>
+one or more groups, where each group can be:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;one flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.g., c<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alternate flags inside []&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; e.g.,&nbsp;<span class="Special">[abc]</span><br>
+Optionally this may be followed by:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; the group appears zero or more times, e.g., sm*e<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; the group appears one or more times, e.g., c+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; the group appears zero times or once, e.g., x?<br>
+<br>
+This is similar to the regexp pattern syntax (but not the same!).&nbsp;&nbsp;A few<br>
+examples with the sequence of word flags they require:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;COMPOUNDRULE x+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x xx xxx etc.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;COMPOUNDRULE yz&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; yz<br>
+&nbsp;&nbsp;&nbsp;&nbsp;COMPOUNDRULE x+z&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xz xxz xxxz etc.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;COMPOUNDRULE yx+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yx yxx yxxx etc.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;COMPOUNDRULE xy?z&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; xz xyz<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;COMPOUNDRULE&nbsp;<span class="Special">[abc]</span>z&nbsp;&nbsp;&nbsp;&nbsp;az bz cz<br>
+&nbsp;&nbsp;&nbsp;&nbsp;COMPOUNDRULE&nbsp;<span class="Special">[abc]</span>+z&nbsp;&nbsp; az aaz abaz bz baz bcbz cz caz cbaz etc.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;COMPOUNDRULE a[xyz]+&nbsp;&nbsp; ax axx axyz ay ayx ayzz az azy azxy etc.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;COMPOUNDRULE sm*e&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; se sme smme smmme etc.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;COMPOUNDRULE s[xyz]*e&nbsp;&nbsp;se sxe sxye sxyxe sye syze sze szye szyxe&nbsp;&nbsp;etc.<br>
+<br>
+A specific example: Allow a compound to be made of two words and a dash:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;In the .aff file:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">COMPOUNDRULE sde</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">NEEDAFFIX x</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">COMPOUNDWORDMAX 3</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">COMPOUNDMIN 1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;In the .dic file:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">start/s</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">end/e</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">-/xd</span><br>
+<br>
+This allows for the word &quot;start-end&quot;, but not &quot;startend&quot;.<br>
+<br>
+An additional implied rule is that, without further flags, a word with a<br>
+prefix cannot be compounded after another word, and a word with a suffix<br>
+cannot be compounded with a following word.&nbsp;&nbsp;Thus the affix cannot appear<br>
+on the inside of a compound word.&nbsp;&nbsp;This can be changed with the<br>
+<a class="Identifier" href="spell.html#spell-COMPOUNDPERMITFLAG">|spell-COMPOUNDPERMITFLAG|</a>.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-NEEDCOMPOUND" name="spell-NEEDCOMPOUND">*spell-NEEDCOMPOUND*</a><br>
+The NEEDCOMPOUND flag is used to require that a word is used as part of a<br>
+compound word.&nbsp;&nbsp;The word itself is not a good word.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">NEEDCOMPOUND &amp;</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-ONLYINCOMPOUND" name="spell-ONLYINCOMPOUND">*spell-ONLYINCOMPOUND*</a><br>
+The ONLYINCOMPOUND does exactly the same as NEEDCOMPOUND.&nbsp;&nbsp;Supported for<br>
+compatibility with Hunspell.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDMIN" name="spell-COMPOUNDMIN">*spell-COMPOUNDMIN*</a><br>
+The minimal character length of a word used for compounding is specified with<br>
+COMPOUNDMIN.&nbsp;&nbsp;Example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">COMPOUNDMIN 5</span><br>
+<br>
+When omitted there is no minimal length.&nbsp;&nbsp;Obviously you could just leave out<br>
+the compound flag from short words instead, this feature is present for<br>
+compatibility with Myspell.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDWORDMAX" name="spell-COMPOUNDWORDMAX">*spell-COMPOUNDWORDMAX*</a><br>
+The maximum number of words that can be concatenated into a compound word is<br>
+specified with COMPOUNDWORDMAX.&nbsp;&nbsp;Example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">COMPOUNDWORDMAX 3</span><br>
+<br>
+When omitted there is no maximum.&nbsp;&nbsp;It applies to all compound words.<br>
+<br>
+To set a limit for words with specific flags make sure the items in<br>
+COMPOUNDRULE where they appear don't allow too many words.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDSYLMAX" name="spell-COMPOUNDSYLMAX">*spell-COMPOUNDSYLMAX*</a><br>
+The maximum number of syllables that a compound word may contain is specified<br>
+with COMPOUNDSYLMAX.&nbsp;&nbsp;Example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">COMPOUNDSYLMAX 6</span><br>
+<br>
+This has no effect if there is no SYLLABLE item.&nbsp;&nbsp;Without COMPOUNDSYLMAX there<br>
+is no limit on the number of syllables.<br>
+<br>
+If both COMPOUNDWORDMAX and COMPOUNDSYLMAX are defined, a compound word is<br>
+accepted if it fits one of the criteria, thus is either made from up to<br>
+COMPOUNDWORDMAX words or contains up to COMPOUNDSYLMAX syllables.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDFORBIDFLAG" name="spell-COMPOUNDFORBIDFLAG">*spell-COMPOUNDFORBIDFLAG*</a><br>
+The COMPOUNDFORBIDFLAG specifies a flag that can be used on an affix.&nbsp;&nbsp;It<br>
+means that the word plus affix cannot be used in a compound word.&nbsp;&nbsp;Example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;affix file:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">COMPOUNDFLAG c</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">COMPOUNDFORBIDFLAG x</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX a Y 2</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX a 0 s&nbsp;&nbsp; .</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SFX a 0 ize/x .</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dictionary:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">word/c</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">util/ac</span><br>
+<br>
+This allows for &quot;wordutil&quot; and &quot;wordutils&quot; but not &quot;wordutilize&quot;.<br>
+<span class="Todo">Note</span>: this doesn't work for postponed prefixes yet.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDPERMITFLAG" name="spell-COMPOUNDPERMITFLAG">*spell-COMPOUNDPERMITFLAG*</a><br>
+The COMPOUNDPERMITFLAG specifies a flag that can be used on an affix.&nbsp;&nbsp;It<br>
+means that the word plus affix can also be used in a compound word in a way<br>
+where the affix ends up halfway the word.&nbsp;&nbsp;Without this flag that is not<br>
+allowed.<br>
+<span class="Todo">Note</span>: this doesn't work for postponed prefixes yet.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDROOT" name="spell-COMPOUNDROOT">*spell-COMPOUNDROOT*</a><br>
+The COMPOUNDROOT flag is used for words in the dictionary that are already a<br>
+compound.&nbsp;&nbsp;This means it counts for two words when checking the compounding<br>
+rules.&nbsp;&nbsp;Can also be used for an affix to count the affix as a compounding<br>
+word.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-CHECKCOMPOUNDPATTERN" name="spell-CHECKCOMPOUNDPATTERN">*spell-CHECKCOMPOUNDPATTERN*</a><br>
+CHECKCOMPOUNDPATTERN is used to define patterns that, when matching at the<br>
+position where two words are compounded together forbids the compound.<br>
+For example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">CHECKCOMPOUNDPATTERN o e</span><br>
+<br>
+This forbids compounding if the first word ends in &quot;o&quot; and the second word<br>
+starts with &quot;e&quot;.<br>
+<br>
+The arguments must be plain text, no patterns are actually supported, despite<br>
+the item name.&nbsp;&nbsp;Case is always ignored.<br>
+<br>
+The Hunspell feature to use three arguments and flags is not supported.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-SYLLABLE" name="spell-SYLLABLE">*spell-SYLLABLE*</a><br>
+The SYLLABLE item defines characters or character sequences that are used to<br>
+count the number of syllables in a word.&nbsp;&nbsp;Example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SYLLABLE aaeeiioooouuuuy/aa/au/ea/ee/ei/ie/oa/oe/oo/ou/uu/ui</span><br>
+<br>
+Before the first slash is the set of characters that are counted for one<br>
+syllable, also when repeated and mixed, until the next character that is not<br>
+in this set.&nbsp;&nbsp;After the slash come sequences of characters that are counted<br>
+for one syllable.&nbsp;&nbsp;These are preferred over using characters from the set.<br>
+With the example &quot;ideeen&quot; has three syllables, counted by &quot;i&quot;, &quot;ee&quot; and &quot;e&quot;.<br>
+<br>
+Only case-folded letters need to be included.<br>
+<br>
+Another way to restrict compounding was mentioned above: Adding the<br>
+<a class="Identifier" href="spell.html#spell-COMPOUNDFORBIDFLAG">|spell-COMPOUNDFORBIDFLAG|</a>&nbsp;flag to an affix causes all words that are made<br>
+with that affix to not be used for compounding.<br>
+<br>
+<br>
+<span class="Statement">UNLIMITED COMPOUNDING&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-NOBREAK" name="spell-NOBREAK">*spell-NOBREAK*</a><br>
+<br>
+For some languages, such as Thai, there is no space in between words.&nbsp;&nbsp;This<br>
+looks like all words are compounded.&nbsp;&nbsp;To specify this use the NOBREAK item in<br>
+the affix file, without arguments:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">NOBREAK</span><br>
+<br>
+Vim will try to figure out where one word ends and a next starts.&nbsp;&nbsp;When there<br>
+are spelling mistakes this may not be quite right.<br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMMON" name="spell-COMMON">*spell-COMMON*</a><br>
+Common words can be specified with the COMMON item.&nbsp;&nbsp;This will give better<br>
+suggestions when editing a short file.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">COMMON&nbsp;&nbsp;the of to and a in is it you that he was for on are</span><br>
+<br>
+The words must be separated by white space, up to 25 per line.<br>
+When multiple regions are specified in a &quot;:mkspell&quot; command the common words<br>
+for all regions are combined and used for all regions.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-NOSPLITSUGS" name="spell-NOSPLITSUGS">*spell-NOSPLITSUGS*</a><br>
+This item indicates that splitting a word to make suggestions is not a good<br>
+idea.&nbsp;&nbsp;Split-word suggestions will appear only when there are few similar<br>
+words.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">NOSPLITSUGS</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-NOSUGGEST" name="spell-NOSUGGEST">*spell-NOSUGGEST*</a><br>
+The flag specified with NOSUGGEST can be used for words that will not be<br>
+suggested.&nbsp;&nbsp;Can be used for obscene words.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">NOSUGGEST %</span><br>
+<br>
+<br>
+<span class="Statement">REPLACEMENTS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-REP" name="spell-REP">*spell-REP*</a><br>
+<br>
+In the affix file REP items can be used to define common mistakes.&nbsp;&nbsp;This is<br>
+used to make spelling suggestions.&nbsp;&nbsp;The items define the &quot;from&quot; text and the<br>
+&quot;to&quot; replacement.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">REP 4</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">REP f ph</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">REP ph f</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">REP k ch</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">REP ch k</span><br>
+<br>
+The first line specifies the number of REP lines following.&nbsp;&nbsp;Vim ignores the<br>
+number, but it must be there (for compatibility with Myspell).<br>
+<br>
+Don't include simple one-character replacements or swaps.&nbsp;&nbsp;Vim will try these<br>
+anyway.&nbsp;&nbsp;You can include whole words if you want to, but you might want to use<br>
+the &quot;file:&quot; item in&nbsp;<a class="Type" href="options.html#'spellsuggest'">'spellsuggest'</a>&nbsp;instead.<br>
+<br>
+You can include a space by using an underscore:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">REP the_the the</span><br>
+<br>
+<br>
+<span class="Statement">SIMILAR CHARACTERS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-MAP" name="spell-MAP">*spell-MAP*</a>&nbsp;<a class="Constant" href="spell.html#E783" name="E783">*E783*</a><br>
+<br>
+In the affix file MAP items can be used to define letters that are very much<br>
+alike.&nbsp;&nbsp;This is mostly used for a letter with different accents.&nbsp;&nbsp;This is used<br>
+to prefer suggestions with these letters substituted.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">MAP 2</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">MAP eeeee</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">MAP uuuuu</span><br>
+<br>
+The first line specifies the number of MAP lines following.&nbsp;&nbsp;Vim ignores the<br>
+number, but the line must be there.<br>
+<br>
+Each letter must appear in only one of the MAP items.&nbsp;&nbsp;It's a bit more<br>
+efficient if the first letter is ASCII or at least one without accents.<br>
+<br>
+<br>
+<span class="Statement">.SUG FILE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-NOSUGFILE" name="spell-NOSUGFILE">*spell-NOSUGFILE*</a><br>
+<br>
+When soundfolding is specified in the affix file then &quot;:mkspell&quot; will normally<br>
+produce a .sug file next to the .spl file.&nbsp;&nbsp;This file is used to find<br>
+suggestions by their sound-a-like form quickly.&nbsp;&nbsp;At the cost of a lot of<br>
+memory (the amount depends on the number of words,&nbsp;<a class="Identifier" href="spell.html#:mkspell">|:mkspell|</a>&nbsp;will display an<br>
+estimate when it's done).<br>
+<br>
+To avoid producing a .sug file use this item in the affix file:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">NOSUGFILE</span><br>
+<br>
+Users can simply omit the .sug file if they don't want to use it.<br>
+<br>
+<br>
+<span class="Statement">SOUND-A-LIKE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-SAL" name="spell-SAL">*spell-SAL*</a><br>
+<br>
+In the affix file SAL items can be used to define the sounds-a-like mechanism<br>
+to be used.&nbsp;&nbsp;The main items define the &quot;from&quot; text and the &quot;to&quot; replacement.<br>
+Simplistic example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SAL CIA&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SAL CH&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; X</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SAL C&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;K</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SAL K&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;K</span><br>
+<br>
+There are a few rules and this can become quite complicated.&nbsp;&nbsp;An explanation<br>
+how it works can be found in the Aspell manual:<br>
+<span class="Constant"><a href="http://aspell.net/man-html/Phonetic-Code.html">http://aspell.net/man-html/Phonetic-Code.html</a></span>.<br>
+<br>
+There are a few special items:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SAL followup&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;true</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SAL collapse_result&nbsp;&nbsp;&nbsp;&nbsp; true</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SAL remove_accents&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;true</span><br>
+<br>
+&quot;1&quot; has the same meaning as &quot;true&quot;.&nbsp;&nbsp;Any other value means &quot;false&quot;.<br>
+<br>
+<br>
+<span class="Statement">SIMPLE SOUNDFOLDING&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-SOFOFROM" name="spell-SOFOFROM">*spell-SOFOFROM*</a>&nbsp;<a class="Constant" href="spell.html#spell-SOFOTO" name="spell-SOFOTO">*spell-SOFOTO*</a><br>
+<br>
+The SAL mechanism is complex and slow.&nbsp;&nbsp;A simpler mechanism is mapping all<br>
+characters to another character, mapping similar sounding characters to the<br>
+same character.&nbsp;&nbsp;At the same time this does case folding.&nbsp;&nbsp;You can not have<br>
+both SAL items and simple soundfolding.<br>
+<br>
+There are two items required: one to specify the characters that are mapped<br>
+and one that specifies the characters they are mapped to.&nbsp;&nbsp;They must have<br>
+exactly the same number of characters.&nbsp;&nbsp;Example:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SOFOFROM abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">SOFOTO&nbsp;&nbsp; ebctefghejklnnepkrstevvkesebctefghejklnnepkrstevvkes</span><br>
+<br>
+In the example all vowels are mapped to the same character 'e'.&nbsp;&nbsp;Another<br>
+method would be to leave out all vowels.&nbsp;&nbsp;Some characters that sound nearly<br>
+the same and are often mixed up, such as 'm' and 'n', are mapped to the same<br>
+character.&nbsp;&nbsp;Don't do this too much, all words will start looking alike.<br>
+<br>
+Characters that do not appear in SOFOFROM will be left out, except that all<br>
+white space is replaced by one space.&nbsp;&nbsp;Sequences of the same character in<br>
+SOFOFROM are replaced by one.<br>
+<br>
+You can use the&nbsp;<a class="Identifier" href="eval.html#soundfold()">|soundfold()|</a>&nbsp;function to try out the results.&nbsp;&nbsp;Or set the<br>
+<a class="Type" href="options.html#'verbose'">'verbose'</a>&nbsp;option to see the score in the output of the&nbsp;<a class="Identifier" href="spell.html#z=">|z=|</a>&nbsp;command.<br>
+<br>
+<br>
+<span class="Statement">UNSUPPORTED ITEMS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="spell.html#spell-affix-not-supported" name="spell-affix-not-supported">*spell-affix-not-supported*</a><br>
+<br>
+These items appear in the affix file of other spell checkers.&nbsp;&nbsp;In Vim they are<br>
+ignored, not supported or defined in another way.<br>
+<br>
+ACCENT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-ACCENT" name="spell-ACCENT">*spell-ACCENT*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Use MAP instead.&nbsp;<a class="Identifier" href="spell.html#spell-MAP">|spell-MAP|</a><br>
+<br>
+BREAK&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-BREAK" name="spell-BREAK">*spell-BREAK*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Define break points.&nbsp;&nbsp;Unclear how it works exactly.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Not supported.<br>
+<br>
+CHECKCOMPOUNDCASE&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-CHECKCOMPOUNDCASE" name="spell-CHECKCOMPOUNDCASE">*spell-CHECKCOMPOUNDCASE*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Disallow uppercase letters at compound word boundaries.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Not supported.<br>
+<br>
+CHECKCOMPOUNDDUP&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-CHECKCOMPOUNDDUP" name="spell-CHECKCOMPOUNDDUP">*spell-CHECKCOMPOUNDDUP*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Disallow using the same word twice in a compound.&nbsp;&nbsp;Not<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;supported.<br>
+<br>
+CHECKCOMPOUNDREP&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-CHECKCOMPOUNDREP" name="spell-CHECKCOMPOUNDREP">*spell-CHECKCOMPOUNDREP*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Something about using REP items and compound words.&nbsp;&nbsp;Not<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;supported.<br>
+<br>
+CHECKCOMPOUNDTRIPLE&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-CHECKCOMPOUNDTRIPLE" name="spell-CHECKCOMPOUNDTRIPLE">*spell-CHECKCOMPOUNDTRIPLE*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Forbid three identical characters when compounding.&nbsp;&nbsp;Not<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;supported.<br>
+<br>
+COMPLEXPREFIXES&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPLEXPREFIXES" name="spell-COMPLEXPREFIXES">*spell-COMPLEXPREFIXES*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enables using two prefixes.&nbsp;&nbsp;Not supported.<br>
+<br>
+COMPOUND&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUND" name="spell-COMPOUND">*spell-COMPOUND*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is one line with the count of COMPOUND items, followed by<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;that many COMPOUND lines with a pattern.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove the first line with the count and rename the other<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;items to COMPOUNDRULE&nbsp;<a class="Identifier" href="spell.html#spell-COMPOUNDRULE">|spell-COMPOUNDRULE|</a><br>
+<br>
+COMPOUNDFIRST&nbsp;&nbsp; (Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDFIRST" name="spell-COMPOUNDFIRST">*spell-COMPOUNDFIRST*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Use COMPOUNDRULE instead.&nbsp;<a class="Identifier" href="spell.html#spell-COMPOUNDRULE">|spell-COMPOUNDRULE|</a><br>
+<br>
+COMPOUNDBEGIN&nbsp;&nbsp; (Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDBEGIN" name="spell-COMPOUNDBEGIN">*spell-COMPOUNDBEGIN*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Use COMPOUNDRULE instead.&nbsp;<a class="Identifier" href="spell.html#spell-COMPOUNDRULE">|spell-COMPOUNDRULE|</a><br>
+<br>
+COMPOUNDEND&nbsp;&nbsp;&nbsp;&nbsp; (Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDEND" name="spell-COMPOUNDEND">*spell-COMPOUNDEND*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Use COMPOUNDRULE instead.&nbsp;<a class="Identifier" href="spell.html#spell-COMPOUNDRULE">|spell-COMPOUNDRULE|</a><br>
+<br>
+COMPOUNDMIDDLE&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDMIDDLE" name="spell-COMPOUNDMIDDLE">*spell-COMPOUNDMIDDLE*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Use COMPOUNDRULE instead.&nbsp;<a class="Identifier" href="spell.html#spell-COMPOUNDRULE">|spell-COMPOUNDRULE|</a><br>
+<br>
+COMPOUNDRULES&nbsp;&nbsp; (Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDRULES" name="spell-COMPOUNDRULES">*spell-COMPOUNDRULES*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Number of COMPOUNDRULE lines following.&nbsp;&nbsp;Ignored, but the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;argument must be a number.<br>
+<br>
+COMPOUNDSYLLABLE&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-COMPOUNDSYLLABLE" name="spell-COMPOUNDSYLLABLE">*spell-COMPOUNDSYLLABLE*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Use SYLLABLE and COMPOUNDSYLMAX instead.&nbsp;<a class="Identifier" href="spell.html#spell-SYLLABLE">|spell-SYLLABLE|</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="spell.html#spell-COMPOUNDSYLMAX">|spell-COMPOUNDSYLMAX|</a><br>
+<br>
+KEY&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-KEY" name="spell-KEY">*spell-KEY*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Define characters that are close together on the keyboard.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Used to give better suggestions.&nbsp;&nbsp;Not supported.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+LANG&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-LANG" name="spell-LANG">*spell-LANG*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This specifies language-specific behavior.&nbsp;&nbsp;This actually<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;moves part of the language knowledge into the program,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;therefore Vim does not support it.&nbsp;&nbsp;Each language property<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;must be specified separately.<br>
+<br>
+LEMMA_PRESENT&nbsp;&nbsp; (Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-LEMMA_PRESENT" name="spell-LEMMA_PRESENT">*spell-LEMMA_PRESENT*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Only needed for morphological analysis.<br>
+<br>
+MAXNGRAMSUGS&nbsp;&nbsp;&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-MAXNGRAMSUGS" name="spell-MAXNGRAMSUGS">*spell-MAXNGRAMSUGS*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Set number of n-gram suggestions.&nbsp;&nbsp;Not supported.<br>
+<br>
+PSEUDOROOT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-PSEUDOROOT" name="spell-PSEUDOROOT">*spell-PSEUDOROOT*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Use NEEDAFFIX instead.&nbsp;<a class="Identifier" href="spell.html#spell-NEEDAFFIX">|spell-NEEDAFFIX|</a><br>
+<br>
+SUGSWITHDOTS&nbsp;&nbsp;&nbsp;&nbsp;(Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-SUGSWITHDOTS" name="spell-SUGSWITHDOTS">*spell-SUGSWITHDOTS*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Adds dots to suggestions.&nbsp;&nbsp;Vim doesn't need this.<br>
+<br>
+SYLLABLENUM&nbsp;&nbsp;&nbsp;&nbsp; (Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-SYLLABLENUM" name="spell-SYLLABLENUM">*spell-SYLLABLENUM*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Not supported.<br>
+<br>
+TRY&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (Myspell, Hunspell, others)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-TRY" name="spell-TRY">*spell-TRY*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Vim does not use the TRY item, it is ignored.&nbsp;&nbsp;For making<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;suggestions the actual characters in the words are used, that<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is much more efficient.<br>
+<br>
+WORDCHARS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (Hunspell)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="spell.html#spell-WORDCHARS" name="spell-WORDCHARS">*spell-WORDCHARS*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Used to recognize words.&nbsp;&nbsp;Vim doesn't need it, because there<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is no need to separate words before checking them (using a<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;trie instead of a hashtable).<br>
+<br>
+&nbsp;vim:tw=78:sw=4:ts=8:ft=help:norl:<br>
+</div>
