@@ -1,4 +1,4 @@
-*eval.txt*	For Vim version 7.3.  Last change: 2013 May 21
+*eval.txt*	For Vim version 7.4.  Last change: 2013 Aug 24
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -123,6 +123,7 @@ around the arguments, to invoke the function it refers to.  Example: >
 	:echo Fn()
 <							*E704* *E705* *E707*
 A Funcref variable must start with a capital, "s:", "w:", "t:" or "b:".  You
+can use "g:" but the following name must still start with a capital.  You
 cannot have both a Funcref variable and a function with the same name.
 
 A special case is defining a function and directly assigning its Funcref to a
@@ -1906,6 +1907,8 @@ repeat( {expr}, {count})	String	repeat {expr} {count} times
 resolve( {filename})		String	get filename a shortcut points to
 reverse( {list})		List	reverse {list} in-place
 round( {expr})			Float	round off {expr}
+screenattr( {row}, {col})	Number	attribute at screen position
+screenchar( {row}, {col})	Number	character at screen position
 screencol()			Number	current cursor column
 screenrow()			Number	current cursor row
 search( {pattern} [, {flags} [, {stopline} [, {timeout}]]])
@@ -2773,7 +2776,8 @@ expand({expr} [, {nosuf} [, {list}]])				*expand()*
 		file name contains a space]
 
 		If the expansion fails, the result is an empty string.	A name
-		for a non-existing file is not included.
+		for a non-existing file is not included, unless {expr} does
+		not start with '%', '#' or '<', see below.
 
 		When {expr} starts with '%', '#' or '<', the expansion is done
 		like for the |cmdline-special| variables with their associated
@@ -4890,6 +4894,21 @@ round({expr})							*round()*
 <			-5.0
 		{only available when compiled with the |+float| feature}
 
+screenattr(row, col)						*screenattr()*
+		Like screenchar(), but return the attribute.  This is a rather
+		arbitrary number that can only be used to compare to the
+		attribute at other positions.
+
+screenchar(row, col)						*screenchar()*
+		The result is a Number, which is the character at position
+		[row, col] on the screen.  This works for every possible
+		screen position, also status lines, window separators and the
+		command line.  The top left position is row one, column one
+		The character excludes composing characters.  For double-byte
+		encodings it may only be the first byte.
+		This is mainly to be used for testing.
+		Returns -1 when row or col is out of range.
+
 screencol()							*screencol()*
 		The result is a Number, which is the current screen column of
 		the cursor. The leftmost column has number 1.
@@ -5866,6 +5885,9 @@ system({expr} [, {input}])				*system()* *E677*
 <		To make the result more system-independent, the shell output
 		is filtered to replace <CR> with <NL> for Macintosh, and
 		<CR><NL> with <NL> for DOS-like systems.
+		To avoid the string being truncated at a NUL, all NUL
+		characters are replaced with SOH (0x01).
+
 		The command executed is constructed using several options:
 	'shell' 'shellcmdflag' 'shellxquote' {expr} 'shellredir' {tmp} 'shellxquote'
 		({tmp} is an automatically generated file name).
@@ -6316,6 +6338,7 @@ There are three types of features:
 <   Note that it's possible for patch 147 to be omitted even though 148 is
     included.
 
+acl			Compiled with |ACL| support.
 all_builtin_terms	Compiled with all builtin terminals enabled.
 amiga			Amiga version of Vim.
 arabic			Compiled with Arabic support |Arabic|.
@@ -6482,7 +6505,9 @@ windows			Compiled with support for more than one window.
 writebackup		Compiled with 'writebackup' default on.
 xfontset		Compiled with X fontset support |xfontset|.
 xim			Compiled with X input method support |xim|.
-xpm_w32			Compiled with pixmap support for Win32.
+xpm			Compiled with pixmap support.
+xpm_w32			Compiled with pixmap support for Win32. (Only for
+			backward compatibility. Use "xpm" instead.)
 xsmp			Compiled with X session management support.
 xsmp_interact		Compiled with interactive X session management support.
 xterm_clipboard		Compiled with support for xterm clipboard.
