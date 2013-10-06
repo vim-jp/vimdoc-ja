@@ -6,6 +6,7 @@
 setup "master2-test"
 
 # TODO: update repository.
+cd "${BRANCHDIR}"
 touch test.txt
 ts=`date "+%Y/%m/%d %H:%M:%S%z"`
 echo "${ts}" >> test.txt

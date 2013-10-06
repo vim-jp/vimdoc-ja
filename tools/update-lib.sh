@@ -38,18 +38,24 @@ setup() {
   git clone -q -b "${GIT_BRANCH}" --depth 5 "${GIT_REPO}" "${BRANCHDIR}" || exit 1
 
   echo "Make changes in \"${BRANCHDIR}\""
+  PARENTDIR=`pwd`
   cd "${BRANCHDIR}"
-  _gitdir=`pwd`
+  CHILDDIR=`pwd`
+  cd "${PARENTDIR}"
 }
 
 teardown() {
   HASH_PREFIX=$1 ; shift
-  echo "Register changes and push it to \"${GIT_REPO}\""
-  cd "${_gitdir}"
+  cd "${CHILDDIR}"
   git config user.name "${GIT_NAME}"
   git config user.email "${GIT_EMAIL}"
   git add --all .
-  commit_message="Deployed ${HASH_PREFIX}${SHA1HASH} by `hostname`"
-  git commit -m "${commit_message}"
-  git push || exit 1
+  if ! git diff --quiet HEAD ; then
+    echo "Register changes and push it to \"${GIT_REPO}\""
+    commit_message="Deployed ${HASH_PREFIX}${SHA1HASH} by `hostname`"
+    git commit -m "${commit_message}"
+    git push || exit 1
+  else
+    echo "No changes"
+  fi
 }
