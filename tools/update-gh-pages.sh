@@ -2,14 +2,22 @@
 # vim:set sts=2 sw=2 tw=0 et:
 
 . `dirname $0`/update-lib.sh
-. `dirname $0`/to_html.sh
 
-setup "test-gh-pages"
+setup "gh-pages"
 
 # Convert *.jax files to *.html.
-to_html_setup
-to_html_dir "doc" "${BRANCHDIR}" "jax"
-to_html_file "vim_faq/vim_faq.jax" "${BRANCHDIR}/vim_faq.html"
-to_html_teardown
+TOHTML_DIR="target/to_html"
+if [ -e "${TOHTML_DIR}" ] ; then
+  rm -rf "${TOHTML_DIR}"
+fi
+if [ ! -e "${TOHTML_DIR}" ] ; then
+  mkdir -p "${TOHTML_DIR}/doc"
+fi
+cp -R syntax "${TOHTML_DIR}"
+cp doc/*.jax vim_faq/*.jax "${TOHTML_DIR}/doc"
+cp tools/buildhtml.vim tools/makehtml.vim "${TOHTML_DIR}"
+( cd "${TOHTML_DIR}/doc" && vim -esu ../buildhtml.vim -c "qall!")
+
+rsync -rlptD --delete-after "${TOHTML_DIR}"/doc/*.html "${BRANCHDIR}/"
 
 teardown "vim-jp/vimdoc-ja@"
