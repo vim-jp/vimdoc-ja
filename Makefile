@@ -1,5 +1,4 @@
-
-.PHONY: all html htmlbatch
+.PHONY: all html htmlbatch clean
 
 all:
 
@@ -14,3 +13,7 @@ htmlbatch:
 
 deploy:
 	sh ./tools/update-master.sh
+	sh ./tools/update-gh-pages.sh
+
+clean:
+	rm -rf target
