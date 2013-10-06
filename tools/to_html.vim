@@ -1,9 +1,10 @@
 " vim:set sts=2 sw=2 tw=0 et:
 scriptencoding utf-8
 
+set rtp+=.
 set nocompatible
 set nomore
-set encoding=utf-8
+"set encoding=utf-8
 set fileencodings=utf-8
 set foldlevel=1000
 set nomodeline

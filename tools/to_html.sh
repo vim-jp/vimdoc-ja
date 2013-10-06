@@ -1,9 +1,9 @@
 to_html_setup() {
-  echo "TODO: to_html_setup"
+  echo "TODO: generate tags-ja and others"
 }
 
 to_html_teardown() {
-  echo "TODO: to_html_teardown"
+  echo "TODO: clean up tags-ja and others"
 }
 
 to_html_dir() {
@@ -21,5 +21,6 @@ to_html_file() {
   src=$1 ; shift
   dst=$1 ; shift
   echo "convert: ${src} -> ${dst}"
+  # TODO: enable this line.
   #vim -e -s -u "tools/to_html.vim" -c "call ToJekyllHTML('${src}', '${dst}')" -c "silent! visual" -c qall!
 }
