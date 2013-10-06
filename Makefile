@@ -12,3 +12,5 @@ htmlbatch:
 	vim -u tools/buildhtml.vim -e -s -- --batch
 	cd html && git push ..
 
+deploy:
+	sh ./tools/update-master.sh

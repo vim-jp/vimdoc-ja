@@ -3,7 +3,7 @@
 
 . `dirname $0`/update-lib.sh
 
-setup "master2-test"
+setup "master"
 
 # Copy files.
 rsync -rlptD --delete-after doc/ ${BRANCHDIR}/doc
