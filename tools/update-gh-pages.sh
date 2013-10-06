@@ -16,7 +16,7 @@ fi
 cp -R syntax "${TOHTML_DIR}"
 cp doc/*.jax vim_faq/*.jax "${TOHTML_DIR}/doc"
 cp tools/buildhtml.vim tools/makehtml.vim "${TOHTML_DIR}"
-( cd "${TOHTML_DIR}/doc" && vim -esu ../buildhtml.vim -c "qall!")
+( cd "${TOHTML_DIR}/doc" && vim -esu ../buildhtml.vim -c "qall!") > /dev/null
 
 rsync -rlptD --delete-after "${TOHTML_DIR}"/doc/*.html "${BRANCHDIR}/"
 
