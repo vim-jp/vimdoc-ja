@@ -73,7 +73,13 @@ function! MakeTagsFile()
 endfunction
 
 function! MakeHtml(fname)
-  new `=a:fname`
+  let r = MakeHtml2(a:fname, s:HtmlName(a:fname))
+  quit!
+  return r
+endfunction
+
+function! MakeHtml2(src, dst)
+  new `=a:src`
 
   " 2html options
   let g:html_use_css = 1
@@ -90,7 +96,7 @@ function! MakeHtml(fname)
   silent! %foldopen!
   TOhtml
 
-  let lang = s:GetLang(a:fname)
+  let lang = s:GetLang(a:src)
   silent %s@<span class="\(helpHyperTextEntry\|helpHyperTextJump\|helpOption\)">\([^<]*\)</span>@\=s:MakeLink(lang, submatch(1), submatch(2))@ge
   silent %s@^<span class="Ignore">&lt;</span>\ze&nbsp;@\&nbsp;@ge
   silent %s@<span class="\(helpStar\|helpBar\|Ignore\)">[^<]*</span>@@ge
@@ -101,8 +107,7 @@ function! MakeHtml(fname)
   call s:Header()
   call s:Footer()
 
-  wq! `=s:HtmlName(a:fname)`
-  quit!
+  wq! `=a:dst`
 endfunction
 
 " <span>...</span>  -> <div>...

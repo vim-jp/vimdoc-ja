@@ -1,3 +1,11 @@
+to_html_setup() {
+  echo "TODO: to_html_setup"
+}
+
+to_html_teardown() {
+  echo "TODO: to_html_teardown"
+}
+
 to_html_dir() {
   srcdir=$1 ; shift
   dstdir=$1 ; shift
@@ -12,6 +20,6 @@ to_html_dir() {
 to_html_file() {
   src=$1 ; shift
   dst=$1 ; shift
-  echo "to_html_file: $src -> $dst"
-  # TODO:
+  echo "convert: ${src} -> ${dst}"
+  #vim -e -s -u "tools/to_html.vim" -c "call ToJekyllHTML('${src}', '${dst}')" -c "silent! visual" -c qall!
 }

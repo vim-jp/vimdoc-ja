@@ -7,7 +7,9 @@
 setup "test-gh-pages"
 
 # Convert *.jax files to *.html.
+to_html_setup
 to_html_dir "doc" "${BRANCHDIR}" "jax"
 to_html_file "vim_faq/vim_faq.jax" "${BRANCHDIR}/vim_faq.html"
+to_html_teardown
 
 teardown "vim-jp/vimdoc-ja@"
