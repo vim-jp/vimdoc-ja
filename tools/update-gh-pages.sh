@@ -3,7 +3,7 @@
 
 . `dirname $0`/update-lib.sh
 
-setup "test-gh-pages"
+setup "gh-pages"
 
 # Convert *.jax files to *.html.
 TOHTML_DIR="target/to_html"
