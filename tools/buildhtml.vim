@@ -7,49 +7,19 @@ set fileencodings=utf-8
 syntax on
 colorscheme delek
 
-
-" TODO: argument parser
 enew!
-let g:argv = argv()
-argdelete *
 
 runtime plugin/tohtml.vim
 
-source <sfile>:h:h/tools/makehtml.vim
+source <sfile>:h/makehtml.vim
 
 function! s:main()
-  if isdirectory('html')
-    call s:rmdir('html')
-  endif
-  call s:system('git clone . html')
-  cd html
-  call s:system('git branch -f master origin/master')
-  call s:system('git branch -f gh-pages origin/gh-pages')
-  call s:system('git checkout master')
-  call s:system('git checkout-index --prefix=master/ -a')
-  call s:system('git checkout devel')
-  call s:system('git checkout-index --prefix=devel/ -a')
-  call s:system('git checkout gh-pages')
   " for ja custom syntax
-  let &runtimepath .= ',' . fnamemodify('./master', ':p')
+  let &runtimepath .= ',' . expand('<sfile>:p:h')
   call s:BuildHtml()
-  try
-    call s:system('git commit -a -m "update html"')
-  catch
-    " pass: nothing to be committed
-  endtry
-  cd ..
 endfunction
 
 function! s:BuildHtml()
-  call mkdir('tmp')
-  cd tmp
-
-  "
-  " copy dist files
-  "
-  args ../master/doc/* ../devel/vim_faq/vim_faq.jax
-  argdo saveas %:t
 
   " generate tags
   try
@@ -71,9 +41,7 @@ function! s:BuildHtml()
   " 2html.vim escape modeline.  But it doesn't escape /^vim:/.
   set nomodeline
   args *.html
-  argdo call s:PostEdit() | saveas! ../%:t
-
-  cd ..
+  argdo call s:PostEdit() | update!
 endfunction
 
 function! s:system(cmd)
@@ -116,18 +84,4 @@ function! s:ToJekyll()
         \ ])
 endfunction
 
-if index(g:argv, "--batch") != -1
-  try
-    call s:main()
-  catch
-    cquit
-  endtry
-  " XXX: (ex-mode) To quit with state 0, use :visual.  See main.c:1307
-  silent! visual
-  qall!
-else
-  try
-    call s:main()
-  endtry
-endif
-
+call s:main()

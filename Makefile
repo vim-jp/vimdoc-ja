@@ -1,5 +1,4 @@
-
-.PHONY: all html htmlbatch
+.PHONY: all html htmlbatch clean
 
 all:
 
@@ -12,3 +11,9 @@ htmlbatch:
 	vim -u tools/buildhtml.vim -e -s -- --batch
 	cd html && git push ..
 
+deploy:
+	sh ./tools/update-master.sh
+	sh ./tools/update-gh-pages.sh
+
+clean:
+	rm -rf target
