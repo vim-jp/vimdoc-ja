@@ -1,4 +1,4 @@
-*syntax.txt*	For Vim version 7.4.  Last change: 2013 May 31
+*syntax.txt*	For Vim version 7.4.  Last change: 2013 Aug 22
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -2874,9 +2874,24 @@ tcsh_minlines is 100.  The disadvantage of using a larger number is that
 redrawing can become slow.
 
 
-TEX						*tex.vim* *ft-tex-syntax*
+TEX				*tex.vim* *ft-tex-syntax* *latex-syntax*
 
-								*tex-folding*
+			Tex Contents~
+	Tex: Want Syntax Folding?			|tex-folding|
+	Tex: No Spell Checking Wanted			|g:tex_nospell|
+	Tex: Don't Want Spell Checking In Comments?	|tex-nospell|
+	Tex: Want Spell Checking in Verbatim Zones?	|tex-verb|
+	Tex: Run-on Comments or MathZones		|tex-runon|
+	Tex: Slow Syntax Highlighting?			|tex-slow|
+	Tex: Want To Highlight More Commands?		|tex-morecommands|
+	Tex: Excessive Error Highlighting?		|tex-error|
+	Tex: Need a new Math Group?			|tex-math|
+	Tex: Starting a New Style?			|tex-style|
+	Tex: Taking Advantage of Conceal Mode		|tex-conceal|
+	Tex: Selective Conceal Mode			|g:tex_conceal|
+	Tex: Controlling iskeyword			|g:tex_isk|
+
+				*tex-folding* *g:tex_fold_enabled*
  Tex: Want Syntax Folding? ~
 
 As of version 28 of <syntax/tex.vim>, syntax-based folding of parts, chapters,
@@ -2886,24 +2901,27 @@ in your <.vimrc>, and :set fdm=syntax.  I suggest doing the latter via a
 modeline at the end of your LaTeX file: >
 	% vim: fdm=syntax
 If your system becomes too slow, then you might wish to look into >
- 	http://vim.wikia.com/wiki/Keep_folds_closed_while_inserting_text
+	https://vimhelp.appspot.com/vim_faq.txt.html#faq-29.7
 <
-								*tex-nospell*
+						*g:tex_nospell*
+ Tex: No Spell Checking Wanted~
+
+If you don't want spell checking anywhere in your LaTeX document, put >
+	let g:tex_nospell=1
+into your .vimrc.  If you merely wish to suppress spell checking inside
+comments only, see |g:tex_comment_nospell|.
+
+				*tex-nospell* *g:tex_comment_nospell*
  Tex: Don't Want Spell Checking In Comments? ~
 
 Some folks like to include things like source code in comments and so would
 prefer that spell checking be disabled in comments in LaTeX files.  To do
 this, put the following in your <.vimrc>: >
       let g:tex_comment_nospell= 1
-The comment lines >
-	% nospell{
-	...
-	% nospell}
-will suppress spell checking between them.  These comment lines spelling
-control are known to be fragile; for example, don't include any of the section
-commands (\part, \chapter, \section, \paragraph, etc) inside nospell blocks
-or interleave environments (such as math) across nospell blocks.
-								*tex-verb*
+If you want to suppress spell checking everywhere inside your LaTeX document,
+see |g:tex_nospell|.
+
+				*tex-verb* *g:tex_verbspell*
  Tex: Want Spell Checking in Verbatim Zones?~
 
 Often verbatim regions are used for things like source code; seldom does
@@ -2911,7 +2929,7 @@ one want source code spell-checked.  However, for those of you who do
 want your verbatim zones spell-checked, put the following in your <.vimrc>: >
 	let g:tex_verbspell= 1
 <
-								*tex-runon*
+					*tex-runon* *tex-stopzone*
  Tex: Run-on Comments or MathZones ~
 
 The <syntax/tex.vim> highlighting supports TeX, LaTeX, and some AmsTeX.  The
@@ -2924,7 +2942,7 @@ special "TeX comment" has been provided >
 which will forcibly terminate the highlighting of either a texZone or a
 texMathZone.
 
-								*tex-slow*
+					*tex-slow* *tex-sync*
  Tex: Slow Syntax Highlighting? ~
 
 If you have a slow computer, you may wish to reduce the values for >
@@ -2937,7 +2955,7 @@ if any, is the text at the top of the screen supposed to be in?).
 Another cause of slow highlighting is due to syntax-driven folding; see
 |tex-folding| for a way around this.
 
-								*g:tex_fast*
+					*g:tex_fast*
 
 Finally, if syntax highlighting is still too slow, you may set >
 
@@ -2966,7 +2984,7 @@ selectively to enable just some syntax highlighting: >
 As an example, let g:tex_fast= "M" will allow math-associated highlighting
 but suppress all the other region-based syntax highlighting.
 
-					    *tex-morecommands* *tex-package*
+					*tex-morecommands* *tex-package*
  Tex: Want To Highlight More Commands? ~
 
 LaTeX is a programmable language, and so there are thousands of packages full
@@ -2978,14 +2996,14 @@ by syntax/tex.vim.  Please consider uploading any extensions that you write,
 which typically would go in $HOME/after/syntax/tex/[pkgname].vim, to
 http://vim.sf.net/.
 
-								*tex-error*
+					*tex-error* *g:tex_no_error*
  Tex: Excessive Error Highlighting? ~
 
 The <tex.vim> supports lexical error checking of various sorts.  Thus,
 although the error checking is ofttimes very useful, it can indicate
 errors where none actually are.  If this proves to be a problem for you,
 you may put in your <.vimrc> the following statement: >
-	let tex_no_error=1
+	let g:tex_no_error=1
 and all error checking by <syntax/tex.vim> will be suppressed.
 
 								*tex-math*
@@ -3003,7 +3021,7 @@ and then to the call to it in .vim/after/syntax/tex.vim.
 The "starform" variable, if true, implies that your new math group
 has a starred form (ie. eqnarray*).
 
-								*tex-style*
+					*tex-style* *b:tex_stylish*
  Tex: Starting a New Style? ~
 
 One may use "\makeatletter" in *.tex files, thereby making the use of "@" in
@@ -3030,12 +3048,12 @@ In fact, only a few characters are supported as subscripts.
 One way to use this is to have vertically split windows (see |CTRL-W_v|); one
 with |'conceallevel'| at 0 and the other at 2; and both using |'scrollbind'|.
 
-							*g:tex_conceal*
+					*g:tex_conceal*
  Tex: Selective Conceal Mode~
 
 You may selectively use conceal mode by setting g:tex_conceal in your
-<.vimrc>.  By default it is set to "admgs" to enable conceal for the
-following sets of characters: >
+<.vimrc>.  By default, g:tex_conceal is set to "admgs" to enable concealment
+for the following sets of characters: >
 
 	a = accents/ligatures
 	b = bold and italic
@@ -3047,8 +3065,8 @@ following sets of characters: >
 By leaving one or more of these out, the associated conceal-character
 substitution will not be made.
 
-						*g:tex_isk*
- Tex: Controlling What's In A Keyword~
+						*g:tex_isk* *g:tex_stylish*
+ Tex: Controlling iskeyword~
 
 (La)Tex keywords normally use the characters 0-9,a-z,A-Z,192-255 only
 but the "_" is the only one that causes problems.  So, by default,
@@ -3068,8 +3086,7 @@ For syncing, minlines defaults to 100.	If you prefer another value, you can
 set "tf_minlines" to the value you desire.  Example: >
 
 	:let tf_minlines = your choice
-
-
+<
 VIM			*vim.vim*		*ft-vim-syntax*
 			*g:vimsyn_minlines*	*g:vimsyn_maxlines*
 There is a trade-off between more accurate syntax highlighting versus screen
@@ -3957,7 +3974,7 @@ External matches					*:syn-ext-match*
 
 These extra regular expression items are available in region patterns:
 
-						*/\z(* */\z(\)* *E50* *E52*
+					*/\z(* */\z(\)* *E50* *E52* *E879*
     \z(\)	Marks the sub-expression as "external", meaning that it can be
 		accessed from another pattern match.  Currently only usable in
 		defining a syntax region start pattern.
@@ -4316,7 +4333,7 @@ in their own color.
 			feature it will output "unknown".
 
 :colo[rscheme] {name}	Load color scheme {name}.  This searches 'runtimepath'
-			for the file "colors/{name}.vim.  The first one that
+			for the file "colors/{name}.vim".  The first one that
 			is found is loaded.
 			To see the name of the currently active color scheme: >
 				:colo
@@ -4936,7 +4953,7 @@ restoring "b:current_syntax", since the syntax files do set
 "w:current_syntax".
 
 Once a window has its own syntax, syntax commands executed from other windows
-on the same buffer (including :syntax clear) have no effect. Conversely, 
+on the same buffer (including :syntax clear) have no effect. Conversely,
 syntax commands executed from that window do not affect other windows on the
 same buffer.
 
