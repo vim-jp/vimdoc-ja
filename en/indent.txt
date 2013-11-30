@@ -1,4 +1,4 @@
-*indent.txt*    For Vim version 7.4.  Last change: 2013 May 20
+*indent.txt*    For Vim version 7.4.  Last change: 2013 Nov 05
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -545,10 +545,12 @@ The examples below assume a 'shiftwidth' of 4.
 	      (default 70 lines).
 
 								*cino-#*
-	#N    When N is non-zero recognize shell/Perl comments, starting with
-	      '#'.  Default N is zero: don't recognize '#' comments.  Note
-	      that lines starting with # will still be seen as preprocessor
-	      lines.
+	#N    When N is non-zero recognize shell/Perl comments starting with
+	      '#', do not recognize preprocessor lines; allow right-shifting
+	      lines that start with "#".
+	      When N is zero (default): don't recognize '#' comments, do
+	      recognize preprocessor lines; right-shifting lines that start
+	      with "#" does not work.
 
 
 The defaults, spelled out in full, are:
@@ -556,7 +558,7 @@ The defaults, spelled out in full, are:
 			c3,C0,/0,(2s,us,U0,w0,W0,k0,m0,j0,J0,)20,*70,#0
 
 Vim puts a line in column 1 if:
-- It starts with '#' (preprocessor directives), if 'cinkeys' contains '#'.
+- It starts with '#' (preprocessor directives), if 'cinkeys' contains '#0'.
 - It starts with a label (a keyword followed by ':', other than "case" and
   "default") and 'cinoptions' does not contain an 'L' entry with a positive
   value.
@@ -581,8 +583,8 @@ CLOJURE					*ft-clojure-indent* *clojure-indent*
 
 Clojure indentation differs somewhat from traditional Lisps, due in part to
 the use of square and curly brackets, and otherwise by community convention.
-These conventions are not always universally followed, so the Clojure indent
-script offers a few configurable options, listed below.
+These conventions are not universally followed, so the Clojure indent script
+offers a few configurable options, listed below.
 
 If the current vim does not include searchpairpos(), the indent script falls
 back to normal 'lisp' indenting, and the following options are ignored.
@@ -727,6 +729,50 @@ A finer level of suppression can be achieved by setting the corresponding
 buffer-local variable as follows >
 
   let b:fortran_indent_less=1
+
+
+HTML				*ft-html-indent* *html-indent* *html-indenting*
+
+This is about variables you can set in your vimrc to customize HTML indenting.
+
+You can set the indent for the first line after <script> and <style>
+"blocktags" (default "zero"): >
+
+      :let g:html_indent_script1 = "inc"
+      :let g:html_indent_style1 = "inc"
+<
+      VALUE	MEANING ~
+      "zero"	zero indent
+      "auto"	auto indent (same indent as the blocktag)
+      "inc"	auto indent + one indent step
+
+Many tags increase the indent for what follows per default (see "Add Indent
+Tags" in the script).  You can add further tags with: >
+
+      :let g:html_indent_inctags = "html,body,head,tbody"
+
+You can also remove such tags with: >
+
+      :let g:html_indent_autotags = "th,td,tr,tfoot,thead"
+
+Default value is empty for both variables.  Note: the initial "inctags" are
+only defined once per Vim session.
+
+User variables are only read when the script is sourced.  To enable your
+changes during a session, without reloading the HTML file, you can manually
+do: >
+
+      :call HtmlIndent_CheckUserSettings()
+
+Detail:
+  Calculation of indent inside "blocktags" with "alien" content:
+      BLOCKTAG   INDENT EXPR	    WHEN APPLICABLE ~
+      <script> : {customizable}	    if first line of block
+	       : cindent(v:lnum)    if attributes empty or contain "java"
+	       : -1		    else (vbscript, tcl, ...)
+      <style>  : {customizable}	    if first line of block
+	       : GetCSSIndent()	    else
+      <!-- --> : -1
 
 
 PHP				*ft-php-indent* *php-indent* *php-indenting*
