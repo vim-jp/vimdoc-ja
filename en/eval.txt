@@ -123,7 +123,6 @@ around the arguments, to invoke the function it refers to.  Example: >
 	:echo Fn()
 <							*E704* *E705* *E707*
 A Funcref variable must start with a capital, "s:", "w:", "t:" or "b:".  You
-can use "g:" but the following name must still start with a capital.  You
 cannot have both a Funcref variable and a function with the same name.
 
 A special case is defining a function and directly assigning its Funcref to a
@@ -1455,13 +1454,6 @@ v:foldend	Used for 'foldtext': last line of closed fold.
 v:foldstart	Used for 'foldtext': first line of closed fold.
 		Read-only in the |sandbox|. |fold-foldtext|
 
-					*v:hlsearch* *hlsearch-variable*
-v:hlsearch	Variable that determines whether search highlighting is on. 
-		Makes sense only if 'hlsearch' is enabled which requires 
-		|+extra_search|. Setting this variable to zero acts the like 
-		|:nohlsearch| command, setting it to one acts like >
-			let &hlsearch = &hlsearch
-<
 					*v:insertmode* *insertmode-variable*
 v:insertmode	Used for the |InsertEnter| and |InsertChange| autocommand
 		events.  Values:
@@ -1720,7 +1712,6 @@ bufnr( {expr})			Number	Number of the buffer {expr}
 bufwinnr( {expr})		Number	window number of buffer {expr}
 byte2line( {byte})		Number	line number at byte count {byte}
 byteidx( {expr}, {nr})		Number	byte index of {nr}'th char in {expr}
-byteidxcomp( {expr}, {nr})	Number	byte index of {nr}'th char in {expr}
 call( {func}, {arglist} [, {dict}])
 				any	call {func} with arguments {arglist}
 ceil( {expr})			Float	round {expr} up
@@ -1915,8 +1906,6 @@ repeat( {expr}, {count})	String	repeat {expr} {count} times
 resolve( {filename})		String	get filename a shortcut points to
 reverse( {list})		List	reverse {list} in-place
 round( {expr})			Float	round off {expr}
-screenattr( {row}, {col})	Number	attribute at screen position
-screenchar( {row}, {col})	Number	character at screen position
 screencol()			Number	current cursor column
 screenrow()			Number	current cursor row
 search( {pattern} [, {flags} [, {stopline} [, {timeout}]]])
@@ -2269,10 +2258,7 @@ byteidx({expr}, {nr})					*byteidx()*
 		{expr}.  Use zero for the first character, it returns zero.
 		This function is only useful when there are multibyte
 		characters, otherwise the returned value is equal to {nr}.
-		Composing characters are not counted separately, their byte
-		length is added to the preceding base character.  See
-		|byteidxcomp()| below for counting composing characters
-		separately.
+		Composing characters are counted as a separate character.
 		Example : >
 			echo matchstr(str, ".", byteidx(str, 3))
 <		will display the fourth character.  Another way to do the
@@ -2281,20 +2267,7 @@ byteidx({expr}, {nr})					*byteidx()*
 			echo strpart(s, 0, byteidx(s, 1))
 <		If there are less than {nr} characters -1 is returned.
 		If there are exactly {nr} characters the length of the string
-		in bytes is returned.
-
-byteidxcomp({expr}, {nr})					*byteidxcomp()*
-		Like byteidx(), except that a composing character is counted
-		as a separate character.  Example: >
-			let s = 'e' . nr2char(0x301)
-			echo byteidx(s, 1)
-			echo byteidxcomp(s, 1)
-			echo byteidxcomp(s, 2)
-<		The first and third echo result in 3 ('e' plus composing
-		character is 3 bytes), the second echo results in 1 ('e' is
-		one byte).
-		Only works different from byteidx() when 'encoding' is set to
-		a Unicode encoding.
+		is returned.
 
 call({func}, {arglist} [, {dict}])			*call()* *E699*
 		Call function {func} with the items in |List| {arglist} as
@@ -2800,8 +2773,7 @@ expand({expr} [, {nosuf} [, {list}]])				*expand()*
 		file name contains a space]
 
 		If the expansion fails, the result is an empty string.	A name
-		for a non-existing file is not included, unless {expr} does
-		not start with '%', '#' or '<', see below.
+		for a non-existing file is not included.
 
 		When {expr} starts with '%', '#' or '<', the expansion is done
 		like for the |cmdline-special| variables with their associated
@@ -4235,9 +4207,6 @@ matchadd({group}, {pattern}[, {priority}[, {id}]])
 		"match").  It will be highlighted with {group}.  Returns an
 		identification number (ID), which can be used to delete the
 		match using |matchdelete()|.
-		Matching is case sensitive and magic, unless case sensitivity
-		or magicness are explicitly overridden in {pattern}.  The
-		'magic', 'smartcase' and 'ignorecase' options are not used.
 
 		The optional {priority} argument assigns a priority to the
 		match.	A match with a high priority will have its
@@ -4920,21 +4889,6 @@ round({expr})							*round()*
 			echo round(-4.5)
 <			-5.0
 		{only available when compiled with the |+float| feature}
-
-screenattr(row, col)						*screenattr()*
-		Like screenchar(), but return the attribute.  This is a rather
-		arbitrary number that can only be used to compare to the
-		attribute at other positions.
-
-screenchar(row, col)						*screenchar()*
-		The result is a Number, which is the character at position
-		[row, col] on the screen.  This works for every possible
-		screen position, also status lines, window separators and the
-		command line.  The top left position is row one, column one
-		The character excludes composing characters.  For double-byte
-		encodings it may only be the first byte.
-		This is mainly to be used for testing.
-		Returns -1 when row or col is out of range.
 
 screencol()							*screencol()*
 		The result is a Number, which is the current screen column of
@@ -5912,9 +5866,6 @@ system({expr} [, {input}])				*system()* *E677*
 <		To make the result more system-independent, the shell output
 		is filtered to replace <CR> with <NL> for Macintosh, and
 		<CR><NL> with <NL> for DOS-like systems.
-		To avoid the string being truncated at a NUL, all NUL
-		characters are replaced with SOH (0x01).
-
 		The command executed is constructed using several options:
 	'shell' 'shellcmdflag' 'shellxquote' {expr} 'shellredir' {tmp} 'shellxquote'
 		({tmp} is an automatically generated file name).
