@@ -1706,6 +1706,8 @@ append( {lnum}, {string})	Number	append {string} below line {lnum}
 append( {lnum}, {list})		Number	append lines {list} below line {lnum}
 argc()				Number	number of files in the argument list
 argidx()			Number	current index in the argument list
+arglistid( [{winnr}, [ {tabnr}]])
+				Number	argument list id
 argv( {nr})			String	{nr} entry of the argument list
 argv( )				List	the argument list
 asin( {expr})			Float	arc sine of {expr}
@@ -1756,6 +1758,7 @@ escape( {string}, {chars})	String	escape {chars} in {string} with '\'
 eval( {string})			any	evaluate {string} into its value
 eventhandler( )			Number	TRUE if inside an event handler
 executable( {expr})		Number	1 if executable {expr} exists
+exepath( {expr})		String  full path of the command {expr}
 exists( {expr})			Number	TRUE if {expr} exists
 extend( {expr1}, {expr2} [, {expr3}])
 				List/Dict insert items of {expr2} into {expr1}
@@ -1795,10 +1798,11 @@ getcharmod( )			Number	modifiers for the last typed character
 getcmdline()			String	return the current command-line
 getcmdpos()			Number	return cursor position in command-line
 getcmdtype()			String	return the current command-line type
+getcurpos()			List	position of the cursor
 getcwd()			String	the current working directory
+getfontname( [{name}])		String	name of font being used
 getfperm( {fname})		String	file permissions of file {fname}
 getfsize( {fname})		Number	size in bytes of file {fname}
-getfontname( [{name}])		String	name of font being used
 getftime( {fname})		Number	last modification time of file
 getftype( {fname})		String	description of type of file {fname}
 getline( {lnum})		String	line {lnum} of current buffer
@@ -1808,7 +1812,8 @@ getmatches()			List	list of current matches
 getpid()			Number	process ID of Vim
 getpos( {expr})			List	position of cursor, mark, etc.
 getqflist()			List	list of quickfix items
-getreg( [{regname} [, 1]])	String	contents of register
+getreg( [{regname} [, 1 [, {list}]]])
+				String or List   contents of register
 getregtype( [{regname}])	String	type of register
 gettabvar( {nr}, {varname} [, {def}])
 				any	variable {varname} in tab {nr} or {def}
@@ -1820,7 +1825,7 @@ getwinvar( {nr}, {varname} [, {def}])
 				any	variable {varname} in window {nr}
 glob( {expr} [, {nosuf} [, {list}]])
 				any	expand file wildcards in {expr}
-globpath( {path}, {expr} [, {flag}])
+globpath( {path}, {expr} [, {nosuf} [, {list}]])
 				String	do glob({expr}) for all dirs in {path}
 has( {feature})			Number	TRUE if feature {feature} supported
 has_key( {dict}, {key})		Number	TRUE if {dict} has entry {key}
@@ -1979,7 +1984,8 @@ strridx( {haystack}, {needle} [, {start}])
 				Number	last index of {needle} in {haystack}
 strtrans( {expr})		String	translate string to make it printable
 strwidth( {expr})		Number	display cell length of the String {expr}
-submatch( {nr})			String	specific match in ":s" or substitute()
+submatch( {nr}[, {list}])	String or List
+					specific match in ":s" or substitute()
 substitute( {expr}, {pat}, {sub}, {flags})
 				String	all {pat} in {expr} replaced with {sub}
 synID( {lnum}, {col}, {trans})	Number	syntax ID at {lnum} and {col}
@@ -1989,6 +1995,7 @@ synIDtrans( {synID})		Number	translated syntax ID of {synID}
 synconcealed( {lnum}, {col})	List    info about concealing
 synstack( {lnum}, {col})	List	stack of syntax IDs at {lnum} and {col}
 system( {expr} [, {input}])	String	output of shell command/filter {expr}
+systemlist( {expr} [, {input}])	List	output of shell command/filter {expr}
 tabpagebuflist( [{arg}])	List	list of buffer numbers in tab page
 tabpagenr( [{arg}])		Number	number of current or last tab page
 tabpagewinnr( {tabarg}[, {arg}])
@@ -2006,6 +2013,8 @@ trunc( {expr})			Float	truncate Float {expr}
 type( {name})			Number	type of variable {name}
 undofile( {name})		String	undo file name for {name}
 undotree()			List	undo file tree
+uniq( {list} [, {func} [, {dict}]])
+				List	remove adjacent duplicates from a list
 values( {dict})			List	values in {dict}
 virtcol( {expr})		Number	screen column of cursor or mark
 visualmode( [expr])		String	last visual mode used
@@ -5447,20 +5456,26 @@ sinh({expr})						*sinh()*
 
 
 sort({list} [, {func} [, {dict}]])			*sort()* *E702*
-		Sort the items in {list} in-place.  Returns {list}.  If you
-		want a list to remain unmodified make a copy first: >
+		Sort the items in {list} in-place.  Returns {list}.
+		
+		If you want a list to remain unmodified make a copy first: >
 			:let sortedlist = sort(copy(mylist))
 <		Uses the string representation of each item to sort on.
 		Numbers sort after Strings, |Lists| after Numbers.
 		For sorting text in the current buffer use |:sort|.
+
 		When {func} is given and it is one then case is ignored.
-		{dict} is for functions with the "dict" attribute.  It will be
-		used to set the local variable "self". |Dictionary-function|
 		When {func} is a |Funcref| or a function name, this function
 		is called to compare items.  The function is invoked with two
 		items as argument and must return zero if they are equal, 1 or
 		bigger if the first one sorts after the second one, -1 or
 		smaller if the first one sorts before the second one.
+
+		{dict} is for functions with the "dict" attribute.  It will be
+		used to set the local variable "self". |Dictionary-function|
+
+		Also see |uniq()|.
+
 		Example: >
 			func MyCompare(i1, i2)
 			   return a:i1 == a:i2 ? 0 : a:i1 > a:i2 ? 1 : -1
