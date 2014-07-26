@@ -1825,6 +1825,8 @@ luaeval( {expr}[, {expr}])	任意	|Lua| の式を評価する
 map( {expr}, {string})		リスト/辞書  {expr}の各要素を{expr}に変える
 matchadd( {group}, {pattern}[, {priority}[, {id}]])
 				数値	{pattern} を {group} で強調表示する
+matchaddpos( {group}, {list}[, {priority}[, {id}]])
+				数値	位置を {group} で強調表示する
 maparg( {name}[, {mode} [, {abbr} [, {dict}]]])
 				文字列/辞書
 					モード{mode}でのマッピング{name}の値
@@ -2631,7 +2633,9 @@ exists({expr})	結果は数値で、変数{expr}が存在すれば1となり、�
 			$ENVNAME	環境変数(空文字列と比較することでも判
 					定できる)
 			*funcname	組み込み関数(|functions|参照)かユーザー
-					が定義した関数(|user-functions|参照)
+					が定義した関数(|user-functions|参照)。
+					また Funcref である変数に対しても動作
+					する。
 			varname		内部変数(|internal-variables|)
 					|curly-braces-names|, |Dictionary|の要
 					素、|List|の要素などに対しても動作する。
@@ -2722,8 +2726,9 @@ expand({expr} [, {nosuf} [, {list}]])				*expand()*
 		5.0 では空白文字が用いられ、スペースを含むファイル名について問
 		題を引き起こしていた]
 
-		展開が失敗した場合、結果は空文字列となる。また存在しないファイ
-		ル名というのは、結果の文字列には含まれない。
+		展開が失敗した場合、結果は空文字列となる。{expr} が '%'、'#'、
+		'<' で始まらない限り、存在しないファイル名というのは、結果の文
+		字列には含まれない。下記を参照のこと。
 
 		{expr} が '%' か '#' か '<' で始まる場合には、展開は
 		|cmdline-special|のように、変換子を受け付け、それらに関連付け
@@ -3115,6 +3120,10 @@ getchar([expr])						*getchar()*
 		特殊キーとは0x80(10進数で128)で始まるバイト列である。これは
 		文字列 "\<Key>" と同じ値である(例: "\<Left>")。戻り値は文字列
 		であり、修飾キー(shift, control, alt)は含まれない。
+
+		[expr] が0や Esc が入力された場合は、これがエスケープシーケン
+		スの始まりであるかどうかをVimが知るために待つ間、短い遅延があ
+		るだろう。
 
 		[expr] が1のときは最初のバイトだけを返す。1バイト文字の場合、
 		これはその文字そのものを表す数値である。これを文字列に変換する
@@ -6185,7 +6194,8 @@ jumplist		|jumplist| をサポート
 keymap			'keymap' をサポート
 langmap			'langmap' サポート
 libcall			|libcall()| をサポート
-linebreak		'linebreak', 'breakat' そして 'showbreak' をサポート
+linebreak		'linebreak'、'breakat'、'showbreak'、'breakindent' を
+			サポート
 lispindent		lisp式のインデントをサポート
 listcmds		バッファリスト用のコマンド|:files|と引数リスト用のコマ
 			ンド|arglist|をサポート

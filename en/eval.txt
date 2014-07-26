@@ -1877,6 +1877,8 @@ match( {expr}, {pat}[, {start}[, {count}]])
 				Number	position where {pat} matches in {expr}
 matchadd( {group}, {pattern}[, {priority}[, {id}]])
 				Number	highlight {pattern} with {group}
+matchaddpos( {group}, {list}[, {priority}[, {id}]])
+				Number	highlight positions with {group}
 matcharg( {nr})			List	arguments of |:match|
 matchdelete( {id})		Number	delete match identified by {id}
 matchend( {expr}, {pat}[, {start}[, {count}]])
@@ -2703,7 +2705,8 @@ exists({expr})	The result is a Number, which is non-zero if {expr} is
 					string)
 			*funcname	built-in function (see |functions|)
 					or user defined function (see
-					|user-functions|).
+					|user-functions|). Also works for a
+					variable that is a Funcref.
 			varname		internal variable (see
 					|internal-variables|).	Also works
 					for |curly-braces-names|, |Dictionary|
@@ -2795,7 +2798,8 @@ expand({expr} [, {nosuf} [, {list}]])				*expand()*
 		file name contains a space]
 
 		If the expansion fails, the result is an empty string.	A name
-		for a non-existing file is not included.
+		for a non-existing file is not included, unless {expr} does
+		not start with '%', '#' or '<', see below.
 
 		When {expr} starts with '%', '#' or '<', the expansion is done
 		like for the |cmdline-special| variables with their associated
@@ -3203,6 +3207,10 @@ getchar([expr])						*getchar()*
 		"\<Key>", e.g., "\<Left>".  The returned value is also a
 		String when a modifier (shift, control, alt) was used that is
 		not included in the character.
+
+		When [expr] is 0 and Esc is typed, there will be a short delay
+		while Vim waits to see if this is the start of an escape
+		sequence.
 
 		When [expr] is 1 only the first byte is returned.  For a
 		one-byte character it is the character itself as a number.
@@ -6418,8 +6426,8 @@ jumplist		Compiled with |jumplist| support.
 keymap			Compiled with 'keymap' support.
 langmap			Compiled with 'langmap' support.
 libcall			Compiled with |libcall()| support.
-linebreak		Compiled with 'linebreak', 'breakat' and 'showbreak'
-			support.
+linebreak		Compiled with 'linebreak', 'breakat', 'showbreak' and
+			'breakindent' support.
 lispindent		Compiled with support for lisp indenting.
 listcmds		Compiled with commands for the buffer list |:files|
 			and the argument list |arglist|.
