@@ -1,4 +1,4 @@
-*change.txt*    For Vim version 7.4.  Last change: 2013 Mar 19
+*change.txt*    For Vim version 7.4.  Last change: 2014 Jun 26
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -155,6 +155,9 @@ the 'joinspaces' option is on, these commands insert two spaces after a '.',
 only after a '.').
 The 'B' and 'M' flags in 'formatoptions' change the behavior for inserting
 spaces before and after a multi-byte character |fo-table|.
+
+The '[ mark is set at the end of the first line that was joined, '] at the end
+of the resulting line.
 
 
 ==============================================================================
@@ -475,8 +478,8 @@ If the 'shiftround' option is on, the indent is rounded to a multiple of
 'shiftwidth'.
 
 If the 'smartindent' option is on, or 'cindent' is on and 'cinkeys' contains
-'#', shift right does not affect lines starting with '#' (these are supposed
-to be C preprocessor lines that must stay in column 1).
+'#' with a zero value, shift right does not affect lines starting with '#'
+(these are supposed to be C preprocessor lines that must stay in column 1).
 
 When the 'expandtab' option is off (this is the default) Vim uses <Tab>s as
 much as possible to make the indent.  You can use ">><<" to replace an indent
@@ -1069,6 +1072,11 @@ another register.  E.g., yank the text to copy, Visually select the text to
 replace and use "0p .  You can repeat this as many times as you like, the
 unnamed register will be changed each time.
 
+When you use a blockwise Visual mode command and yank only a single line into
+a register, a paste on a visual selected area will paste that single line on
+each of the selected lines (thus replacing the blockwise selected region by a
+block of the pasted line).
+
 							*blockwise-register*
 If you use a blockwise Visual mode command to get the text into the register,
 the block of text will be inserted before ("P") or after ("p") the cursor
@@ -1126,6 +1134,8 @@ less than one line (the small delete register is used then).  An exception is
 made for the delete operator with these movement commands: |%|, |(|, |)|, |`|,
 |/|, |?|, |n|, |N|, |{| and |}|.  Register "1 is always used then (this is Vi
 compatible).  The "- register is used as well if the delete is within a line.
+Note that these characters may be mapped.  E.g. |%| is mapped by the matchit
+plugin.
    With each successive deletion or change, Vim shifts the previous contents
 of register 1 into register 2, 2 into 3, and so forth, losing the previous
 contents of register 9.
@@ -1707,8 +1717,8 @@ Note that using `:sort` with `:global` doesn't sort the matching lines, it's
 quite useless.
 
 The details about sorting depend on the library function used.  There is no
-guarantee that sorting is "stable" or obeys the current locale.  You will have
-to try it out.
+guarantee that sorting obeys the current locale.  You will have to try it out.
+Vim does do a "stable" sort.
 
 The sorting can be interrupted, but if you interrupt it too late in the
 process you may end up with duplicated lines.  This also depends on the system
