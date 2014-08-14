@@ -1,4 +1,4 @@
-*if_pyth.txt*   For Vim バージョン 7.4.  Last change: 2013 May 25
+*if_pyth.txt*   For Vim バージョン 7.4.  Last change: 2014 Jul 23
 
 
 		  VIMリファレンスマニュアル    by Paul Moore
@@ -173,6 +173,22 @@ vim.bindeval(str)					*python-bindeval*
 	や辞書 (|Dictionary|) を変更したり、Vim の関数 (|Funcref|) を呼び出し
 	たりできます。
 
+vim.strwidth(str)					*python-strwidth*
+	|strwidth()| と同じ。str の画面上の幅を数値で返す。タブ文字は 1 幅とし
+	てカウントされる。
+
+vim.foreach_rtp(callable)				*python-foreach_rtp*
+	'runtimepath' の各パスについてコーラブル (callable) を呼び出す。コーラ
+	ブルが None 以外の値を返すか、例外が発生するか、パスの最後まで処理が進
+	むと停止する。コーラブルが None 以外の値を返して停止した場合は、
+	vim.foreach_rtp 関数はその値を返す。
+
+vim.chdir(*args, **kwargs)				*python-chdir*
+vim.fchdir(*args, **kwargs)				*python-fchdir*
+	os.chdir、os.fchdir を実行し、Vim にそのことを通知する。
+	Note: これらの関数は直接は使用しない。代わりに os.chdir と os.fchdir
+	      を使う。os.fchdir が存在しない場合の vim.fchdir の動作は未定義。
+
 "vim" モジュールのエラーオブジェクト
 
 vim.error						*python-error*
@@ -282,6 +298,86 @@ Pythonからの出力					*python-output*
 	ず、プログラムをクラッシュさせる可能性があります。これはたぶん修正され
 	るべき問題です。
 
+		    *python2-directory* *python3-directory* *pythonx-directory*
+Python における 'runtimepath' の処理			*python-special-path*
+
+Python では、'runtimepath' のパスのリストを使う代わりに、vim.VIM_SPECIAL_PATH
+という特別なディレクトリが使われます。このディレクトリが sys.path 内で使われる
+とき、そして vim.path_hooks が sys.path_hooks 内で使われるとき、'runtimepath'
+の各パス {rtp} に対して {rtp}/python2 (or python3) と {rtp}/pythonx (両バー
+ジョンで読み込まれる) のモジュールがロードされます。
+
+実装は以下のようになっています。ただし実際は C で書かれています: >
+
+    from imp import find_module, load_module
+    import vim
+    import sys
+
+    class VimModuleLoader(object):
+        def __init__(self, module):
+            self.module = module
+
+        def load_module(self, fullname, path=None):
+            return self.module
+
+    def _find_module(fullname, oldtail, path):
+        idx = oldtail.find('.')
+        if idx > 0:
+            name = oldtail[:idx]
+            tail = oldtail[idx+1:]
+            fmr = find_module(name, path)
+            module = load_module(fullname[:-len(oldtail)] + name, *fmr)
+            return _find_module(fullname, tail, module.__path__)
+        else:
+            fmr = find_module(fullname, path)
+            return load_module(fullname, *fmr)
+
+    # It uses vim module itself in place of VimPathFinder class: it does not 
+    # matter for python which object has find_module function attached to as 
+    # an attribute.
+    class VimPathFinder(object):
+        @classmethod
+        def find_module(cls, fullname, path=None):
+            try:
+                return VimModuleLoader(_find_module(fullname, fullname, path or vim._get_paths()))
+            except ImportError:
+                return None
+
+        @classmethod
+        def load_module(cls, fullname, path=None):
+            return _find_module(fullname, fullname, path or vim._get_paths())
+
+    def hook(path):
+        if path == vim.VIM_SPECIAL_PATH:
+            return VimPathFinder
+        else:
+            raise ImportError
+
+    sys.path_hooks.append(hook)
+
+vim.VIM_SPECIAL_PATH					*python-VIM_SPECIAL_PATH*
+	Vim のパスフックに関連付けられた文字列定数。Vim によって設定されたパス
+	フックが vim.VIM_SPECIAL_PATH 定数以外のパスに対して呼び出された場合は
+	ImportError が発生します。そうでなければ特殊ローダが使用されます。
+
+	Note: この定数の値を直接使用しないこと。常に vim.VIM_SPECIAL_PATH オブ
+	      ジェクトを使用してください。
+
+vim.find_module(...)					*python-find_module*
+vim.path_hook(path)					*python-path_hook*
+	上述のパスフックの実装に使われるメソッドとオブジェクト。sys.meta_path
+	で vim.path_hook を使って何かをするようなことがなければ、これらを直接
+	使用することはないでしょう。これらのオブジェクトが Vim の将来のバー
+	ジョンでも存在するかどうかは保証されません。
+
+vim._get_paths						*python-_get_paths*
+	パスフックで検索されるパスのリストを返すメソッド。将来のバージョンのこ
+	とを考えるならこのメソッドに依存すべきではありません。デバッグなどに使
+	います。
+
+	'runtimepath' の各パスに対して {rtp}/python2 (or {rtp}/python3) と
+	{rtp}/pythonx ディレクトリのリストを返します。
+
 ==============================================================================
 3. バッファオブジェクト					*python-buffer*
 
@@ -324,6 +420,8 @@ Pythonからの出力					*python-output*
 			|BufFilePre| と |BufFilePost| イベントが発生します。
 	b.number	バッファ番号。|python-buffers| のキーとして使えます。
 			読み込み専用。
+	b.valid		True または False。 関連バッファが破棄されるとバッファ
+			オブジェクトは無効となる。
 
 バッファオブジェクトのメソッドは次の通りです:
 	b.append(str)	バッファに行を追加
@@ -427,6 +525,8 @@ Range オブジェクトの型は vim モジュールの "Range" 属性で取得
 	row, col (読み専用)	スクリーン上でのウィンドウの表示位置。値は 0
 				から始まります。
 	tabpage (読み専用)	ウィンドウのタブページ。
+	valid (read-write)	True または False。 関連ウィンドウが閉じられる
+				とウィンドウオブジェクトは無効になる。
 
 heightはスクリーンが水平方向に分割されているときのみ書き込み可能です。
 widthはスクリーンが垂直方向に分割されているときのみ書き込み可能です。
@@ -488,9 +588,9 @@ vim.Dictionary オブジェクト			*python-Dictionary*
                     辞書からキーを取り除き、その値を返す。キーが存在しない場合
                     は、default が指定されていたらその値を返す。指定されていな
                     ければ KeyError 例外が発生する。
-        popitem(key)
-                    辞書からキーを取り除き、そのキーと値のペアを返す。返される
-                    キーは新しいオブジェクトである。
+        popitem()
+                    辞書からランダムにキーを取り除き (key, value) のペアを返
+                    す。
         has_key(key)
                     辞書がキーを持っているかを確認する。`key in dict` と同じ。
 
@@ -628,6 +728,11 @@ Vim の動作はコンフィグを実行したシステムに依存します。P
 2. Vim を再コンパイルして一つの Python バージョンのみ有効にする。
 3. コンフィグ実行後に auto/config.h の PY_NO_RTLD_GLOBAL の定義を削除する。こ
    れは Vim がクラッシュするようになるでしょう。
+
+							*E880*
+Python 内で SystemExit 例外を発生させても Vim は終了しない。次のようにする: >
+	:py vim.command("qall!")
+<
 
 							*has-python*
 どのバージョンの Python が利用可能になっているかは次のコマンドで確認できます:
