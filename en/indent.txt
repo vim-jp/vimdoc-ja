@@ -1,4 +1,4 @@
-*indent.txt*    For Vim version 7.4.  Last change: 2013 May 20
+*indent.txt*    For Vim version 7.4.  Last change: 2014 Apr 23
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -545,10 +545,12 @@ The examples below assume a 'shiftwidth' of 4.
 	      (default 70 lines).
 
 								*cino-#*
-	#N    When N is non-zero recognize shell/Perl comments, starting with
-	      '#'.  Default N is zero: don't recognize '#' comments.  Note
-	      that lines starting with # will still be seen as preprocessor
-	      lines.
+	#N    When N is non-zero recognize shell/Perl comments starting with
+	      '#', do not recognize preprocessor lines; allow right-shifting
+	      lines that start with "#".
+	      When N is zero (default): don't recognize '#' comments, do
+	      recognize preprocessor lines; right-shifting lines that start
+	      with "#" does not work.
 
 
 The defaults, spelled out in full, are:
@@ -673,7 +675,28 @@ This option is off by default.
 	" Default
 	let g:clojure_align_multiline_strings = 0
 <
+						*g:clojure_align_subforms*
 
+By default, parenthesized compound forms that look like function calls and
+whose head subform is on its own line have subsequent subforms indented by
+two spaces relative to the opening paren:
+>
+	(foo
+	  bar
+	  baz)
+<
+Setting this option changes this behavior so that all subforms are aligned to
+the same column, emulating the default behavior of clojure-mode.el:
+>
+	(foo
+	 bar
+	 baz)
+<
+This option is off by default.
+>
+	" Default
+	let g:clojure_align_subforms = 0
+<
 
 FORTRAN							*ft-fortran-indent*
 
@@ -725,6 +748,50 @@ A finer level of suppression can be achieved by setting the corresponding
 buffer-local variable as follows >
 
   let b:fortran_indent_less=1
+
+
+HTML				*ft-html-indent* *html-indent* *html-indenting*
+
+This is about variables you can set in your vimrc to customize HTML indenting.
+
+You can set the indent for the first line after <script> and <style>
+"blocktags" (default "zero"): >
+
+      :let g:html_indent_script1 = "inc"
+      :let g:html_indent_style1 = "inc"
+<
+      VALUE	MEANING ~
+      "zero"	zero indent
+      "auto"	auto indent (same indent as the blocktag)
+      "inc"	auto indent + one indent step
+
+Many tags increase the indent for what follows per default (see "Add Indent
+Tags" in the script).  You can add further tags with: >
+
+      :let g:html_indent_inctags = "html,body,head,tbody"
+
+You can also remove such tags with: >
+
+      :let g:html_indent_autotags = "th,td,tr,tfoot,thead"
+
+Default value is empty for both variables.  Note: the initial "inctags" are
+only defined once per Vim session.
+
+User variables are only read when the script is sourced.  To enable your
+changes during a session, without reloading the HTML file, you can manually
+do: >
+
+      :call HtmlIndent_CheckUserSettings()
+
+Detail:
+  Calculation of indent inside "blocktags" with "alien" content:
+      BLOCKTAG   INDENT EXPR	    WHEN APPLICABLE ~
+      <script> : {customizable}	    if first line of block
+	       : cindent(v:lnum)    if attributes empty or contain "java"
+	       : -1		    else (vbscript, tcl, ...)
+      <style>  : {customizable}	    if first line of block
+	       : GetCSSIndent()	    else
+      <!-- --> : -1
 
 
 PHP				*ft-php-indent* *php-indent* *php-indenting*
