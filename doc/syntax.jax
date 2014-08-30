@@ -1,4 +1,4 @@
-*syntax.txt*	For Vim バージョン 7.4.  Last change: 2013 Aug 22
+*syntax.txt*	For Vim バージョン 7.4.  Last change: 2014 Aug 29
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -378,8 +378,8 @@ Vimはロードした構文の名前を変数 "b:current_syntax" に記憶して
 である。Vimは新しいウィンドウを作成しそこにHTMLファイルを構築する。
 
 変換結果を保存すればブラウザでそれを表示できる。Vim での表示と同じ色で表示され
-るはずである。ブラウザーのアドレスバーで URL の末尾に #L123 や #123 と付け加え
-ると、その特定の行にジャンプできる (#123 は javascript サポート時のみ)。ま
+るはずである。|g:html_line_ids| を有効化すると、ブラウザーのアドレスバーで URL
+の末尾に (例えば) #L123 や #123 と付け加えることで、その行にジャンプできる。ま
 た、|g:html_dynamic_folds| を有効化すると、Vim の折り畳みを表示したり隠したり
 できる。
 
@@ -422,12 +422,10 @@ Vimはロードした構文の名前を変数 "b:current_syntax" に記憶して
 			もしカレントウィンドウが |diff| の一部で、
 			|g:html_diff_one_file| が設定されていない場合、:TOhtml
 			はカレントタブ内の diff を表示しているすべてのウィンド
-			ウを変換して <table> 要素で並べた HTML を生成する。そ
-			の場合、特定のウィンドウの特定の行にジャンプするには、
-			例えば #W1L42 で一番目のウィンドウの 42 行目、#W3L87
-			で三番目のウィンドウの 87 行目にジャンプできる。ウィン
-			ドウ番号を省略した場合は一番目のウィンドウになる
-			(javascript が有効な場合)。
+			ウを変換して <table> 要素で並べた HTML を生成する。
+			|g:html_line_ids| が有効なら、(例えば) #W1L42 で 1 番
+			目のウィンドウの 42 行目、#W3L87 で 3 番目の 87 行目に
+			ジャンプできる。
 
 			例: >
 
@@ -437,8 +435,8 @@ Vimはロードした構文の名前を変数 "b:current_syntax" に記憶して
 <
 							*g:html_diff_one_file*
 初期設定: 0
-0 なら、カレントタブ内の |diff| を表示しているすべてのウィンドウが変換され、
-<table> 要素で並べられた HTML が生成される。
+0 なら、|:TOhtml| を使うとカレントタブ内の |diff| を表示しているすべてのウィン
+ドウが変換され、<table> 要素で並べられた HTML が生成される。
 1 なら、カレントバッファのみが変換される。
 例: >
 
@@ -483,6 +481,23 @@ Note -s フラグは .vimrc とプラグインの読み込みを抑制する。�
    :let g:html_number_lines = 0
 'number' の設定に従うように戻すには: >
    :unlet g:html_number_lines
+<
+                                                             *g:html_line_ids*
+初期設定: 1。|g:html_number_lines| が設定されていないときは 0。
+この設定が 1 なら、各行番号に HTML の id 属性を付ける。行番号が表示されていな
+いときは空の <span> 要素を挿入して id を付ける。この ID 属性は、HTML が単一の
+バッファから生成されたときは L123 のような形になる。diff 表示から生成されたと
+きは W2L123 のような形になる。これを使って (特定の diff ウィンドウの) 特定の行
+にジャンプできる。指定された行にジャンプする前にその行の折り畳みを開くための
+Javascript が挿入される (|g:html_dynamic_folds|)。javascript はウィンドウ ID
+や行番号前の L を省略できる機能も提供する。
+例: >
+
+	page.html#L123	単一バッファファイルの 123 行目にジャンプ
+	page.html#123	同上
+
+	diff.html#W1L42	diff の 1 番目のウィンドウの 42 行目にジャンプ
+	diff.html#42	同上
 <
 							      *g:html_use_css*
 初期設定: 1
@@ -586,6 +601,25 @@ Note 古いブラウザ (特に Internet Explorer 6) はこの機能をサポー
 >
    :let g:html_hover_unfold = 1
 <
+							      *g:html_id_expr*
+初期設定: ""
+動的折り畳みや行 ID によるジャンプが機能するにはドキュメント内における一意の
+ID が必要である。例えば生成された HTML を他のドキュメント内にコピーしたりする
+と、その ID は一意性が保証されなくなる。g:html_id_expr に式が設定されている
+と、Vim は一意な文字列を得るためにその式を評価して、ドキュメント内で使用される
+ID に付加する。その完全な ID であれば、他のドキュメントにコピーされた場合でも
+一意に定めることができる。例えば、 _ とバッファ番号を ID に付加するには: >
+
+	:let g:html_id_expr = '"_".bufnr("%")'
+<
+ID の末尾に "_mystring" を付加するには: >
+
+	:let g:html_id_expr = '"_mystring"'
+<
+NOTE: diff ビューを HTML に変換するときは、この式は diff の 1 番目のウィンドウ
+に対してのみ評価される。そしてその結果は他のすべてのウィンドウに対して使用され
+る。
+
 					  *TOhtml-wrap-text* *g:html_pre_wrap*
 初期設定: 現在の 'wrap' の設定
 0 なら、もし |g:html_no_pre| が 0 または未設定なら、生成された HTML のテキスト
@@ -963,6 +997,21 @@ ChangeLogでは行頭のスペースのハイライトできる。これをオ�
 これは即座に有効になる。
 
 
+CLOJURE							*ft-clojure-syntax*
+
+|g:clojure_fold| を設定するとシンタックスエンジンに基づいた Clojure コードの折
+り畳みが有効化される。複数行に渡るリスト、ベクタ、マップなどを標準の Vim を
+使って折り畳みできる |fold-commands|。
+
+このオプションは rainbow-parentheses プラグインのような、角カッコの構文範囲を
+変更するようなスクリプトを使っているときは機能しない。
+
+このオプションは初期設定でオフになっている。
+>
+	" 初期設定
+	let g:clojure_fold = 0
+<
+
 COBOL						*cobol.vim* *ft-cobol-syntax*
 
 既存のCOBOLコードに要求されるハイライト方法と、新規に開発されるコードに要求さ
@@ -1214,6 +1263,32 @@ ISEが提案し、実験的に幾つかのコンパイラでは取り扱うこ�
 	:let eiffel_hex_constants=1
 
 この行を起動設定ファイルに書き足す。
+
+
+EUPHORIA	    *euphoria3.vim* *euphoria4.vim* *ft-euphoria-syntax*
+
+Euphoria には二つの構文強調表示ファイルがある。一つは Euphoria バージョン
+3.1.1 用で、初期設定ではこれが使われる。もう一つは Euphoria 4.0.5 以降用であ
+る。
+
+Euphoria バージョン 3.1.1 (http://www.rapideuphoria.com/) は DOS プラット
+フォームのアプリケーションの開発にまだ必要とされている。 Euphoria バージョン 4
+(http://www.openeuphoria.org/) はそれをサポートしていない。
+
+以下の拡張子のファイルは自動的に Euphoria ファイルタイプとして認識される:
+    
+	*.e, *.eu, *.ew, *.ex, *.exu, *.exw
+	*.E, *.EU, *.EW, *.EX, *.EXU, *.EXW
+
+Euphoria の構文強調ファイルを選択するには (*.e や *.E 拡張子のファイルが自動的
+に Euphoria ファイルタイプとして認識された場合でも)、次の行を設定ファイルに加
+える: >
+
+	:let filetype_euphoria="euphoria3"
+
+	または
+
+	:let filetype_euphoria="euphoria4"
 
 
 ERLANG						*erlang.vim* *ft-erlang-syntax*
@@ -1555,7 +1630,7 @@ http://www.fleiner.com/vim/download.html
 	:let html_no_rendering=1
 
 HTMLコメントはむしろ特別で(詳細はHTMLリファレンスドキュメントを参照)、すべての
-エラーをハイライトする。しかしその間違ったスタイル(<!--で始まり--!>で終わる)を
+エラーをハイライトする。しかしその間違ったスタイル(<!--で始まり-->で終わる)を
 使いたいならこれを定義する >
 	:let html_wrong_comments=1
 
@@ -2110,9 +2185,11 @@ PERL						*perl.vim* *ft-perl-syntax*
 
 perl用の構文ハイライトにはたくさんのオプションがある。
 
-PODファイルやPODセグメントを使っているなら、こうするとよいかもしれない: >
+インライン POD 強調表示は初期設定で有効化される。Perl ファイル内に埋め込まれた
+POD を強調表示して複雑にしたくない場合は、'perl_include_pod' オプションを 0 に
+設定する: >
 
-	:let perl_include_pod = 1
+	:let perl_include_pod = 0
 
 パースの複雑さを軽減するために (そしてパフォーマンスを上げるために)、変数名と
 内容のパースにおける2つの要素をオフにすることができる。 >
@@ -2166,13 +2243,20 @@ if 文などでも同様にブロックを折り畳みたければ、次のよ�
 
 	:let perl_fold_blocks = 1
 
-perl の折り畳みが有効になっているとき、package や sub を折り畳みたくなければ、
-対応する変数を設定する: >
+初期設定では 'perl_fold' が設定されていればサブルーチンの折り畳みは有効化され
+る。無効化したい場合は 'perl_nofold_subs' を設定する: >
 
-	:unlet perl_nofold_packages
-	:unlet perl_nofold_subs
+	:let perl_nofold_subs = 1
 
+初期設定では無名サブルーチンは折り畳まれない。折り畳みを有効化するには
+'perl_fold_anonymous_subs' を設定する: >
 
+	:let perl_fold_anonymous_subs = 1
+
+初期設定では 'perl_fold' が設定されていればパッケージは折り畳まれる。無効化し
+たい場合は 'perl_nofold_packages' を設定する: >
+
+	:let perl_nofold_packages = 1
 
 PHP3 and PHP4		*php.vim* *php3.vim* *ft-php-syntax* *ft-php3-syntax*
 
@@ -2953,13 +3037,23 @@ g:tex_conceal を <.vimrc> で設定することで Conceal モードの表示�
 						*g:tex_isk* *g:tex_stylish*
  Tex: iskeyword を制御する ~
 
-(La)Tex キーワードは普通は 0-9,a-z,A-Z,192-255 の文字だけを使い、"_" だけが問
-題となる。したがって、初期設定では、syntax/tex.vim は通常の |'iskeyword'| の設
-定を (|:setlocal| を使って) 上書きし、LaTeX でも機能するようにしている。
+通常、LaTeX キーワードは 0-9、a-z、A-z、192-255 のみがサポートされる。Latex
+キーワードはアンダースコアをサポートしない (*.sty ファイルを除く)。構文強調表
+示スクリプトは次の手順でそれを判断する:
 
-この iskeyword 再設定の動作は g:tex_isk 変数を設定することで変更できる。代わり
-に使用したい値を .vimrc で設定するとよい。
- 
+	* g:tex_stylish が存在して値が 1 なら
+		ファイルは "sty" ファイルとして扱われる。"_" はキーワードの一
+		部として認識される。
+		(g:tex_isk に左右されない)
+	* または、ファイル名の末尾は sty, cls, clo, dtx, ltx なら
+		ファイルは "sty" ファイルとして扱われる。"_" はキーワードの一
+		部として認識される。
+		(g:tex_isk に左右されない)
+
+	* g:tex_isk が存在するなら、'iskeyword' のローカル値として使用される。
+	* 存在しない場合、'iskeyword' のローカル値として 48-57,a-z,A-Z,192-255
+	  が設定される。
+
 
 TF						*tf.vim* *ft-tf-syntax*
 
@@ -2986,16 +3080,15 @@ g:vimsyn_embed オプションは、どの外部スクリプト言語の埋め�
 定する。 >
 
    g:vimsyn_embed == 0   : どのスクリプトの埋め込みも対応しない
-   g:vimsyn_embed =~ 'm' : mzscheme に対応 (コンパイル時に有効にした場合のみ)
-   g:vimsyn_embed =~ 'p' : perl     に対応 (コンパイル時に有効にした場合のみ)
-   g:vimsyn_embed =~ 'P' : python   に対応 (コンパイル時に有効にした場合のみ)
-   g:vimsyn_embed =~ 'r' : ruby     に対応 (コンパイル時に有効にした場合のみ)
-   g:vimsyn_embed =~ 't' : tcl      に対応 (コンパイル時に有効にした場合のみ)
+   g:vimsyn_embed =~ 'm' : 埋め込み mzscheme をサポート
+   g:vimsyn_embed =~ 'p' : 埋め込み perl をサポート
+   g:vimsyn_embed =~ 'P' : 埋め込み python をサポート
+   g:vimsyn_embed =~ 'r' : 埋め込み ruby をサポート
+   g:vimsyn_embed =~ 't' : 埋め込み tcl をサポート
 <
-g:vimsyn_embed の既定値は "mpPr" であり、mzscheme, perl, python, ruby に対応し
-ている。tcl が利用可能でない環境で has("tcl") の判定を行うと Vim がハングする
-ようなので、デフォルトでは tcl の埋め込みには対応していない(もちろん、有効にし
-たい場合には g:vimembedscript に含めることで有効にできる)。
+初期設定では、g:vimsyn_embed には Vim がサポートしている言語が設定される。複数
+の埋め込み言語をサポートするには、それぞれの文字を組み合わせて設定する。例、
+g:vimsyn_embed = "mp" なら mzscheme と perl がサポートされる。
 						*g:vimsyn_folding*
 
 syntax/vim.vim によって折り畳みが可能である: >

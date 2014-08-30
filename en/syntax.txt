@@ -1,4 +1,4 @@
-*syntax.txt*	For Vim version 7.4.  Last change: 2013 Aug 22
+*syntax.txt*	For Vim version 7.4.  Last change: 2014 Aug 29
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -379,12 +379,12 @@ settings, depending on which syntax is active.	Example: >
 2HTML						*2html.vim* *convert-to-HTML*
 
 This is not a syntax file itself, but a script that converts the current
-window into HTML.  Vim opens a new window in which it builds the HTML file.
+window into HTML. Vim opens a new window in which it builds the HTML file.
 
-After you save the resulting file, you can view it with any browser.  The
-colors should be exactly the same as you see them in Vim.  You can jump to
-specific lines by adding (for example) #L123 or #123 to the end of the URL in
-your browser's address bar (#123 only with javascript support). And with
+After you save the resulting file, you can view it with any browser. The
+colors should be exactly the same as you see them in Vim.  With
+|g:html_line_ids| you can jump to specific lines by adding (for example) #L123
+or #123 to the end of the URL in your browser's address bar. And with
 |g:html_dynamic_folds| enabled, you can show or hide the text that is folded
 in Vim.
 
@@ -425,15 +425,14 @@ and last line to be converted.  Example, using the last set Visual area: >
 			|g:html_end_line| to the start and end of the range,
 			respectively. Default range is the entire buffer.
 
-			If the current window is part of a |diff|, unless
-			|g:html_diff_one_file| is set, :TOhtml will convert
-			all windows which are part of the diff in the current
-			tab and place them side-by-side in a <table> element
-			in the generated HTML. When this happens you can jump
-			to lines in specific windows with (for example) #W1L42
-			for line 42 in the first diffed window, or #W3L87 for
-			line 87 in the third. Omitting the window ID will
-			default to the first window if javascript is enabled.
+                        If the current window is part of a |diff|, unless
+                        |g:html_diff_one_file| is set, :TOhtml will convert
+                        all windows which are part of the diff in the current
+                        tab and place them side-by-side in a <table> element
+                        in the generated HTML. With |g:html_line_ids| you can
+                        jump to lines in specific windows with (for example)
+                        #W1L42 for line 42 in the first diffed window, or
+                        #W3L87 for line 87 in the third.
 
 			Examples: >
 
@@ -443,9 +442,9 @@ and last line to be converted.  Example, using the last set Visual area: >
 <
 							*g:html_diff_one_file*
 Default: 0.
-When 0, all windows involved in a |diff| in the current tab page are converted
-to HTML and placed side-by-side in a <table> element.
-When 1, only the current buffer is converted.
+When 0, and using |:TOhtml| all windows involved in a |diff| in the current tab
+page are converted to HTML and placed side-by-side in a <table> element. When
+1, only the current buffer is converted.
 Example: >
 
 	let g:html_diff_one_file = 1
@@ -494,6 +493,23 @@ Force to omit the line numbers: >
    :let g:html_number_lines = 0
 Go back to the default to use 'number' by deleting the variable: >
    :unlet g:html_number_lines
+<
+                                                             *g:html_line_ids*
+Default: 1 if |g:html_number_lines| is set, 0 otherwise.
+When 1, adds an HTML id attribute to each line number, or to an empty <span>
+inserted for that purpose if no line numbers are shown. This ID attribute
+takes the form of L123 for single-buffer HTML pages, or W2L123 for diff-view
+pages, and is used to jump to a specific line (in a specific window of a diff
+view). Javascript is inserted to open any closed dynamic folds
+(|g:html_dynamic_folds|) containing the specified line before jumping. The
+javascript also allows omitting the window ID in the url, and the leading L.
+For example: >
+
+	page.html#L123	jumps to line 123 in a single-buffer file
+	page.html#123	does the same
+
+	diff.html#W1L42	jumps to line 42 in the first window in a diff
+	diff.html#42	does the same
 <
 							      *g:html_use_css*
 Default: 1.
@@ -603,6 +619,25 @@ they will not be openable without a foldcolumn.
 >
    :let g:html_hover_unfold = 1
 <
+							      *g:html_id_expr*
+Default: ""
+Dynamic folding and jumping to line IDs rely on unique IDs within the document
+to work. If generated HTML is copied into a larger document, these IDs are no
+longer guaranteed to be unique. Set g:html_id_expr to an expression Vim can
+evaluate to get a unique string to append to each ID used in a given document,
+so that the full IDs will be unique even when combined with other content in a
+larger HTML document. Example, to append _ and the buffer number to each ID: >
+
+	:let g:html_id_expr = '"_".bufnr("%")'
+<
+To append a string "_mystring" to the end of each ID: >
+
+	:let g:html_id_expr = '"_mystring"'
+<
+Note, when converting a diff view to HTML, the expression will only be
+evaluated for the first window in the diff, and the result used for all the
+windows.
+
 					  *TOhtml-wrap-text* *g:html_pre_wrap*
 Default: current 'wrap' setting.
 When 0, if |g:html_no_pre| is 0 or unset, the text in the generated HTML does
@@ -987,6 +1022,21 @@ Or to avoid the highlighting: >
 This works immediately.
 
 
+CLOJURE							*ft-clojure-syntax*
+
+Setting *g:clojure_fold* enables folding Clojure code via the syntax engine.
+Any list, vector, or map that extends over more than one line can be folded
+using the standard Vim |fold-commands|.
+
+Please note that this option does not work with scripts that redefine the
+bracket syntax regions, such as rainbow-parentheses plugins.
+
+This option is off by default.
+>
+	" Default
+	let g:clojure_fold = 0
+<
+
 COBOL						*cobol.vim* *ft-cobol-syntax*
 
 COBOL highlighting has different needs for legacy code than it does for fresh
@@ -1246,6 +1296,32 @@ Finally, some vendors support hexadecimal constants.  To handle them, add >
 to your startup file.
 
 
+EUPHORIA	    *euphoria3.vim* *euphoria4.vim* *ft-euphoria-syntax*
+
+Two syntax highlighting files exists for Euphoria. One for Euphoria 
+version 3.1.1, which is the default syntax highlighting file, and one for 
+Euphoria version 4.0.5 or later.
+
+Euphoria version 3.1.1 (http://www.rapideuphoria.com/) is still necessary 
+for developing applications for the DOS platform, which Euphoria version 4 
+(http://www.openeuphoria.org/) does not support.
+
+The following file extensions are auto-detected as Euphoria file type: 
+    
+	*.e, *.eu, *.ew, *.ex, *.exu, *.exw
+	*.E, *.EU, *.EW, *.EX, *.EXU, *.EXW
+
+To select syntax highlighting file for Euphoria, as well as for 
+auto-detecting the *.e and *.E file extensions as Euphoria file type,
+add the following line to your startup file: >
+
+	:let filetype_euphoria="euphoria3"
+
+	or 
+
+	:let filetype_euphoria="euphoria4"
+
+
 ERLANG						*erlang.vim* *ft-erlang-syntax*
 
 Erlang is a functional programming language developed by Ericsson.  Files with
@@ -1318,8 +1394,8 @@ FORTRAN					*fortran.vim* *ft-fortran-syntax*
 
 Default highlighting and dialect ~
 Highlighting appropriate for Fortran 2008 is used by default.  This choice
-should be appropriate for most users most of the time because Fortran 2008 is 
-almost a superset of previous versions (Fortran 2003, 95, 90, and 77). 
+should be appropriate for most users most of the time because Fortran 2008 is
+almost a superset of previous versions (Fortran 2003, 95, 90, and 77).
 
 Fortran source code form ~
 Fortran code can be in either fixed or free source form.  Note that the
@@ -1410,7 +1486,7 @@ items.
 
 If you use F, the advantage of setting the dialect appropriately is that
 other legacy features excluded from F will be highlighted as todo items and
-that free source form will be assumed. 
+that free source form will be assumed.
 
 The dialect can be selected in various ways.  If all your fortran files use
 the same dialect, set the global variable fortran_dialect in your .vimrc prior
@@ -1444,13 +1520,13 @@ Fortran comment of the form >
 For previous versions of the syntax, you may have set fortran_dialect to the
 now-obsolete values "f77", "f90", "f95", or "elf". Such settings will be
 silently handled as "f08". Users of "elf" may wish to experiment with "F"
-instead. 
+instead.
 
 The syntax/fortran.vim script contains embedded comments that tell you how to
 comment and/or uncomment some lines to (a) activate recognition of some
 non-standard, vendor-supplied intrinsics and (b) to prevent features deleted
 or declared obsolescent in the 2008 standard from being highlighted as todo
-items. 
+items.
 
 Limitations ~
 Parenthesis checking does not catch too few closing parentheses.  Hollerith
@@ -1612,7 +1688,7 @@ vimrc file: >
 HTML comments are rather special (see an HTML reference document for the
 details), and the syntax coloring scheme will highlight all errors.
 However, if you prefer to use the wrong style (starts with <!-- and
-ends with --!>) you can define >
+ends with -->) you can define >
 	:let html_wrong_comments=1
 
 JavaScript and Visual Basic embedded inside HTML documents are highlighted as
@@ -1883,7 +1959,7 @@ If you don't want to set the variable, use the modeline in EVERY LPC file.
 There are several implementations for LPC, we intend to support most widely
 used ones.  Here the default LPC syntax is for MudOS series, for MudOS v22
 and before, you should turn off the sensible modifiers, and this will also
-asserts the new efuns after v22 to be invalid, don't set this variable when
+assert the new efuns after v22 to be invalid, don't set this variable when
 you are using the latest version of MudOS: >
 
 	:let lpc_pre_v22 = 1
@@ -2197,11 +2273,13 @@ PERL						*perl.vim* *ft-perl-syntax*
 
 There are a number of possible options to the perl syntax highlighting.
 
-If you use POD files or POD segments, you might: >
+Inline POD highlighting is now turned on by default.  If you don't wish
+to have the added complexity of highlighting POD embedded within Perl
+files, you may set the 'perl_include_pod' option to 0: >
 
-	:let perl_include_pod = 1
+	:let perl_include_pod = 0
 
-The reduce the complexity of parsing (and increase performance) you can switch
+To reduce the complexity of parsing (and increase performance) you can switch
 off two elements in the parsing of variable names and contents. >
 
 To handle package references in variable and function names not differently
@@ -2252,13 +2330,20 @@ If you want to fold blocks in if statements, etc. as well set the following: >
 
 	:let perl_fold_blocks = 1
 
-To avoid folding packages or subs when perl_fold is let, let the appropriate
-variable(s): >
+Subroutines are folded by default if 'perl_fold' is set.  If you do not want
+this, you can set 'perl_nofold_subs': >
 
-	:unlet perl_nofold_packages
-	:unlet perl_nofold_subs
+	:let perl_nofold_subs = 1
 
+Anonymous subroutines are not folded by default; you may enable their folding
+via 'perl_fold_anonymous_subs': >
 
+	:let perl_fold_anonymous_subs = 1
+
+Packages are also folded by default if 'perl_fold' is set.  To disable this
+behavior, set 'perl_nofold_packages': >
+
+	:let perl_nofold_packages = 1
 
 PHP3 and PHP4		*php.vim* *php3.vim* *ft-php-syntax* *ft-php3-syntax*
 
@@ -2481,7 +2566,7 @@ If you want all possible Python highlighting (the same as setting the
 preceding last option and unsetting all other ones): >
 	:let python_highlight_all = 1
 
-Note: only existence of these options matter, not their value. You can replace 
+Note: only existence of these options matter, not their value. You can replace
       1 above with anything.
 
 
@@ -3068,15 +3153,22 @@ substitution will not be made.
 						*g:tex_isk* *g:tex_stylish*
  Tex: Controlling iskeyword~
 
-(La)Tex keywords normally use the characters 0-9,a-z,A-Z,192-255 only
-but the "_" is the only one that causes problems.  So, by default,
-syntax/tex.vim overrides the usual |'iskeyword'| setting (using |:setlocal|)
-with one that works for LaTeX.
+Normally, LaTeX keywords support 0-9, a-z, A-z, and 192-255 only. Latex
+keywords don't support the underscore - except when in *.sty files.  The
+syntax highlighting script handles this with the following logic:
 
-However, one may override this iskeyword re-setting by setting the
-variable, g:tex_isk, in one's .vimrc to whatever one wishes and
-it will be used instead.
- 
+	* If g:tex_stylish exists and is 1
+		then the file will be treated as a "sty" file, so the "_"
+		will be allowed as part of keywords
+		(irregardless of g:tex_isk)
+	* Else if the file's suffix is sty, cls, clo, dtx, or ltx,
+		then the file will be treated as a "sty" file, so the "_"
+		will be allowed as part of keywords
+		(irregardless of g:tex_isk)
+
+	* If g:tex_isk exists, then it will be used for the local 'iskeyword'
+	* Else the local 'iskeyword' will be set to 48-57,a-z,A-Z,192-255
+
 
 TF						*tf.vim* *ft-tf-syntax*
 
@@ -3105,18 +3197,16 @@ The g:vimsyn_embed option allows users to select what, if any, types of
 embedded script highlighting they wish to have. >
 
    g:vimsyn_embed == 0   : don't embed any scripts
-   g:vimsyn_embed =~ 'm' : embed mzscheme (but only if vim supports it)
-   g:vimsyn_embed =~ 'p' : embed perl     (but only if vim supports it)
-   g:vimsyn_embed =~ 'P' : embed python   (but only if vim supports it)
-   g:vimsyn_embed =~ 'r' : embed ruby     (but only if vim supports it)
-   g:vimsyn_embed =~ 't' : embed tcl      (but only if vim supports it)
+   g:vimsyn_embed =~ 'm' : support embedded mzscheme
+   g:vimsyn_embed =~ 'p' : support embedded perl
+   g:vimsyn_embed =~ 'P' : support embedded python
+   g:vimsyn_embed =~ 'r' : support embedded ruby
+   g:vimsyn_embed =~ 't' : support embedded tcl
 <
-By default, g:vimsyn_embed is "mpPr"; ie. syntax/vim.vim will support
-highlighting mzscheme, perl, python, and ruby by default.  Vim's has("tcl")
-test appears to hang vim when tcl is not truly available.  Thus, by default,
-tcl is not supported for embedding (but those of you who like tcl embedded in
-their vim syntax highlighting can simply include it in the g:vimembedscript
-option).
+By default, g:vimsyn_embed is a string supporting interpreters that your vim
+itself supports.  Concatenate multiple characters to support multiple types
+of embedded interpreters; ie. g:vimsyn_embed= "mp" supports embedded mzscheme
+and embedded perl.
 						*g:vimsyn_folding*
 
 Some folding is now supported with syntax/vim.vim: >
