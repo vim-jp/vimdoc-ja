@@ -1,4 +1,4 @@
-*indent.txt*    For Vim バージョン 7.4.  Last change: 2013 May 20
+*indent.txt*    For Vim バージョン 7.4.  Last change: 2014 Apr 23
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -545,9 +545,12 @@ CTRL-TやCTRL-Dを使用してインデントを変更した後では、Vimは�
 	      (省略値 70行)
 
 								*cino-#*
-	#N    N がゼロでないときは '#' で始まるshell/Perlのコメントを認識する。
-	      N の既定値はゼロであり、'#' のコメントを認識しない。'#' で始まる
-	      行はプリプロセッサ行としても認識されることに注意。
+	#N    N がゼロでないときは '#' で始まる shell/Perl のコメントを認識す
+	      る。プリプロセッサ行は認識されない。"#" で始まる行を右シフトでき
+	      るようになる。
+	      N がゼロのとき (初期設定): '#' コメントを認識しない。プリプロ
+	      セッサ行は認識される。"#" で始まる行に対する右シフトは機能しな
+	      い。
 
 
 省略値を全て並べるとこうなる:
@@ -665,8 +668,28 @@ Clojure のいくつかのフォームは、'lispwords' に依らず、すべて
 	" 初期設定
 	let g:clojure_align_multiline_strings = 0
 <
+						*g:clojure_align_subforms*
 
-
+初期設定では、括弧で囲まれた関数呼び出しのような形でその最初の subform が括弧
+と同じ行にあるとき、そのうしろの subform は最初の括弧からスペース 2 つ分インデ
+ントされる:
+>
+	(foo
+	  bar
+	  baz)
+<
+このオプションを設定すると、clojure-mode.el のデフォルトの振る舞いのように、す
+べての subform を同じカラムに揃えることができる:
+>
+	(foo
+	 bar
+	 baz)
+<
+このオプションは初期設定ではオフになっている。
+>
+	" 初期設定
+	let g:clojure_align_subforms = 0
+<
 FORTRAN							*ft-fortran-indent*
 
 Block if、select case、where、forall 構造がインデントされる。さらに type、
@@ -714,6 +737,48 @@ Tidyのようなプログラムは構造化do/continueループをdo/enddo形式
 バッファ単位で無効化したい場合はバッファローカル変数を設定する。 >
 
   let b:fortran_indent_less=1
+
+
+HTML				*ft-html-indent* *html-indent* *html-indenting*
+
+これらの変数を vimrc で設定することで HTML のインデントをカスタマイズできる。
+
+<script> と <style> の最初の行のインデントを設定できる (初期設定は "zero"): >
+
+      :let g:html_indent_script1 = "inc"
+      :let g:html_indent_style1 = "inc"
+<
+      値	意味 ~
+      "zero"	ゼロインデント
+      "auto"	自動インデント (ブロックタグのインデントと同じ)
+      "inc"	自動インデント + 1 インデント増加
+
+初期設定では多くのタグで、続くタグのインデントが増加される (このスクリプトの
+"Add Indent Tags" 参照)。そのように扱うタグを追加するには: >
+
+      :let g:html_indent_inctags = "html,body,head,tbody"
+
+対象から除外するには: >
+
+      :let g:html_indent_autotags = "th,td,tr,tfoot,thead"
+
+これらの変数の初期設定は空である。NOTE: "inctags" は Vim の編集セッションごと
+に一度だけ初期化される。
+
+ユーザー変数はスクリプトが実行されたときだけ読まれる。編集中に HTML ファイルを
+再読み込みすることなしに設定変更を反映したい場合は、手動で次のようにする: >
+
+      :call HtmlIndent_CheckUserSettings()
+
+詳細:
+  異質な内容を含むブロックタグ内のインデントの計算:
+      BLOCKTAG   インデント式	    適用できるとき ~
+      <script> : {カスタマイズ可}   ブロックの最初の行
+	       : cindent(v:lnum)    属性が空または "java" を含むとき
+	       : -1		    その他 (vbscript, tcl, ...)
+      <style>  : {カスタマイズ可}   ブロックの最初の号
+	       : GetCSSIndent()	    その他
+      <!-- --> : -1
 
 
 PHP				*ft-php-indent* *php-indent* *php-indenting*
