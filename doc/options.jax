@@ -1,4 +1,4 @@
-*options.txt*	For Vim バージョン 7.4.  Last change: 2013 Nov 12
+*options.txt*	For Vim バージョン 7.4.  Last change: 2014 Aug 09
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1271,6 +1271,35 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	て表示されるかを、このオプションで指定する。これが機能するのはASCIIと
 	8bit文字( 'encoding' が8bitエンコーディングのとき)だけである。
 
+						*'breakindent'* *'bri'*
+'breakindent' 'bri'	切替 (既定ではオフ)
+			ウィンドウについてローカル
+			{Vi にはない}
+			{Vim が |+linebreak| 機能付きでコンパイルされたときの
+			み有効}
+	折り返された行を同じインデントで表示する (行の先頭にある空白の量と同じ
+	だけインデントされる)。つまりテキストブロックの水平位置が保持される。
+
+						*'breakindentopt'* *'briopt'*
+'breakindentopt' 'briopt' 文字列 (既定では空)
+			ウィンドウについてローカル
+			{Vi にはない}
+			{Vim が |+linebreak| 機能付きでコンパイルされたときの
+			み有効}
+	'breakindent' の設定。次の項目を設定できる。それぞれの項目はカンマで区
+	切る:
+		min:{n}	    テキストの最小幅。'breakindent' が適用されたとき
+			    にテキストがその幅よりも狭くならないようにする。こ
+			    れは、ウィンドウの右端近くまでインデントされたテキ
+			    ストが折り返されたときにたくさんの行に渡って表示さ
+			    れるのを防ぐ。
+		shift:{n}   'breakindent' が適用されたときに、折り返された最初
+			    の行を指定した量だけずらす。動的なフランス式の段落
+			    インデント (負の値) や行の継続を強調 (正の値) した
+			    りできる。
+		sbr	    追加インデントの前に 'showbreak' を表示する。
+	初期設定は、min が 20、shift が 0 である。
+
 						*'browsedir'* *'bsdir'*
 'browsedir' 'bsdir'	文字列	(既定では "last")
 			グローバル
@@ -2253,11 +2282,18 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	   zip		PkZip 互換メソッド。弱い暗号化。
 			Vim 7.2 以前との後方互換。
 							*blowfish*
-	   blowfish	Blowfish メソッド。強い暗号化。Vim 7.3 以降が必要。こ
-			のメソッドで保存されたファイルは Vim 7.2 以前のバー
-			ジョンでは開くことができない。ファイルには "seed" が付
-			加されるので、ファイルを書き込むたびに暗号化されたバイ
-			ト列は異なる。
+	   blowfish	Blowfish メソッド。中強度の暗号化だが実装上の弱点があ
+			る。Vim 7.3 以降が必要。このメソッドで保存されたファイ
+			ルは Vim 7.2 以前のバージョンでは開くことができない。
+			ファイルには "seed" が付加されるのでファイルを書き込む
+			たびに暗号化されたバイト列は異なる。
+							*blowfish2*
+	   blowfish2	Blowfish メソッド。中強度の暗号化。Vim 7.4.399 以降が
+			必要。このメソッドで保存されたファイルは Vim 7.3 以前
+			のバージョンでは開くことができない。ファイルには
+			"seed" が付加されるのでファイルを書き込むたびに暗号化
+			されたバイト列は異なる。undo ファイルは (テキスト部分
+			だけではなく) 全体が暗号化される。
 
 	暗号化されたファイルを読み込んだとき、'cryptmethod' は自動的にそのファ
 	イルに使用されている暗号メソッドに設定される。つまり、そのまま
@@ -4705,8 +4741,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	に指定された文字のところで、長い行を折り返す。'wrapmargin' や
 	'textwidth' と違い、これはファイルに実際の <EOL> を挿入しない。このオ
 	プションが影響するのはファイルの表示方法であり、内容ではない。
+	'breakindent' がオンのときは行はインデントされて表示される。そして、
 	'showbreak' に設定された文字が折り返された行の先頭に置かれる。このオプ
-	ションは、'wrap' がオフであるか、'list' がオンのときには使われない。
+	ションは、'wrap' がオフのときには使われない。
 	Note 大抵、<EOL> の後の <Tab> は正しい数の空白として表示されないので注
 	意。
 
@@ -4887,8 +4924,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			グローバル／バッファについてローカル |global-local|
 			{Vi にはない}
 	コマンド ":make" で使われるプログラム。|:make_makeprg| を参照。値には
-	文字 '%' と '#' を使える。これらはそれぞれ現在のファイル名と代替ファイ
-	ル名に展開される。|:_%| |:_#|
+	文字 '%' と '#' を使える (|:_%| と |:_#| 参照)。これらはそれぞれ現在の
+	ファイル名と代替ファイル名に展開される。ファイル名に特殊文字が含まれる
+	ときは |::S| を使う。
 	環境変数は展開される |:set_env|。値に空白や '\' を含める方法については、
 	|option-backslash| を参照。Note 文字 '|' は2回エスケープすることに注意:
 	1回目はコマンド ":set" に対して、 2回目はコマンドの解釈に対してである。
@@ -5733,6 +5771,77 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	NOTE: Vim スクリプトのポータビリティのために、このオプションは常に既定
 	値のオンのままにしておくこと。昔の Vi スクリプトを使うときだけこれをオ
 	フにすること。
+
+                                               *'renderoptions'* *'rop'*
+'renderoptions' 'rop'	文字列  (既定では空)
+			グローバル
+			{Vi にはない}
+			{MS-Windows で GUI と DIRECTX 付きでコンパイルされたと
+			きのみ有効}
+	テキストレンダラの選択とそのオプションの設定。オプションはレンダラごと
+	に異なる。
+
+	構文: >
+		set rop=type:{renderer}(,{name}:{value})*
+<
+	現在、選択できる追加のレンダラは一つだけである。
+
+	レンダラ 振る舞い ~
+	directx  Vim は DirextX (DirectWrite) を使ってテキストを表示する。デ
+		 フォルトの GDI よりも文字を綺麗に表示できる。
+		 MS-Windows の Vista 以降のバージョンで 'encoding' が "utf-8"
+		 である必要がある。
+
+		オプション:
+		  名前	    意味		型	値       ~
+		  gamma	    gamma		float	1.0 - 2.2 (maybe)
+		  contrast  enhancedContrast	float	(unknown)
+		  level	    clearTypeLevel	float	(unknown)
+		  geom	    pixelGeometry	int	0 - 2 (see below)
+		  renmode   renderingMode	int	0 - 6 (see below)
+		  taamode   textAntialiasMode	int	0 - 3 (see below)
+
+		詳細は次の URL を参照:
+		  http://msdn.microsoft.com/en-us/library/dd368190.aspx
+
+		geom: デバイスピクセルの内部構造。
+		  0 - DWRITE_PIXEL_GEOMETRY_FLAT
+		  1 - DWRITE_PIXEL_GEOMETRY_RGB
+		  2 - DWRITE_PIXEL_GEOMETRY_BGR
+
+		詳細は次の URL を参照:
+		  http://msdn.microsoft.com/en-us/library/dd368114.aspx
+
+		renmode: 文字レンダリングの方法。
+		  0 - DWRITE_RENDERING_MODE_DEFAULT
+		  1 - DWRITE_RENDERING_MODE_ALIASED
+		  2 - DWRITE_RENDERING_MODE_GDI_CLASSIC
+		  3 - DWRITE_RENDERING_MODE_GDI_NATURAL
+		  4 - DWRITE_RENDERING_MODE_NATURAL
+		  5 - DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC
+		  6 - DWRITE_RENDERING_MODE_OUTLINE
+
+		詳細は次の URL を参照:
+		  http://msdn.microsoft.com/en-us/library/dd368118.aspx
+
+		taamode: テキスト描画に使われるアンチエイリアスモード。
+		  0 - D2D1_TEXT_ANTIALIAS_MODE_DEFAULT
+		  1 - D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE
+		  2 - D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE
+		  3 - D2D1_TEXT_ANTIALIAS_MODE_ALIASED
+
+		詳細は次の URL を参照:
+		  http://msdn.microsoft.com/en-us/library/dd368170.aspx
+
+		例: >
+		  set encoding=utf-8
+		  set gfn=Ricty_Diminished:h12:cSHIFTJIS
+		  set rop=type:directx
+<
+		'guifont' にラスターフォント (Courier、Terminal、FixedSysなど)
+		が選択されているときは、自動的に GDI による描画に切り替わる。
+
+	他のレンダタイプは現在のところサポートされていない。
 
 						*'report'*
 'report'		数値	(既定では 2)
@@ -6754,6 +6863,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			内部メソッドでは候補リストの上の方には出てこない、あり
 			がちなミスのためにこれを使う。スラッシュを含まない行は
 			無視されるのでコメントとすることができる。
+			第 2 列の単語は正しいものでない場合は、それは使われな
+			い。その単語がスペルミスとして扱われている場合は
+			".add" ファイルにその単語を追加する。
 			このファイルは全ての言語に対して使われる。
 
 	expr:{expr}	式 {expr} を評価する。スペースによるトラブルを避けるた
@@ -7028,6 +7140,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	すぐに削除される。'swapfile' がオンで、'updatecount' が非0 のときは、
 	スワップファイルはすぐに作られる。
 	|swap-file| と 'swapsync' も参照。
+	スワップファイルを作成せずに新しいバッファを開きたい場合は
+	|:noswapfile| 修飾子を使う。
 
 	このオプションは、'bufhidden' と 'buftype' と共に、特別な種類のバッファ
 	を指定するのに使われる。|special-buffers| を参照。
@@ -7660,7 +7774,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 				"c"  = 桁数足す 33
 				"r"  = 行数足す 33
 			これは223桁までしか機能しないことに注意。解決策につい
-			ては "dec" を参照。
+			ては "dec"、"urxvt"、"sgr" を参照。
 	   xterm2	"xterm" と動作が似ているが、ドラッグ中もマウス位置を返
 			すような xterm に対して働く。こちらの方がずっと動作が
 			速く、正確である。これを使うには、ユーザーの xterm が
@@ -7683,32 +7797,34 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	   pterm	QNX pterm 風にマウスを扱う。
 							*urxvt-mouse*
 	   urxvt	urxvt (rxvt-unicode) 風にマウスを扱う。
+			端末がこのエンコードスタイルをサポートしているときのみ
+			機能する。"xterm" や "xterm2" のような 223 列の制限は
+			ない。
 							*sgr-mouse*
 	   sgr		SGR スタイルのマウスレポートを発行するターミナル用に
 			マウスを扱う。xterm のバージョン 277 かそれ以降で動作
-			する。
+			する。マウスは 223 列を超えても機能する。このオプショ
+			ンは "xterm2" と後方互換性がある。このスタイルでは
+			"xterm2" スタイルのマウスコードもデコードできる。
 
-	マウスを使用するには、コンパイル時に |+mouse_xterm|, |+mouse_dec|,
-	|+mouse_netterm| 等のどれかの機能を有効にしておかなければならない。
+	マウスを使用するには、コンパイル時に |+mouse_xterm| |+mouse_dec|
+	|+mouse_netterm| |+mouse_jsbterm| |+mouse_urxvt| |+mouse_sgr| 等のどれ
+	かの機能を有効にしておかなければならない。
 	本当に認識されるのは "xterm(2)" のみである。NetTerm のマウスコードは、
 	コンパイル時に有効にされていれば必ず認識される。DEC terminal のマウス
 	コードは、コンパイル時に有効にされ、かつオプション 'ttymouse' が
-	"xterm" でないときのみ認識される (xterm と DEC のマウスコードが競合す
-	るため)。
-	このオプションが自動的に "xterm" に設定されるのは、'term' が "xterm"
-	で始まり、かつ 'ttymouse' がすでに "xterm" または "xterm2" でないとき
-	である。このオプションの主な使い方は、ターミナル名が "xterm" で始まら
-	ないが、そのターミナルが xterm 風のマウスコードを認識できるときに、値
-	を "xterm" に設定する、というものである。
-	"sgr" に自動設定されるのは、xterm のバージョンが 277 かそれ以降の場合
-	である。
-	"xterm2" に自動設定されるのは、xterm のバージョンが 95 以上であると報
-	告されたときである。この設定は、機能 |+termresponse| がコンパイル時に
-	有効になっており、かつターミナルオプション |t_RV| が xterm のバージョ
-	ンナンバーを求めるエスケープシーケンスに設定されていたときのみである。
-	そうでないときはユーザーが "xterm2" と設定しなければならない。
-	'ttymouse' を "xterm2" に自動的に設定したくないときは、次のように
-	|t_RV| を空にすること。 >
+	"xterm"、"xterm2"、"urxvt"、"sgr" でないときのみ認識される (dec マウス
+	コードはそれらのコードと競合するため)。
+	このオプションが自動的に "xterm" に設定されるのは、'term' が "xterm"、
+	"mlterm"、"screen" のいずれかで始まり、'ttymouse' がまだ設定されていな
+	いときである。
+	加えて、Vim が |+termresponse| 機能付きでコンパイルされていて、|t_RV|
+	に xterm のバージョン番号を要求するためのエスケープシーケンスが設定さ
+	れているときは、さらに高度な判定手続きが使われる。
+	xterm バージョンが 95 以上、276 以下であると報告されたときは "xterm2"
+	に設定される。xterm バージョンが 277 以上のときは "sgr" に設定される。
+	'ttymouse' を "xterm2" や "sgr" に自動的に設定したくないときは、次のよ
+	うに |t_RV| を空に設定する。 >
 		:set t_RV=
 <
 						*'ttyscroll'* *'tsl'*
