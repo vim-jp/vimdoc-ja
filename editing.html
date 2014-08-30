@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'editing'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="editing.html" name="editing.txt">*editing.txt*</a>&nbsp;&nbsp; For Vim バージョン 7.4.&nbsp;&nbsp;Last change: 2014 Jul 19<br>
+<a class="Constant" href="editing.html" name="editing.txt">*editing.txt*</a>&nbsp;&nbsp; For Vim バージョン 7.4.&nbsp;&nbsp;Last change: 2014 Aug 09<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar<br>
@@ -1363,8 +1363,13 @@ Vimはファイルを暗号化して保存し、再び読み取ることがで�
 <br>
 <span class="Todo">Note</span>: メモリ内のテキストは暗号化されない。ユーザーがテキストを編集している間、<br>
 システム管理者はそれを見ることができる。&quot;:!filter&quot; や &quot;:w !command&quot; によって<br>
-フィルタに通しているときはテキストは暗号化されておらず、他人に見られる可能性が<br>
+フィルタに通しているときもテキストは暗号化されておらず、他人に見られる可能性が<br>
 ある。<a class="Type" href="options.html#'viminfo'">'viminfo'</a>&nbsp;ファイルは暗号化されない。<br>
+<br>
+機密テキストを編集するときは次のように設定するという手もある:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set noundofile viminfo=<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:noswapfile edit secrets.txt</div>
+スワップファイルを無効化するとクラッシュ時に編集内容が失われてしまうので注意。<br>
 <br>
 警告: 鍵の入力時にタイプミスをしてファイルを保存し、Vimを終了すると、テキスト<br>
 は失われてしまう！<br>
@@ -1388,17 +1393,22 @@ Vimはファイルを暗号化して保存し、再び読み取ることがで�
 暗号化を無効にするには、オプション&nbsp;<a class="Type" href="options.html#'key'">'key'</a>&nbsp;に空の値を入れてリセットする。<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set key=</div>
 <br>
-<a class="Type" href="options.html#'cryptmethod'">'cryptmethod'</a>&nbsp;オプションを設定することで暗号化メソッドを選択できる。次のうち<br>
-一つを使うこと:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal cm=zip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot; 弱いメソッド。後方互換。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal cm=blowfish&nbsp;&nbsp;&quot; 強いメソッド。</div>
+<a class="Type" href="options.html#'cryptmethod'">'cryptmethod'</a>&nbsp;オプションを設定することで暗号化メソッドを選択できる。次の中から<br>
+選択できる:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal cm=zip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 弱いメソッド。後方互換。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal cm=blowfish&nbsp;&nbsp; &quot; 脆弱性ありのメソッド<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal cm=blowfish2&nbsp;&nbsp;&quot; 中強度のメソッド</div>
 ファイルを保存する前に設定する。暗号化されたファイルを読み込んだとき、このオプ<br>
 ションは自動的にファイル保存時に使われたメソッドに設定される。ファイルを保存す<br>
 る前に&nbsp;<a class="Type" href="options.html#'cryptmethod'">'cryptmethod'</a>&nbsp;を変更することで使用するメソッドを変更できる。<br>
+<br>
 新しいファイルに使われるデフォルトのメソッドを設定したい場合は&nbsp;<a class="Identifier" href="starting.html#vimrc">|vimrc|</a>&nbsp;ファイ<br>
 ルで次のどちらかを設定すること:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set cm=zip<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set cm=blowfish</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set cm=blowfish2</div>
+一つ目のものは Vim 7.2 以前との互換性が必要なときに使用する。 &quot;blowfish2&quot; をサ<br>
+ポートしている Vim が使えるなら、&quot;blowfish2&quot; の使用が強く推奨される。<br>
+<br>
 ファイルを読み込んだり書き込んだりしたとき、zip なら &quot;[crypted]&quot;、blowfish な<br>
 ら &quot;[blowfish]&quot; とメッセージが表示される。<br>
 <br>
@@ -1432,8 +1442,8 @@ Vimはファイルを暗号化して保存し、再び読み取ることがで�
 ドに認識されるようになる:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp; 0&nbsp;&nbsp;string&nbsp;&nbsp;VimCrypt~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Vim encrypted file<br>
 &nbsp;&nbsp;&nbsp;&nbsp; &gt;9 string&nbsp;&nbsp;01&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- &quot;zip&quot; cryptmethod<br>
-&nbsp;&nbsp;&nbsp;&nbsp; &gt;9 string&nbsp;&nbsp;02&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- &quot;blowfish&quot; cryptmethod</div>
-<br>
+&nbsp;&nbsp;&nbsp;&nbsp; &gt;9 string&nbsp;&nbsp;02&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- &quot;blowfish&quot; cryptmethod<br>
+&nbsp;&nbsp;&nbsp;&nbsp; &gt;9 string&nbsp;&nbsp;03&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- &quot;blowfish2&quot; cryptmethod</div>
 <br>
 <span class="Todo">Note</span>:<br>
 - オプション&nbsp;<a class="Type" href="options.html#'charconvert'">'charconvert'</a>&nbsp;でコード変換をしているときには暗号化はできない。<br>
@@ -1457,6 +1467,10 @@ Vimはファイルを暗号化して保存し、再び読み取ることがで�
 - Pkzip は&nbsp;<a class="Type" href="options.html#'cryptmethod'">'cryptmethod'</a>&nbsp;の &quot;zip&quot; と同じ暗号化を用いており、合衆国政府はその輸<br>
 &nbsp;&nbsp;出に対して異議を唱えていない。Pkzipの公開ファイル APPNOTE.TXT にはこのアルゴ<br>
 &nbsp;&nbsp;リズムが詳細に記述されている。<br>
+-&nbsp;<a class="Type" href="options.html#'cryptmethod'">'cryptmethod'</a>&nbsp;の &quot;blowfish&quot; の実装には脆弱性がある。ファイルの最初の 64 バイ<br>
+&nbsp;&nbsp;ト (条件によってはもっと) はクラック可能である。これの使用は推奨されないが、<br>
+&nbsp;&nbsp;Vim 7.3 と 7.4 でサポートされている中ではそれが一番強度のあるメソッドであ<br>
+&nbsp;&nbsp;る。&quot;zip&quot; メソッドはさらに弱い。<br>
 - Vimはオランダに起源を持つ。そこがソースの出処である。従って、暗号化コードは<br>
 &nbsp;&nbsp;アメリカ合衆国から輸出されてはいない。<br>
 <br>
