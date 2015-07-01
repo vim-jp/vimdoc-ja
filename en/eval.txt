@@ -1,4 +1,4 @@
-*eval.txt*	For Vim version 7.4.  Last change: 2014 Sep 27
+*eval.txt*	For Vim version 7.4.  Last change: 2015 Jun 26
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -525,7 +525,7 @@ Funcref to a Dictionary, but the "self" variable is not available then.
 To avoid the extra name for the function it can be defined and directly
 assigned to a Dictionary in this way: >
 	:let mydict = {'data': [0, 1, 2, 3]}
-	:function mydict.len() dict
+	:function mydict.len()
 	:   return len(self.data)
 	:endfunction
 	:echo mydict.len()
@@ -1005,7 +1005,7 @@ function.  Example: >
 
 
 
-string						*string* *expr-string* *E114*
+string					*string* *String* *expr-string* *E114*
 ------
 "string"		string constant		*expr-quote*
 
@@ -1021,7 +1021,7 @@ A string constant accepts these special characters:
 \X.	same as \x.
 \u....	character specified with up to 4 hex numbers, stored according to the
 	current value of 'encoding' (e.g., "\u02a4")
-\U....	same as \u....
+\U....	same as \u but allows up to 8 hex numbers.
 \b	backspace <BS>
 \e	escape <Esc>
 \f	formfeed <FF>
@@ -1457,10 +1457,10 @@ v:foldstart	Used for 'foldtext': first line of closed fold.
 		Read-only in the |sandbox|. |fold-foldtext|
 
 					*v:hlsearch* *hlsearch-variable*
-v:hlsearch	Variable that determines whether search highlighting is on. 
-		Makes sense only if 'hlsearch' is enabled which requires 
-		|+extra_search|. Setting this variable to zero acts the like 
-		|:nohlsearch| command, setting it to one acts like >
+v:hlsearch	Variable that indicates whether search highlighting is on. 
+		Setting it makes sense only if 'hlsearch' is enabled which
+		requires |+extra_search|. Setting this variable to zero acts
+		the like |:nohlsearch| command, setting it to one acts like >
 			let &hlsearch = &hlsearch
 <
 					*v:insertmode* *insertmode-variable*
@@ -1834,9 +1834,10 @@ getwinposx()			Number	X coord in pixels of GUI Vim window
 getwinposy()			Number	Y coord in pixels of GUI Vim window
 getwinvar( {nr}, {varname} [, {def}])
 				any	variable {varname} in window {nr}
-glob( {expr} [, {nosuf} [, {list}]])
+glob( {expr} [, {nosuf} [, {list} [, {alllinks}]]])
 				any	expand file wildcards in {expr}
-globpath( {path}, {expr} [, {nosuf} [, {list}]])
+glob2regpat( {expr})		String  convert a glob pat into a search pat
+globpath( {path}, {expr} [, {nosuf} [, {list} [, {alllinks}]]])
 				String	do glob({expr}) for all dirs in {path}
 has( {feature})			Number	TRUE if feature {feature} supported
 has_key( {dict}, {key})		Number	TRUE if {dict} has entry {key}
@@ -1984,7 +1985,7 @@ split( {expr} [, {pat} [, {keepempty}]])
 sqrt( {expr})			Float	square root of {expr}
 str2float( {expr})		Float	convert String to Float
 str2nr( {expr} [, {base}])	Number	convert String to Number
-strchars( {expr})		Number	character length of the String {expr}
+strchars( {expr} [, {skipcc}])	Number	character length of the String {expr}
 strdisplaywidth( {expr} [, {col}]) Number display length of the String {expr}
 strftime( {format}[, {time}])	String	time in specified format
 stridx( {haystack}, {needle}[, {start}])
@@ -2041,7 +2042,7 @@ winrestcmd()			String	returns command to restore window sizes
 winrestview( {dict})		none	restore view of current window
 winsaveview()			Dict	save view of current window
 winwidth( {nr})			Number	width of window {nr}
-writefile( {list}, {fname} [, {binary}])
+writefile( {list}, {fname} [, {flags}])
 				Number	write list of lines to file {fname}
 xor( {expr}, {expr})		Number  bitwise XOR
 
@@ -2395,6 +2396,10 @@ col({expr})	The result is a Number, which is the byte index of the column
 			    number of bytes in the cursor line plus one)
 		    'x	    position of mark x (if the mark is not set, 0 is
 			    returned)
+		    v       In Visual mode: the start of the Visual area (the
+			    cursor is the end).  When not in Visual mode
+			    returns the cursor position.  Differs from |'<| in
+			    that it's updated right away.
 		Additionally {expr} can be [lnum, col]: a |List| with the line
 		and column number. Most useful when the column is "$", to get
 		the last column of a specific line.  When "lnum" or "col" is
@@ -2956,14 +2961,19 @@ extend({expr1}, {expr2} [, {expr3}])			*extend()*
 		{expr1} is changed when {expr2} is not empty.  If necessary
 		make a copy of {expr1} first.
 		{expr2} remains unchanged.
+		When {expr1} is locked and {expr2} is not empty the operation
+		fails.
 		Returns {expr1}.
 
 
 feedkeys({string} [, {mode}])				*feedkeys()*
 		Characters in {string} are queued for processing as if they
-		come from a mapping or were typed by the user.	They are added
-		to the end of the typeahead buffer, thus if a mapping is still
-		being executed these characters come after them.
+		come from a mapping or were typed by the user.
+		By default the string is added to the end of the typeahead
+		buffer, thus if a mapping is still being executed the
+		characters come after them.  Use the 'i' flag to insert before
+		other characters, they will be executed next, before any
+		characters from a mapping.
 		The function does not wait for processing of keys contained in
 		{string}.
 		To include special keys into {string}, use double-quotes
@@ -2977,6 +2987,7 @@ feedkeys({string} [, {mode}])				*feedkeys()*
 		't'	Handle keys as if typed; otherwise they are handled as
 			if coming from a mapping.  This matters for undo,
 			opening folds, etc.
+		'i'	Insert the string instead of appending (see above).
 		Return value is always 0.
 
 filereadable({file})					*filereadable()*
@@ -3305,6 +3316,17 @@ getchar([expr])						*getchar()*
 			:    endif
 			:  endwhile
 			:endfunction
+<
+		You may also receive synthetic characters, such as
+		|<CursorHold>|. Often you will want to ignore this and get
+		another character: >
+			:function GetKey()
+			:  let c = getchar()
+			:  while c == "\<CursorHold>"
+			:    let c = getchar()
+			:  endwhile
+			:  return c
+			:endfunction
 
 getcharmod()						*getcharmod()*
 		The result is a Number which is the state of the modifiers for
@@ -3619,7 +3641,7 @@ getwinvar({winnr}, {varname} [, {def}])				*getwinvar()*
 			:let list_is_on = getwinvar(2, '&list')
 			:echo "myvar = " . getwinvar(1, 'myvar')
 <
-glob({expr} [, {nosuf} [, {list}]])				*glob()*
+glob({expr} [, {nosuf} [, {list} [, {alllinks}]]])		*glob()*
 		Expand the file wildcards in {expr}.  See |wildcards| for the
 		use of special characters.
 
@@ -3636,8 +3658,11 @@ glob({expr} [, {nosuf} [, {list}]])				*glob()*
 		matches, they are separated by <NL> characters.
 
 		If the expansion fails, the result is an empty String or List.
+
 		A name for a non-existing file is not included.  A symbolic
 		link is only included if it points to an existing file.
+		However, when the {alllinks} argument is present and it is
+		non-zero then all symbolic links are included.
 
 		For most systems backticks can be used to get files names from
 		any external command.  Example: >
@@ -3649,7 +3674,16 @@ glob({expr} [, {nosuf} [, {list}]])				*glob()*
 		See |expand()| for expanding special Vim variables.  See
 		|system()| for getting the raw output of an external command.
 
-globpath({path}, {expr} [, {nosuf} [, {list}]])			*globpath()*
+glob2regpat({expr})					 *glob2regpat()*
+		Convert a file pattern, as used by glob(), into a search
+		pattern.  The result can be used to match with a string that
+		is a file name.  E.g. >
+			if filename =~ glob2regpat('Make*.mak')
+<		This is equivalent to: >
+			if filename =~ '^Make.*\.mak$'
+<
+								*globpath()*
+globpath({path}, {expr} [, {nosuf} [, {list} [, {allinks}]]])
 		Perform glob() on all directories in {path} and concatenate
 		the results.  Example: >
 			:echo globpath(&rtp, "syntax/c.vim")
@@ -3675,6 +3709,8 @@ globpath({path}, {expr} [, {nosuf} [, {list}]])			*globpath()*
 		they are separated by <NL> characters.  Example: >
 			:echo globpath(&rtp, "syntax/c.vim", 0, 1)
 <
+		{allinks} is used as with |glob()|.
+
 		The "**" item can be used to search in a directory tree.
 		For example, to find all "README.txt" files in the directories
 		in 'runtimepath' and below: >
@@ -4809,7 +4845,7 @@ py3eval({expr})						*py3eval()*
 		Evaluate Python expression {expr} and return its result
 		converted to Vim data structures.
 		Numbers and strings are returned as they are (strings are 
-		copied though, unicode strings are additionally converted to 
+		copied though, Unicode strings are additionally converted to 
 		'encoding').
 		Lists are represented as Vim |List| type.
 		Dictionaries are represented as Vim |Dictionary| type with 
@@ -4853,7 +4889,7 @@ readfile({fname} [, {binary} [, {max}]])
 		separated with CR will result in a single long line (unless a
 		NL appears somewhere).
 		All NUL characters are replaced with a NL character.
-		When {binary} is equal to "b" binary mode is used:
+		When {binary/append} contains "b" binary mode is used:
 		- When the last line ends in a NL an extra empty list item is
 		  added.
 		- No CR characters are removed.
@@ -5548,7 +5584,7 @@ setwinvar({nr}, {varname}, {val})			*setwinvar()*
 			:call setwinvar(2, "myvar", "foobar")
 
 sha256({string})						*sha256()*
-		Returns a String with 64 hex charactes, which is the SHA256
+		Returns a String with 64 hex characters, which is the SHA256
 		checksum of {string}.
 		{only available when compiled with the |+cryptv| feature}
 
@@ -5803,15 +5839,17 @@ str2nr( {expr} [, {base}])				*str2nr()*
 		Text after the number is silently ignored.
 
 
-strchars({expr})					*strchars()*
+strchars({expr} [, {skipcc}])					*strchars()*
 		The result is a Number, which is the number of characters
-		String {expr} occupies.  Composing characters are counted
-		separately.
+		in String {expr}.
+		When {skipcc} is omitted or zero, composing characters are
+		counted separately.
+		When {skipcc} set to 1, Composing characters are ignored.
 		Also see |strlen()|, |strdisplaywidth()| and |strwidth()|.
 
 strdisplaywidth({expr}[, {col}])			*strdisplaywidth()*
 		The result is a Number, which is the number of display cells
-		String {expr} occupies on the screen when it starts a {col}.
+		String {expr} occupies on the screen when it starts at {col}.
 		When {col} is omitted zero is used.  Otherwise it is the
 		screen column where to start.  This matters for Tab
 		characters.
@@ -5877,15 +5915,11 @@ string({expr})	Return {expr} converted to a String.  If {expr} is a Number,
 							*strlen()*
 strlen({expr})	The result is a Number, which is the length of the String
 		{expr} in bytes.
-		If you want to count the number of multi-byte characters (not
-		counting composing characters) use something like this: >
-
-			:let len = strlen(substitute(str, ".", "x", "g"))
-<
 		If the argument is a Number it is first converted to a String.
 		For other types an error is given.
-		Also see |len()|, |strchars()|, |strdisplaywidth()| and
-		|strwidth()|.
+		If you want to count the number of multi-byte characters use
+		|strchars()|.
+		Also see |len()|, |strdisplaywidth()| and |strwidth()|.
 
 strpart({src}, {start}[, {len}])			*strpart()*
 		The result is a String, which is part of {src}, starting from
@@ -6408,6 +6442,10 @@ virtcol({expr})						*virtcol()*
 			    plus one)
 		    'x	    position of mark x (if the mark is not set, 0 is
 			    returned)
+		    v       In Visual mode: the start of the Visual area (the
+			    cursor is the end).  When not in Visual mode
+			    returns the cursor position.  Differs from |'<| in
+			    that it's updated right away.
 		Note that only marks in the current file can be used.
 		Examples: >
   virtcol(".")	   with text "foo^Lbar", with cursor on the "^L", returns 5
@@ -6557,14 +6595,20 @@ winwidth({nr})						*winwidth()*
   :endif
 <
 							*writefile()*
-writefile({list}, {fname} [, {binary}])
+writefile({list}, {fname} [, {flags}])
 		Write |List| {list} to file {fname}.  Each list item is
 		separated with a NL.  Each list item must be a String or
 		Number.
-		When {binary} is equal to "b" binary mode is used: There will
+		When {flags} contains "b" then binary mode is used: There will
 		not be a NL after the last list item.  An empty item at the
 		end does cause the last line in the file to end in a NL.
-		All NL characters are replaced with a NUL character.
+
+		When {flags} contains "a" then append mode is used, lines are
+		append to the file: >
+			:call writefile(["foo"], "event.log", "a")
+			:call writefile(["bar"], "event.log", "a")
+>
+<		All NL characters are replaced with a NUL character.
 		Inserting CR characters needs to be done before passing {list}
 		to writefile().
 		An existing file is overwritten, if possible.
@@ -8251,7 +8295,7 @@ You can catch all Vim errors by the pattern >
 							*catch-text*
 NOTE: You should never catch the error message text itself: >
 	:catch /No such variable/
-only works in the english locale, but not when the user has selected
+only works in the English locale, but not when the user has selected
 a different language by the |:language| command.  It is however helpful to
 cite the message text in a comment: >
 	:catch /^Vim(\a\+):E108:/   " No such variable
