@@ -1,0 +1,229 @@
+---
+layout: vimdoc
+helpname: 'channel'
+---
+<div id='vimCodeElement'>
+<a class="Constant" href="channel.html" name="channel.txt">*channel.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For Vim バージョン 7.4.&nbsp;&nbsp;Last change: 2016 Jan 28<br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar<br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;プロセス間通信&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel" name="channel">*channel*</a><br>
+<br>
+ドラフト&nbsp;&nbsp;ドラフト&nbsp;&nbsp;ドラフト&nbsp;&nbsp;ドラフト&nbsp;&nbsp;ドラフト&nbsp;&nbsp;ドラフト&nbsp;&nbsp;ドラフト<br>
+<br>
+Vimは別のプロセスと通信するのにチャンネルを用います。<br>
+チャンネルはソケットを用います。&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="netbeans.html#socket-interface" name="socket-interface">*socket-interface*</a><br>
+<br>
+現在のところVimは同時に10個までのチャンネルをサポートします。<br>
+Netbeansインターフェースもチャンネルを使っています。&nbsp;<a class="Identifier" href="netbeans.html#netbeans">|netbeans|</a><br>
+<br>
+1. デモ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-demo">|channel-demo|</a><br>
+2. チャンネルを開く&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-open">|channel-open|</a><br>
+3. JSONチャンネルを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-use">|channel-use|</a><br>
+4. Vimコマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-commands">|channel-commands|</a><br>
+5. rawチャンネルを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-use">|channel-use|</a><br>
+6. ジョブ制御&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#job-control">|job-control|</a><br>
+<br>
+<span class="Special">{Vi does not have any of these features}</span><br>
+<span class="Special">{only available when compiled with the&nbsp;</span><span class="MissingTag">|+channel|</span><span class="Special">&nbsp;feature}</span><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+1. デモ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-demo" name="channel-demo">*channel-demo*</a><br>
+<br>
+デモにはPythonが必要です。でもプログラムは次の場所にあります。<br>
+$VIMRUNTIME/tools/demoserver.py<br>
+それをあるターミナルで実行しましょう。そのターミナルをT1と呼びます。<br>
+<br>
+次に別のターミナルでVimを実行します。そして以下のコマンドででもサーバーに接続<br>
+します:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let handle = connect('localhost:8765', 'json')</div>
+<br>
+T1の中に次のようなに表示されます:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">=== socket opened ===</span><br>
+<br>
+ついにサーバーにメッセージを送信できます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo sendexpr(handle, 'hello!')</div>
+<br>
+このメッセージはT1で受信され、Vimには応答が送り返されます。<br>
+T1ではVimが送った生のメッセージを確認できます:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[1,&quot;hello!&quot;]</span><br>
+そしてレスポンスはこうなります:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[1,&quot;got it&quot;]</span><br>
+この数値はメッセージを送るたびに増加していきます。<br>
+<br>
+サーバーはVimにコマンドを送信できます。T1に於いて、次のように正確に(引用符を含<br>
+めて文字通りに)タイプしてください:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ま　だ　実　装　さ　れ　て　い　ま　せ　ん<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;ex&quot;,&quot;echo 'hi there'&quot;]</div>
+するとそのメッセージがVimに表示されます。<br>
+<br>
+非同期通信を取り扱うためにはコールバック(以下ハンドラー)が必要です:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func MyHandler(handle, msg)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo &quot;from the handler: &quot; . a:msg<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call sendexpr(handle, 'hello!', &quot;MyHandler&quot;)</div>
+<br>
+sendを呼ぶたびに毎回コールバックを指定する代わりに、チャンネルを開く際に指定す<br>
+ることもできます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call disconnect(handle)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let handle = connect('localhost:8765', 'json', &quot;MyHandler&quot;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call sendexpr(handle, 'hello!', 0)</div>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+2. チャンネルを開く&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-open" name="channel-open">*channel-open*</a><br>
+<br>
+チャンネルを開くには次のようにします:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let handle = connect({address}, {mode}, {callback})</div>
+<br>
+<span class="Special">{address}</span>&nbsp;は &quot;ホスト名:ポート番号&quot; の形式です。 例:&quot;localhost:8765&quot;<br>
+<br>
+<span class="Special">{mode}</span>&nbsp;でモード(通信フォーマット)を指定します:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-mode" name="channel-mode">*channel-mode*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;json&quot; - JSONを使う(詳しくは下記を参照。もっとも使いやすい方法)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;raw&quot;&nbsp;&nbsp;- rawメッセージを使う<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-callback" name="channel-callback">*channel-callback*</a><br>
+<span class="Special">{callback}</span>&nbsp;はメッセージ受信時に他のハンドラーで扱われない時に呼ばれます。<br>
+これはチャンネルのハンドルと、受信したメッセージの2つの引数を取ります。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func Handle(handle, msg)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo '受信した: ' . a:msg<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let handle = connect(&quot;localhost:8765&quot;, 'json', &quot;Handle&quot;)</div>
+<br>
+<br>
+<span class="Special">{mode}</span>&nbsp;が &quot;json&quot; の時には、&quot;msg&quot; 引数は受信たメッセージの本文で、Vimの型に変換<br>
+されています。<br>
+一方&nbsp;<span class="Special">{mode}</span>&nbsp;が &quot;raw&quot; の時には、 &quot;msg&quot; 引数はメッセージ全体を格納した文字列で<br>
+す。<br>
+<br>
+<span class="Special">{mode}</span>&nbsp;が &quot;json&quot; の時には&nbsp;<span class="Special">{callback}</span>&nbsp;はオプションです。これを省略した場合、<br>
+メッセージを1つ受信するにはメッセージを1つ送信する必要があります。<br>
+<br>
+ハンドラーは後から追加したり、変更したりできます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call sethandler(handle, {callback})</div>
+<span class="Special">{callback}</span>&nbsp;が空の場合 (一度も指定しないか、空文字列を指定した場合) ハンドラー<br>
+は削除されます。<br>
+<br>
+チャンネルを使い終わったら、以下のように切断してください:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call disconnect(handle)</div>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+3. JSONチャンネルを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-use" name="channel-use">*channel-use*</a><br>
+<br>
+<span class="Special">{mode}</span>&nbsp;が &quot;json&quot; 場合は、以下のようにメッセージを同期的に送信できます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let response = sendexpr(handle, {expr})</div>
+これは通信相手から応答があるまで待ち合わせます。<br>
+<br>
+応答を処理する必要が無いのであれば、以下のように送れます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call sendexpr(handle, {expr}, 0)</div>
+<br>
+メッセージを送信し、応答を特別な関数で非同期的に処理する場合には、このようにし<br>
+ます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call sendexpr(handle, {expr}, {callback})</div>
+<br>
+<span class="Special">{expr}</span>&nbsp;は JSON に変換され、配列で包まれます。<span class="Special">{expr}</span>&nbsp;として文字列 &quot;hello&quot; を送<br>
+信した場合に、通信相手が受け取るメッセージの例は次のようになります:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[12,&quot;hello&quot;]</span><br>
+<br>
+送信されるJSONのフォーマットはこのようになっています:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[<span class="Special">{number}</span>,<span class="Special">{expr}</span>]<br>
+<br>
+<span class="Special">{number}</span>&nbsp;には毎回異なる値が入ります。これは応答(があるならば)、必ず使われま<br>
+す:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[<span class="Special">{number}</span>,<span class="Special">{response}</span>]<br>
+<br>
+このようにして、受信したメッセージがどの送信メッセージに対応するかを知ることが<br>
+でき、正しいハンドラーを呼び出すことができます。これによって応答メッセージの到<br>
+着順序を気にしなくても良くなります。<br>
+<br>
+送信側はかならず有効なJSONをVimへ送らなければなりません。VimはJSONとして解釈す<br>
+ることで、受信メッセージの終端をチェックします。終端を受信することが、<br>
+メッセージを受理する唯一の方法です。<br>
+<br>
+サーバープロセスがVimからのメッセージを受信すること無く、メッセージを送信する<br>
+には、数値に 0 を使う必要があります。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[0,<span class="Special">{response}</span>]<br>
+<br>
+するとチャンネルのハンドラーが&nbsp;<span class="Special">{response}</span>&nbsp;をVimの方に変換したものを受け取るで<br>
+しょう。チャンネルにハンドラーが関連付けられていない場合には、メッセージは破棄<br>
+されます。<br>
+<br>
+読み込みエラーが発生した場合や&nbsp;<span class="MissingTag">|disconnect()|</span>&nbsp;した場合には、可能であるなら文字<br>
+列 &quot;DETACH&quot; が送られます。チャンネルはそれから非アクティブになります。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+4. Vimコマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-commands" name="channel-commands">*channel-commands*</a><br>
+<br>
+ま　だ　実　装　さ　れ　て　い　ま　せ　ん<br>
+<br>
+&quot;json&quot; チャンネルを使用すると、サーバープロセス側はVimへコマンドを送信できま<br>
+す。そのコマンドはチャンネルのハンドラーを介さずに、Vimの内部で実行されます。<br>
+<br>
+実行可能なコマンドは以下のとおりです:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;[&quot;ex&quot;,&nbsp;&nbsp;&nbsp;&nbsp; {Ex コマンド}]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[&quot;normal&quot;, {ノーマルモードコマンド}]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[&quot;eval&quot;,&nbsp;&nbsp; {数値}, {式}]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[&quot;expr&quot;,&nbsp;&nbsp; {式}]</div>
+<br>
+これらを使うときは、これらのコマンドが何をするかに十分気をつけてください!<br>
+ユーザーが何をしているかによっては容易に干渉してしまいます。トラブルを避けるに<br>
+は&nbsp;<a class="Identifier" href="eval.html#mode()">|mode()|</a>&nbsp;を使い、エディタが期待した状態にあるかチェックしてください。例え<br>
+ば、コマンド実行ではなくテキストとして入力させたい文字列を送るには、以下のよう<br>
+にします:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;[&quot;ex&quot;,&quot;if mode() == 'i' | call feedkeys('ClassName') | endif&quot;]</div>
+<br>
+&quot;ex&quot; コマンドは Ex コマンドを実行します。完了やエラーの応答はありませ<br>
+ん。<a class="Identifier" href="eval.html#autoload">|autoload|</a>&nbsp;スクリプトの中の関数を使えます。何かを入力するのに&nbsp;<a class="Identifier" href="eval.html#feedkeys()">|feedkeys()|</a><br>
+を実行することもできます。<br>
+<br>
+&quot;normal&quot; コマンドは&nbsp;<a class="Identifier" href="various.html#:normal">|:normal|</a>&nbsp;のように実行されます。<br>
+<br>
+&quot;eval&quot; コマンドは式の評価結果を以下の様に返信します:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{数値}, {result}]</div>
+{数値} は、リクエストに指定したのと同じものです。<br>
+<br>
+&quot;expr&quot; コマンドはそれに近いのですが、応答を返信しません。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;expr&quot;,&quot;setline('$', ['one', 'two', 'three'])&quot;]</div>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+5. rawチャンネルを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-raw" name="channel-raw">*channel-raw*</a><br>
+<br>
+<span class="Special">{mode}</span>&nbsp;が &quot;raw&quot; の場合には、以下のようにしてメッセージを送信します:&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let response = sendraw(handle,&nbsp;<span class="Special">{string}</span>)<br>
+<span class="Special">{string}</span>&nbsp;はそのまま送信されます。受信した応答メッセージは直ちにチャンネルから<br>
+読み込み可能になります。この時、Vimにはメッセージの終了をどう判断するかがわか<br>
+りませんから、あなた自身が面倒を見る必要があります。<br>
+<br>
+応答を必要としないメッセージを送信するには以下のようにします:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call sendraw(handle, {string}, 0)</div>
+プロセス(訳注:サーバーのこと)はレスポンスを返し、チャンネルのハンドラーに渡さ<br>
+れます。<br>
+<br>
+メッセージを送信し、レスポンスを特定の関数で非同期的に取り扱うには以下のように<br>
+します:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call sendraw(handle, {string}, {callback})</div>
+<br>
+この&nbsp;<span class="Special">{string}</span>&nbsp;はJSONにもできます。その場合&nbsp;<span class="MissingTag">|jsonencode()|</span>&nbsp;それを作成し<br>
+<span class="MissingTag">|jsondecode()|</span>&nbsp;で受信したJSONメッセージを取り扱います。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+6. ジョブ制御&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-control" name="job-control">*job-control*</a><br>
+<br>
+ま　だ　実　装　さ　れ　て　い　ま　せ　ん<br>
+<br>
+別のプロセスを開始するには:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call startjob({command})</div>
+<br>
+これは&nbsp;<span class="Special">{command}</span>&nbsp;の終了を待ちません。<br>
+<br>
+TODO:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let handle = startjob(<span class="Special">{command}</span>, 's')&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 標準入出力を使う<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let handle = startjob(<span class="Special">{command}</span>, '',&nbsp;<span class="Special">{address}</span>)&nbsp;&nbsp;# ソケットを使う<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let handle = startjob(<span class="Special">{command}</span>, 'd',&nbsp;<span class="Special">{address}</span>) # 接続に失敗したら開始<br>
+<br>
+<br>
+&nbsp;vim:tw=78:ts=8:ft=help:norl:<br>
+</div>
