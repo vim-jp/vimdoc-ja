@@ -32,7 +32,6 @@
     doc/if_ruby.jax
     doc/if_tcl.jax
     doc/insert.jax
-    doc/map.jax
     doc/netbeans.jax
     doc/pattern.jax
     doc/quickref.jax
@@ -58,6 +57,7 @@
     doc/filetype.jax
     doc/help.jax
     doc/index.jax
+    doc/map.jax
     doc/mlang.jax
     doc/os_os2.jax
     doc/quickfix.jax
