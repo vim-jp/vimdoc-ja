@@ -19,10 +19,6 @@
 
 追いついたファイルは、下記の一覧から削除し、適切なセクションへ移動
 
-    doc/autocmd.jax
-    doc/change.jax
-    doc/develop.jax
-    doc/editing.jax
     doc/eval.jax
     doc/fold.jax
     doc/hangulin.jax
@@ -56,7 +52,10 @@
 
 ### 英文だけは反映済み
 
-まだない
+    doc/autocmd.jax
+    doc/change.jax
+    doc/develop.jax
+    doc/editing.jax
 
 ### 完訳!
 
@@ -66,8 +65,6 @@
     doc/usr_29.jax
     doc/usr_43.jax
     doc/vi_diff.jax
-
-まだない
 
 ### その他/深い事情があって断念したもの
 
