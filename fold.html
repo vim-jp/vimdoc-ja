@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'fold'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="fold.html" name="fold.txt">*fold.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For Vim バージョン 7.4.&nbsp;&nbsp;Last change: 2013 Dec 04<br>
+<a class="Constant" href="fold.html" name="fold.txt">*fold.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For Vim バージョン 7.4.&nbsp;&nbsp;Last change: 2016 Jan 02<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar<br>
@@ -99,8 +99,10 @@ Cではプリプロセッサ行を無視するために &quot;#&quot; を使用�
 &nbsp;&nbsp;-1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;折畳レベルを未定義とし、対象行の直前か直後の行のうち低<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;い方を、対象行のレベルとする。<br>
 &nbsp;&nbsp;&quot;=&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 直前の行と同じレベルを使用する<br>
-&nbsp;&nbsp;&quot;a1&quot;, &quot;a2&quot;, ..&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;直前の行のレベルを+1, +2して設定する<br>
-&nbsp;&nbsp;&quot;s1&quot;, &quot;s2&quot;, ..&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;直前の行のレベルを-1, -2して設定する<br>
+&nbsp;&nbsp;&quot;a1&quot;, &quot;a2&quot;, ..&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;直前の行のレベルを+1, +2して、結果を現在の行に適用す<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。<br>
+&nbsp;&nbsp;&quot;s1&quot;, &quot;s2&quot;, ..&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;直前の行のレベルを-1, -2して、結果を現在の行に適用す<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。<br>
 &nbsp;&nbsp;&quot;&lt;1&quot;, &quot;&lt;2&quot;, ..&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;指定したレベルの折畳を対象行で終了する<br>
 &nbsp;&nbsp;&quot;&gt;1&quot;, &quot;&gt;2&quot;, ..&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;指定したレベルの折畳を対象行から開始する<br>
 <br>
@@ -121,6 +123,18 @@ Cではプリプロセッサ行を無視するために &quot;#&quot; を使用�
 &quot;=&quot;, &quot;a&quot;, そして &quot;s&quot; は極力避けるようにする。なぜならVimはそれらが使われると、<br>
 折畳レベルが定義された行が見つかるまで戻って、幾度も検索を行わなければならない<br>
 からだ。これは動作が遅くなることがある。<br>
+<br>
+An example of using &quot;a1&quot; and &quot;s1&quot;: For a multi-line C comment, a line<br>
+containing &quot;/*&quot; would return &quot;a1&quot; to start a fold, and a line containing &quot;*/&quot;<br>
+would return &quot;s1&quot; to end the fold after that line:<br>
+<div class="helpExample">&nbsp;&nbsp;if match(thisline, '/\*') &gt;= 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return 'a1'<br>
+&nbsp;&nbsp;elseif match(thisline, '\*/') &gt;= 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return 's1'<br>
+&nbsp;&nbsp;else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return '='<br>
+&nbsp;&nbsp;endif</div>
+However, this won't work for single line comments, strings, etc.<br>
 <br>
 フォールドレベルを調べるには<a class="Identifier" href="eval.html#foldlevel()">|foldlevel()|</a>を使うのが便利である。レベルがわから<br>
 ないときは-1を返すことに注意すること。フォールドがその行で終わっているときには<br>
@@ -560,11 +574,11 @@ zk&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 オペレータを使用したときには、閉じた折畳は全体が含まれる。だから &quot;dl&quot; はカーソ<br>
 ルの下の閉じた折畳の全体を削除してしまう。<br>
 <br>
-Exコマンドでは、開始位置と終了位置が折畳のそれに常に合わせられてしまう。<br>
-だから次のコマンド:<br>
+バッファの行に作用するExコマンドの作用範囲は、開始位置と終了位置ともに閉じられ<br>
+た折畳のそれらへ、それぞれ補正される。よって以下のコマンドを:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:s/foo/bar/g</div>
-カーソルを閉じた折畳に置いて実行すると、折畳内の全ての行にある &quot;foo&quot; が &quot;bar&quot;<br>
-へ置き換えられてしまう。<br>
+閉じた折畳へカーソルを合わせて実行すると、折畳内の全ての行にある &quot;foo&quot; が<br>
+&quot;bar&quot;へ置き換えられてしまう。<br>
 これは<a class="Identifier" href="fold.html#:folddoopen">|:folddoopen|</a>と<a class="Identifier" href="fold.html#:folddoclosed">|:folddoclosed|</a>に対してはあてはまらない。<br>
 <br>
 (同一セッション中で)以前に編集したバッファに対しては、最後の折畳設定が再び使用<br>

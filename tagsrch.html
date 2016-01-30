@@ -87,6 +87,15 @@ g<span class="Special">&lt;LeftMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb
 すること。これは &quot;:tnext&quot; を使うときの混乱を避けるためである。優先度のリストは<br>
 &quot;:tag&nbsp;<span class="Special">{ident}</span>&quot; を使ったときに変化する。<br>
 <br>
+The ignore-case matches are not found for a &quot;:tag&quot; command when the<br>
+<a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;option is off and&nbsp;<a class="Type" href="options.html#'tagcase'">'tagcase'</a>&nbsp;is &quot;followic&quot; or when&nbsp;<a class="Type" href="options.html#'tagcase'">'tagcase'</a>&nbsp;is<br>
+&quot;match&quot;.&nbsp;&nbsp;They are found when a pattern is used (starting with a &quot;/&quot;) and for<br>
+&quot;:tselect&quot;, also when&nbsp;<a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;is off and&nbsp;<a class="Type" href="options.html#'tagcase'">'tagcase'</a>&nbsp;is &quot;followic&quot; or when<br>
+<a class="Type" href="options.html#'tagcase'">'tagcase'</a>&nbsp;is &quot;match&quot;.&nbsp;&nbsp;<span class="Todo">Note</span>&nbsp;that using ignore-case tag searching disables<br>
+binary searching in the tags file, which causes a slowdown.&nbsp;&nbsp;This can be<br>
+avoided by fold-case sorting the tag file.&nbsp;&nbsp;See the&nbsp;<a class="Type" href="options.html#'tagbsearch'">'tagbsearch'</a>&nbsp;option for an<br>
+explanation.<br>
+{参考用の旧訳:<br>
 <a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;オプションがオフになっているときの &quot;:tag&quot; コマンドでは、大文字、<br>
 小文字を区別しないマッチは見つからない。<a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;がオフになっていても、<br>
 (&quot;/&quot; で始まる) パターンを使用し、かつ &quot;:tselect&quot; を使ったときには見つけること<br>
@@ -94,6 +103,7 @@ g<span class="Special">&lt;LeftMouse&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb
 ができなくなるため処理が遅くなる、ということに注意すること。これはタグファイル<br>
 を大文字と小文字を区別せずにソートすることで回避できる。<a class="Type" href="options.html#'tagbsearch'">'tagbsearch'</a>&nbsp;オプショ<br>
 ンの説明も参照のこと。<br>
+:旧訳ここまで}<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 2. タグスタック&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="tagsrch.html#tag-stack" name="tag-stack">*tag-stack*</a>&nbsp;<a class="Constant" href="tagsrch.html#tagstack" name="tagstack">*tagstack*</a>&nbsp;<a class="Constant" href="tagsrch.html#E425" name="E425">*E425*</a><br>
@@ -436,12 +446,21 @@ Emacs タグファイルの行は非常に長くなることがある。Vim は�
 以下のようなときは、リストの次のファイルを使わない:<br>
 - 現在のバッファに対するstaticタグが見つかった場合。<br>
 - globalタグが見つかった場合。<br>
+This also depends on whether case is ignored.&nbsp;&nbsp;Case is ignored when<br>
+<a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;is set and&nbsp;<a class="Type" href="options.html#'tagcase'">'tagcase'</a>&nbsp;is &quot;followic&quot;, or when&nbsp;<a class="Type" href="options.html#'tagcase'">'tagcase'</a>&nbsp;is<br>
+&quot;ignore&quot;.&nbsp;&nbsp;If case is not ignored, and the tags file only has a match without<br>
+matching case, the next tags file is searched for a match with matching case.<br>
+If no tag with matching case is found, the first match without matching case<br>
+is used.&nbsp;&nbsp;If case is ignored, and a matching global tag with or without<br>
+matching case is found, this one is used, no further tags files are searched.<br>
+{参考用の旧訳:<br>
 これらは&nbsp;<a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;オプションに依存する。もしオフにしてあり、tagsファイルに<br>
 大文字小文字が一致するタグがない場合、一致するタグを次のtagsファイルで検索す<br>
 る。もし一致するタグが見つからなければ、大文字小文字を無視して最初にマッチした<br>
 ものが使われる。もし&nbsp;<a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;がオンの場合、大文字小文字の区別なく、global<br>
 タグが見つかった時点でそのタグが使用され、それ以降のtagsファイルは検索されな<br>
 い。<br>
+:旧訳ここまで}<br>
 <br>
 タグファイル名が &quot;./&quot; で始まるとき、'.' は現在のファイルのパスで置き換えられ<br>
 る。これにより、現在のファイルがあるディレクトリのtagsファイルを使用することが<br>
@@ -570,9 +589,15 @@ tagsファイルの先頭行には、<br>
 た場合には、Vimはtagsファイルに対して二分検索を使用する:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">!_TAG_FILE_SORTED&lt;TAB&gt;1&lt;TAB&gt;{anything}</span><br>
 <br>
+A tag file may be case-fold sorted to avoid a linear search when case is<br>
+ignored.&nbsp;&nbsp;(Case is ignored when&nbsp;<a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;is set and&nbsp;<a class="Type" href="options.html#'tagcase'">'tagcase'</a>&nbsp;is<br>
+&quot;followic&quot;, or when&nbsp;<a class="Type" href="options.html#'tagcase'">'tagcase'</a>&nbsp;is &quot;ignore&quot;.)&nbsp;&nbsp;See&nbsp;<a class="Type" href="options.html#'tagbsearch'">'tagbsearch'</a>&nbsp;for details.<br>
+The value '2' should be used then:<br>
+{参考用の旧訳:<br>
 <a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;がonのときに線形検索を避けるために、大文字と小文字を区別せずにタ<br>
 グファイルがソートされることがある。詳細は&nbsp;<a class="Type" href="options.html#'tagbsearch'">'tagbsearch'</a>&nbsp;を参照。そのときは '2'<br>
 が使われる:<br>
+:旧訳ここまで}<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">!_TAG_FILE_SORTED&lt;TAB&gt;2&lt;TAB&gt;{anything}</span><br>
 <br>
 Vimが認識するもう1つのタグはタグファイルのエンコーディングを指定するものであ<br>
