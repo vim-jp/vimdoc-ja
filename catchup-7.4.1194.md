@@ -29,7 +29,6 @@
     doc/if_mzsch.jax
     doc/if_perl.jax
     doc/if_pyth.jax
-    doc/if_ruby.jax
     doc/if_tcl.jax
     doc/insert.jax
     doc/map.jax
@@ -58,6 +57,7 @@
     doc/cmdline.jax
     doc/filetype.jax
     doc/help.jax
+    doc/if_ruby.jax
     doc/index.jax
     doc/mlang.jax
     doc/os_os2.jax
