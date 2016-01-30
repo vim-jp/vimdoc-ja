@@ -1,4 +1,4 @@
-*develop.txt*   For Vim バージョン 7.4.  Last change: 2014 Mar 27
+*develop.txt*   For Vim バージョン 7.4.  Last change: 2016 Jan 19
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -168,13 +168,28 @@ Vimのソースコードに変更を加える際、守るべきルールがあ�
 MAKING CHANGES						*style-changes*
 
 コードに変更を加える基本的なステップは:
-1. ドキュメントを調整する。最初にこれをやることで、あなたの行う変更がユーザー
+1. Get the code from github.  That makes it easier to keep your changed
+   version in sync with the main code base (it may be a while before your
+   changes will be included).  You do need to spend some time learning git,
+   it's not the most user friendly tool.
+2. ドキュメントを調整する。最初にこれをやることで、あなたの行う変更がユーザー
    に与える影響について、おおまかな印象をもつことができる。
-2. ソースコードに変更を加える。
-3. 変更がリストされた項目に影響を与えていないか、../doc/todo.txtをチェックす
+3. ソースコードに変更を加える。
+4. 変更がリストされた項目に影響を与えていないか、../doc/todo.txtをチェックす
    る。
-4. 無修正のコードとドキュメントに対するパッチを、"diff -c" によって得る。
-5. 変更に関する注意書きを作り、パッチに含める。
+5. Make a patch with "git diff".  You can also create a pull request on
+   github, but it's the diff that matters.
+6. Make a note about what changed, preferably mentioning the problem and the
+   solution.  Send an email to the vim-dev maillist with an explanation and
+   include the diff. Or create a pull request on github.
+
+
+C COMPILER						*style-compiler*
+
+The minimal C compiler version supported is C89, also known as ANSI C.
+Later standards don't add much and C89 is the widest supported.
+
+One restriction that this implies: no // comments, only /* comments */.
 
 
 USE OF COMMON FUNCTIONS					*style-functions*
@@ -200,7 +215,7 @@ NAMES							*style-names*
 
 関数の名前に31文字より長い名前は使えない。(VMSのために)
 
-"delete" という名前の変数を使わないこと。C++で問題となる。
+"delete" や "this" という名前の変数を使わないこと。C++で問題となる。
 
 Vimができる限り多くのシステム上で走るという必要上、システムによってすでに定義
 されている名前を使うことは避けねばならない。これは、問題となることが知られて
@@ -290,6 +305,25 @@ OK:	    do
 		a = 1;
 	    while (cond);
 
+間違い:	    if (cond) {
+               cmd;
+               cmd;
+	    } else {
+               cmd;
+               cmd;
+	    }
+
+OK:	    if (cond)
+            {
+               cmd;
+               cmd;
+	    }
+	    else
+	    {
+               cmd;
+               cmd;
+	    }
+
 
 関数は次のようにして始める:
 
@@ -303,9 +337,9 @@ OK:	/*
 	 * 戻り値の説明。
 	 */
 	    int
-	function_name(arg1, arg2)
-	    int		arg1;		/* short comment about arg1 */
-	    int		arg2;		/* short comment about arg2 */
+	function_name(
+	    int		arg1,		/* short comment about arg1 */
+	    int		arg2)		/* short comment about arg2 */
 	{
 	    int		local;		/* comment about local */
 

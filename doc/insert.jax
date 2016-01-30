@@ -1,4 +1,4 @@
-*insert.txt*    For Vim バージョン 7.4.  Last change: 2014 Aug 04
+*insert.txt*    For Vim バージョン 7.4.  Last change: 2015 Sep 15
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -79,9 +79,10 @@ CTRL-W		カーソルの前にある単語を削除する(行同士の連結に�
 		|i_backspacing|参照)。単語の定義については "word motions" の節
 		|word-motions|を参照。
 						*i_CTRL-U*
-CTRL-U		現在の行の入力済み文字全部を削除する(行同士の連結については
-		|i_backspacing|参照)。
-
+CTRL-U		現在の行のカーソルの前に入力された文字を全部削除する。新しく入
+		力した文字が無く 'backspace' が空ではない時は、カーソル前の全
+		ての文字を削除する。
+		行同士の連結については |i_backspacing| を参照。
 						*i_CTRL-I* *i_<Tab>* *i_Tab*
 <Tab> or CTRL-I タブを挿入する。'expandtab' オプションが設定されていれば、同じ
 		数の空白文字が挿入される(展開を避けるためにはCTRL-V <Tab>を使
@@ -360,7 +361,10 @@ CTRL-G CTRL-J	1行下の、挿入開始位置と同じ列へ移動	     *i_CTRL-
 CTRL-O		1つコマンドを実行して、挿入モードに戻る      *i_CTRL-O*
 CTRL-\ CTRL-O	CTRL-O と同様だがカーソルを移動させない	     *i_CTRL-\_CTRL-O*
 CTRL-L		'insertmode' がオンのとき: ノーマルモードへ  *i_CTRL-L*
-CTRL-G u	 undo で元に戻す地点を新たに設定	     *i_CTRL-G_u*
+CTRL-G u	undo で元に戻す地点を新たに設定		     *i_CTRL-G_u*
+CTRL-G U	don't break undo with next left/right cursor *i_CTRL-G_U*
+		movement (but only if the cursor stays
+		within same the line)
 -----------------------------------------------------------------------
 
 Note: カーソルキーを押した時に挿入モードから抜けてしまったら、'noesckeys' オプ
@@ -397,6 +401,28 @@ CTRL-G u を使う例: >
 	:inoremap <CR> <C-]><C-G>u<CR>
 
 これは改行ごとに undo を分割する。また、それを行う前に短縮入力の展開も行う。
+
+An example for using CTRL-G U: >
+
+	inoremap <Left>  <C-G>U<Left>
+	inoremap <Right> <C-G>U<Right>
+	inoremap <expr> <Home> col('.') == match(getline('.'), '\S') + 1 ?
+	 \ repeat('<C-G>U<Left>', col('.') - 1) :
+	 \ (col('.') < match(getline('.'), '\S') ?
+	 \     repeat('<C-G>U<Right>', match(getline('.'), '\S') + 0) :
+	 \     repeat('<C-G>U<Left>', col('.') - 1 - match(getline('.'), '\S')))
+	inoremap <expr> <End> repeat('<C-G>U<Right>', col('$') - col('.'))
+	inoremap ( ()<C-G>U<Left>
+
+This makes it possible to use the cursor keys in Insert mode, without breaking
+the undo sequence and therefore using |.| (redo) will work as expected. 
+Also entering a text like (with the "(" mapping from above): >
+
+   Lorem ipsum (dolor
+
+will be repeatable by the |.|to the expected
+
+   Lorem ipsum (dolor)
 
 CTRL-O は undo 位置を分割する。つまり、その前後に入力したテキストが別々にundo 
 されるようになる。これを避けたい場合(マッピングの中などで)は CTRL-R =

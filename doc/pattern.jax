@@ -1,4 +1,4 @@
-*pattern.txt*   For Vim バージョン 7.4.  Last change: 2014 Sep 06
+*pattern.txt*   For Vim バージョン 7.4.  Last change: 2016 Jan 03
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -58,6 +58,8 @@
 
 							*n*
 n			最後の "/" か "?" を [count] 回繰り返します。
+			If the cursor doesn't move the search is repeated with
+			count + 1.
 			|last-pattern| {Vi: カウントの前置を受け付けません}
 
 							*N*
@@ -390,8 +392,8 @@ NFA エンジンが選択され、未実装の機能が使用され、パター�
 "\v" を使うと、それ以降の、'0'-'9'、'a'-'z'、'A'-'Z'、'_'、以外のすべての
 ASCII 文字は特別な意味を持ちます。 "very magic"
 
-"\V" を使うと、それ以降はバックスラッシュだけが特別な意味を持ちます。
-"very nomagic"
+"\V" を使うと、それ以降はバックスラッシュと終端文字 (/ や ?) だけが特別な意味
+を持ちます。 "very nomagic"
 
 例:
 after:	  \v	   \m	    \M	     \V		マッチするもの ~
@@ -399,6 +401,7 @@ after:	  \v	   \m	    \M	     \V		マッチするもの ~
 	  $	   $	    $	     \$		行末
 	  .	   .	    \.	     \.		何か 1 文字
 	  *	   *	    \*	     \*		直前のアトムの繰り返し
+	  ~	   ~	    \~	     \~		直近の置換文字列
 	  ()	   \(\)     \(\)     \(\)	グループ化してアトムにする
 	  |	   \|	    \|	     \|		選択の区切り
 	  \a	   \a	    \a	     \a		英字
@@ -477,6 +480,7 @@ after:	  \v	   \m	    \M	     \V		マッチするもの ~
 |/\%v|	\%23v	\%23v	23列目 (表示単位) |/zero-width|
 
 文字クラス {Vi にはありません}:				*/character-classes*
+      magic   nomagic	matches ~
 |/\i|	\i	\i	識別子文字 (オプション 'isident' を参照)
 |/\I|	\I	\I	"\i" と同じですが、数字は除外します
 |/\k|	\k	\k	キーワード文字 (オプション 'iskeyword' を参照)
@@ -507,6 +511,7 @@ after:	  \v	   \m	    \M	     \V		マッチするもの ~
 			マッチします。
 (文字クラスここまで)
 
+      magic   nomagic	matches ~
 |/\e|	\e	\e	<Esc>
 |/\t|	\t	\t	<Tab>
 |/\r|	\r	\r	<CR>
@@ -532,6 +537,7 @@ after:	  \v	   \m	    \M	     \V		マッチするもの ~
 |/\Z|	\Z	\Z	Unicodeの合成文字かどうかを無視します。
 			ヘブライ語やアラビア語で母音を検索するときに便利です。
 
+      magic   nomagic	matches ~
 |/\m|	\m	\m	以降のパターン文字を 'magic' がオンの状態で処理します
 |/\M|	\M	\M	以降のパターン文字を 'magic' がオフの状態で処理します
 |/\v|	\v	\v	以降のパターン文字を "very magic" で処理します
@@ -1046,7 +1052,10 @@ x	特別な意味のない文字は、その文字自身とマッチします
 								*E769*
 	']' がない場合、Vim はエラーを表示せず、コレクションが使われているので
 	はないと判断します。'[' を検索するときに便利です。しかし、Vim 内部での
-	検索では E769 のエラーがでます。
+	検索では E769 のエラーがでます。 And be aware that in a
+	`:substitute` command the whole command becomes the pattern.  E.g.
+	":s/[/x/" searches for "[/x" and replaces it with nothing.  It does
+	not search for "[" and replaces it with "x"!
 
 	コレクション文字列の先頭が "^" の場合、 コレクションに含まれている文字
 	以外の文字がマッチします。"[^xyz]" は 'x'、'y'、'z' 以外の文字にマッチ
@@ -1079,7 +1088,10 @@ x	特別な意味のない文字は、その文字自身とマッチします
 	  す。たとえば、"[-./[:alnum:]_~]\+" は、UNIX のファイル名として妥当な
 	  パターンです。このパターンは、'-'、'.'、'/'、英数字、'_'、'~'、のど
 	  の文字の組合せでも、1 文字以上の文字列にマッチします。
-	  これらのものは、8 ビット文字のみマッチします。
+	  These items only work for 8-bit characters, except [:lower:] and
+	  [:upper:] also work for multi-byte characters when using the new
+	  regexp engine.  In the future these items may work for multi-byte
+	  characters.
 							*/[[=* *[==]*
 	- 等価クラス。これはその文字とほぼ同じ文字にマッチします。例えば、アク
 	  セントを無視するなど。これは Unicode、latin1、latin9 でのみ機能しま

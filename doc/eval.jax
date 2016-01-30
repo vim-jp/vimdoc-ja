@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 7.4.  Last change: 2015 Jun 26
+*eval.txt*	For Vim バージョン 7.4.  Last change: 2016 Jan 28
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -66,12 +66,14 @@ Funcref		関数への参照 |Funcref|。
 	数値 -1		-->	文字列 "-1" ~
 							*octal*
 文字列から数値への変換は最初の数字を用いて数値に変換する。16進表記 "0xf9" や
-8進表記 "017" も認識される。文字列が数字で始まらない場合結果は0となる。例:
+8進表記 "017"、2進数表記の "0b10" も認識される。文字列が数字で始まらない場合結
+果は0となる。例:
 	文字列 "456"	-->	数値 456 ~
 	文字列 "6bar"	-->	数値 6 ~
 	文字列 "foo"	-->	数値 0 ~
 	文字列 "0xf1"	-->	数値 241 ~
 	文字列 "0100"	-->	数値 64 ~
+	String "0b101"	-->	Number 5 ~
 	文字列 "-8"	-->	数値 -8 ~
 	文字列 "+8"	-->	数値 0 ~
 
@@ -96,6 +98,9 @@ empty()を使用して次のようにする。 >
 数値と浮動小数点数をまぜると浮動小数点数になる。それ以外には浮動小数点数への自
 動的な変換は存在しない。文字列から浮動小数点数へは str2float() を使い、浮動小
 数点数から文字列へは printf() を、浮動小数点数から数値へは float2nr() を使う。
+
+						*E891* *E892* *E893* *E894*
+When expecting a Float a Number can also be used, but nothing else.
 
 						*E706* *sticky-type-checking*
 変数の型を変えようとするとエラーになる。このエラーを避けるには、まず|:unlet|す
@@ -836,9 +841,9 @@ expr8 がマルチバイト文字列である場合、この値は単なるバ�
 とはならないかもしれないことに注意。マルチバイト文字列に対する代替方法は
 |byteidx()| を参照。
 
-インデックスが0の場合、先頭のキャラクタが得られることに注意。これはC言語のよう
-に働く。注意:カラム番号は1から始まる。例えばカーソルの下の文字を得るためには、
-次のようにする必要がある: >
+インデックスが0の場合、先頭のバイトが得られることに注意。これはC言語のように働
+く。注意:カラム番号は1から始まる。例えばカーソルの下のバイトを得るためには、次
+のようにする必要がある: >
 	:let c = getline(".")[col(".") - 1]
 
 文字列の長さよりも大きなインデックスが指定された場合、結果は空文字列になる。負
@@ -884,6 +889,11 @@ expr8がリストならば、インデックスexpr1aとexpr1bの間の要素か
 	:let l = mylist[:]		" リストの浅いコピー
 
 |Funcref|に対してexpr8[expr1]やexpr8[expr1a : expr1b]を使うとエラーになる。
+
+Watch out for confusion between a namespace and a variable followed by a colon
+for a sublist: >
+	mylist[n:]     " uses variable n
+	mylist[s:]     " uses namespace s:, error!
 
 
 expr8.name		辞書|Dictionary|の要素		*expr-entry*
@@ -1284,6 +1294,12 @@ v:cmdbang	v:cmdargと同じく読み書きコマンドを実行したとき設�
 		0となる。Note オートコマンドの中でのみ利用可能なことに注意。
 		ユーザー定義コマンドでは|<bang>|を使えば同じことができる。
 
+				*v:completed_item* *completed_item-variable*
+v:completed_item
+		|Dictionary| containing the |complete-items| for the most
+		recently completed word after |CompleteDone|.  The
+		|Dictionary| is empty if the completion failed.
+
 					*v:count* *count-variable*
 v:count		最後に実行されたノーマルモードコマンドに渡されたコマンドの実行
 		回数を返す。読出し専用。使用例: >
@@ -1327,6 +1343,15 @@ v:errmsg	最後に表示されたエラーメッセージ。この変数は代�
 	:  ...
 <		また "errmsg" は、以前の版のVimとの互換性の為に動作する。
 
+					*v:errors* *errors-variable*
+v:errors	Errors found by assert functions, such as |assert_true()|.
+		This is a list of strings.
+		The assert functions append an item when an assert fails.
+		To remove old results make it empty: >
+	:let v:errors = []
+<		If v:errors is set to anything but a list it is made an empty
+		list by the assert function.
+
 					*v:exception* *exception-variable*
 v:exception	最も直近に捕捉され、まだ終了していない例外の値。
 		|v:throwpoint|と|throw-variables|を参照。
@@ -1337,6 +1362,13 @@ v:exception	最も直近に捕捉され、まだ終了していない例外の�
 	:  echo "caught" v:exception
 	:endtry
 <		出力: "caught oops".
+
+					*v:false* *false-variable*
+v:false		A Number with value zero. Used to put "false" in JSON.  See
+		|jsonencode()|.
+		When used as a string this evaluates to "false". >
+			echo v:false
+<			false ~
 
 					*v:fcs_reason* *fcs_reason-variable*
 v:fcs_reason	|FileChangedShell|イベントが発生した理由。オートコマンドの中で
@@ -1418,7 +1450,9 @@ v:hlsearch	検索による強調表示がオンになっているかどうかを
 		|:nohlsearch|コマンドを実行することと同様に働き、1に設定するこ
 		とは以下と同様に働く >
 			let &hlsearch = &hlsearch
-<
+<		Note that the value is restored when returning from a
+		function. |function-search-undo|.
+
 					*v:insertmode* *insertmode-variable*
 v:insertmode	オートコマンドイベント|InsertEnter|と|InsertChange|用。
 		値は次のどれか:
@@ -1467,6 +1501,22 @@ v:mouse_lnum	|getchar()|でマウスクリックイベントを取得したと�
 v:mouse_col	|getchar()|でマウスクリックイベントを取得したとき、この変数に
 		桁番号が代入されている。|virtcol()|と同じく画面上の桁番号。マ
 		ウスがクリックされていないときは0となる。
+
+					*v:none* *none-variable*
+v:none		An empty String. Used to put an empty item in JSON.  See
+		|jsonencode()|.
+		When used as a number this evaluates to zero.
+		When used as a string this evaluates to "none". >
+			echo v:none
+<			none ~
+
+					*v:null* *null-variable*
+v:null		An empty String. Used to put "null" in JSON.  See
+		|jsonencode()|.
+		When used as a number this evaluates to zero.
+		When used as a string this evaluates to "null". >
+			echo v:null
+<			null ~
 
 					*v:oldfiles* *oldfiles-variable*
 v:oldfiles	起動時に |viminfo| から読み込まれたファイルの名前のリスト。
@@ -1632,6 +1682,12 @@ v:throwpoint	最も直近に捕捉されてまだ終了していない例外が�
 	:endtry
 <		出力: "Exception from test.vim, line 2"
 
+						*v:true* *true-variable*
+v:true		A Number with value one. Used to put "true" in JSON.  See
+		|jsonencode()|.
+		When used as a string this evaluates to "true". >
+			echo v:true
+<			true ~
 						*v:val* *val-variable*
 v:val		辞書|Dictionary|の現在の要素の値。|map()|と|filter()|で使わ
 		れる式を評価している最中のみ有効。
@@ -1672,15 +1728,22 @@ v:windowid	X11 ベースの GUI を使っているとき、もしくは端末の
 abs( {expr})			浮動小数点数または数値	{expr}の絶対値
 acos( {expr})			浮動小数点数	{expr}のアークコサイン
 add( {list}, {item})		リスト	{item}をリスト{list}に追加する
+alloc_fail( {id}, {countdown}, {repeat})
+				none	make memory allocation fail
 and( {expr}, {expr})		数値    ビット論理積
 append( {lnum}, {string})	数値	{string}を{lnum}行目に付け加える
 append( {lnum}, {list})		数値	行{list}を{lnum}行目に付け加える
 argc()				数値	引数内のファイルの数
 argidx()			数値	引数リスト内の現在のインデックス
-arglistid( [{winnr}, [ {tabnr}]])
+arglistid( [{winnr} [, {tabnr}]])
 				数値	引数リストID
 argv( {nr})			文字列	引数の第{nr}番目
 argv( )				リスト	引数リスト
+assert_equal( {exp}, {act} [, {msg}]) none  assert {exp} equals {act}
+assert_exception({error} [, {msg}])   none  assert {error} is in v:exception
+assert_fails( {cmd} [, {error}])      none  assert {cmd} fails
+assert_false( {actual} [, {msg}])     none  assert {actual} is false
+assert_true( {actual} [, {msg}])      none  assert {actual} is true
 asin( {expr})			浮動小数点数	{expr}のアークサイン
 atan( {expr})			浮動小数点数	{expr}のアークタンジェント
 atan2( {expr}, {expr})		浮動小数点数	{expr1} / {expr2} のアークタン
@@ -1711,6 +1774,8 @@ complete_add( {expr})		数値	補完候補を追加する
 complete_check()		数値	補完中に押されたキーをチェックする
 confirm( {msg} [, {choices} [, {default} [, {type}]]])
 				数値	ユーザーへの選択肢と番号
+connect( {address}, {mode} [, {callback}])
+				Number	open a channel
 copy( {expr})			任意	{expr}の浅いコピーを作る
 cos( {expr})			浮動小数点数	{expr} の余弦(コサイン)
 cosh( {expr})			浮動小数点数	{expr}のハイパボリックコサイン
@@ -1722,7 +1787,7 @@ cursor( {lnum}, {col} [, {off}])
 				数値	カーソルを{lnum}, {col}, {off}へ移動
 cursor( {list})			数値	カーソルを{list}の位置へ移動
 deepcopy( {expr} [, {noref}])	任意	{expr}の完全なコピーを作る
-delete( {fname})		数値	ファイル{fname}を消す
+delete( {fname} [, {flags}])	数値	ファイルやディレクトリ{fname}を消す
 did_filetype()			数値	FileTypeのautocommandが実行されたか?
 diff_filler( {lnum})		数値	差分モードで{lnum}に挿入された行
 diff_hlID( {lnum}, {col})	数値	差分モードで{lnum}/{col}位置の強調
@@ -1768,12 +1833,15 @@ getbufline( {expr}, {lnum} [, {end}])
 				リスト	バッファ{expr}の{lnum}から{end}行目
 getbufvar( {expr}, {varname} [, {def}])
 				任意	バッファ{expr}の変数 {varname}
+getchar( [expr])		Number	get one character from the user
+getcharmod( )			Number	modifiers for the last typed character
+getcharsearch()			Dict	last character search
 getcmdline()			文字列	現在のコマンドラインを取得
 getcmdpos()			数値	コマンドラインのカーソル位置を取得
 getcmdtype()			文字列	現在のコマンドラインの種類を取得
 getcmdwintype()			文字列	現在のコマンドラインウィンドウの種類
 getcurpos()			リスト	カーソルの位置
-getcwd()			文字列	現在の作業ディレクトリ
+getcwd( [{winnr} [, {tabnr}]])	文字列	現在の作業ディレクトリを取得
 getfontname( [{name}])		文字列	使用しているフォントの名前
 getfperm( {fname})		文字列	ファイル{fname}の許可属性を取得
 getfsize( {fname})		数値	ファイル{fname}のバイト数を取得
@@ -1805,7 +1873,8 @@ globpath( {path}, {expr} [, {nosuf} [, {list} [, {alllinks}]]])
 					glob({expr})を行う
 has( {feature})			数値	機能{feature}がサポートならばTRUE
 has_key( {dict}, {key})		数値	{dict}が要素{key}を持つならTRUE
-haslocaldir()			数値	現在のウィンドウで|:lcd|が実行された
+haslocaldir( [{winnr} [, {tabnr}]])
+				数値	現在のウィンドウで|:lcd|が実行された
 					ならTRUE
 hasmapto( {what} [, {mode} [, {abbr}]])
 				数値	{what}へのマッピングが存在するならTRUE
@@ -1833,6 +1902,8 @@ isdirectory( {directory})	数値	{directory}がディレクトリならばTRUE
 islocked( {expr})		数値	{expr}がロックされているならTRUE
 items( {dict})			リスト	{dict}のキーと値のペアを取得
 join( {list} [, {sep}])		文字列	{list}の要素を連結して文字列にする
+jsondecode( {string})		any	decode JSON
+jsonencode( {expr})		String	encode JSON
 keys( {dict})			リスト	{dict}のキーを取得
 len( {expr})			数値	{expr}の長さを取得
 libcall( {lib}, {func}, {arg}	文字列	ライブラリ{lib}の関数{func}をコール
@@ -1875,6 +1946,7 @@ nextnonblank( {lnum})		数値	{lnum}行目以降で空行でない行の行番�
 nr2char( {expr}[, {utf8}])	文字列	ASCII/UTF8コード{expr}で示される文字
 or( {expr}, {expr})		数値    ビット論理和
 pathshorten( {expr})		文字列	path内の短縮したディレクトリ名
+perleval( {expr})		any	evaluate |Perl| expression
 pow( {x}, {y})			浮動小数点数	{x} の {y} 乗
 prevnonblank( {lnum})		数値	{lnum}行目以前の空行でない行の行番号
 printf( {fmt}, {expr1}...)	文字列	文字列を組み立てる
@@ -1916,11 +1988,16 @@ searchpairpos( {start}, {middle}, {end} [, {flags} [, {skip} [...]]])
 				リスト	開始/終端のペアの他方を検索
 searchpos( {pattern} [, {flags} [, {stopline} [, {timeout}]]])
 				リスト	{pattern}を検索
+sendexpr( {handle}, {expr} [, {callback}])
+				any	send {expr} over JSON channel {handle}
+sendraw( {handle}, {string} [, {callback}])
+				any	send {string} over raw channel {handle}
 server2client( {clientid}, {string})
 				数値	返信文字列を送信する
 serverlist()			文字列	利用可能なサーバーのリストを取得
 setbufvar( {expr}, {varname}, {val})	バッファ{expr}内の変数{varname}に{val}
 					をセット
+setcharsearch( {dict})		Dict	set character search from {dict}
 setcmdpos( {pos})		数値	コマンドライン内のカーソル位置を設定
 setline( {lnum}, {line})	数値	行{lnum}に{line}(文字列)をセット
 setloclist( {nr}, {list}[, {action}])
@@ -2015,6 +2092,7 @@ winrestcmd()			文字列	ウィンドウサイズを復元するコマンド
 winrestview( {dict})		なし	現在のウィンドウのビューを復元
 winsaveview()			辞書	現在のウィンドウのビューを保存
 winwidth( {nr})			数値	ウィンドウ{nr}の幅を取得
+wordcount()			Dict	get byte/char/word statistics
 writefile( {list}, {fname} [, {flags}])
 				数値	行のリストをファイル{fname}に書き込む
 xor( {expr}, {expr})		数値	ビット排他的論理和
@@ -2107,6 +2185,55 @@ argv([{nr}])	結果は引数リスト内の、{nr}番目のファイル。|argli
 	:endwhile
 <		引数{nr}が指定されなかった場合は、引数リスト|arglist|全体を
 		返す。
+
+							*assert_equal()*
+assert_equal({expected}, {actual} [, {msg}])
+		When {expected} and {actual} are not equal an error message is
+		added to |v:errors|.
+		There is no automatic conversion, the String "4" is different
+		from the Number 4.  And the number 4 is different from the
+		Float 4.0.  The value of 'ignorecase' is not used here, case
+		always matters.
+		When {msg} is omitted an error in the form "Expected
+		{expected} but got {actual}" is produced.
+		Example: >
+	assert_equal('foo', 'bar')
+<		Will result in a string to be added to |v:errors|:
+	test.vim line 12: Expected 'foo' but got 'bar' ~
+
+assert_exception({error} [, {msg}])			*assert_exception()*
+		When v:exception does not contain the string {error} an error
+		message is added to |v:errors|.
+		This can be used to assert that a command throws an exception.
+		Using the error number, followed by a colon, avoids problems
+		with translations: >
+			try
+			  commandthatfails
+			  call assert_false(1, 'command should have failed')
+			catch
+			  call assert_exception('E492:')
+			endtry
+
+assert_fails({cmd} [, {error}])					*assert_fails()*
+		Run {cmd} and add an error message to |v:errors| if it does
+		NOT produce an error.
+		When {error} is given it must match |v:errmsg|.
+
+assert_false({actual} [, {msg}])				*assert_false()*
+		When {actual} is not false an error message is added to
+		|v:errors|, like with |assert_equal()|.
+		A value is false when it is zero. When "{actual}" is not a
+		number the assert fails.
+		When {msg} is omitted an error in the form "Expected False but
+		got {actual}" is produced.
+
+assert_true({actual} [, {msg}])					*assert_true()*
+		When {actual} is not true an error message is added to
+		|v:errors|, like with |assert_equal()|.
+		A value is true when it is a non-zero number.  When {actual}
+		is not a number the assert fails.
+		When {msg} is omitted an error in the form "Expected True but
+		got {actual}" is produced.
 
 asin({expr})						*asin()*
 		{expr} の逆正弦 (アークサイン) をラジアンで返す。
@@ -2479,6 +2606,18 @@ confirm({msg} [, {choices} [, {default} [, {type}]]])
 		は、垂直配置が使われる。幾つかのシステムでは常に水平配置が使わ
 		れる。
 
+connect({address}, {mode} [, {callback}])		*connect()*
+		Open a channel to {address}.  See |channel|.
+
+		{address} has the form "hostname:port", e.g.,
+		"localhost:8765".
+
+		{mode} is either "json" or "raw".  See |channel-mode| for the
+		meaning.
+
+		{callback} is a function that handles received messages on the
+		channel.  See |channel-callback|.
+
 							*copy()*
 copy({expr})	{expr}のコピーを作る。数値と文字列の場合は、{expr}そのものとコ
 		ピーの間に違いはない。
@@ -2600,10 +2739,20 @@ deepcopy({expr}[, {noref}])				*deepcopy()* *E698*
 		要素があると、{noref}が1の場合は失敗する。
 		|copy()|も参照。
 
-delete({fname})							*delete()*
-		{fname}という名前のファイルを削除する。戻り値は数値で、削除に
-		成功したら0、失敗したら0以外が返る。
-		リスト|List|から要素を削除するには|remove()|を使う。
+delete({fname} [, {flags}])					*delete()*
+		Without {flags} or with {flags} empty: Deletes the file by the
+		name {fname}.  This also works when {fname} is a symbolic link.
+
+		When {flags} is "d": Deletes the directory by the name
+		{fname}.  This fails when directory {fname} is not empty.
+		
+		When {flags} is "rf": Deletes the directory by the name
+		{fname} and everything in it, recursively.  BE CAREFUL!
+		A symbolic link itself is deleted, not what it points to.
+		
+		The result is a Number, which is 0 if the delete operation was
+		successful and -1 when the deletion failed or partly failed.
+
 		バッファから行を削除するには|:delete|を使う。行番号が変数に入っ
 		ている場合は|:exe|を使う。
 
@@ -2638,6 +2787,7 @@ empty({expr})						*empty()*
 		{expr}が空なら1を、そうでなければ0を返す。
 		リスト|List|または辞書|Dictionary|は要素を1個も持たないとき空
 		とみなされる。数値は値が0のとき空とみなされる。
+		|v:false|, |v:none| and |v:null| are empty, |v:true| is not.
 		長いリストに対しては長さを0と比較するよりこちらの方がずっと高
 		速である。
 
@@ -2918,6 +3068,11 @@ feedkeys({string} [, {mode}])				*feedkeys()*
 			マッピングから展開されたかのように扱われる。これは
 			undoや折り畳みの展開などで違いが現れる。
 		'i'	追加する代わりに文字を挿入する。(上記参照)
+		'x'	Execute commands until typeahead is empty.  This is
+			similar to using ":normal!".  You can call feedkeys()
+			several times without 'x' and then one time with 'x'
+			(possibly with an empty {string}) to execute all the
+			typeahead.
 		戻り値は常に0。
 
 							*filereadable()*
@@ -3264,6 +3419,26 @@ getcharmod()						*getcharmod()*
 		文字自身に含まれていない修飾キーのみ取得できる。つまり、
 		Shift-aは修飾キーなしの "A" となる。
 
+getcharsearch()						*getcharsearch()*
+		Return the current character search information as a {dict}
+		with the following entries:
+
+		    char	character previously used for a character
+				search (|t|, |f|, |T|, or |F|); empty string
+				if no character search has been performed
+		    forward	direction of character search; 1 for forward,
+				0 for backward
+		    until	type of character search; 1 for a |t| or |T|
+				character search, 0 for an |f| or |F|
+				character search
+
+		This can be useful to always have |;| and |,| search
+		forward/backward regardless of the direction of the previous
+		character search: >
+			:nnoremap <expr> ; getcharsearch().forward ? ';' : ','
+			:nnoremap <expr> , getcharsearch().forward ? ',' : ';'
+<		Also see |setcharsearch()|.
+
 getcmdline()						*getcmdline()*
 		現在のコマンドラインの内容を取得する。コマンドラインを編集して
 		いるときのみ動作する。つまり|c_CTRL-\_e|または|c_CTRL-R_=|を使っ
@@ -3301,7 +3476,7 @@ getcmdwintype()						*getcmdwintype()*
 							*getcurpos()*
 getcurpos()	カーソルの位置を返す。これは getpos('.') に似ているが、追加の
 		情報を含む:
-		    [bufnum, lnum, col, off, curswant]
+		    [bufnum, lnum, col, off, curswant] ~
 		"curswant" は縦方向移動の優先的列番号である。
 		次のようにしてカーソル位置の保存と復元ができる: >
 			let save_cursor = getcurpos()
@@ -3309,7 +3484,16 @@ getcurpos()	カーソルの位置を返す。これは getpos('.') に似てい�
 			call setpos('.', save_cursor)
 <
 							*getcwd()*
-getcwd()	結果は文字列で、現在のディレクトリ名。
+getcwd([{winnr} [, {tabnr}]])
+		The result is a String, which is the name of the current
+		working directory.
+		Without arguments, for the current window.
+
+		With {winnr} return the local current directory of this window
+		in the current tab page.
+		With {winnr} and {tabnr} return the local current directory of
+		the window in the specified tab page.
+		Return an empty string if the arguments are invalid.
 
 getfsize({fname})					*getfsize()*
 		結果は数値で、{fname}で指定されるファイルのサイズをバイト単位
@@ -3368,6 +3552,8 @@ getftype({fname})					*getftype()*
 			getftype("/home")
 <		Note "link" などの種別はそれをサポートしているシステムでのみ返
 		される。"dir" と "file" しか返らないシステムもある。
+		On MS-Windows a symbolic link to a
+		directory returns "dir" instead of "link".
 
 							*getline()*
 getline({lnum} [, {end}])
@@ -3629,10 +3815,15 @@ has_key({dict}, {key})					*has_key()*
 		結果は数値で、辞書|Dictionary| {dict}がキー{key}の要素を持つな
 		ら1、持たないなら0となる。
 
-haslocaldir()						*haslocaldir()*
-		結果は数値でカレントウィンドウが|:lcd|によってローカルなカレン
-		トディレクトリを持つようセットされているなら1、そうでないなら
-		0となる。
+haslocaldir([{winnr} [, {tabnr}]])			*haslocaldir()*
+		結果は数値でウィンドウが|:lcd|によってローカルなカレントディレ
+		クトリを持つようセットされているなら1、そうでないなら0となる。
+
+		Without arguments use the current window.
+		With {winnr} use this window in the current tab page.
+		With {winnr} and {tabnr} use the window in the specified tab
+		page.
+		Return 0 if the arguments are invalid.
 
 hasmapto({what} [, {mode} [, {abbr}]])			*hasmapto()*
 		結果は数値。右辺側(マップした先)の一部分に{what}を含むマッピン
@@ -3949,6 +4140,48 @@ join({list} [, {sep}])					*join()*
 		|string()|を使ったときと同じようにして文字列に変換される。
 		この逆を行う関数は|split()|である。
 
+jsondecode({string})					*jsondecode()*
+		This parses a JSON formatted string and returns the equivalent
+		in Vim values.  See |jsonencode()| for the relation between
+		JSON and Vim values.
+		The decoding is permissive:
+		- A trailing comma in an array and object is ignored.
+		- An empty item in an array, two commas with nothing or white
+		  space in between, results in v:none.
+		- When an object member name is not a string it is converted
+		  to a string.  E.g. the number 123 is used as the string
+		  "123".
+		- More floating point numbers are recognized, e.g. "1." for
+		  "1.0".
+		The result must be a valid Vim type:
+		- An empty object member name is not allowed.
+		- Duplicate object member names are not allowed.
+
+jsonencode({expr})					*jsonencode()*
+		Encode {expr} as JSON and return this as a string.
+		The encoding is specified in:
+		https://tools.ietf.org/html/rfc7159.html
+		Vim values are converted as follows:
+		   Number		decimal number
+		   Float		floating point number
+		   String		in double quotes (possibly null)
+		   Funcref		not possible, error
+		   List			as an array (possibly null); when
+		   			used recursively: []
+		   Dict			as an object (possibly null); when
+		   			used recursively: {}
+		   v:false		"false"
+		   v:true		"true"
+		   v:none		nothing
+		   v:null		"null"
+		Note that using v:none is permitted, although the JSON
+		standard does not allow empty items.  This can be useful for
+		omitting items in an array:
+			[0,,,,,5] ~
+		This is much more efficient than:
+			[0,null,null,null,null,5] ~
+		But a strict JSON parser will not accept it.
+
 keys({dict})						*keys()*
 		{dict}の全キーからなるリストを返す。リストの順序は不定である。
 
@@ -4259,7 +4492,7 @@ match({expr}, {pat}[, {start}[, {count}]])			*match()*
 		'magic' をオン、'cpoptions' を空にした状態で行われる。
 
 					*matchadd()* *E798* *E799* *E801*
-matchadd({group}, {pattern}[, {priority}[, {id}]])
+matchadd({group}, {pattern}[, {priority}[, {id} [, {dict}]]])
 		カレントウィンドウで強調表示するパターンを定義する。このパター
 		ンのことを「マッチ」と呼ぶ。構文グループ {group}で強調する。戻
 		り値は、マッチを識別する ID である。|matchdelete()|でこの ID
@@ -4267,6 +4500,8 @@ matchadd({group}, {pattern}[, {priority}[, {id}]])
 		パターンは大文字小文字を区別し、magic (|/magic|) として解釈さ
 		れる ({pattern} の中で明示的に変更しない限り)。オプションの
 		'magic'、'smartcase'、'ignorecase' は使用されない。
+		The "Conceal" value is special, it causes the match to be
+		concealed.
 
 		省略可能な引数 {priority} はマッチの優先度を指定する。優先度が
 		高いマッチは、より低いマッチの強調を上書きする。優先度は整数で
@@ -4280,8 +4515,17 @@ matchadd({group}, {pattern}[, {priority}[, {id}]])
 		すでに使われていたら、エラーメッセージが表示され、そのマッチは
 		登録されない。ID は正の整数を指定する(ゼロは除く)。ID 1, 2, 3
 		は |:match|, |:2match|, |:3match| 用に予約されている。{id} が
-		指定されないときは、|matchadd()| が自動的に空いている ID を取
-		得する。
+		指定されないか -1 のときは、|matchadd()| が自動的に空いている
+		ID を取得する。
+
+		The optional {dict} argument allows for further custom
+		values. Currently this is used to specify a match specific
+		conceal character that will be shown for |hl-Conceal|
+		highlighted matches. The dict can have the following members:
+
+			conceal	    Special character to show instead of the
+				    match (only for |hl-Conceal| highlighed
+				    matches, see |:syn-cchar|)
 
 		コマンド |:match| と異なり、マッチの個数に上限はない。
 
@@ -4295,7 +4539,7 @@ matchadd({group}, {pattern}[, {priority}[, {id}]])
 		|getmatches()| で取得できる。全てのマッチを削除するのは
 		|clearmatches()| 一発でできる。
 
-matchaddpos({group}, {pos}[, {priority}[, {id}]])		*matchaddpos()*
+matchaddpos({group}, {pos}[, {priority}[, {id}[, {dict}]]])	*matchaddpos()*
 		|matchadd()| と同じだが、パターンを指定するのではなく、位置の
 		リスト {pos} を指定する。このコマンドは正規表現を扱う必要もな
 		く、画面更新のためにバッファ行の境界を設定するため、
@@ -4501,6 +4745,17 @@ pathshorten({expr})					*pathshorten()*
 			:echo pathshorten('~/.vim/autoload/myfile.vim')
 <			~/.v/a/myfile.vim ~
 		パスが実際に存在するかどうかは関係ない。
+
+perleval({expr})					*perleval()*
+		Evaluate Perl expression {expr} in scalar context and return
+		its result converted to Vim data structures. If value can't be
+		converted, it is returned as a string Perl representation.
+		Note: If you want an array or hash, {expr} must return a
+		reference to it.
+		Example: >
+			:echo perleval('[1 .. 4]')
+<			[1, 2, 3, 4]
+		{only available when compiled with the |+perl| feature}
 
 pow({x}, {y})						*pow()*
 		{x} の {y} 乗を |Float| で返す。{x} と {y} は |Float| または
@@ -4954,13 +5209,14 @@ search({pattern} [, {flags} [, {stopline} [, {timeout}]]])	*search()*
 
 		{flags} は以下のフラグ文字からなる文字列
 		'b'	後方(上方)に検索する
-		'c'     カーソル位置のマッチを受け入れる
+		'c'	カーソル位置のマッチを受け入れる
 		'e'	マッチの末尾へ移動する
 		'n'	カーソルを移動させない
 		'p'	部分パターン(後述)のマッチの番号を返す
 		's'	以前のカーソル位置をマーク ' に記録する
 		'w'	ファイルの末尾で循環する
 		'W'	ファイルの末尾で循環しない
+		'z'	start searching at the cursor column instead of zero
 		'w' と 'W' の両方とも指定されない場合は 'wrapscan' が適用され
 		る。
 
@@ -4968,6 +5224,12 @@ search({pattern} [, {flags} [, {stopline} [, {timeout}]]])	*search()*
 		が設定される。フラグ 's' は 'n' と組み合わせることはできない。
 
 		'ignorecase', 'smartcase', 'magic' が適用される。
+
+		When the 'z' flag is not given, searching always starts in
+		column zero and then matches before the cursor are skipped.
+		When the 'c' flag is present in 'cpo' the next search starts
+		after the match.  Without the 'c' flag the next search starts
+		one column further.
 
 		引数{stopline}が指定されたときはこの行を検索した後で検索を停止
 		する。これは検索する行を制限するために有用である。例: >
@@ -5143,6 +5405,23 @@ searchpos({pattern} [, {flags} [, {stopline} [, {timeout}]]])	*searchpos()*
 <		この例において、"submatch" は小文字|/\l|が見つかったとき2とな
 		り、大文字|/\u|が見つかったとき3となる。
 
+sendexpr({handle}, {expr} [, {callback}])		*sendexpr()*
+		Send {expr} over JSON channel {handle}.  See |channel-use|.
+
+		When {callback} is given returns immediately.  Without
+		{callback} waits for a JSON response and returns the decoded
+		expression.  When there is an error or timeout returns an
+		empty string.
+
+		When {callback} is zero no response is expected.
+		Otherwise {callback} must be a Funcref or the name of a
+		function.  It is called when the response is received.  See
+		|channel-callback|.
+
+sendraw({handle}, {string} [, {callback}])		*sendraw()*
+		Send {string} over raw channel {handle}.  See |channel-raw|.
+		Works like |sendexpr()|, but does not decode the response.
+
 server2client( {clientid}, {string})			*server2client()*
 		{clientid}に返信文字列を送る。最後に文字列を送った{clientid}は
 		expand("<client>")で取得できる。
@@ -5175,6 +5454,26 @@ setbufvar({expr}, {varname}, {val})			*setbufvar()*
 			:call setbufvar(1, "&mod", 1)
 			:call setbufvar("todo", "myvar", "foobar")
 <		サンドボックスの中ではこの関数は使用できない。
+
+setcharsearch({dict})					*setcharsearch()*
+		Set the current character search information to {dict},
+		which contains one or more of the following entries:
+
+		    char	character which will be used for a subsequent
+				|,| or |;| command; an empty string clears the
+				character search
+		    forward	direction of character search; 1 for forward,
+				0 for backward
+		    until	type of character search; 1 for a |t| or |T|
+				character search, 0 for an |f| or |F|
+				character search
+
+		This can be useful to save/restore a user's character search
+		from a script: >
+			:let prevsearch = getcharsearch()
+			:" Perform a command which clobbers user's search
+			:call setcharsearch(prevsearch)
+<		Also see |getcharsearch()|.
 
 setcmdpos({pos})					*setcmdpos()*
 		コマンドラインの{pos}バイトの位置へカーソルを移動する。
@@ -5413,17 +5712,8 @@ shellescape({string} [, {special}])			*shellescape()*
 shiftwidth()						*shiftwidth()*
 		実際に使用される 'shiftwidth' の値を返す。'shiftwidth' がゼロ
 		以外の場合はその値が返る。ゼロの場合は 'tabstop' の値が返る。
-		インデントプラグインで後方互換性を保つには次のようにする: >
-			if exists('*shiftwidth')
-			  func s:sw()
-			    return shiftwidth()
-			  endfunc
-			else
-			  func s:sw()
-			    return &sw
-			  endfunc
-			endif
-<		そして、&sw の代わりに s:sw() を使う。
+		この関数は2012年のパッチ 7.3.694 で導入されたので、現在では皆
+		使えるようになっているに違いない。
 
 
 simplify({filename})					*simplify()*
@@ -5480,6 +5770,13 @@ sort({list} [, {func} [, {dict}]])			*sort()* *E702*
 		{func} が 'n' ならすべての要素は数値順にソートされる (実装詳
 		細: 数値の読み込みには strtod() 関数が使われる。文字列、リス
 		ト、辞書、関数参照は 0 として扱われる)。
+
+		When {func} is given and it is 'N' then all items will be
+		sorted numerical. This is like 'n' but a string containing
+		digits will be used as the number they represent.
+
+		When {func} is given and it is 'f' then all items will be
+		sorted numerical. All values must be a Number or a Float.
 
 		{func}に|Funcref|または関数名を指定すると、その関数を使って要
 		素を比較する。その関数は2つの要素を引数として受け取り、それら
@@ -5580,7 +5877,7 @@ split({expr} [, {pattern} [, {keepempty}]])			*split()*
 <		文字列を各文字に分割するには: >
 			:for c in split(mystring, '\zs')
 <		区切り文字を削除せず、そのままにしておきたい場合は、'\zs' を
-		使えばよい: >
+		パターンの最後で使う: >
 			:echo split('abc:def:ghi', ':\zs')
 <			['abc:', 'def:', 'ghi'] ~
 		最初の要素が空であるかもしれないテーブルを分割するには: >
@@ -5618,12 +5915,14 @@ str2float( {expr})					*str2float()*
 
 str2nr( {expr} [, {base}])				*str2nr()*
 		文字列{expr}を数値に変換する。
-		{base}は変換の底。8、10、16のいずれか。
+		{base}は変換の底。2、8、10、16のいずれか。
 		{base}を省略すると10となる。そのため、文字列の先頭に0があると
 		き、デフォルトの文字列・数値変換とは異なり、8進数とは解釈され
 		ない。
 		{base}が16のとき、文字列の先頭の "0x" と "0X" は無視される。そ
-		れ以外の底の場合は0となる。
+		れ以外の底の場合は0となる。  Similarly, when
+		{base} is 8 a leading "0" is ignored, and when {base} is 2 a
+		leading "0b" or "0B" is ignored.
 		数値の後のテキストは暗黙に無視される。
 
 strchars({expr} [, {skipcc}])					*strchars()*
@@ -5633,6 +5932,24 @@ strchars({expr} [, {skipcc}])					*strchars()*
 		{skipcc} に 1 を指定すると、合成文字は無視される。
 		{訳注: 基底文字と結合文字をまとめて1としてカウントする}
 		|strlen()|, |strdisplaywidth()|, |strwidth()| も参照。
+
+		
+		{skipcc} is only available after 7.4.755.  For backward
+		compatibility, you can define a wrapper function: >
+		    if has("patch-7.4.755")
+		      function s:strchars(str, skipcc)
+			return strchars(a:str, a:skipcc)
+		      endfunction
+		    else
+		      function s:strchars(str, skipcc)
+			if a:skipcc
+			  return strlen(substitute(a:str, ".", "x", "g"))
+			else
+			  return strchars(a:str)
+			endif
+		      endfunction
+		    endif
+<
 
 strdisplaywidth({expr}[, {col}])			*strdisplaywidth()*
 		結果は数値で、文字列 {expr} が {col} で始まる時のスクリーン上
@@ -5818,6 +6135,9 @@ synID({lnum}, {col}, {trans})				*synID()*
 		最左のカラムを指定するには{col}に1を、最初の行を指定するには
 		{line}に1を指定する。'synmaxcol' が適用され、長すぎる行では0が
 		返ってくる。
+		Note that when the position is after the last character,
+		that's where the cursor can be in Insert mode, synID() returns
+		zero.
 
 		{trans}が非ゼロならば、透過属性のアイテムは省略され、実際に表
 		示されているアイテムが評価対象になる。これは実際に有効になって
@@ -6116,6 +6436,8 @@ type({expr})	{expr}の型を示す数値を返す:
 			リスト:	      3
 			辞書:	      4
 			浮動小数点数: 5
+			Boolean:    6 (v:false and v:true)
+			None	    7 (v:null and v:none)
 		マジックナンバーを使わずに、次のような使い方をすべきである: >
 			:if type(myvar) == type(0)
 			:if type(myvar) == type("")
@@ -6123,6 +6445,8 @@ type({expr})	{expr}の型を示す数値を返す:
 			:if type(myvar) == type([])
 			:if type(myvar) == type({})
 			:if type(myvar) == type(0.0)
+			:if type(myvar) == type(v:false)
+			:if type(myvar) == type(v:none
 
 undofile({name})					*undofile()*
 		{name} という名前のファイルの保存時に使用されるアンドゥファイ
@@ -6360,6 +6684,27 @@ winwidth({nr})						*winwidth()*
   :  exe "normal 50\<C-W>|"
   :endif
 <
+wordcount()						*wordcount()*
+		The result is a dictionary of byte/chars/word statistics for
+		the current buffer.  This is the same info as provided by
+		|g_CTRL-G|
+		The return value includes:
+			bytes		Number of bytes in the buffer
+			chars		Number of chars in the buffer
+			words		Number of words in the buffer
+			cursor_bytes    Number of bytes before cursor position
+					(not in Visual mode)
+			cursor_chars    Number of chars before cursor position
+					(not in Visual mode)
+			cursor_words    Number of words before cursor position
+					(not in Visual mode)
+			visual_bytes    Number of bytes visually selected
+			                (only in Visual mode)
+			visual_chars    Number of chars visually selected
+			                (only in Visual mode)
+			visual_words    Number of chars visually selected
+			                (only in Visual mode)
+
 							*writefile()*
 writefile({list}, {fname} [, {flags}])
 		|List| {list}をファイル{fname}に書き込む。リストの各要素は改行
