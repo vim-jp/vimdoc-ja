@@ -33,6 +33,7 @@
     doc/usr_02.jax    # 行数は多いけど、まとまった書き換えで、楽そう
     doc/usr_03.jax
     doc/various.jax
+    doc/pi_logipat.jax
 
 こっから先は100行超えるので、嫌。
 
