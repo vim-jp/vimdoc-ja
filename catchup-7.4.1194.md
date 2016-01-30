@@ -57,7 +57,6 @@
     doc/usr_41.jax
     doc/usr_43.jax
     doc/various.jax
-    doc/vi_diff.jax
     doc/windows.jax
 
 ### 英文だけは反映済み
@@ -65,6 +64,8 @@
 まだない
 
 ### 完訳!
+
+    doc/vi_diff.jax
 
 まだない
 
