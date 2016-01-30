@@ -33,10 +33,9 @@
     doc/change.jax
     doc/develop.jax
     doc/editing.jax
-    doc/eval.jax
     doc/fold.jax
     doc/hangulin.jax
-    doc/if_lua.jax
+    doc/if_lua.jax    # 100行超えたけど、内容的に大したことない
     doc/if_mzsch.jax
     doc/if_perl.jax
     doc/if_pyth.jax
@@ -56,6 +55,8 @@
     doc/various.jax
 
 こっから先は100行超えるので、嫌。
+
+    doc/eval.jax
 
 ### 完訳!
 
