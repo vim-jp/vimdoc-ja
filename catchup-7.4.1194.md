@@ -19,10 +19,7 @@
 
 追いついたファイルは、下記の一覧から削除し、適切なセクションへ移動
 
-    doc/eval.jax
-    doc/if_lua.jax
     doc/options.jax
-    doc/os_os2.jax
     doc/pi_netrw.jax
     doc/syntax.jax
     doc/usr_02.jax
@@ -30,12 +27,16 @@
 
 ### 英文だけは反映済み
 
+以上は変更点が100行未満なので、翻訳しやすいはず。
+
     doc/autocmd.jax
     doc/change.jax
     doc/develop.jax
     doc/editing.jax
+    doc/eval.jax
     doc/fold.jax
     doc/hangulin.jax
+    doc/if_lua.jax
     doc/if_mzsch.jax
     doc/if_perl.jax
     doc/if_pyth.jax
@@ -54,6 +55,8 @@
     doc/usr_41.jax
     doc/various.jax
 
+こっから先は100行超えるので、嫌。
+
 ### 完訳!
 
     doc/cmdline.jax
@@ -61,6 +64,7 @@
     doc/help.jax
     doc/index.jax
     doc/mlang.jax
+    doc/os_os2.jax
     doc/quickfix.jax
     doc/usr_29.jax
     doc/usr_43.jax
