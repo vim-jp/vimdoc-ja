@@ -9,17 +9,11 @@
 ## 流れ
 
 1.  英語ファイルを全部更新 (終わった!)
-2.  1の差分を見ながら、日本語ファイルに英文のまま反映 (最低限の目標)
+2.  1の差分を見ながら、日本語ファイルに英文のまま反映 (最低限の目標:終わった!)
 3.  2の差分を翻訳 (できたらココまでやりたい)
 4.  このファイルを削除
 
 ## ファイル一覧
-
-### 未作業
-
-追いついたファイルは、下記の一覧から削除し、適切なセクションへ移動
-
-    doc/pi_netrw.jax
 
 ### 英文だけは反映済み
 
@@ -46,7 +40,7 @@
     doc/spell.jax
     doc/tagsrch.jax
     doc/term.jax
-    doc/usr_02.jax  # 行数は多いけど、まとまった書き換えで、楽そう
+    doc/usr_02.jax    # 行数は多いけど、まとまった書き換えで、楽そう
     doc/usr_03.jax
     doc/usr_41.jax
     doc/various.jax
@@ -55,6 +49,7 @@
 
     doc/eval.jax
     doc/options.jax
+    doc/pi_netrw.jax  # 地獄
     doc/syntax.jax
     doc/windows.jax
 
