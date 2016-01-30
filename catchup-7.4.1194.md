@@ -19,7 +19,6 @@
 
 追いついたファイルは、下記の一覧から削除し、適切なセクションへ移動
 
-    doc/options.jax
     doc/pi_netrw.jax
 
 ### 英文だけは反映済み
@@ -55,6 +54,7 @@
 こっから先は100行超えるので、嫌。
 
     doc/eval.jax
+    doc/options.jax
     doc/syntax.jax
     doc/windows.jax
 

@@ -837,7 +837,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 
 	オプション 'smartindent' かオプション 'cindent' がオンのときは、インデ
 	ントの方法は違ってくる。
-	オプション 'paste' がオンのときは 'autoindent' はオフになる。
+	The 'autoindent' option is reset when the 'paste' option is set and
+	restored when 'paste' is reset.
 	{Vi との微妙な違い: <Esc> または <CR> を打ち込んでインデントが削除され
 	た後、上下に移動した後のカーソル位置は削除されたインデントの後ろになる。
 	Viでは削除されたインデントの中のどこかになる}
@@ -1202,6 +1203,47 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	価した結果がリスト|List|になる場合は、そのリストの各要素を文字列とし、
 	それらの間に "\n" を置くのと同じことになる。
 
+						*'belloff'* *'bo'*
+'belloff' 'bo'		string	(default "")
+			global
+			{not in Vi}
+	Specifies for which events the bell will not be rung. It is a comma
+	separated list of items. For each item that is present, the bell
+	will be silenced. This is most useful to specify specific events in
+	insert mode to be silenced.
+
+	item	    meaning when present	~
+	all	    All events.
+	backspace   When hitting <BS> or <Del> and deleting results in an
+		    error.
+	cursor	    Fail to move around using the cursor keys or
+		    <PageUp>/<PageDown> in |Insert-mode|.
+	complete    Error occurred when using |i_CTRL-X_CTRL-K| or
+		    |i_CTRL-X_CTRL-T|.
+	copy	    Cannot copy char from insert mode using |i_CTRL-Y| or
+		    |i_CTRL-E|.
+	ctrlg	    Unknown Char after <C-G> in Insert mode.
+	error	    Other Error occurred (e.g. try to join last line)
+		    (mostly used in |Normal-mode| or |Cmdline-mode|).
+	esc	    hitting <Esc> in |Normal-mode|.
+	ex	    In |Visual-mode|, hitting |Q| results in an error.
+	hangul	    Error occurred when using hangul input.
+	insertmode  Pressing <Esc> in 'insertmode'.
+	lang	    Calling the beep module for Lua/Mzscheme/TCL.
+	mess	    No output available for |g<|.
+	showmatch   Error occurred for 'showmatch' function.
+	operator    Empty region error |cpo-E|.
+	register    Unknown register after <C-R> in |Insert-mode|.
+	shell	    Bell from shell output |:!|.
+	spell	    Error happened on spell suggest.
+	wildmode    More matches in |cmdline-completion| available
+		    (depends on the 'wildmode' setting).
+
+	This is most useful, to fine tune when in insert mode the bell should
+	be rung. For normal mode and ex commands, the bell is often rung to
+	indicate that an error occurred. It can be silenced by adding the
+	"error" keyword.
+
 				     *'binary'* *'bin'* *'nobinary'* *'nobin'*
 'binary' 'bin'		切替	(既定ではオフ)
 			バッファについてローカル
@@ -1277,7 +1319,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	て表示されるかを、このオプションで指定する。これが機能するのはASCIIと
 	8bit文字( 'encoding' が8bitエンコーディングのとき)だけである。
 
-						*'breakindent'* *'bri'*
+			*'breakindent'* *'bri'* *'nobreakindent'* *'nobri'*
 'breakindent' 'bri'	切替 (既定ではオフ)
 			ウィンドウについてローカル
 			{Vi にはない}
@@ -1392,6 +1434,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			い)。
 	nofile だけは、	バッファ名は固定され、ファイル名のようには扱われない。
 			|:cd| の結果としてバッファ名が変わることはない。
+	both:		When using ":e bufname" and already editing "bufname"
+			the buffer is made empty and autocommands are
+			triggered as usual for |:edit|.
 							*E676*
 	"acwrite" は "nofile" と同様にバッファ名がファイルと関係していないこと
 	を意味するが、"nofile" と違って保存される。すなわち、"nofile" と
@@ -1890,6 +1935,14 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	   preview  現在選択されている候補についての付加的な情報をプレビュー
 		    ウィンドウに表示する。"menu" または "menuone" と組み合わせ
 		    たときのみ有効。
+
+	   noinsert Do not insert any text for a match until the user selects
+		    a match from the menu. Only works in combination with
+		    "menu" or "menuone". No effect if "longest" is present.
+
+	   noselect Do not select a match in the menu, force the user to
+		    select one from the menu. Only works in combination with
+		    "menu" or "menuone".
 
 
 						*'concealcursor'* *'cocu'*
@@ -2729,15 +2782,31 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 'endofline' 'eol'	切替	(既定ではオン)
 			バッファについてローカル
 			{Vi にはない}
+	When writing a file and this option is off and the 'binary' option
+	is on, or 'fixeol' option is off, no <EOL> will be written for the
+	last line in the file.  This option is automatically set or reset when
+	starting to edit a new file, depending on whether file has an <EOL>
+	for the last line in the file.  Normally you don't have to set or
+	reset this option.
+	{参考用の旧訳:
 	ファイルを書き込むときに、このオプションがオフでオプション 'binary' が
 	オンならば、ファイルの最終行に <EOL> が書き込まれない。このオプション
 	はファイルの編集を始めるときには自動的にオンになる。ただし編集を始めた
 	ファイルの最終行に <EOL> がないときにはオフになる。普通はユーザーがこ
 	のオプションを設定する必要はない。'binary' がオフのときはこのオプショ
-	ンは使われない。'binary' がオンのときは、ファイルの最終行に <EOL> が
-	あったかどうかを復元するためにこのオプションが使われる。そのため、ユー
-	ザーがファイルを書き込むときに元のファイルの状態を保つことができるし、
-	変更することもできる。
+	ンは使われない。
+	:旧訳ここまで}
+	When 'binary' is off and 'fixeol' is on the value is not used when
+	writing the file.  When 'binary' is on or 'fixeol' is off it is used
+	to remember the presence of a <EOL> for the last line in the file, so
+	that when you write the file the situation from the original file can
+	be kept.  But you can change it if you want to.
+	{参考用の旧訳:
+	'binary' がオンのときは、ファイルの最終行に <EOL> があったかどうかを復
+	元するためにこのオプションが使われる。そのため、ユーザーがファイルを書
+	き込むときに元のファイルの状態を保つことができるし、変更することもでき
+	る。
+	:旧訳ここまで}
 
 			     *'equalalways'* *'ea'* *'noequalalways'* *'noea'*
 'equalalways' 'ea'	切替	(既定ではオン)
@@ -2778,8 +2847,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	くのエラー (例えばノーマルモードで <ESC> を打ち込んだとき) については
 	ベルは常に使用される。ベルをビープ音にしたり、画面フラッシュにしたり、
 	無効にしたりするためには、オプション 'visualbell' を参照。
-	安全上の理由から、このオプションをモードライン|modeline|やサンドボック
-	ス|sandbox|の中で設定することはできない。
+	See 'belloff' to finetune when to ring the bell.
 
 						*'errorfile'* *'ef'*
 'errorfile' 'ef'	文字列	(Amigaでの既定値: "AztecC.Err",
@@ -2842,6 +2910,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	オンのときのインデントでも空白を使う。'expandtab' がオンのときに本当の
 	タブを挿入するには、CTRL-V<Tab> を使うこと。|:retab| と |ins-expandtab|
 	も参照。
+	This option is reset when the 'paste' option is set and restored when
+	the 'paste' option is reset.
 	NOTE: このオプションは、'compatible' がオンのときはオフになるので注意。
 
 					*'exrc'* *'ex'* *'noexrc'* *'noex'*
@@ -3017,8 +3087,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	  2. 改行に <NL> が使われていて、かつ 'fileformats' が "unix" を含むな
 	     ら、'fileformat' は "unix" になる。 Note <NL> があって、その前に
 	     <CR> がないと、"dos" より "unix" が優先的に使われることに注意。
-	  3. 'fileformat' がまだ設定されておらず、'fileformats' に "mac" が含
-	     まれているときは、'fileformat' は "mac" に設定される。
+	  3. 'fileformat' がまだ設定されておらず、ファイル内に1つ <CR> が見つ
+	     かり(訳注:後ろに<NL>が続かない)、'fileformats' に "mac" が含まれ
+	     ているときは、'fileformat' は "mac" に設定される。
 	     つまり "mac" が選択されるのは:
 	      "unix" が含まれていないか <NL> がファイルに無い、そして
 	      "dos" が含まれていないか <CR><NL> がファイルに無いときである。
@@ -3123,6 +3194,17 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	  vert:文字	VertSplit		|hl-VertSplit|
 	  fold:文字	Folded			|hl-Folded|
 	  diff:文字	DiffDelete		|hl-DiffDelete|
+
+		*'fixendofline'* *'fixeol'* *'nofixendofline'* *'nofixeol'*
+'fixendofline' 'fixeol'	boolean	(default on)
+			local to buffer
+			{not in Vi}
+	When writing a file and this option is on, <EOL> at the end of file
+	will be restored if missing. Turn this option off if you want to
+	preserve the situation from the original file.
+	When the 'binary' option is set the value of this option doesn't
+	matter.
+	See the 'endofline' option.
 
 					*'fkmap'* *'fk'* *'nofkmap'* *'nofk'*
 'fkmap' 'fk'		切替	(既定ではオフ)			*E198*
@@ -3422,7 +3504,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	ドボックスの中ではバッファテキストの変更は許可されていないので、このオ
 	プションは機能しない。
 
-						*'fsync'* *'fs'*
+					*'fsync'* *'fs'* *'nofsync'* *'nofs'*
 'fsync' 'fs'		切替	(既定ではオン)
 			グローバル
 			{Vi にはない}
@@ -3505,7 +3587,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	能する。MSDOSやWin32コンソールではカーソルの高さだけを変更する。これは
 	ブロックカーソルを指定する、または垂直・水平方向のパーセンテージを指定
 	することで行う。
-	コンソール上ではエスケープシーケンス 't_SI' と 't_EI' が使われる。
+	コンソール上ではエスケープシーケンス 't_SI', 't_SR' 及び 't_EI' が使わ
+	れる。
 
 	値はコンマ区切りのキーワードのリストである。リストは部門別に分かれてお
 	り、各部門はモードリストと引数リストからなる。
@@ -4137,7 +4220,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			グローバル
 	検索パターンにおいて大文字と小文字を区別しない。タグファイル内の検索に
 	も適用される。
-	オプション 'smartcase' も参照。
+	オプション 'smartcase' と 'tagcase' も参照。
 	パターン内で "\c" や "\C" を使うことで、この設定を上書きできる。
 	|/ignorecase| を参照。
 
@@ -4536,6 +4619,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	ド上で CTRL-] を入力したときにそのコマンドについてのヘルプにジャンプで
 	きるようにするため)。
 	'lisp' がオンのときは、文字 '-' は常に含まれる。
+	This option also influences syntax highlighting, unless the syntax
+	uses |:syn-iskeyword|.
 	NOTE: このオプションは、オプション 'compatible' がオンのときはViの既定
 	値に、オフのときはVimの既定値になるので注意すること。
 
@@ -4653,11 +4738,13 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			有効}
 	このオプションでは、ユーザーのキーボードを特別な言語モードに切り替えら
 	れるようにする。 挿入モードで文字を入力しているときは、文字は直接入力
-	される。しかしコマンドモードではオプション 'langmap' により、入力され
+	される。しかしノーマルモードではオプション 'langmap' により、入力され
 	た特別な文字をキー本来の文字に変換する。つまりノーマルモードコマンドを
-	実行するためにキーボードモードを変更しなくともよいということである。こ
-	のオプションは 'keymap' と正反対のものである。'keymap' は挿入モードで
-	マッピングを行う。
+	実行するためにキーボードモードを変更しなくともよいということである。
+	このオプションは 'keymap' と正反対のものである。'keymap' は挿入モード
+	でマッピングを行う。
+	Also consider setting 'langnoremap' to avoid 'langmap' applies to
+	characters resulting from a mapping.
 	このオプションはセキュリティ上の理由で、|modeline| からや |sandbox| の
 	中で設定することはできない。
 
@@ -4715,6 +4802,18 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		:source $VIMRUNTIME/menu.vim
 <	警告: こうすると、ユーザー自身の定義したメニューも含む、全てのメニュー
 	がいったん削除される！
+
+			*'langnoremap'* *'lnr'* *'nolangnoremap'* *'nolnr'*
+'langnoremap' 'lnr'	boolean (default off)
+			global
+			{not in Vi}
+			{only available when compiled with the |+langmap|
+			feature}
+	When on, setting 'langmap' does not apply to characters resulting from
+	a mapping.  This basically means, if you noticed that setting
+	'langmap' disables some of your mappings, try setting this option.
+	This option defaults to off for backwards compatibility.  Set it on if
+	that works for you to avoid mappings to break.
 
 					*'laststatus'* *'ls'*
 'laststatus' 'ls'	数値	(既定では 1)
@@ -4885,6 +4984,17 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	Note コマンドライン引数 "-u NONE" または "--noplugin" によってこのオプ
 	ションをオフにできることに注意 |-u| |--noplugin|。
 
+						*'luadll'*
+'luadll' 		string	(default depends on the build)
+			global
+			{not in Vi}
+			{only available when compiled with the |+lua/dyn|
+			feature}
+	Specifies the name of the Lua shared library. The default is
+	DYNAMIC_LUA_DLL, which was specified at compile time.
+	This option cannot be set from a |modeline| or in the |sandbox|, for
+	security reasons.
+
 						*'macatsui'* *'nomacatsui'*
 'macatsui'		切替 (既定ではオン)
 			グローバル
@@ -5041,9 +5151,11 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			{Vi にはない}
 	全てのバッファで使用するメモリの合計の最大値 (キロバイト単位)。このオ
 	プションの最大値は約 2000000 (2 ギガバイト)である。限界を設けないとき
-	にはこの値に設定すること。64 ビットマシンではもっと高くしても動作する
-	かもしれない。けれど、本当にテキストの編集に 2 ギガバイト以上も必要で
-	すか？
+	にはこの値に設定すること。
+	64 ビットマシンではもっと高くしても動作するかもしれない。けれど、本当
+	にテキストの編集に 2 ギガバイト以上も必要ですか?  Keep in mind that
+	text is stored in the swap file, one can edit files > 2 Gbyte anyay.
+	We do need the memory to store undo info.
 	'maxmem' も参照。
 
 						*'menuitems'* *'mis'*
@@ -5312,7 +5424,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	負または0にするとスレッドのスケジューリングを行わなくなる。
 
 							*'nrformats'* *'nf'*
-'nrformats' 'nf'	文字列	(既定では "octal,hex")
+'nrformats' 'nf'	string	(default "bin,octal,hex")
 			バッファについてローカル
 			{Vi にはない}
 	テキスト内の数をコマンド CTRL-A や CTRL-X で増減させるとき、 Vimに何を
@@ -5325,6 +5437,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		"007" の上で CTRL-A を使うと "010" となる。
 	hex	これが含まれると、"0x" や "0X" で始まる数は16進数として認識さ
 		れる。例: "0x100" の上で CTRL-X を使うと "0x0ff" となる。
+	bin	If included, numbers starting with "0b" or "0B" will be
+		considered to be binary.  Example: Using CTRL-X on
+		"0b1000" subtracts one, resulting in "0b0111".
 	1 から 9 の数字で始まる数は、常に10進数として認識される。8進数または16
 	進数として認識されない数も10進数として認識される。
 
@@ -5444,19 +5559,21 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	'paste' がオンのときは、以下のように設定が変わる。
 		- 挿入モードとコマンドラインモードでのマッピングが無効になる
 		- 略語展開が無効になる
-		- 'textwidth' が 0 になる
-		- 'wrapmargin' が 0 になる
 		- 'autoindent' がオフになる
-		- 'smartindent' がオフになる
-		- 'softtabstop' が 0 になる
+		- 'expandtab' is reset
+		- 'formatoptions' が空のときのような動作になる
 		- 'revins' がオフになる
 		- 'ruler' がオフになる
 		- 'showmatch' がオフになる
-		- 'formatoptions' が空のときのような動作になる
+		- 'smartindent' がオフになる
+		- 'smarttab' is reset
+		- 'softtabstop' が 0 になる
+		- 'textwidth' が 0 になる
+		- 'wrapmargin' が 0 になる
 	以下のオプションの値に変化はないが、働きは無効になる。
-		- 'lisp'
-		- 'indentexpr'
 		- 'cindent'
+		- 'indentexpr'
+		- 'lisp'
 	NOTE: 'paste' がオンのときに別のファイルの編集を始めると、モードライン
 	や autocommand によって設定が再び変わり、貼り付け時に問題が起きること
 	があるので注意。そのときは 'paste' を再びオンにするとよいだろう。
@@ -5579,6 +5696,17 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		:let &path = &path . "," . substitute($INCL, ';', ',', 'g')
 <	文字 ';' を ':' または指定可能な区切り文字で置換する。  Note この方法
 	は、$INCL がコンマや空白を含んでいるときには使えないので注意。
+
+						*'perldll'*
+'perldll' 		string	(default depends on the build)
+			global
+			{not in Vi}
+			{only available when compiled with the |+perl/dyn|
+			feature}
+	Specifies the name of the Perl shared library. The default is
+	DYNAMIC_PERL_DLL, which was specified at compile time.
+	This option cannot be set from a |modeline| or in the |sandbox|, for
+	security reasons.
 
 			*'preserveindent'* *'pi'* *'nopreserveindent'* *'nopi'*
 'preserveindent' 'pi'	切替	(既定ではオフ)
@@ -5707,6 +5835,27 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	0 のときはスペースの許す限り多く表示される。
 	|ins-completion-menu|
 
+						*'pythondll'*
+'pythondll' 		string	(default depends on the build)
+			global
+			{not in Vi}
+			{only available when compiled with the |+python/dyn|
+			feature}
+	Specifies the name of the Python 2.x shared library. The default is
+	DYNAMIC_PYTHON_DLL, which was specified at compile time.
+	This option cannot be set from a |modeline| or in the |sandbox|, for
+	security reasons.
+
+						*'pythonthreedll'*
+'pythonthreedll'	string	(default depends on the build)
+			global
+			{not in Vi}
+			{only available when compiled with the |+python3/dyn|
+			feature}
+	Specifies the name of the Python 3 shared library. The default is
+	DYNAMIC_PYTHON3_DLL, which was specified at compile time.
+	This option cannot be set from a |modeline| or in the |sandbox|, for
+	security reasons.
 
 						*'quoteescape'* *'qe'*
 'quoteescape' 'qe'	文字列	(既定では "\")
@@ -5751,6 +5900,10 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		2	NFA エンジン
 	Note: NFA エンジンを使う設定のときは、サポートされていないパターンを使
 	うと、そのパターンはマッチしない。これは正規表現エンジンのデバッグ用。
+	Using automatic selection enables Vim to switch the engine, if the
+	default engine becomes too costly.  E.g., when the NFA engine uses too
+	many states.  This should prevent Vim from hanging on a combination of
+	a complex pattern with long text.
 
 		*'relativenumber'* *'rnu'* *'norelativenumber'* *'nornu'*
 'relativenumber' 'rnu'	切替	(既定ではオフ)
@@ -5885,8 +6038,10 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	挿入モードでの文字の挿入が通常と逆向きになる。"typing backwards" を参
 	照 |ins-reverse|。このオプションは、オプション 'allowrevins' がオンな
 	らば挿入モードでコマンド CTRL-_ を使うことで切り替えられる。
-	NOTE: このオプションは、オプション 'compatible' または 'paste' がオン
-	のときはオフになるので注意。
+	NOTE: このオプションは、オプション 'compatible' がオンのときはオフにな
+	るので注意。
+	This option is reset when 'paste' is set and restored when 'paste' is
+	reset.
 
 				 *'rightleft'* *'rl'* *'norightleft'* *'norl'*
 'rightleft' 'rl'	切替	(既定ではオフ)
@@ -5916,6 +6071,17 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	これはヘブライ語、アラビア語、ペルシア語などの言語で便利である。
 	オプション 'rightleft' を設定しないと 'rightleftcmd' は効果がない。
 
+						*'rubydll'*
+'rubydll' 		string	(default: depends on the build)
+			global
+			{not in Vi}
+			{only available when compiled with the |+ruby/dyn|
+			feature}
+	Specifies the name of the Ruby shared library. The default is
+	DYNAMIC_RUBY_DLL, which was specified at compile time.
+	This option cannot be set from a |modeline| or in the |sandbox|, for
+	security reasons.
+
 					 *'ruler'* *'ru'* *'noruler'* *'noru'*
 'ruler' 'ru'		切替	(既定ではオフ)
 			グローバル
@@ -5940,7 +6106,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	の列数が、ダッシュで区切られて両方表示される。
 	空行では "0-1" と表示される。
 	空のバッファでは行数も0になり、 "0,0-1" と表示される。
-	このオプションは、'paste' がオンのときはオフになる。
+	This option is reset when 'paste' is set and restored when 'paste' is
+	reset.
 	ルーラーを常に表示したくはないが、テキスト内のどこにいるのか知りたいと
 	きは、コマンド "g CTRL-G" を使うこと |g_CTRL-G|。
 	NOTE:  このオプションは、オプション 'compatible' がオンのときはオフに
@@ -6508,6 +6675,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	  c	|ins-completion-menu| 関連のメッセージを表示しない。例えば、
 		"-- XXX補完 (YYY)"、"1 番目の該当 (全該当 2 個中)"、"唯一の該
 		当"、"パターンは見つかりませんでした"、"始めに戻る"、など。
+	  q     use "recording" instead of "recording @a"
 
 	このオプションはバッファを変更するとき <Enter> を打ち込むのを避ける機
 	会を提供する。が、表示の余裕がある限り有益なメッセージを表示する。
@@ -6594,7 +6762,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	チした括弧が画面上に見えているときのみジャンプする。マッチを表示する時
 	間はオプション 'matchtime' で設定できる。
 	マッチする閉じ括弧がないときは、ビープ音が鳴る (マッチが見えても見えな
-	くても)。このオプションは、'paste' がオンのときはオフになる。
+	くても)。
+	This option is reset when 'paste' is set and restored when 'paste' is
+	reset.
 	'cpoptions' にフラグ 'm' が含まれていないときは、ジャンプ中に文字を入
 	力するとカーソルがすぐに元の場所に戻る。
 	マッチの表示時のカーソルの形状や点滅方法については、'guicursor' の
@@ -6702,8 +6872,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	ここで ^H は CTRL-V CTRL-H と打ち込むと入力される。
 	コマンド ">>" を使ったとき、'#' で始まる行は右に移動しない。
 	NOTE: 'smartindent' は、'compatible' がオンのときはオフに設定されるの
-	で注意。また 'paste' がオンのときは高度なインデントは使えないことも注
-	意。
+	で注意。
+	This option is reset when 'paste' is set and restored when 'paste' is
+	reset.
 
 				 *'smarttab'* *'sta'* *'nosmarttab'* *'nosta'*
 'smarttab' 'sta'	切替	(既定ではオフ)
@@ -6719,6 +6890,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	挿入される文字 (タブ文字または空白) は 'expandtab' によって変わる。
 	|ins-expandtab| も参照。'expandtab' がオフのときは、 <Tab> を打ち込む
 	と空白の数が最小になる {訳注: できる限り空白をタブ文字で置き換える}。
+	This option is reset when 'paste' is set and restored when 'paste' is
+	reset.
 	NOTE: このオプションは、オプション 'compatible' がオンのときはオフにな
 	るので注意。
 
@@ -6734,7 +6907,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	作する。
 	'sts' がゼロならこの機能は無効になる。
 	'sts' がマイナスなら 'shiftwidth' の値が使われる。
-	このオプションは、'paste' がオンのときは 0 になる。
+	'softtabstop' is set to 0 when the 'paste' option is set and restored
+	when 'paste' is reset.
 	|ins-expandtab| も参照。'expandtab' がオフのときは、<Tab> を打ち込むと
 	空白の数が最小になる {訳注: できる限り空白をタブ文字で置き換える}。
 	'cpoptions' にフラグ 'L' を含めると、'list' がオンのとき、タブの扱い方
@@ -6813,6 +6987,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	小文字で2文字の地域名である。複数の地域名を列挙することもできる:
 	"en_us, en_ca" とすると US 英語とカナダ英語の両方に対応する。しかし
 	オーストラリア、ニュージーランド、英国に固有の単語には対応しない。
+	(Note: currently en_au and en_nz dictionaries are older than en_ca,
+	en_gb and en_us).
 	"cjk" という名前が含まれる場合は、東アジアの文字はスペルチェックから除
 	外される。これは、アジアの文字を含むようなテキストを編集する際に便利で
 	ある。
@@ -7058,7 +7234,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	全体が空になる。これにより、次のようなグループは、フラグがどれも設定さ
 	れていないときは全く表示されない。 >
 		:set statusline=...%(\ [%M%R%H]%)...
-<
+<							*g:actual_curbuf*
 	気を付けてほしいのは、expression はステータス行が表示されるたびに評価
 	されるということだ。あるバッファまたはウィンドウのステータス行が描画さ
 	れている最中は、一時的にそのバッファまたはウィンドウがカレントバッファ
@@ -7190,6 +7366,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			を分割する。
 			含まれていないときは、分割はされない。カレントウィンド
 			ウが使われる。
+	   vsplit	Just like "split" but split vertically.
 	   newtab	"split" と同様だが、新しいタブページを開く。"split" と
 			両方指定された場合はこちらが優先される。
 
@@ -7319,12 +7496,20 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 <	['0' の前後の余白は、単一の <Tab> でなければならない]
 
 	二分探索が完了し、'tags' で列挙されたどのファイルからもマッチが見つか
-	らなかった場合、'ignorecase' がオンであるか、もしくはその検索がタグ名
-	による検索ではなくパターンによる検索であれば、線形探索を使って検索が再
-	試行される。
+	らなかった場合、かつ大文字小文字が無視される場合、もしくはその検索がタ
+	グ名による検索ではなくパターンによる検索であれば、線形探索を使って検索
+	が再試行される。
 	整列されていないタグファイル内のタグや、大文字と小文字の違いのあるマッ
 	チは、再試行でのみ見つかるだろう。
 
+	If a tag file indicates that it is case-fold sorted, the second,
+	linear search can be avoided when case is ignored.  Use a value of '2'
+	in the "!_TAG_FILE_SORTED" line for this.  A tag file can be case-fold
+	sorted with the -f switch to "sort" in most unices, as in the command:
+	"sort -f -o tags tags".  For "Exuberant ctags" version 5.x or higher
+	(at least 5.5) the --sort=foldcase switch can be used for this as
+	well.  Note that case must be folded to uppercase for this to work.
+	{参考用の旧訳:
 	タグファイルが大文字・小文字を無視して整列されていることを示しているな
 	ら、'ignorecase' のための線形探索はしなくてもよくなる。それには
 	"!_TAG_FILE_SORTED" 行の値として '2' を使う。ほとんどの Unix では
@@ -7333,6 +7518,11 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	tags tags"。"Exuberant ctags" のバージョン 5.x 以降 (少なくとも 5.5 以
 	降) ではオプション --sort=foldcase をつけることでこれと同様のことがで
 	きる。Note: これが機能するために文字は大文字にまとめられる。
+	:旧訳ここまで}
+
+	By default, tag searches are case-sensitive.  Case is ignored when
+	'ignorecase' is set and 'tagcase' is "followic", or when 'tagcase' is
+	"ignore".
 
 	'tagbsearch' がオフの場合、完全なマッチがあるときはタグの検索はより遅
 	くなるが、完全なマッチがないときは検索はより速くなる。整列されていない
@@ -7344,6 +7534,16 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	このオプションは、マッチするすべてのタグを検索するようなコマンド (例え
 	ばコマンドライン補完や ":help") には影響しない。
 	{Vi: バージョンによっては常に二分探索を使う}
+
+							*'tagcase'* *'tc'*
+'tagcase' 'tc'		string	(default "followic")
+			global or local to buffer |global-local|
+			{not in Vi}
+	This option specifies how case is handled when searching the tags
+	file:
+	   followic	Follow the 'ignorecase' option
+	   ignore	Ignore case
+	   match	Match case
 
 						*'taglength'* *'tl'*
 'taglength' 'tl'	数値	(既定では 0)
@@ -7402,6 +7602,17 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	このオプションをオンにするのは、":tag" をマッピング内で使っていて、タ
 	グスタックを変更すべきでないときに便利である。
 
+						*'tcldll'*
+'tcldll' 		string	(default depends on the build)
+			global
+			{not in Vi}
+			{only available when compiled with the |+tcl/dyn|
+			feature}
+	Specifies the name of the Tcl shared library. The default is
+	DYNAMIC_TCL_DLL, which was specified at compile time.
+	This option cannot be set from a |modeline| or in the |sandbox|, for
+	security reasons.
+
 						*'term'* *E529* *E530* *E531*
 'term'			文字列	(既定では $TERM、それが失敗したら
 				       GUI版では: "builtin_gui"
@@ -7450,14 +7661,12 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	イが理解できるかを指定する。GUI版ではキーボードにのみ適用される (ディ
 	スプレイにはオプション 'encoding' が使われる)。Macで 'macatsui' がオフ
 	になっているときは例外で、'termencoding' は "macroman" になる。
-	Win32 のコンソール版では、コンソールのコードページがANSIコードページで
-	ないなら場合、その値が既定値となる。
 								*E617*
 	Note: これはGTK+ 2 GUIには適用されない。GUIの初期化に成功した後で強制
 	的に 'termencoding' が "utf-8" に設定される。
 	これを他の値に設定しようとしても失敗し、エラーメッセージが表示される。
-	Win32 GUIでは 'termencoding' は入力された文字に対しては適用されない。
-	Win32では常にUnicode文字が渡されるからである。
+	Win32 GUIとコンソールでは 'termencoding' は使用されない。Win32では常に
+	Unicode文字が渡されるからである。
 	空のときは、'encoding' で指定されたエンコーディングが使われる。これが
 	通常の値である。
 	'termencoding' と 'encoding' の組み合わせが全て正しいわけではない。
@@ -7505,9 +7714,11 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			バッファについてローカル
 			{Vi にはない}
 	入力されているテキストの最大幅。行がそれより長くなると、この幅を超えな
-	いように空白の後で改行される。値を 0 に設定すると無効になる。オプショ
-	ン 'textwidth' が 0 のときは、'wrapmargin' が使われる場合がある。
-	'formatoptions' と |ins-textwidth| を参照。
+	いように空白の後で改行される。値を 0 に設定すると無効になる。
+	'textwidth' is set to 0 when the 'paste' option is set and restored
+	when 'paste' is reset.
+	オプション 'textwidth' が 0 のときは、'wrapmargin' が使われる場合があ
+	る。'formatoptions' と |ins-textwidth| を参照。
 	'formatexpr' が設定されている場合、その値を使って改行される。
 	NOTE: このオプションは、オプション 'compatible' がオンのときは 0 にな
 	るので注意。
@@ -8050,8 +8261,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	%	これが含まれると、バッファリストを保存・復元する。Vimの起動時
 		にファイル名が引数に含まれていると、バッファリストは復元されな
 		い。 Vimの起動時にファイル名が引数に含まれていないと、バッファ
-		リストが viminfo ファイルから復元される。ファイル名のないバッ
-		ファとヘルプ用バッファは、viminfo ファイルには書き込まれない。
+		リストが viminfo ファイルから復元される。  Quickfix
+		('buftype'), unlisted ('buflisted'), unnamed and buffers on
+		removable media (|viminfo-r|) are not saved.
 		このフラグの後に続けて数値を書くと、保存されるバッファ数の最大
 		値を指定することができる。数値が書かれていない場合、全てのバッ
 		ファが保存される。
@@ -8525,6 +8737,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	'number' や 'foldcolumn' など幅をとるオプションを使用していると、テキ
 	ストの幅がこの値より少なくなる。これはVi互換の動作である。
 	オプション 'textwidth' が非0 のときは、このオプションは使われない。
+	This option is set to 0 when 'paste' is set and restored when 'paste'
+	is reset.
 	'formatoptions' と |ins-textwidth| も参照。  {Vi: 少し不便な、違った動
 	作をする}
 
