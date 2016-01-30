@@ -1,4 +1,4 @@
-*repeat.txt*    For Vim バージョン 7.4.  Last change: 2015 Apr 13
+*repeat.txt*    For Vim バージョン 7.4.  Last change: 2016 Jan 16
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -110,7 +110,13 @@ Ex モード中で "global" を使い、そのコマンドに ":visual" を指�
 q{0-9a-zA-Z"}		タイプした文字をレジスタ{0-9a-zA-Z"}にレコーディングす
 			る(大文字なら追記)。レジスタを実行中は 'q' コマンドは
 			無効化される。マッピングや |:normal| の中でも機能しな
-			い。{Vi: レコーディングはない}
+			い。
+
+			Note: If the register being used for recording is also
+			used for |y| and |p| the result is most likely not
+			what is expected, because the put will paste the
+			recorded macro and the yank will overwrite the
+			recorded macro. {Vi: no recording}
 
 q			レコーディングを終了する。(実装のメモ: レコーディング
 			を終了する 'q' は、それがマッピングの結果であってもレ
@@ -458,14 +464,43 @@ NOTE: デバッグモードは未完成である。デバッグはVimの動作�
 							*>finish*
 	finish		実行中のスクリプトやユーザー関数を終了し呼び出し元でデ
 			バッグモードに戻る。
+							*>bt*
+							*>backtrace*
+							*>where*
+	backtrace	Show the call stacktrace for current debugging session.
+	bt
+	where
+							*>frame*
+	frame N		Goes to N bactrace level. + and - signs make movement
+			relative.  E.g., ":frame +3" goes three frames up.
+							*>up*
+	up		Goes one level up from call stacktrace.
+							*>down*
+	down		Goes one level down from call stacktrace.
 
 デバッグモードのコマンドについて:
 - 補完はできない。通常のExコマンドのみ補完できる。
 - 次の一文字に省略すことができる: "c", "n", "s" そして "f"。
+- コマンド名は、他のコマンドが同じ文字で始まらないところまで省略できる。
+  "f" は "finish" なるので "frame" を省略するには "fr" を用いる。
 - <CR>を押すと前回のものを繰り返す。関係ないコマンドを使うとリセットされる
   (どうすべきかがわかりにくいため)。
 - 同じ名前のExコマンドを使うにはコロンを付けること:
   ":cont", ":next", ":finish" (省略時も)
+
+The backtrace shows the hierarchy of function calls, e.g.:
+	>bt ~
+	  3 function One[3] ~
+	  2 Two[3] ~
+	->1 Three[3] ~
+	  0 Four ~
+	line 1: let four = 4 ~
+
+The "->" points to the current frame.  Use "up", "down" and "frame N" to
+select another frame.
+
+In the current frame you can evaluate the local function variables.  There is
+no way to see the command at the current line yet.
 
 
 ブレークポイントの定義

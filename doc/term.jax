@@ -1,4 +1,4 @@
-*term.txt*      For Vim バージョン 7.4.  Last change: 2014 May 13
+*term.txt*      For Vim バージョン 7.4.  Last change: 2015 Nov 24
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -224,10 +224,10 @@ termcap コードに対応するオプションを設定することによって
 るオプション名の最後の2文字が等しくなっています。絶対に必要な termcap コードは
 カーソルを移動させる 't_cm' の1つだけです。
 
-オプション 't_da', 't_db', 't_ms', 't_xs' は termcap におけるフラグに対応して
-います。termcap にこれらのフラグが存在すると、対応するオプションに "y" が設定
-されます。空でない文字列を設定するとオンになり、空文字列を設定するとオフになり
-ます。't_CS' もこれと同様ですが、termcap フラグではありません。
+オプション 't_da', 't_db', 't_ms', 't_xs', 't_xn' は termcap におけるフラグに
+対応しています。termcap にこれらのフラグが存在すると、対応するオプションに "y"
+が設定されます。空でない文字列を設定するとオンになり、空文字列を設定するとオフ
+になります。't_CS' もこれと同様ですが、termcap フラグではありません。
 
 出力コード
 	option	意味	~
@@ -282,6 +282,9 @@ termcap コードに対応するオプションを設定することによって
 	t_vs	カーソル強調表示				*t_vs* *'t_vs'*
 								*t_xs* *'t_xs'*
 	t_xs	空でない場合は強調が上書きによって消されない(hpterm)
+								*t_xn* *'t_xn'*
+	t_xn	if non-empty, writing a character at the last screen cell
+		does not cause scrolling
 	t_ZH	斜体モード					*t_ZH* *'t_ZH'*
 	t_ZR	斜体終了					*t_ZR* *'t_ZR'*
 
@@ -291,12 +294,15 @@ Vim 独自のもの (標準的なコードはないもの):
 	t_WP	ウィンドウ位置 (Y, X) をピクセルで指定		*t_WP* *'t_WP'*
 	t_WS	ウィンドウサイズ (height, width) を文字数で指定	*t_WS* *'t_WS'*
 	t_SI	挿入モード開始 (バー型のカーソル)		*t_SI* *'t_SI'*
-	t_EI	挿入モード終了(ブロック型カーソル)		*t_EI* *'t_EI'*
+	t_SR	start replace mode (underline cursor shape)	*t_SR* *'t_SR'*
+	t_EI	挿入または置換モード終了(ブロック型カーソル)	*t_EI* *'t_EI'*
 		|termcap-cursor-shape|
 	t_RV	端末バージョン文字列を要求 (xterm 用)		*t_RV* *'t_RV'*
 		|xterm-8bit| |v:termresponse| |'ttymouse'| |xterm-codes|
 	t_u7	カーソル位置を要求 (xterm 用)			*t_u7* *'t_u7'*
 		|'ambiwidth'| 参照。
+	t_RB	request terminal background color		*t_RB* *'t_RB'*
+		see |'ambiwidth'|
 
 キーコード
 Note: 可能なかぎり <> 形式を使ってください。
@@ -412,7 +418,8 @@ Note t_so と t_mrについて: termcap に "so" エントリがない場合は 
 るという問題に対応することができます。そのため、<xF1> のようなコードは必要なく
 なります。
 Note: これは起動時にのみ行われます。Vim が起動した後で xterm のオプションが変
-更された場合は、これらのエスケープシーケンスは認識されなくなる可能性があります。
+更された場合は、これらのエスケープシーケンスはそれ以降、認識されなくなる可能性
+があります。
 
 							*xterm-resize*
 xterm でのウィンドウサイズ変更はリソース allowWindowOps が有効なときのみ動作し
@@ -436,13 +443,22 @@ allow-window-pos にチェックが入っているはずです。
 ます。
 
 				*termcap-cursor-shape* *termcap-cursor-color*
+When Vim enters Insert mode the 't_SI' escape sequence is sent.  When Vim
+enters Replace mode the 't_SR' escape sequence is sent if it is set, otherwise
+'t_SI' is sent.  When leaving Insert mode or Replace mode 't_EI' is used. This
+can be used to change the shape or color of the cursor in Insert or Replace
+mode. These are not standard termcap/terminfo entries, you need to set them
+yourself.
+{参考用の旧訳:
 挿入モードに入るとき、エスケープシーケンス 't_SI' が送られます。挿入モードを抜
 けるときは 't_EI' が送られます。ただし、両方が定義されているときのみです。これ
 を利用して、挿入モードにおけるカーソルの形や色を変えることができます。これらは
 標準的な termcap/terminfo エントリではないので、自分で設定する必要があります。
+:旧訳ここまで}
 以下は xterm でカーソルの色を変える例です: >
     if &term =~ "xterm"
 	let &t_SI = "\<Esc>]12;purple\x7"
+	let &t_SR = "\<Esc>]12;red\x7"
 	let &t_EI = "\<Esc>]12;blue\x7"
     endif
 NOTE: Vim を終了するとき、ノーマルモードでのカーソル設定がそのまま残ります。
@@ -835,7 +851,7 @@ sysmouse は、コンパイル時に |+mouse_sysmouse| 機能が有効化され�
 
 X1 ボタンと X2 ボタンは、ある種のマウスについている4番目、5番目のボタンのこと
 です。'Microsoft Explorer' マウスの場合、これらのボタンは右親指の位置について
-います。現在のところ、X1 と X2 は Win32 環境でのみ機能します。
+います。現在のところ、X1 と X2 は Win32 と X11 環境でのみ機能します。
 
 例: >
 	:noremap <MiddleMouse> <LeftMouse><MiddleMouse>

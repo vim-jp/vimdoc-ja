@@ -1,4 +1,4 @@
-*syntax.txt*	For Vim バージョン 7.4.  Last change: 2014 Sep 27
+*syntax.txt*	For Vim バージョン 7.4.  Last change: 2016 Jan 28
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -210,7 +210,8 @@ NOTE: 長い行があって表示が遅く、構文ハイライトをオフに�
 プそれ自体は、色や属性を指定するものではない。
 
 ハイライトや構文グループの名前はASCII文字、数字、アンダースコアだけでつけなけ
-ればならない。正規表現では: "[a-zA-Z0-9_]*"
+ればならない。正規表現では: "[a-zA-Z0-9_]*"  しかしそれ以外の文字を使ってもVim
+はエラーを出力しない。
 
 各ユーザーが好みの色セットを使用できるように、多くの言語に共通するハイライトグ
 ループには優先名が与えられている。推奨されているグループ名は以下のとおり(構文
@@ -723,6 +724,22 @@ UTF-8 を使用するが、代わりに UTF-16 や UTF-32 を使うようにす�
 Note: UTF-32 か UTF-16 でエンコードされたドキュメントはいくつかのメジャーブラ
 ウザで互換性の問題があることが知られている。
 
+								 *g:html_font*
+Default: "monospace"
+You can specify the font or fonts used in the converted document using
+g:html_font. If this option is set to a string, then the value will be
+surrounded with single quotes. If this option is set to a list then each list
+item is surrounded by single quotes and the list is joined with commas. Either
+way, "monospace" is added as the fallback generic family name and the entire
+result used as the font family (using CSS) or font face (if not using CSS).
+Examples: >
+
+   " font-family: 'Consolas', monospace;
+   :let g:html_font = "Consolas"
+
+   " font-family: 'DejaVu Sans Mono', 'Consolas', monospace;
+   :let g:html_font = ["DejaVu Sans Mono", "Consolas"]
+<
 			*convert-to-XML* *convert-to-XHTML* *g:html_use_xhtml*
 初期設定: 0
 0 なら、標準 HTML 4.01 を生成する (可能なら strict)。
@@ -1038,7 +1055,8 @@ CPP						*cpp.vim* *ft-cpp-syntax*
 大部分は |ft-c-syntax| と同じ。
 
 変数			強調表示 ~
-cpp_no_c11		C++11 標準のアイテムを強調表示しない
+cpp_no_cpp11		C++11 標準のアイテムを強調表示しない
+cpp_no_cpp14		C++14 標準のアイテムを強調表示しない
 
 
 CSH						*csh.vim* *ft-csh-syntax*
@@ -1100,6 +1118,16 @@ http://standards.freedesktop.org/desktop-entry-spec/latest/
 iniファイルをハイライトする。ただし次をvimrcファイルに書くことによって厳格に標
 準に準拠したハイライトをさせることもできる: >
 	:let enforce_freedesktop_standard = 1
+
+
+DIFF							*diff.vim*
+
+The diff highlighting normally finds translated headers.  This can be slow if
+there are very long lines in the file.  To disable translations: >
+
+	:let diff_translations = 0
+
+Also see |diff-slow|.
 
 
 DIRCOLORS			       *dircolors.vim* *ft-dircolors-syntax*
@@ -1380,22 +1408,28 @@ Fortran のソースコードには固定形式と自由形式が有る。形式
     :let fortran_fixed_source=1
 これも.vimrcでコマンド:syntaxを実行する前に行う必要がある。
 
-ソースコードの形式がファイル拡張子によって決定できる場合には、ftpluginファイル
-の1つでfortran_free_sourceを設定すると便利になる。ftpluginファイルについての詳
-細は|ftplugin|を参照のこと。例えば、拡張子.f90を持つファイルについては全て自由
-形式として扱い、それ以外のものは固定形式とする場合には、次のコードをftplugin
-ファイルに記述すれば良い。 >
-    let s:extfname = expand("%:e")
-    if s:extfname ==? "f90"
-	let fortran_free_source=1
-	unlet! fortran_fixed_source
-    else
-	let fortran_fixed_source=1
-	unlet! fortran_free_source
-    endif
-これは.vimrcで "syntax on" より前に "filetype plugin indent on" が書かれていな
-いと機能しないことに注意。
+If the form of the source code depends, in a non-standard way, upon the file
+extension, then it is most convenient to set fortran_free_source in a ftplugin
+file.  For more information on ftplugin files, see |ftplugin|. Note that this
+will work only if the "filetype plugin indent on" command precedes the "syntax
+on" command in your .vimrc file.
 
+When you edit an existing fortran file, the syntax script will assume free
+source form if the fortran_free_source variable has been set, and assumes
+fixed source form if the fortran_fixed_source variable has been set.  If
+neither of these variables have been set, the syntax script attempts to
+determine which source form has been used by examining the file extension
+using conventions common to the ifort, gfortran, Cray, NAG, and PathScale
+compilers (.f, .for, .f77 for fixed-source, .f90, .f95, .f03, .f08 for
+free-source). If none of this works, then the script examines the first five
+columns of the first 500 lines of your file.  If no signs of free source form
+are detected, then the file is assumed to be in fixed source form.  The
+algorithm should work in the vast majority of cases.  In some cases, such as a
+file that begins with 500 or more full-line comments, the script may
+incorrectly decide that the fortran code is in fixed form.  If that happens,
+just add a non-comment statement beginning anywhere in the first five columns
+of the first twenty five lines, save (:w) and then reload (:e!) the file.
+{参考用の旧訳:
 既存のFortranファイルを編集する時には、変数fortran_free_sourceが設定されていれ
 ば構文ファイルは自由形式のソースであると仮定し、変数fortran_fixed_sourceが設定
 されていれば固定形式のソースであると仮定する。どちらも設定されていないときに
@@ -1406,6 +1440,7 @@ Fortran のソースコードには固定形式と自由形式が有る。形式
 るようなファイルでは、構文ファイルが固定形式コードであると誤った判断をしてしま
 うだろう。そのような場合には、ファイルの先頭250行の行頭5桁のどこかに、コメント
 以外の命令文を追加し、ファイルの保存 (:w) そして再読込 (:e!) を行えば良い。
+:旧訳ここまで}
 
 Fortranファイル内のタブ文字 ~
 標準のFortranではタブ文字は認識されない。固定桁位置での境界を必要とする固定形
@@ -3105,6 +3140,7 @@ g:vimsyn_embed オプションは、どの外部スクリプト言語の埋め�
 定する。 >
 
    g:vimsyn_embed == 0   : どのスクリプトの埋め込みも対応しない
+   g:vimsyn_embed =~ 'l' : 埋め込み lua をサポート
    g:vimsyn_embed =~ 'm' : 埋め込み mzscheme をサポート
    g:vimsyn_embed =~ 'p' : 埋め込み perl をサポート
    g:vimsyn_embed =~ 'P' : 埋め込み python をサポート
@@ -3121,6 +3157,7 @@ syntax/vim.vim によって折り畳みが可能である: >
    g:vimsyn_folding == 0 または変数が存在しない: 構文ベースの折り畳みはしない
    g:vimsyn_folding =~ 'a' : augroups
    g:vimsyn_folding =~ 'f' : 関数を折り畳む
+   g:vimsyn_folding =~ 'l' : lua      スクリプトを折り畳む
    g:vimsyn_folding =~ 'm' : mzscheme スクリプトを折り畳む
    g:vimsyn_folding =~ 'p' : perl     スクリプトを折り畳む
    g:vimsyn_folding =~ 'P' : python   スクリプトを折り畳む
@@ -3195,6 +3232,31 @@ xpm.vimは編集中のXPMファイルの内容から、動的に構文要素を�
 セルサイズが正方形のフォントを使うと見栄えがよくなる。Xの場合の例: >
 	:set guifont=-*-clean-medium-r-*-*-8-*-*-*-*-80-*
 
+
+YAML						*yaml.vim* *ft-yaml-syntax*
+
+					*g:yaml_schema* *b:yaml_schema*
+A YAML schema is a combination of a set of tags and a mechanism for resolving 
+non-specific tags. For user this means that YAML parser may, depending on 
+plain scalar contents, treat plain scalar (which can actually be only string 
+and nothing else) as a value of the other type: null, boolean, floating-point, 
+integer. `g:yaml_schema` option determines according to which schema values 
+will be highlighted specially. Supported schemas are
+
+Schema		Description ~
+failsafe	No additional highlighting.
+json		Supports JSON-style numbers, booleans and null.
+core		Supports more number, boolean and null styles.
+pyyaml		In addition to core schema supports highlighting timestamps, 
+		but there are some differences in what is recognized as 
+		numbers and many additional boolean values not present in core 
+		schema.
+
+Default schema is `core`.
+
+Note that schemas are not actually limited to plain scalars, but this is the 
+only difference between schemas defined in YAML specification and the only 
+difference defined in the syntax file.
 
 ==============================================================================
 5. 構文を定義する					*:syn-define* *E410*
@@ -3271,6 +3333,32 @@ xpm.vimは編集中のXPMファイルの内容から、動的に構文要素を�
 	スペルチェックを有効化するにはオプション 'spell' をオンにしなければな
 	らない。
 
+SYNTAX ISKEYWORD SETTING				*:syn-iskeyword*
+
+:sy[ntax] iskeyword [clear | {option}]
+	This defines the keyword characters.  It's like the 'iskeyword' option
+	for but only applies to syntax highlighting.
+
+	clear:		Syntax specific iskeyword setting is disabled and the
+			buffer-local 'iskeyword' setting is used.
+	{option}        Set the syntax 'iskeyword' option to a new value. 
+
+	Example: >
+  :syntax iskeyword @,48-57,192-255,$,_
+<
+	This would set the syntax specific iskeyword option to include all
+	alphabetic characters, plus the numeric characters, all accented
+	characters and also includes the "_" and the "$".
+
+	If no argument is given, the current value will be output.
+
+	Setting this option influences what |/\k| matches in syntax patterns
+	and also determines where |:syn-keyword| will be checked for a new
+	match.
+
+	It is recommended when writing syntax files, to use this command
+	to the correct value for the specific syntax language and not change
+	the 'iskeyword' option.
 
 キーワードの定義					*:syn-keyword*
 
@@ -3302,6 +3390,7 @@ xpm.vimは編集中のXPMファイルの内容から、動的に構文要素を�
 	ワードは認識されない。
 	マルチバイト文字を使うこともできる。マルチバイト文字は 'iskeyword' に
 	含まれている必要はない。
+	See |:syn-iskeyword| for defining syntax specific iskeyword settings.
 
 	キーワードは常にマッチやリージョンより優先される。キーワードは一要素以
 	上マッチしたとき使われる。キーワードは入れ子にならなく、それ以外のもの
@@ -3537,6 +3626,7 @@ conceal						*conceal* *:syn-conceal*
 際に Conceal 表示されるかどうかは 'conceallevel' オプションの設定に依存する。
 現在行のアイテムを Conceal 表示するかどうかは 'concealcursor' オプションで制御
 できる (行の編集を妨げないようにするため)。
+Another way to conceal text with with |matchadd()|.
 
 concealends						*:syn-concealends*
 
@@ -3956,7 +4046,7 @@ skipパターンも "\n" を含んでよい。ただし次の行の最初の文�
   :syn region hereDoc start="<<\z(\I\i*\)" end="^\z1$"
 
 このように、\zは2つの役割を果たす。startパターンにおいては正規表現の一部
-"\(\I\i*\)" をexternalとしてマークする。endパターンでは\1によってstartパターン
+"\(\I\i*\)" をexternalとしてマークする。endパターンでは\z1によってstartパターン
 中の最初のマークされた部分への外部参照とする。外部参照はskipパターン中でも使え
 る: >
   :syn region foo start="start \(\I\i*\)" skip="not end \z1" end="end \z1"
@@ -4443,21 +4533,23 @@ ctermbg={color-nr}				*highlight-ctermbg*
 	    14	    3*	    Yellow, LightYellow
 	    15	    7*	    White
 
-	    "NR-16" の下の番号は16色ターミナル('t_Co' が16以上のもの)用である。
-	    "NR-8" の下の番号は8色ターミナル('t_Co' が16未満のもの)用である。
-	    '*' はctermfgにbold属性がセットされることを意味している。"linux"
-	    など多くの8色ターミナルでは明るい色になる。ただし背景色には適用さ
-	    れない。'*' がないものはbold属性なしになる。他の方法でbold属性をつ
-	    けたいなら引数 "cterm=" を "ctermfg=" や "ctermbg=" の後に書くこ
-	    と。または色名の代わりに番号を使うこと。
+	"NR-16" の下の番号は16色ターミナル('t_Co' が16以上のもの)用である。
+	"NR-8" の下の番号は8色ターミナル('t_Co' が16未満のもの)用である。
+	'*' はctermfgにbold属性がセットされることを意味している。"linux"
+	など多くの8色ターミナルでは明るい色になる。ただし背景色には適用さ
+	れない。'*' がないものはbold属性なしになる。他の方法でbold属性をつ
+	けたいなら引数 "cterm=" を "ctermfg=" や "ctermbg=" の後に書くこ
+	と。または色名の代わりに番号を使うこと。
 
-	    色名の大文字・小文字は無視される。
-	    16色ansiスタイルターミナル(xtermを含む)ではNR-8の列の番号が使われ
-	    ることに注意。ここで '*' は 'add 8' という意味になる。つまりBlueが
-	    12に、DarkGrayが8になる。
+	色名の大文字・小文字は無視される。
+	16色ansiスタイルターミナル(xtermを含む)ではNR-8の列の番号が使われ
+	ることに注意。ここで '*' は 'add 8' という意味になる。つまりBlueが
+	12に、DarkGrayが8になる。
 
-	    カラーターミナルによっては、色名を使うと間違った色で表示される場合
-	    もあることに注意。
+	カラーターミナルによっては、色名を使うと間違った色で表示される場合
+	もあることに注意。
+
+	You can also use "NONE" to remove the color.
 
 							*:hi-normal-cterm*
 	Normalグループに対して "ctermfg" や "ctermbg" を設定すると、これらはハ
@@ -4866,6 +4958,7 @@ types.vim: *.[ch]
 更されない。"b:current_syntax" は構文ファイルによって変更されるが、
 "b:current_syntax" を一時的に保存・復元することで値が変わらないようになってい
 る。構文ファイルによって設定された値が "w:current_syntax" に代入される。
+Note: This resets the 'spell', 'spellcapcheck' and 'spellfile' options.
 
 ウィンドウの独自構文が定義されると、同じバッファの他のウィンドウで実行された構
 文コマンド (:syntax clear を含む) が影響しなくなる。逆に、そのウィンドウで実行

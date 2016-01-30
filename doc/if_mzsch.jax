@@ -1,4 +1,4 @@
-*if_mzsch.txt*  For Vim バージョン 7.4.  Last change: 2012 Dec 17
+*if_mzsch.txt*  For Vim バージョン 7.4.  Last change: 2016 Jan 24
 
 
 		  VIMリファレンスマニュアル    by Sergey Khorev
@@ -13,6 +13,7 @@ Vim の MzScheme インターフェイス			*mzscheme* *MzScheme*
 5. mzeval() Vim 関数			|mzscheme-mzeval|
 6. 関数参照を使う			|mzscheme-funcref|
 7. 動的ローディング			|mzscheme-dynamic|
+8. MzSchemeのセットアップ		|mzscheme-setup|
 
 {Vi にはこれらのコマンドはありません}
 
@@ -268,7 +269,7 @@ Scheme から直接呼び出せます。例: >
 <
 
 ==============================================================================
-7. 動的ローディング				    *mzscheme-dynamic* *E815*
+7. 動的ローディング				*mzscheme-dynamic* *E815*
 
 MS-Windows では MzScheme ライブラリを動的に読み込むことが可能です。これを行う
 と |:version| の出力に |+mzscheme/dyn| が含まれるようになります。
@@ -276,6 +277,9 @@ MS-Windows では MzScheme ライブラリを動的に読み込むことが可�
 この場合、Vim は必要なときだけ MzScheme の DLL ファイルを検索するようになりま
 す。MzScheme インターフェイスを使わないときは DLL を必要としないので、DLL な
 しで Vim を使うことができます。
+NOTE: Newer version of MzScheme (Racket) require earlier (trampolined)
+initialisation via scheme_main_setup.  So Vim always loads the MzScheme DLL at
+startup if possible.
 
 MzScheme インターフェイスを使うには MzScheme の DLL が検索パス内に存在しなけ
 ればなりません。コンソールウィンドウで "path" とタイプすると、どのディレクト
@@ -286,6 +290,25 @@ DLL の名前は Vim をコンパイルした時の MzScheme のバージョン�
 "libmzgc209_000.dll" となるでしょう。確認するには ":version" コマンドの出力
 を見て、コンパイル情報から -DDYNAMIC_MZSCH_DLL="なんらか" と
 -DDYNAMIC_MZGC_DLL="なんらか" を探してください。
+
+For example, if MzScheme (Racket) is installed at C:\Racket63, you may need
+to set the environment variable as the following: >
+
+  PATH=%PATH%;C:\Racket63\lib
+  PLTCOLLECTS=C:\Racket63\collects
+  PLTCONFIGDIR=C:\Racket63\etc
+<
+==============================================================================
+8. MzScheme setup				    *mzscheme-setup* *E895*
+
+Vim requires "racket/base" module for if_mzsch core (fallback to "scheme/base"
+if it doesn't exist), "r5rs" module for test and "raco ctool" command for
+building Vim.  If MzScheme did not have them, you can install them with
+MzScheme's raco command:
+>
+  raco pkg install scheme-lib       # scheme/base module
+  raco pkg install r5rs-lib         # r5rs module
+  raco pkg install cext-lib         # raco ctool command
 
 ======================================================================
   vim:tw=78:ts=8:sts=4:ft=help:norl:

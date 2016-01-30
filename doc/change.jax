@@ -1,4 +1,4 @@
-*change.txt*    For Vim バージョン 7.4.  Last change: 2015 Sep 06
+*change.txt*    For Vim バージョン 7.4.  Last change: 2016 Jan 19
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -404,8 +404,14 @@ CTRL-X			カーソルの下または後の数字またはアルファベット�
 			される (そのため効果的に [count] ごとに減少する配列を
 			作ることができる)。 {Vi にはない}
 
-コマンド CTRL-A と CTRL-X は(符号付)10進数と符号なし8進／16進数、アルファベッ
-トに対し機能する。この動作はオプション 'nrformats' に依存する。
+The CTRL-A and CTRL-X commands can work for:
+- signed and unsigned decimal numbers
+- unsigned binary, octal and hexadecimal numbers
+- alphabetic characters
+
+This depends on the 'nrformats' option:
+- When 'nrformats' includes "bin", Vim assumes numbers starting with '0b' or
+  '0B' are binary.
 - 'nrformats' が "octal" を含むときは、Vimは '0' で始まり、'8' や '9' を含まな
   い数字を8進数として取り扱う。他の数は10進数とみなされ、マイナス符号が付いて
   もよい。カーソルが数の上にあれば、コマンドはその数に適用される。そうでなけれ
@@ -418,9 +424,9 @@ CTRL-X			カーソルの下または後の数字またはアルファベット�
   を変更する。これはアルファベットのインデックスつきのリストを作るときに便利で
   ある。
 
-10進数では先頭の負の符号は増加/減少に対して考慮される。8進数と16進数では考慮さ
-れない。
-符号を無視するには CTRL-A または CTRL-X を使う前に数字をビジュアル選択する。
+10進数では先頭の負の符号は増加/減少に対して考慮される。しかし2進数、8進数およ
+び16進数では考慮されない。符号を無視するには CTRL-A または CTRL-X を使う前に数
+字をビジュアル選択する。
 
 ゼロから始まる数 (全ての8進数、16進数を含む) に対して、Vimはできる限りその数の
 文字数を保とうとする。"0077" 上で CTRL-A を使うと "0100" となり、"0x100" 上で
@@ -431,6 +437,10 @@ CTRL-X を使うと "0x0ff" となる。
 
 Note: 'nrformats' が "octal" を含んでいるとき、0で始まる10進数は、8進数と区別
 しづらいため、意図しない結果になる可能性がある。
+
+Note similarly, when 'nrformats' includes "bin", binary numbers with a leading
+'0x' or '0X' can be interpreted as hexadecimal rather than binary since '0b'
+are valid hexadecimal digits.
 
 コマンド CTRL-A はマクロ内でたいへん便利である。例: 番号付きリストを作るには、
 次の方法を使う。
@@ -836,6 +846,36 @@ NOTE: 以前のバージョンでは CTRL-V が特別に扱われていた。こ
 	:s/\([ab]\)\|\([cd]\)/\1x/g   "a b c d" を "ax bx x x" に置換
 <
 
+		*:sc* *:sce* *:scg* *:sci* *:scI* *:scl* *:scp* *:sg* *:sgc*
+		*:sge* *:sgi* *:sgI* *:sgl* *:sgn* *:sgp* *:sgr* *:sI* *:si*
+		*:sic* *:sIc* *:sie* *:sIe* *:sIg* *:sIl* *:sin* *:sIn* *:sIp*
+		*:sip* *:sIr* *:sir* *:sr* *:src* *:srg* *:sri* *:srI* *:srl*
+		*:srn* *:srp*
+2-letter and 3-letter :substitute commands ~
+
+     List of :substitute commands
+     |      c    e    g    i    I    n    p    l    r
+     | c  :sc  :sce :scg :sci :scI :scn :scp :scl  ---
+     | e
+     | g  :sgc :sge :sg  :sgi :sgI :sgn :sgp :sgl :sgr
+     | i  :sic :sie  --- :si  :siI :sin :sip  --- :sir
+     | I  :sIc :sIe :sIg :sIi :sI  :sIn :sIp :sIl :sIr
+     | n
+     | p
+     | l
+     | r  :src  --- :srg :sri :srI :srn :srp :srl :sr
+
+Exceptions:
+     :scr  is  `:scriptnames`
+     :se   is  `:set`
+     :sig  is  `:sign`
+     :sil  is  `:silent`
+     :sn   is  `:snext`
+     :sp   is  `:split`
+     :sl   is  `:sleep`
+     :sre  is  `:srewind`
+
+
 式で置換する					*sub-replace-expression*
 						*sub-replace-\=* *s/\=*
 
@@ -939,7 +979,7 @@ NOTE: 以前のバージョンでは CTRL-V が特別に扱われていた。こ
 
 :reg[isters] {arg}	{arg} に指定された名前付きレジスタおよび番号付きレジス
 			タを表示する。例: >
-				:dis 1a
+				:reg 1a
 <			レジスタ '1' と 'a' が表示される。{arg} の中では空白を
 			用いてよい。 {Vi にはない}
 
@@ -1647,7 +1687,7 @@ Vimはソート関数とソートコマンドを備えている。ソート関�
 |uniq()| を参照。
 
 							*:sor* *:sort*
-:[range]sor[t][!] [i][u][r][n][x][o] [/{pattern}/]
+:[range]sor[t][!] [b][f][i][n][o][r][u][x] [/{pattern}/]
 			[range]の行をソートする。範囲が指定されない場合は全行
 			をソートする。
 
@@ -1655,9 +1695,17 @@ Vimはソート関数とソートコマンドを備えている。ソート関�
 			
 			[i]をつけると大文字・小文字を区別しない。
 
+			Options [n][f][x][o][b] are mutually exclusive.
+
 			[n]をつけると行の({pattern}のマッチの後ろまたは内側
 			の)最初の10進数の数字でソートする。
 			数字が '-' で始まる場合、マイナスとみなされる。
+
+			With [f] sorting is done on the Float in the line.
+			The value of Float is determined similar to passing
+			the text (after or inside a {pattern} match) to
+			str2float() function. This option is available only
+			if Vim was compiled with Floating point support.
 
 			[x]をつけると行の({pattern}のマッチの後ろまたは内側
 			の)最初の16進数の数字でソートする。"0x" と "0X" は無視
@@ -1667,10 +1715,13 @@ Vimはソート関数とソートコマンドを備えている。ソート関�
 			[o]をつけると行の({pattern}のマッチの後ろまたは内側
 			の)最初の8進数の数字でソートする。
 
-			[u]をつけると連続する同一行の最初の行だけを残す。
-			([i]がつくと大文字・小文字を無視する)
-			このフラグがつかない場合、連続する同一行はそのままの順
-			序で残される。
+			With [b] sorting is done on the first binary number in
+			the line (after or inside a {pattern} match).
+
+			[u]をつけると (u は unique=「一意の」という意味に基づ
+			く) 連続する同一行の最初の行だけを残す。([i]がつくと大
+			文字・小文字を無視する) このフラグがつかない場合、連続
+			する同一行はそのままの順序で残される。
 			Note: 行頭に行末の空白があると異なる行とみなされる。
 
 			/pattern/が指定され、フラグ[r]がない場合は{pattern}に

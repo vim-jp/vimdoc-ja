@@ -1,4 +1,4 @@
-*change.txt*    For Vim version 7.4.  Last change: 2015 Sep 06
+*change.txt*    For Vim version 7.4.  Last change: 2016 Jan 19
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -416,9 +416,14 @@ CTRL-X			Subtract [count] from the number or alphabetic
 			additional [count] (so effectively creating a [count]
 			decrementing sequence).  {not in Vi}
 
-The CTRL-A and CTRL-X commands work for (signed) decimal numbers, unsigned
-octal and hexadecimal numbers and alphabetic characters.  This depends on the
-'nrformats' option.
+The CTRL-A and CTRL-X commands can work for:
+- signed and unsigned decimal numbers
+- unsigned binary, octal and hexadecimal numbers
+- alphabetic characters
+
+This depends on the 'nrformats' option:
+- When 'nrformats' includes "bin", Vim assumes numbers starting with '0b' or
+  '0B' are binary.
 - When 'nrformats' includes "octal", Vim considers numbers starting with a '0'
   to be octal, unless the number includes a '8' or '9'.  Other numbers are
   decimal and may have a preceding minus sign.
@@ -433,8 +438,8 @@ octal and hexadecimal numbers and alphabetic characters.  This depends on the
   index.
 
 For decimals a leading negative sign is considered for incrementing/
-decrementing, for octal and hex values, it won't be considered.
-To ignore the sign Visually select the number before using CTRL-A or CTRL-X. 
+decrementing, for binary, octal and hex values, it won't be considered.  To
+ignore the sign Visually select the number before using CTRL-A or CTRL-X. 
 
 For numbers with leading zeros (including all octal and hexadecimal numbers),
 Vim preserves the number of characters in the number when possible.  CTRL-A on
@@ -446,6 +451,10 @@ octal number.
 
 Note that when 'nrformats' includes "octal", decimal numbers with leading
 zeros cause mistakes, because they can be confused with octal numbers.
+
+Note similarly, when 'nrformats' includes "bin", binary numbers with a leading
+'0x' or '0X' can be interpreted as hexadecimal rather than binary since '0b'
+are valid hexadecimal digits.
 
 The CTRL-A command is very useful in a macro.  Example: Use the following
 steps to make a numbered list.
@@ -863,6 +872,36 @@ either the first or second pattern in parentheses did not match, so either
   :s/\([ab]\)\|\([cd]\)/\1x/g   modifies "a b c d"  to "ax bx x x"
 <
 
+		*:sc* *:sce* *:scg* *:sci* *:scI* *:scl* *:scp* *:sg* *:sgc*
+		*:sge* *:sgi* *:sgI* *:sgl* *:sgn* *:sgp* *:sgr* *:sI* *:si*
+		*:sic* *:sIc* *:sie* *:sIe* *:sIg* *:sIl* *:sin* *:sIn* *:sIp*
+		*:sip* *:sIr* *:sir* *:sr* *:src* *:srg* *:sri* *:srI* *:srl*
+		*:srn* *:srp*
+2-letter and 3-letter :substitute commands ~
+
+     List of :substitute commands
+     |      c    e    g    i    I    n    p    l    r
+     | c  :sc  :sce :scg :sci :scI :scn :scp :scl  ---
+     | e
+     | g  :sgc :sge :sg  :sgi :sgI :sgn :sgp :sgl :sgr
+     | i  :sic :sie  --- :si  :siI :sin :sip  --- :sir
+     | I  :sIc :sIe :sIg :sIi :sI  :sIn :sIp :sIl :sIr
+     | n
+     | p
+     | l
+     | r  :src  --- :srg :sri :srI :srn :srp :srl :sr
+
+Exceptions:
+     :scr  is  `:scriptnames`
+     :se   is  `:set`
+     :sig  is  `:sign`
+     :sil  is  `:silent`
+     :sn   is  `:snext`
+     :sp   is  `:split`
+     :sl   is  `:sleep`
+     :sre  is  `:srewind`
+
+
 Substitute with an expression			*sub-replace-expression*
 						*sub-replace-\=* *s/\=*
 When the substitute string starts with "\=" the remainder is interpreted as an
@@ -968,7 +1007,7 @@ inside of strings can change!  Also see 'softtabstop' option. >
 
 :reg[isters] {arg}	Display the contents of the numbered and named
 			registers that are mentioned in {arg}.  For example: >
-				:dis 1a
+				:reg 1a
 <			to display registers '1' and 'a'.  Spaces are allowed
 			in {arg}.  {not in Vi}
 
@@ -1706,7 +1745,7 @@ Vim has a sorting function and a sorting command.  The sorting function can be
 found here: |sort()|, |uniq()|.
 
 							*:sor* *:sort*
-:[range]sor[t][!] [i][u][r][n][x][o] [/{pattern}/]
+:[range]sor[t][!] [b][f][i][n][o][r][u][x] [/{pattern}/]
 			Sort lines in [range].  When no range is given all
 			lines are sorted.
 
@@ -1714,9 +1753,17 @@ found here: |sort()|, |uniq()|.
 
 			With [i] case is ignored.
 
+			Options [n][f][x][o][b] are mutually exclusive.
+
 			With [n] sorting is done on the first decimal number
 			in the line (after or inside a {pattern} match).
 			One leading '-' is included in the number.
+
+			With [f] sorting is done on the Float in the line.
+			The value of Float is determined similar to passing
+			the text (after or inside a {pattern} match) to
+			str2float() function. This option is available only
+			if Vim was compiled with Floating point support.
 
 			With [x] sorting is done on the first hexadecimal
 			number in the line (after or inside a {pattern}
@@ -1726,10 +1773,13 @@ found here: |sort()|, |uniq()|.
 			With [o] sorting is done on the first octal number in
 			the line (after or inside a {pattern} match).
 
-			With [u] only keep the first of a sequence of
-			identical lines (ignoring case when [i] is used).
-			Without this flag, a sequence of identical lines
-			will be kept in their original order.
+			With [b] sorting is done on the first binary number in
+			the line (after or inside a {pattern} match).
+
+			With [u] (u stands for unique) only keep the first of
+			a sequence of identical lines (ignoring case when [i]
+			is used).  Without this flag, a sequence of identical
+			lines will be kept in their original order.
 			Note that leading and trailing white space may cause
 			lines to be different.
 

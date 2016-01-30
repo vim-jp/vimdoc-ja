@@ -82,6 +82,15 @@ CTRL-]はtelnetの標準エスケープキーである。タグにジャンプ�
 すること。これは ":tnext" を使うときの混乱を避けるためである。優先度のリストは
 ":tag {ident}" を使ったときに変化する。
 
+The ignore-case matches are not found for a ":tag" command when the
+'ignorecase' option is off and 'tagcase' is "followic" or when 'tagcase' is
+"match".  They are found when a pattern is used (starting with a "/") and for
+":tselect", also when 'ignorecase' is off and 'tagcase' is "followic" or when
+'tagcase' is "match".  Note that using ignore-case tag searching disables
+binary searching in the tags file, which causes a slowdown.  This can be
+avoided by fold-case sorting the tag file.  See the 'tagbsearch' option for an
+explanation.
+{参考用の旧訳:
 'ignorecase' オプションがオフになっているときの ":tag" コマンドでは、大文字、
 小文字を区別しないマッチは見つからない。'ignorecase' がオフになっていても、
 ("/" で始まる) パターンを使用し、かつ ":tselect" を使ったときには見つけること
@@ -89,6 +98,7 @@ CTRL-]はtelnetの標準エスケープキーである。タグにジャンプ�
 ができなくなるため処理が遅くなる、ということに注意すること。これはタグファイル
 を大文字と小文字を区別せずにソートすることで回避できる。'tagbsearch' オプショ
 ンの説明も参照のこと。
+:旧訳ここまで}
 
 ==============================================================================
 2. タグスタック				*tag-stack* *tagstack* *E425*
@@ -431,12 +441,21 @@ Emacs タグファイルの行は非常に長くなることがある。Vim は�
 以下のようなときは、リストの次のファイルを使わない:
 - 現在のバッファに対するstaticタグが見つかった場合。
 - globalタグが見つかった場合。
+This also depends on whether case is ignored.  Case is ignored when
+'ignorecase' is set and 'tagcase' is "followic", or when 'tagcase' is
+"ignore".  If case is not ignored, and the tags file only has a match without
+matching case, the next tags file is searched for a match with matching case.
+If no tag with matching case is found, the first match without matching case
+is used.  If case is ignored, and a matching global tag with or without
+matching case is found, this one is used, no further tags files are searched.
+{参考用の旧訳:
 これらは 'ignorecase' オプションに依存する。もしオフにしてあり、tagsファイルに
 大文字小文字が一致するタグがない場合、一致するタグを次のtagsファイルで検索す
 る。もし一致するタグが見つからなければ、大文字小文字を無視して最初にマッチした
 ものが使われる。もし 'ignorecase' がオンの場合、大文字小文字の区別なく、global
 タグが見つかった時点でそのタグが使用され、それ以降のtagsファイルは検索されな
 い。
+:旧訳ここまで}
 
 タグファイル名が "./" で始まるとき、'.' は現在のファイルのパスで置き換えられ
 る。これにより、現在のファイルがあるディレクトリのtagsファイルを使用することが
@@ -565,9 +584,15 @@ tagsファイルの先頭行には、
 た場合には、Vimはtagsファイルに対して二分検索を使用する:
 	!_TAG_FILE_SORTED<TAB>1<TAB>{anything} ~
 
+A tag file may be case-fold sorted to avoid a linear search when case is
+ignored.  (Case is ignored when 'ignorecase' is set and 'tagcase' is
+"followic", or when 'tagcase' is "ignore".)  See 'tagbsearch' for details.
+The value '2' should be used then:
+{参考用の旧訳:
 'ignorecase' がonのときに線形検索を避けるために、大文字と小文字を区別せずにタ
 グファイルがソートされることがある。詳細は 'tagbsearch' を参照。そのときは '2'
 が使われる:
+:旧訳ここまで}
 	!_TAG_FILE_SORTED<TAB>2<TAB>{anything} ~
 
 Vimが認識するもう1つのタグはタグファイルのエンコーディングを指定するものであ
