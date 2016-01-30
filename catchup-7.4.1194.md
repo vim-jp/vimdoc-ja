@@ -21,9 +21,6 @@
 
     doc/options.jax
     doc/pi_netrw.jax
-    doc/syntax.jax
-    doc/usr_02.jax
-    doc/windows.jax
 
 ### 英文だけは反映済み
 
@@ -50,6 +47,7 @@
     doc/spell.jax
     doc/tagsrch.jax
     doc/term.jax
+    doc/usr_02.jax  # 行数は多いけど、まとまった書き換えで、楽そう
     doc/usr_03.jax
     doc/usr_41.jax
     doc/various.jax
@@ -57,6 +55,8 @@
 こっから先は100行超えるので、嫌。
 
     doc/eval.jax
+    doc/syntax.jax
+    doc/windows.jax
 
 ### 完訳!
 
