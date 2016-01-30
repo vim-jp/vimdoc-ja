@@ -1,4 +1,4 @@
-*map.txt*       For Vim バージョン 7.4.  Last change: 2014 Jun 02
+*map.txt*       For Vim バージョン 7.4.  Last change: 2016 Jan 10
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -485,7 +485,7 @@ Note: ビジュアルモードのマップでは "'<" マークが使えます�
 
 
 1.6 特殊文字						*:map-special-chars*
-							*map_backslash*
+						*map_backslash* *map-backslash*
 Note: このドキュメントでは、マップや短縮入力を定義するときに、CTRL-V だけが特
 殊な文字として触れられていますが、'cpoptions' が 'B' を含んでいない場合は、
 バックスラッシュも CTRL-V と同様の特殊な働きをします。|<>| 表記も問題なく使用
@@ -496,7 +496,7 @@ Note: このドキュメントでは、マップや短縮入力を定義する�
 合は、特別文字 "<Bslash>" を使います。マップを入れ子にした場合などにバックス
 ラッシュを二重にする必要がなくなります。
 
-							*map_CTRL-C*
+						*map_CTRL-C* *map-CTRL-C*
 CTRL-C を {lhs} で使うことはできますが、それは Vim がキー入力を待機中のときだ
 け機能します。Vim がビジー状態 (何かを実行中) のときは機能しません。Vim がビ
 ジー状態の場合、CTRL-C は実行中のコマンドを中断します。
@@ -504,14 +504,14 @@ MS-Windows の GUI 環境では、CTRL-C にマップすることができるの
 ドにコピーする機能を割り当てることができます。Vim の動作を中断するには
 CTRL-Break を使います。
 
-							*map_space_in_lhs*
+					*map_space_in_lhs* *map-space_in_lhs*
 {lhs} に空白文字を含めるには CTRL-V を前置してください (空白文字の前で CTRL-V
 を二度押しで入力)。
-							*map_space_in_rhs*
+					*map_space_in_rhs* *map-space_in_rhs*
 {rhs} を空白文字で開始するには "<Space>" を使ってください。Vi との互換性を完全
 に保ちたい場合は |<>| 表記を使わずに、{rhs} の直前に CTRL-V (CTRL-V を二度押し
 で入力)を前置してください。
-							*map_empty_rhs*
+						*map_empty_rhs* *map-empty-rhs*
 CTRL-V を1つだけ入力した後に (CTRL-Vを2度押しで入力) 何も入力しないことで空の
 {rhs} を作ることもできます。残念ながらvimrcファイル内ではこの方法は使用できま
 せん。
@@ -583,7 +583,7 @@ Note: 変数 "mapleader" はマップを定義するときに使用されます�
 マップコマンドでは '"' (ダブルクォート) も {lhs} や {rhs} の一部と見なされるた
 め、マップコマンドの後ろにコメントを置くことはできません。
 
-							*map_bar*
+							*map_bar* *map-bar*
 '|' 文字は、マップコマンドと次のコマンドを分けるために使われるので、'|' 文字を
 {rhs} に含めるには特殊な方法が必要です。
 次の3つの方法があります:
@@ -601,7 +601,7 @@ Note: 変数 "mapleader" はマップを定義するときに使用されます�
 後に、別のコマンドが続いているとみなされます。これは Vi 互換ですが、他のコマン
 ドの場合を考えるとあまり論理的ではありません。
 
-							*map_return*
+						*map_return* *map-return*
 マップに Ex コマンドを含める場合、そのコマンドラインを実行するために改行文字を
 挿入する必要があります。これには <CR> を使うことが推奨されています(参照|<>|)。
 例: >
@@ -906,9 +906,11 @@ non-id	  マッチした場所の前がタブ、行頭、挿入を開始した�
 <		"test;;"	  は展開されません
 		"test ;;"	  は "test <endofline>" に展開されます
 
-挿入モードで短縮入力の展開を避けるには、短縮入力の一部を入力してから挿入モード
-を <Esc> で抜け、再度挿入モードに "a" で入って残りを入力します。もしくは、
-CTRL-V を押してから短縮入力の後の文字を入力します。
+挿入モードで短縮入力の展開を避けるには、短縮入力を発動する可能性のある文字を入
+力する前に CTRL-V を押します。 例:CTRL-V <Space> もしくは短縮入力の一部を入力
+してから挿入モードを <Esc> で抜け、再度挿入モードに "a" で入って残りを入力しま
+す。
+
 コマンドラインモードで短縮入力の展開を避けるには、短縮入力の文字の途中でCTRL-V
 を入力します (CTRL-V を2度押し)。展開されなかった場合、普通の文字の前のCTRL-V
 は普通は無視されます。
@@ -1266,6 +1268,8 @@ script2.vimを実行すると "None" が表示されます。期待した結果�
 	-complete=custom,{func} {func}によるユーザー定義の補完
 	-complete=customlist,{func} {func}によるユーザー定義の補完
 
+Note: That some completion methods might expand environment variables.
+
 
 ユーザー定義の補完			*:command-completion-custom*
 					*:command-completion-customlist*
@@ -1331,6 +1335,19 @@ script2.vimを実行すると "None" が表示されます。期待した結果�
 
 Note: -range=Nと-count=Nは相互に排他的であるということに注意してください。どち
 らか一方のみを指定することができます。
+
+					*E889* *:command-addr*
+It is possible that the special characters in the range like ., $ or % which
+by default correspond to the current line, last line and the whole buffer,
+relate to arguments, (loaded) buffers, windows or tab pages.
+
+Possible values are:
+	-addr=lines		Range of lines (this is the default)
+	-addr=arguments		Range for arguments
+	-addr=buffers		Range for buffers (also not loaded buffers)
+	-addr=loaded_buffers	Range for loaded buffers
+	-addr=windows		Range for windows
+	-addr=tabs		Range for tab pages
 
 特殊なケース				*:command-bang* *:command-bar*
 					*:command-register* *:command-buffer*

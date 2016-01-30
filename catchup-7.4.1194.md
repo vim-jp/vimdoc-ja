@@ -20,34 +20,12 @@
 追いついたファイルは、下記の一覧から削除し、適切なセクションへ移動
 
     doc/eval.jax
-    doc/fold.jax
-    doc/hangulin.jax
-    doc/help.jax
     doc/if_lua.jax
-    doc/if_mzsch.jax
-    doc/if_perl.jax
-    doc/if_pyth.jax
-    doc/if_ruby.jax
-    doc/if_tcl.jax
-    doc/index.jax
-    doc/insert.jax
-    doc/map.jax
-    doc/mlang.jax
-    doc/netbeans.jax
     doc/options.jax
     doc/os_os2.jax
-    doc/pattern.jax
     doc/pi_netrw.jax
-    doc/quickref.jax
-    doc/repeat.jax
-    doc/spell.jax
     doc/syntax.jax
-    doc/tagsrch.jax
-    doc/term.jax
     doc/usr_02.jax
-    doc/usr_03.jax
-    doc/usr_41.jax
-    doc/various.jax
     doc/windows.jax
 
 ### 英文だけは反映済み
@@ -56,11 +34,33 @@
     doc/change.jax
     doc/develop.jax
     doc/editing.jax
+    doc/fold.jax
+    doc/hangulin.jax
+    doc/if_mzsch.jax
+    doc/if_perl.jax
+    doc/if_pyth.jax
+    doc/if_ruby.jax
+    doc/if_tcl.jax
+    doc/insert.jax
+    doc/map.jax
+    doc/netbeans.jax
+    doc/pattern.jax
+    doc/quickref.jax
+    doc/repeat.jax
+    doc/spell.jax
+    doc/tagsrch.jax
+    doc/term.jax
+    doc/usr_03.jax
+    doc/usr_41.jax
+    doc/various.jax
 
 ### 完訳!
 
     doc/cmdline.jax
     doc/filetype.jax
+    doc/help.jax
+    doc/index.jax
+    doc/mlang.jax
     doc/quickfix.jax
     doc/usr_29.jax
     doc/usr_43.jax
