@@ -20,7 +20,6 @@
 以上は変更点が100行未満なので、翻訳しやすいはず。
 
     doc/change.jax
-    doc/hangulin.jax
     doc/if_lua.jax    # 100行超えたけど、内容的に大したことない
     doc/if_mzsch.jax
     doc/if_perl.jax
@@ -55,6 +54,7 @@
     doc/editing.jax
     doc/filetype.jax
     doc/fold.jax
+    doc/hangulin.jax
     doc/help.jax
     doc/index.jax
     doc/map.jax
