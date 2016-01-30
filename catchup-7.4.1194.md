@@ -21,7 +21,6 @@
 
     doc/autocmd.jax
     doc/change.jax
-    doc/develop.jax
     doc/editing.jax
     doc/fold.jax
     doc/hangulin.jax
@@ -56,6 +55,7 @@
 ### 完訳!
 
     doc/cmdline.jax
+    doc/develop.jax
     doc/filetype.jax
     doc/help.jax
     doc/index.jax
