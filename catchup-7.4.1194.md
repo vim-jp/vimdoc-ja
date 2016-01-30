@@ -20,7 +20,6 @@
 以上は変更点が100行未満なので、翻訳しやすいはず。
 
     doc/change.jax
-    doc/editing.jax
     doc/fold.jax
     doc/hangulin.jax
     doc/if_lua.jax    # 100行超えたけど、内容的に大したことない
@@ -54,6 +53,7 @@
     doc/autocmd.jax
     doc/cmdline.jax
     doc/develop.jax
+    doc/editing.jax
     doc/filetype.jax
     doc/help.jax
     doc/index.jax
