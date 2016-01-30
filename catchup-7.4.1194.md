@@ -24,7 +24,6 @@
     doc/if_lua.jax    # 100行超えたけど、内容的に大したことない
     doc/if_mzsch.jax
     doc/if_perl.jax
-    doc/if_pyth.jax
     doc/if_ruby.jax
     doc/if_tcl.jax
     doc/insert.jax
@@ -56,6 +55,7 @@
     doc/filetype.jax
     doc/fold.jax
     doc/help.jax
+    doc/if_pyth.jax
     doc/index.jax
     doc/map.jax
     doc/mlang.jax
