@@ -21,11 +21,9 @@
 
     doc/autocmd.jax
     doc/change.jax
-    doc/cmdline.jax
     doc/develop.jax
     doc/editing.jax
     doc/eval.jax
-    doc/filetype.jax
     doc/fold.jax
     doc/hangulin.jax
     doc/help.jax
@@ -44,7 +42,6 @@
     doc/os_os2.jax
     doc/pattern.jax
     doc/pi_netrw.jax
-    doc/quickfix.jax
     doc/quickref.jax
     doc/repeat.jax
     doc/spell.jax
@@ -53,9 +50,7 @@
     doc/term.jax
     doc/usr_02.jax
     doc/usr_03.jax
-    doc/usr_29.jax
     doc/usr_41.jax
-    doc/usr_43.jax
     doc/various.jax
     doc/windows.jax
 
@@ -65,6 +60,11 @@
 
 ### 完訳!
 
+    doc/cmdline.jax
+    doc/filetype.jax
+    doc/quickfix.jax
+    doc/usr_29.jax
+    doc/usr_43.jax
     doc/vi_diff.jax
 
 まだない
