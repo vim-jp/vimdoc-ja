@@ -100,7 +100,7 @@ empty()を使用して次のようにする。 >
 数点数から文字列へは printf() を、浮動小数点数から数値へは float2nr() を使う。
 
 						*E891* *E892* *E893* *E894*
-When expecting a Float a Number can also be used, but nothing else.
+! When expecting a Float a Number can also be used, but nothing else.
 
 						*E706* *sticky-type-checking*
 変数の型を変えようとするとエラーになる。このエラーを避けるには、まず|:unlet|す
@@ -1991,8 +1991,8 @@ searchpairpos( {start}, {middle}, {end} [, {flags} [, {skip} [...]]])
 searchpos( {pattern} [, {flags} [, {stopline} [, {timeout}]]])
 				リスト	{pattern}を検索
 sendexpr( {handle}, {expr} [, {callback}])
-				任意	チャンネル{handle}にJSONの文字列{expr}
-					を送る
+				任意	チャンネル{handle}にJSONの式{expr}を送
+                                        る
 sendraw( {handle}, {string} [, {callback}])
 				任意	チャンネル{handle}にrawの文字列{string}
 					を送る
@@ -4498,8 +4498,7 @@ matchadd({group}, {pattern}[, {priority}[, {id} [, {dict}]]])
 		パターンは大文字小文字を区別し、magic (|/magic|) として解釈さ
 		れる ({pattern} の中で明示的に変更しない限り)。オプションの
 		'magic'、'smartcase'、'ignorecase' は使用されない。
-		The "Conceal" value is special, it causes the match to be
-		concealed.
+		Concealは特別であり、マッチを隠す作用がある。
 
 		省略可能な引数 {priority} はマッチの優先度を指定する。優先度が
 		高いマッチは、より低いマッチの強調を上書きする。優先度は整数で
@@ -4516,15 +4515,14 @@ matchadd({group}, {pattern}[, {priority}[, {id} [, {dict}]]])
 		指定されないか -1 のときは、|matchadd()| が自動的に空いている
 		ID を取得する。
 
-		The optional {dict} argument allows for further custom
-		values. Currently this is used to specify a match specific
-		conceal character that will be shown for |hl-Conceal|
-		highlighted matches. 
+		省略可能な引数 {dict} はより一層カスタマイズ可能な値を許す。
+                現在、これは|hl-Conceal|でハイライトされたマッチをconceal文字で
+                表示されるのを明示するために使われる。
 		この辞書は下記のメンバを持つことができる:
 
-			conceal	    Special character to show instead of the
-				    match (only for |hl-Conceal| highlighed
-				    matches, see |:syn-cchar|)
+			conceal	    マッチ(|hl-Conceal|のためだけにハイライトさ
+                                    れたマッチ、|:syn-cchar|を参照)の代わりに
+                                    表示する特別な文字
 
 		コマンド |:match| と異なり、マッチの個数に上限はない。
 
@@ -5217,7 +5215,7 @@ search({pattern} [, {flags} [, {stopline} [, {timeout}]]])	*search()*
 		's'	以前のカーソル位置をマーク ' に記録する
 		'w'	ファイルの末尾で循環する
 		'W'	ファイルの末尾で循環しない
-		'z'	start searching at the cursor column instead of zero
+!		'z'	start searching at the cursor column instead of zero
 		'w' と 'W' の両方とも指定されない場合は 'wrapscan' が適用され
 		る。
 
@@ -5226,12 +5224,13 @@ search({pattern} [, {flags} [, {stopline} [, {timeout}]]])	*search()*
 
 		'ignorecase', 'smartcase', 'magic' が適用される。
 
-		When the 'z' flag is not given, searching always starts in
-		column zero and then matches before the cursor are skipped.
-		When the 'c' flag is present in 'cpo' the next search starts
-		after the match.  Without the 'c' flag the next search starts
-		one column further.
-
+		フラグ 'z' が指定された場合、常に0列目から開始して検索する。
+                そして、カーソルの前にあるマッチはスキップされる。
+                'cpo'内に'c'フラグが存在する場合、次の検索はそのマッチの後から
+                始まる。
+                'cpo'内に'c'フラグが存在しない場合、次の検索はさらに1列分進ん
+                で始まる。
+                
 		引数{stopline}が指定されたときはこの行を検索した後で検索を停止
 		する。これは検索する行を制限するために有用である。例: >
 			let match = search('(', 'b', line("w0"))
@@ -5407,21 +5406,21 @@ searchpos({pattern} [, {flags} [, {stopline} [, {timeout}]]])	*searchpos()*
 		り、大文字|/\u|が見つかったとき3となる。
 
 sendexpr({handle}, {expr} [, {callback}])		*sendexpr()*
-		Send {expr} over JSON channel {handle}.  See |channel-use|.
+	        チャンネル{handle}にJSONの式{expr}を送る。|channel-use|を参照。
 
-		When {callback} is given returns immediately.  Without
-		{callback} waits for a JSON response and returns the decoded
-		expression.  When there is an error or timeout returns an
-		empty string.
+		{callback}が渡された場合、即座に返す。
+		{callback}が渡されない場合、JSONのレスポンスを待ち、そのデコー
+                ドされた式を返す。
+                エラーもしくはタイムアウトした場合、空の文字列を返す。
 
-		When {callback} is zero no response is expected.
-		Otherwise {callback} must be a Funcref or the name of a
-		function.  It is called when the response is received.  See
-		|channel-callback|.
+		{callback}が 0 の場合、レスポンスがないことを期待する。
+                それ以外の場合、{callback}はFuncrefもしくは関数名でなければな
+                らない。その関数はレスポンスを受信した時に呼ばれる。
+		|channel-callback|を参照。
 
 sendraw({handle}, {string} [, {callback}])		*sendraw()*
-		Send {string} over raw channel {handle}.  See |channel-raw|.
-		Works like |sendexpr()|, but does not decode the response.
+	        チャンネル{handle}にrawの文字列{string}を送る。|channel-raw|を参
+                照。|sendexpr()|のように動作するがレスポンスをデコードはしない。
 
 server2client( {clientid}, {string})			*server2client()*
 		{clientid}に返信文字列を送る。最後に文字列を送った{clientid}は
@@ -5917,9 +5916,9 @@ str2nr( {expr} [, {base}])				*str2nr()*
 		き、デフォルトの文字列・数値変換とは異なり、8進数とは解釈され
 		ない。
 		{base}が16のとき、文字列の先頭の "0x" と "0X" は無視される。そ
-		れ以外の底の場合は0となる。  Similarly, when
-		{base} is 8 a leading "0" is ignored, and when {base} is 2 a
-		leading "0b" or "0B" is ignored.
+		れ以外の底の場合は0となる。同様に、
+		{base}が8のとき、文字列の先頭の "0" は無視される。そして、
+		{base}が2のとき、文字列の先頭の "0b" と "0B" は無視される。
 		数値の後のテキストは暗黙に無視される。
 
 strchars({expr} [, {skipcc}])					*strchars()*
@@ -5931,8 +5930,8 @@ strchars({expr} [, {skipcc}])					*strchars()*
 		|strlen()|, |strdisplaywidth()|, |strwidth()| も参照。
 
 		
-		{skipcc} is only available after 7.4.755.  For backward
-		compatibility, you can define a wrapper function: >
+ 		{skipcc}は7.4.755以降でのみ有効である。それ以前では、ラッパー
+                関数を定義すればよい: >
 		    if has("patch-7.4.755")
 		      function s:strchars(str, skipcc)
 			return strchars(a:str, a:skipcc)
