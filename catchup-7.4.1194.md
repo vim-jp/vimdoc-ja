@@ -19,20 +19,9 @@
 
 以上は変更点が100行未満なので、翻訳しやすいはず。
 
-    doc/autocmd.jax
     doc/change.jax
-    doc/develop.jax
-    doc/editing.jax
-    doc/fold.jax
-    doc/hangulin.jax
     doc/if_lua.jax    # 100行超えたけど、内容的に大したことない
-    doc/if_mzsch.jax
-    doc/if_perl.jax
-    doc/if_pyth.jax
-    doc/if_ruby.jax
-    doc/if_tcl.jax
     doc/insert.jax
-    doc/map.jax
     doc/netbeans.jax
     doc/pattern.jax
     doc/quickref.jax
@@ -42,8 +31,8 @@
     doc/term.jax
     doc/usr_02.jax    # 行数は多いけど、まとまった書き換えで、楽そう
     doc/usr_03.jax
-    doc/usr_41.jax
     doc/various.jax
+    doc/pi_logipat.jax
 
 こっから先は100行超えるので、嫌。
 
@@ -55,15 +44,27 @@
 
 ### 完訳!
 
+    doc/autocmd.jax
     doc/cmdline.jax
+    doc/develop.jax
+    doc/editing.jax
     doc/filetype.jax
+    doc/fold.jax
+    doc/hangulin.jax
     doc/help.jax
+    doc/if_tcl.jax
+    doc/if_perl.jax
+    doc/if_pyth.jax
+    doc/if_ruby.jax
+    doc/if_mzsch.jax
     doc/index.jax
+    doc/map.jax
     doc/mlang.jax
     doc/os_os2.jax
     doc/quickfix.jax
     doc/usr_29.jax
     doc/usr_43.jax
+    doc/usr_41.jax
     doc/vi_diff.jax
 
 ### その他/深い事情があって断念したもの
