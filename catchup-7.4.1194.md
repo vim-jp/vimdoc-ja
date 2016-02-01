@@ -19,7 +19,6 @@
 
 以上は変更点が100行未満なので、翻訳しやすいはず。
 
-    doc/change.jax
     doc/if_lua.jax    # 100行超えたけど、内容的に大したことない
     doc/insert.jax
     doc/netbeans.jax
@@ -41,6 +40,7 @@
 ### 完訳!
 
     doc/autocmd.jax
+    doc/change.jax
     doc/cmdline.jax
     doc/develop.jax
     doc/editing.jax
