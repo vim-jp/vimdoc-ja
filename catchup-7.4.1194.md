@@ -21,7 +21,6 @@
 
     doc/change.jax
     doc/if_lua.jax    # 100行超えたけど、内容的に大したことない
-    doc/insert.jax
     doc/netbeans.jax
     doc/repeat.jax
     doc/spell.jax
@@ -54,6 +53,7 @@
     doc/if_ruby.jax
     doc/if_tcl.jax
     doc/index.jax
+    doc/insert.jax
     doc/map.jax
     doc/mlang.jax
     doc/os_os2.jax
