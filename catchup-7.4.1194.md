@@ -23,7 +23,6 @@
     doc/if_lua.jax    # 100行超えたけど、内容的に大したことない
     doc/insert.jax
     doc/netbeans.jax
-    doc/repeat.jax
     doc/spell.jax
     doc/tagsrch.jax
     doc/term.jax
@@ -61,6 +60,7 @@
     doc/pi_logipat.jax
     doc/quickfix.jax
     doc/quickref.jax
+    doc/repeat.jax
     doc/usr_03.jax
     doc/usr_29.jax
     doc/usr_41.jax
