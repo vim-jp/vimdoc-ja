@@ -20,7 +20,6 @@
 以上は変更点が100行未満なので、翻訳しやすいはず。
 
     doc/if_lua.jax    # 100行超えたけど、内容的に大したことない
-    doc/insert.jax
     doc/netbeans.jax
     doc/spell.jax
     doc/tagsrch.jax
@@ -53,6 +52,7 @@
     doc/if_ruby.jax
     doc/if_tcl.jax
     doc/index.jax
+    doc/insert.jax
     doc/map.jax
     doc/mlang.jax
     doc/os_os2.jax
