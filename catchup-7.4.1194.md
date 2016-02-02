@@ -19,7 +19,6 @@
 
 以上は変更点が100行未満なので、翻訳しやすいはず。
 
-    doc/if_lua.jax    # 100行超えたけど、内容的に大したことない
     doc/netbeans.jax
     doc/spell.jax
     doc/tagsrch.jax
@@ -44,6 +43,7 @@
     doc/fold.jax
     doc/hangulin.jax
     doc/help.jax
+    doc/if_lua.jax    # 100行超えたけど、内容的に大したことない
     doc/if_mzsch.jax
     doc/if_perl.jax
     doc/if_pyth.jax
