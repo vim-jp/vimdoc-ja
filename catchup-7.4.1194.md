@@ -29,7 +29,6 @@
 
 こっから先は100行超えるので、嫌。
 
-    doc/eval.jax
     doc/options.jax
     doc/pi_netrw.jax  # 地獄
     doc/syntax.jax
@@ -42,6 +41,7 @@
     doc/cmdline.jax
     doc/develop.jax
     doc/editing.jax
+    doc/eval.jax
     doc/filetype.jax
     doc/fold.jax
     doc/hangulin.jax
