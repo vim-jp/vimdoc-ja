@@ -23,7 +23,6 @@
     doc/netbeans.jax
     doc/spell.jax
     doc/tagsrch.jax
-    doc/term.jax
     doc/usr_02.jax    # 行数は多いけど、まとまった書き換えで、楽そう
     doc/various.jax
 
@@ -61,6 +60,7 @@
     doc/quickfix.jax
     doc/quickref.jax
     doc/repeat.jax
+    doc/term.jax
     doc/usr_03.jax
     doc/usr_29.jax
     doc/usr_41.jax
