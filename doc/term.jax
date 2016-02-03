@@ -283,8 +283,8 @@ termcap コードに対応するオプションを設定することによって
 								*t_xs* *'t_xs'*
 	t_xs	空でない場合は強調が上書きによって消されない(hpterm)
 								*t_xn* *'t_xn'*
-	t_xn	if non-empty, writing a character at the last screen cell
-		does not cause scrolling
+	t_xn	空ではない場合、画面の右端のセルに書いた文字はスクロールを
+		発生させない
 	t_ZH	斜体モード					*t_ZH* *'t_ZH'*
 	t_ZR	斜体終了					*t_ZR* *'t_ZR'*
 
@@ -294,15 +294,15 @@ Vim 独自のもの (標準的なコードはないもの):
 	t_WP	ウィンドウ位置 (Y, X) をピクセルで指定		*t_WP* *'t_WP'*
 	t_WS	ウィンドウサイズ (height, width) を文字数で指定	*t_WS* *'t_WS'*
 	t_SI	挿入モード開始 (バー型のカーソル)		*t_SI* *'t_SI'*
-	t_SR	start replace mode (underline cursor shape)	*t_SR* *'t_SR'*
+	t_SR	置換モードの開始 (下線型のカーソル)		*t_SR* *'t_SR'*
 	t_EI	挿入または置換モード終了(ブロック型カーソル)	*t_EI* *'t_EI'*
 		|termcap-cursor-shape|
 	t_RV	端末バージョン文字列を要求 (xterm 用)		*t_RV* *'t_RV'*
 		|xterm-8bit| |v:termresponse| |'ttymouse'| |xterm-codes|
 	t_u7	カーソル位置を要求 (xterm 用)			*t_u7* *'t_u7'*
-		|'ambiwidth'| 参照。
-	t_RB	request terminal background color		*t_RB* *'t_RB'*
-		see |'ambiwidth'|
+		|'ambiwidth'| 参照
+	t_RB	端末の背景色を要求				*t_RB* *'t_RB'*
+		|'ambiwidth'| 参照
 
 キーコード
 Note: 可能なかぎり <> 形式を使ってください。
@@ -443,18 +443,13 @@ allow-window-pos にチェックが入っているはずです。
 ます。
 
 				*termcap-cursor-shape* *termcap-cursor-color*
-When Vim enters Insert mode the 't_SI' escape sequence is sent.  When Vim
-enters Replace mode the 't_SR' escape sequence is sent if it is set, otherwise
-'t_SI' is sent.  When leaving Insert mode or Replace mode 't_EI' is used. This
-can be used to change the shape or color of the cursor in Insert or Replace
-mode. These are not standard termcap/terminfo entries, you need to set them
-yourself.
-{参考用の旧訳:
-挿入モードに入るとき、エスケープシーケンス 't_SI' が送られます。挿入モードを抜
-けるときは 't_EI' が送られます。ただし、両方が定義されているときのみです。これ
-を利用して、挿入モードにおけるカーソルの形や色を変えることができます。これらは
-標準的な termcap/terminfo エントリではないので、自分で設定する必要があります。
-:旧訳ここまで}
+Vimが挿入モードに入るときにはエスケープシーケンス 't_SI' が送られます。置換モ
+ードに入るときにはエスケープシーケンス 't_SR' が設定されていれば送られます。設
+定されていない場合には 't_SI' が送られます。挿入モード及び置換モードを抜けると
+きには 't_EI' が送られます。これらは挿入や置換モードにおいてカーソルの形や色を
+変えるのに利用できます。またこれらは標準的な termcap/terminfo エントリではない
+ので、自分で設定する必要があります。
+
 以下は xterm でカーソルの色を変える例です: >
     if &term =~ "xterm"
 	let &t_SI = "\<Esc>]12;purple\x7"
