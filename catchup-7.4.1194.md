@@ -24,7 +24,6 @@
     doc/spell.jax
     doc/tagsrch.jax
     doc/usr_02.jax    # 行数は多いけど、まとまった書き換えで、楽そう
-    doc/various.jax
 
 こっから先は100行超えるので、嫌。
 
@@ -65,6 +64,7 @@
     doc/usr_29.jax
     doc/usr_41.jax
     doc/usr_43.jax
+    doc/various.jax
     doc/vi_diff.jax
 
 ### その他/深い事情があって断念したもの
