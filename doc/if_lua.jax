@@ -10,11 +10,11 @@ Vim の Lua インターフェイス				*lua* *Lua*
 2. vim モジュール		|lua-vim|
 3. List ユーザーデータ		|lua-list|
 4. Dict ユーザーデータ		|lua-dict|
-5. Funcref userdata		|lua-funcref|
+5. Funcref ユーザーデータ	|lua-funcref|
 6. バッファユーザーデータ	|lua-buffer|
 7. ウィンドウユーザーデータ	|lua-window|
 8. luaeval 関数			|lua-luaeval|
-9. Dynamic loading		|lua-dynamic|
+9. 動的ローディング		|lua-dynamic|
 
 {Vi にはこれらのコマンドはありません}
 
@@ -112,31 +112,31 @@ Lua からは "vim" モジュールを使って Vim を操作します。範囲�
 バッファ操作、ウィンドウ操作、現在行の取得、Vim 式評価、Vim コマンド実行、など
 のルーチンが含まれています。
 
-	vim.list([arg])		Returns an empty list or, if "arg" is a Lua
-				table with numeric keys 1, ..., n (a
-				"sequence"), returns a list l such that l[i] =
-				arg[i] for i = 1, ..., n (see |List|).
-				Non-numeric keys are not used to initialize
-				the list. See also |lua-eval| for conversion
-				rules. Example: >
+	vim.list([arg])		"arg" が 1, ..., n の数値をキーに持つ Lua のテ
+				ーブルの時、i = 1, ..., n に対して l[i] =
+				arg[i] となるようなリスト l を返し (|List| を参照
+				) 、そうでなければ空のリストを返します。
+				数値以外のキーは戻り値のリストの初期化に使われ
+				ません。変換のルールについては |lua-eval| を参照
+				してください。例: >
 					:lua t = {math.pi, false, say = 'hi'}
 					:echo luaeval('vim.list(t)')
 					:" [3.141593, 0], 'say' is ignored
 <
-	vim.dict([arg])		Returns an empty dictionary or, if "arg" is a
-				Lua table, returns a dict d such that d[k] =
-				arg[k] for all string keys k in "arg" (see
-				|Dictionary|). Number keys are converted to
-				strings. Keys that are not strings are not
-				used to initialize the dictionary. See also
-				|lua-eval| for conversion rules. Example: >
+	vim.dict([arg])		"arg" が Lua のテーブルの時、"arg" のそれぞれの
+				キー k に対して d[k] = arg[k] となるような辞書
+				を返し (|Dictionary| を参照) 、そうでなければ空の
+				辞書を返します。数値のキーは文字列に変換されま
+				す。文字列以外のキーは戻り値の辞書の初期化に使
+				使われません。変換のルールについては |lua-eval|
+				を参照してください。例: >
 					:lua t = {math.pi, false, say = 'hi'}
 					:echo luaeval('vim.dict(t)')
 					:" {'say': 'hi'}, numeric keys ignored
 <
-	vim.funcref({name})	Returns a Funcref to function {name} (see
-				|Funcref|). It is equivalent to Vim's
-				"function". NOT IMPLEMENTED YET
+	vim.funcref({name})	関数 {name} への関数参照を返します (|Funcref|
+				を参照) 。その値は Vim の "function" と等価で
+				す。 まだ実装されていません。
 
 	vim.buffer([arg])	"arg" が数値ならバッファリストの "arg" 番の
 				バッファを返す。"arg" が文字列ならフルパスか
@@ -250,19 +250,19 @@ list ユーザーデータと同様、dict ユーザーデータは vim の辞�
 <
 
 ==============================================================================
-5. Funcref userdata					*lua-funcref*
+5. Funcref ユーザーデータ				*lua-funcref*
 
-Funcref userdata represent funcref variables in Vim. Funcrefs that were
-defined with a "dict" attribute need to be obtained as a dictionary key
-in order to have "self" properly assigned to the dictionary (see examples
-below.) A funcref "f" has the following properties:
+Funcref ユーザデータは Vim における関数参照変数を表します。"dict" 属性付きで定
+義された Vim の関数参照 はその呼び出し時に "self" に適切に辞書が代入できるよう
+に、辞書のメンバーとして取得できなければなりません (下記の例を参照してください
+) 。Lua の関数参照 "f" は次のプロパティを持っています:
 
-Properties
+プロパティ
 ----------
-	o "#f" is the name of the function referenced by "f"
-	o "f(...)" calls the function referenced by "f" (with arguments)
+	o "#f" は "f" が参照している関数の名前です
+	o "f(...)" は "f" が参照している関数を (引数と共に) 呼びます
 
-Examples:
+例:
 >
 	:function I(x)
 	:  return a:x
@@ -378,11 +378,10 @@ Lua コードと同じです:
 	    return chunk(arg) -- return typval
 	end
 <
-Note "_A" には "luaeval" の引数が渡されます。  Lua numbers, strings, and
-list, dict, and funcref userdata are converted to their Vim respective types,
-while Lua booleans are converted to numbers. An error is thrown if conversion
-of any of the remaining Lua types, including userdata other than lists, dicts,
-and funcrefs, is attempted.
+Note "_A" には "luaeval" の引数が渡されます。Lua の数値、文字列、リスト、辞書
+そして Funcref ユーザーデータはそれぞれの Vim の型に変換されます。ただし、Lua
+のブール値は数値に変換されます。リスト、辞書および関数参照以外のユーザーデータ
+を含む、それ以外の Lua の型を変換しようとするとエラーが返されます。
 
 例: >
 
@@ -397,22 +396,23 @@ and funcrefs, is attempted.
 
 
 ==============================================================================
-9. Dynamic loading				    *lua-dynamic*
+9. 動的ローディング					*lua-dynamic*
 
-On MS-Windows and Unix the Lua library can be loaded dynamically.  The
-|:version| output then includes |+lua/dyn|.
+MS-Windows と Unix では Lua ライブラリを動的にロードすることができます。
+|+lua/dyn| が |:version| の出力に含まれている時に利用できます。
 
-This means that Vim will search for the Lua DLL or shared library file only
-when needed.  When you don't use the Lua interface you don't need it, thus
-you can use Vim without this file.
+これにより、Vim は必要な時だけ Lua DLL もしくは共有ライブラリを検索します。
+もしあなたが Lua インターフェイスを必要としておらず使わなければ Lua DLL もしく
+は共有ライブラリ無しで Vim を使うことができます。
 
-On MS-Windows to use the Lua interface the Lua DLL must be in your search path.
-In a console window type "path" to see what directories are used.  The version
-of the DLL must match the Lua version Vim was compiled with.
+MS-Windows で Lua インターフェイスを利用するには Lua DLL が検索パス内になければ
+なりません。コンソールウィンドウ内で "path" と入力し、どのディレクトリが使われ
+ているかを確認してください。DLL のバージョンは Vim と共にコンパイルされた Lua
+のバージョンと一致していなければなりません。
 
-On Unix the 'luadll' option can be used to specify the Lua shared library file
-instead of DYNAMIC_LUA_DLL file what was specified at compile time.  The
-version of the shared library must match the Lua version Vim was compiled with.
+Unix ではコンパイル時に指定された DYNAMIC_LUA_DLL ファイルの代わりに 'luadll'
+オプションで Lua 共有ライブラリを指定できます。共有ライブラリのバージョンは
+Vim と共にコンパイルされた Lua のバージョンと一致していなければなりません。
 
 
 ==============================================================================
