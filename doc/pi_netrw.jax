@@ -2395,7 +2395,7 @@ netrw によって url が開かれ、タグに移動できます。
 
 "mu" マップを使うと現在設定されているすべてのマークが解除されます。
 このコマンドは "mF" とは異なる。"mu" はすべてのグローバルマークファイル
-リストとバッファーローカルマークファイルリストを解除するのに対し、
+リストとバッファローカルマークファイルリストを解除するのに対し、
 "mF" はカレントディレクトリのファイルの選択のみを解除する (|netrw-mF|参照)。
 
 
@@ -3104,47 +3104,47 @@ netrw ウィンドウ/エクスプローラーウインドウを拡大・縮小�
 
 ユーザー定義のマッピング				*netrw-usermaps* {{{1
 
-One may make customized user maps.  Specify a variable, |g:Netrw_UserMaps|,
-to hold a |List| of lists of keymap strings and function names: >
+ユーザーはユーザー定義のマップを作成することができます。
+キーマップの文字列と関数名の |List| を保持する|g:Netrw_UserMaps| を
+指定してください: >
 
 	[["keymap-sequence","ExampleUserMapFunc"],...]
 <
-When netrw is setting up maps for a netrw buffer, if |g:Netrw_UserMaps|
-exists, then the internal function netrw#UserMaps(islocal) is called.
-This function goes through all the entries in the |g:Netrw_UserMaps| list:
+netrw が netrw バッファ用のマップを設定する時、もし |g:Netrw_UserMaps|
+が存在するなら、内部関数 netrw#UserMaps(islocal) が呼ばれます。
+この関数は |g:Netrw_UserMaps| のすべての要素を走査します:
 
-	* sets up maps: >
+	* マップを設定します: >
 		nno <buffer> <silent> KEYMAP-SEQUENCE
 		:call s:UserMaps(islocal,"ExampleUserMapFunc")
-<	* refreshes if result from that function call is the string
-	  "refresh"
-	* if the result string is not "", then that string will be
-	  executed (:exe result)
-	* if the result is a List, then the above two actions on results
-	  will be taken for every string in the result List
+<	* その関数からの返り値が文字列の "refresh" ならリフレッシュします。
+	* もしその返り値の文字列が "" ではない場合、その文字列は
+	  実行されます (:exe 返り値)
+	* もし返り値が List なら、上記の結果に対する2つのアクションは
+	  List の中のすべての文字列に行われます。
 
-The user function is passed one argument; it resembles >
+ユーザー関数には1つの引数が渡されます。以下のように >
 
 	fun! ExampleUserMapFunc(islocal)
 <
-where a:islocal is 1 if its a local-directory system call or 0 when
-remote-directory system call.
+もしそれがローカルディレクトリの呼び出しなら a:islocal は 1、
+もしそれがリモートディレクトリの呼び出しなら a:islocal は 0 になります。
 
-Use netrw#Expose("varname")          to access netrw-internal (script-local)
-				     variables.
-Use netrw#Modify("varname",newvalue) to change netrw-internal variables.
-Use netrw#Call("funcname"[,args])    to call a netrw-internal function with
-				     specified arguments.
+netrw#Expose("varname")              netrw の (スクリプトローカルな)
+				     内部変数にアクセスできます。
+netrw#Modify("varname",newvalue)     netrw の内部変数を変更できます。
+netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
+				     呼び出すことができます。
 
-Example: Get a copy of netrw's marked file list: >
+例: netrw のマークファイルリストのコピーを取得します: >
 
 	let netrwmarkfilelist= netrw#Expose("netrwmarkfilelist")
 <
-Example: Modify the value of netrw's marked file list: >
+例: netrw のマークファイルリストの値を変更します: >
 
 	call netrw#Modify("netrwmarkfilelist",[])
 <
-Example: Clear netrw's marked file list via a mapping on gu >
+例: netrw のマークファイルリストを gu マッピング経由でクリアします: >
     " ExampleUserMap: {{{2
     fun! ExampleUserMap(islocal)
       call netrw#Modify("netrwmarkfilelist",[])
@@ -3349,13 +3349,13 @@ Example: Clear netrw's marked file list via a mapping on gu >
 	P11. ウィンドウを二分割して、左の細いウィンドウをブラウザ表示に、右の
 	     ウィンドウをファイル編集用にしたいんだけど、どうすればいいの？
 
-	     You probably want netrw running as in a side window.  If so, you
-	     will likely find that ":[N]Lexplore" does what you want.  The
-	     optional "[N]" allows you to select the quantity of columns you
-	     wish the |:Lexplore|r window to start with (see |g:netrw_winsize|
-	     for how this parameter works).
+	     おそらく netrw を横のウィンドウで表示させたいのではないでしょう
+	     か。もしそうなら、 ":[N]Lexplore" が目的のものかと思います。
+	     省略可能な "[N]" で :Lexplorer ウィンドウの起動時の幅を
+	     指定することができます (設定値については |g:netrw_winsize|
+	     を参照)。
 
-	     Previous solution:
+	     以前の解決法:
 
 		* <.vimrc> に次の設定を書く:
 			let g:netrw_altv = 1
@@ -3450,76 +3450,84 @@ Example: Clear netrw's marked file list via a mapping on gu >
 	     ください。
 
 								*netrw-p17*
-	P17. Netrw is closing buffers on its own.
-	     What steps will reproduce the problem?
-		1. :Explore, navigate directories, open a file
-		2. :Explore, open another file
-		3. Buffer opened in step 1 will be closed. o
-	    What is the expected output? What do you see instead?
-		I expect both buffers to exist, but only the last one does.
+	P17. Netrw が自身のバッファを閉じてしまう。
+	     どうやって問題を再現させればいいの？
+		1. :Explore する、ディレクトリを歩く、ファイルを開く
+		2. :Explore する、別のファイルを開く
+		3. ステップ1で開いたバッファが閉じる
+	    期待される出力は何ですか？
+	    あなたの環境では何が表示されますか？
+		私は両方のバッファが存在していて欲しいけど、
+		実際は最後のバッファだけが残る。
 
-	   (Lance) Problem is caused by "set autochdir" in .vimrc.
-	   (drchip) I am able to duplicate this problem with |'acd'| set.
-	            It appears that the buffers are not exactly closed;
-		    a ":ls!" will show them (although ":ls" does not).
+	   (Lance) .vimrc に書かれた "set autochdir" が原因だ。
+	   (drchip) |'acd'| オプションをセットすると再現できた。
+	            バッファが正しく閉じられていないように見える。
+		    ":ls!" すると閉じられていないバッファが表示される
+		    (":ls" では表示されない)。
 
 								*netrw-P18*
-	P18. How to locally edit a file that's only available via
-	     another server accessible via ssh?
-	     See http://stackoverflow.com/questions/12469645/
+	P18. ssh でのみ到達可能なサーバー上のファイルを
+	     ローカルで編集するにはどうしたらいいの？
+	     http://stackoverflow.com/questions/12469645/ 参照。
 	     "Using Vim to Remotely Edit A File on ServerB Only
 	      Accessible From ServerA"
 
 								*netrw-P19*
-	P19. How do I get numbering on in directory listings?
-		With |g:netrw_bufsettings|, you can control netrw's buffer
-		settings; try putting >
+	P19. ディレクトリのファイル一覧表示の際に行番号を表示するには
+	     どうしたらいいの？
+		|g:netrw_bufsettings| によって netrw バッファの設定を
+		制御できる。次を .vimrc に書いてみて欲しい。 >
 		  let g:netrw_bufsettings="noma nomod nu nobl nowrap ro nornu"
-<		in your .vimrc.  If you'd like to have relative numbering
-		instead, try >
+<		もし相対的な行番号を表示したかったら代わりにこれを
+		試して欲しい。 >
 		  let g:netrw_bufsettings="noma nomod nonu nobl nowrap ro rnu"
 <
 								*netrw-P20*
-	P20. How may I have gvim start up showing a directory listing?
-		Try putting the following code snippet into your .vimrc: >
+	P20. ディレクトリのファイル一覧を表示して gvim を起動できますか？
+		次のコードを .vimrc に書いてみて欲しい: >
 		    augroup VimStartup
 		      au!
 		      au VimEnter * if expand("%") == "" && argc() == 0 &&
 		      \ (v:servername =~ 'GVIM\d*' || v:servername == "")
 		      \ | e . | endif
 		    augroup END
-<		You may use Lexplore instead of "e" if you're so inclined.
-		This snippet assumes that you have client-server enabled
-		(ie. a "huge" vim version).
+<		その気があれば "e" の代わりに Lexplore を使うこともできる。
+		このコードは client-server を有効化しているのを仮定している
+		(例えば "huge" バージョンのvim)。
 
 								*netrw-P21*
-	P21. I've made a directory (or file) with an accented character, but
-		netrw isn't letting me enter that directory/read that file:
+	P21. アクセント記号付き文字を含んだディレクトリ (またはファイル)
+		を作成したけど、 netrw でそのディレクトリに入ったり、
+		そのファイルを読み込んだりできません:
 
-		Its likely that the shell or o/s is using a different encoding
-		than you have vim (netrw) using.  A patch to vim supporting
-		"systemencoding" may address this issue in the future; for
-		now, just have netrw use the proper encoding.  For example: >
+		おそらくあなたのシェルかo/sが、あなたのvimが使っている
+		エンコーディングと異なるエンコーディングを使っていることが
+		原因ではないでしょうか。 将来 vim に "systemencoding" を
+		サポートさせるパッチがこれを解決してくれるのではないで
+		しょうか。今は netrw に適切なエンコーディングを使わせて
+		ください。例えば: >
 
 			au FileType netrw set enc=latin1
 <
 								*netrw-P22*
-	P22. I get an error message when I try to copy or move a file:
+	P22. ファイルをコピーもしくは移動させようとするとエラーが出ます:
 
 		**error** (netrw) tried using g:netrw_localcopycmd<cp>; it doesn't work!
 
-	     What's wrong?
+	     何がおかしいの？
 
-	     Netrw uses several system level commands to do things (see
-
+	     Netrw はコピーや移動を行うためにいくつかのシステム用コマンドを
+	     持っています (次を参照
 		 |g:netrw_localcopycmd|, |g:netrw_localmovecmd|,
-		 |g:netrw_localrmdir|, |g:netrw_mkdir_cmd|).
+		 |g:netrw_localrmdir|, |g:netrw_mkdir_cmd|)。
 
-	    You may need to adjust the default commands for one or more of
-	    these commands by setting them properly in your .vimrc.  Another
-	    source of difficulty is that these commands use vim's local
-	    directory, which may not be the same as the browsing directory
-	    shown by netrw (see |g:netrw_keepdir|).
+	    もしかしたら .vimrc でそれらを適切に設定して、
+	    デフォルトのコマンドを1つかそれ以上調整する必要が
+	    あるかもしれません。また違う面で難しいのは
+	    これらのコマンドは vim のローカルディレクトリを使用します。
+	    それは netrw でブラウズしているディレクトリとは同じでは
+	    ないかもしれません (|g:netrw_keepdir| 参照)。
 
 
 ==============================================================================
