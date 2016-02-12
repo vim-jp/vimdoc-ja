@@ -1,5 +1,7 @@
 # vimdoc-ja
 
+[![Build Status](https://travis-ci.org/vim-jp/vimdoc-ja.svg?branch=devel)](https://travis-ci.org/vim-jp/vimdoc-ja)
+
 Vimの付属ドキュメントを日本語に翻訳するためのプロジェクト
 
 間違いを見つけたらメーリングリストかissueトラッカーでお知らせください。
