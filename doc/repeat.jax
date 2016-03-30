@@ -1,4 +1,4 @@
-*repeat.txt*    For Vim バージョン 7.4.  Last change: 2016 Jan 16
+*repeat.txt*    For Vim バージョン 7.4.  Last change: 2016 Mar 15
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -8,12 +8,13 @@
 
 繰り返しについてはユーザーマニュアルの26章|usr_26.txt|に紹介がある。
 
-1. 単発繰り返し		|single-repeat|
-2. 多重繰り返し		|multi-repeat|
-3. 複雑な繰り返し	|complex-repeat|
-4. Vimスクリプトを使う	|using-scripts|
-5. スクリプトのデバッグ	|debug-scripts|
-6. プロファイリング	|profiling|
+1. 単発繰り返し			|single-repeat|
+2. 多重繰り返し			|multi-repeat|
+3. 複雑な繰り返し		|complex-repeat|
+4. Vimスクリプトを使う		|using-scripts|
+5. Vimスクリプトのパッケージ	|packages|
+6. スクリプトのデバッグ		|debug-scripts|
+7. プロファイリング		|profiling|
 
 ==============================================================================
 1. 単発繰り返し						*single-repeat*
@@ -181,10 +182,12 @@ Vimスクリプトの書き方はユーザーマニュアルの41章|usr_41.txt|
 			{Vi にはない}
 
 							*:ru* *:runtime*
-:ru[ntime][!] {file} ..
-			'runtimepath' で示された各ディレクトリの{file}からExコ
-			マンドを読み込む。ファイルがなくてもエラーにはならな
-			い。例: >
+:ru[ntime][!] [where] {file} ..
+			'runtimepath' か 'packpath' で示された各ディレクトリの
+			{file}からExコマンドを読み込む。ファイルがなくてもエラ
+			ーにはならない。
+			
+			例: >
 				:runtime syntax/c.vim
 
 <			{file}には空白で区切って複数のファイルを指定できる。指
@@ -195,6 +198,18 @@ Vimスクリプトの書き方はユーザーマニュアルの41章|usr_41.txt|
 
 			[!] を付けると見つかった全てのファイルを読み込む。付け
 			なければ最初に見つかったファイルだけを読み込む。
+
+			[where] が省略された場合は 'runtimepath' が使われる。
+			他の値は以下の通り:
+				START	'packpath' の"start"ディレクトリ以下を
+					検索する
+				OPT	'packpath' の"opt"ディレクトリ以下を
+					検索する
+				PACK	'packpath' の"start"と"opt"ディレクトリ
+					以下を検索する
+				ALL	まず'runtimepath'が使われ、次に
+					'packpath' の"start"と"opt"ディレクトリ
+					以下を検索する
 
 			{file}がワイルドカードを含んでいるとそれは展開される。
 			例: >
@@ -209,6 +224,45 @@ Vimスクリプトの書き方はユーザーマニュアルの41章|usr_41.txt|
 			'verbose' が2以上なら見つかった全てのファイルについて
 			メッセージが表示される。
 			{Vi にはない}
+
+							*:pa* *:packadd* *E919*
+:pa[ckadd][!] {name}	'packpath' 中の任意のプラグインディレクトリを検索し、
+			見つかったプラグインのファイルを読み込みます。ディレク
+			トリは以下にマッチしなければなりません:
+				pack/*/opt/{name} ~
+			見つかったディレクトリは、もし含まれていなければ
+			'runtimepath' に追加されます。
+
+			Note {name} はディレクトリの名前です。.vimファイルの
+			名前ではありません。もし "{name}/plugin" ディレクトリが
+			1つより多くのファイルを含むなら全て読み込まれます。
+
+			もしファイルタイプの検知が有効化されていない場合(これは
+			通常.vimrc中の "syntax enable" か "filetype on" コマン
+			ドにより行われます)、"{name}/ftdetect/*.vim" ファイルを
+			参照します。
+
+			任意の ! が付けられた場合、プラグインのファイルや
+			ftdetectのスクリプトは読み込まれず、マッチしたディレク
+			トリのみ 'runtimepath' に追加されます。これは.vimrcに書
+			く場合は便利です。追加されたプラグインは初期化時に読み
+			込まれます。|load-plugins|を参照してください。また
+			|pack-add|も参照してください。
+
+						*:packl* *:packloadall*
+:packloadall[!]		'packpath' 以下の"start"ディレクトリ中の全パッケージを
+			読み込みます。見つかったディレクトリは 'runtimepath' に
+			追加されます。これは通常起動時に.vimrcが読み込まれた後
+			に自動的に行われます。このコマンドはそれよりも前に行う
+			ことができます。
+			パッケージの読み込みは一度だけ行われます。よってこのコ
+			マンドを実行した後に読み込みは行われません。任意の ! が
+			付けられた場合はすでに読み込みが行われていてもパッケー
+			ジを読み込みます。
+			(スクリプトを読み込む際の)エラーは読み込んでいるスクリ
+			プトの読み込みのみを中止させます。その他のプラグインは
+			読み込まれます。
+			|packages|を参照してください。
 
 :scripte[ncoding] [encoding]		*:scripte* *:scriptencoding* *E167*
 			スクリプトで使われている文字コードを宣言する。
@@ -376,7 +430,94 @@ Note 関数の中でその手のコマンドを実行するには、関数定義
 <	従って一般的ではないが行頭のバックスラッシュを採用している。
 
 ==============================================================================
-5. スクリプトのデバッグ					*debug-scripts*
+5. Vimスクリプトのパッケージ				*packages*
+
+Vimスクリプトのパッケージは1つかそれ以上のプラグインを含むディレクトリです。
+通常のプラグインと比べた長所は以下の通りです:
+- パッケージは圧縮ファイルとしてダウンロードでき、独自のディレクトリに展開され
+  ます。よってそのファイルは他のプラグインと混在することがありません。これは更
+  新と削除を簡素化します。
+- パッケージには git, mercurial などのリポジトリも使用可能です。これはとても更
+  新を簡素化します。
+- パッケージはお互いに依存する複数のプラグインを含むことができます。
+- パッケージは起動時に自動的に読み込まれるプラグインと、必要になった時のみ
+  `:packadd`により読み込まれるプラグインを含むことができます。
+
+
+パッケージの使用と自動読み込み ~
+
+あなたの Vim 関連のファイルは "~/.vim/" にあるとします。
+さらにZIP圧縮ファイル "/tmp/foopack.zip" からパッケージを追加したい場合は以下
+の通りです:
+	% mkdir -p ~/.vim/pack/foo
+	% cd ~/.vim/pack/foo
+	% unzip /tmp/foopack.zip
+
+"foo" というディレクトリ名は任意です。あなたのお好きな名前を付けてください。
+
+今あなたの ~/.vim の下に以下のファイルがあるはずです:
+	pack/foo/README.txt
+	pack/foo/start/foobar/plugin/foo.vim
+	pack/foo/start/foobar/syntax/some.vim
+	pack/foo/opt/foodebug/plugin/debugger.vim
+
+Vim が起動した時、.vimrcを処理した後、'packpath' に含まれる "pack/*/start" ディ
+レクトリの下の全てのディレクトリをスキャンして読み込みます。そのディレクトリは
+'runtimepath' に追加されます。
+
+上記の例では "pack/foo/start/foobar/plugin/foo.vim" を見つけて
+"~/.vim/pack/foo/start/foobar" を 'runtimepath' に追加します。
+
+もし "foobar" プラグインが作動し 'filetype' を "some" にセットした場合、
+'runtimepath' に含まれているため、Vim は上記の syntax/some.vim ファイルを見つけ
+ます。
+
+もし存在するなら、Vim は ftdetect ファイルもロードします。
+
+Note "pack/foo/opt" 以下のファイルは自動的に読み込まれず、"pack/foo/start"
+以下のファイルのみ読み込まれることに注意してください。"opt"ディレクトリがどの
+ように使われるかについては下記の|pack-add|を参照してください。
+
+パッケージの自動読み込みはプラグインの読み込みを無効化している場合は起こりませ
+ん。|load-plugins|を参照してください。
+
+'runtimepath' を更新するためにパッケージを読み込むには: >
+	:packloadall
+これはプラグインの読み込みを無効化していても効果があります。自動読み込みは一度
+だけ行われます。
+
+
+Using a single plugin and loading it automatically ~
+
+If you don't have a package but a single plugin, you need to create the extra
+directory level:
+	% mkdir -p ~/.vim/pack/foo/start/foobar
+	% cd ~/.vim/pack/foo/start/foobar
+	% unzip /tmp/someplugin.zip
+
+You would now have these files:
+	pack/foo/start/foobar/plugin/foo.vim
+	pack/foo/start/foobar/syntax/some.vim
+
+From here it works like above.
+
+
+任意のプラグイン ~
+							*pack-add*
+上記の pack ディレクトリから任意のプラグインをロードするには`:packadd`コマンドを
+使います: >
+	:packadd foodebug
+これは 'packpath' の "pack/*/opt/foodebug" から
+~/.vim/pack/foo/opt/foodebug/plugin/debugger.vim を見つけ読み込みます。
+
+This could be done inside always.vim, if some conditions are met.  Or you
+could add this command to your |.vimrc|.
+
+もしパッケージが "opt" ディレクトリしか持たなかったとしても一向に構いません。
+もしあなたがそれを使いたければ(明示的に)読み込む必要があります。
+
+==============================================================================
+6. スクリプトのデバッグ					*debug-scripts*
 
 スクリプトの動作を知るためのコードを追加することができるのは当り前として、Vim
 はデバッグモードを提供している。これはスクリプトファイルやユーザーファンクショ
@@ -597,7 +738,7 @@ Note 関数はまず読み込まれ、後で実行される。読み込まれた
 		使わず、ユーザーから直接デバッグモードコマンドを受け取る。
 
 ==============================================================================
-6. プロファイリング					*profile* *profiling*
+7. プロファイリング					*profile* *profiling*
 
 プロファイリングとは、関数やスクリプトの実行にかかる時間を計測することである。
 これを行うには |+profile| 機能が必要である。
