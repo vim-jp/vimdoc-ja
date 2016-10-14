@@ -1,4 +1,4 @@
-*index.txt*     For Vim バージョン 8.0.  Last change: 2016 Feb 27
+*index.txt*     For Vim バージョン 8.0.  Last change: 2016 Aug 27
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -50,6 +50,7 @@ Vim変数の一覧は|vim-variable|を参照。
 |i_CTRL-G_k|	CTRL-G k	上の行へ移動。カーソルは挿入開始位置と同じ列へ
 |i_CTRL-G_k|	CTRL-G <Up>	上の行へ移動。カーソルは挿入開始位置と同じ列へ
 |i_CTRL-G_u|	CTRL-G u	アンドゥで元に戻す地点を新たに設定
+|i_CTRL-G_U|	CTRL-G U	次のカーソル移動までアンドゥ地点を変更しない
 |i_<BS>|	<BS>		カーソルの前にある文字を削除する。
 |i_digraph|	{char1}<BS>{char2}
 				ダイグラフを入力する。 ('digraph' オプションが
@@ -885,6 +886,7 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 ------------------------------------------------------------------------------
 |v_CTRL-\_CTRL-N| CTRL-\ CTRL-N	   ビジュアルモードの停止
 |v_CTRL-\_CTRL-G| CTRL-\ CTRL-G	   'insertmode' に合わせたモードに移行する
+|v_CTRL-A|	CTRL-A		2  選択範囲の数値を一律に N ずつ増やす
 |v_CTRL-C|	CTRL-C		   ビジュアルモードの停止
 |v_CTRL-G|	CTRL-G		   ビジュアルモードと選択モードを切り替える
 |v_<BS>|	<BS>		2  選択モードのとき: 選択範囲の内容を削除
@@ -892,6 +894,7 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 |v_CTRL-O|	CTRL-O		   選択モードからビジュアルモードへ1キーで移行
 |v_CTRL-V|	CTRL-V		   ビジュアルモードを矩形選択にする。すでに
 				   矩形選択であれば、ビジュアルモードを終了する
+|v_CTRL-X|	CTRL-X		2  選択範囲の数値を一律に N ずつ減らす
 |v_<Esc>|	<Esc>		   ビジュアルモードの停止
 |v_CTRL-]|	CTRL-]		   選択した文字のタグへジャンプ
 |v_!|		!{filter}	2  選択範囲の行を外部コマンド {filter}
@@ -939,6 +942,8 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 |v_a}|		a}		   aB と同じ。
 |v_c|		c		2  選択範囲を削除し、挿入開始
 |v_d|		d		2  選択範囲を削除
+|v_g_CTRL-A|	g CTRL-A	2  選択範囲の数値を漸増的に N ずつ増やす
+|v_g_CTRL-X|	g CTRL-X	2  選択範囲の数値を漸減的に N ずつ減らす
 |v_gJ|		gJ		2  選択範囲の行をスペースを挿入せずに連結
 |v_gq|		gq		2  選択範囲の行を整形する
 |v_gv|		gv		   現在の選択範囲と直前に選択していた範囲を入
@@ -996,7 +1001,7 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 |c_CTRL-E|	CTRL-E		カーソルをコマンドラインの末尾へ移動
 |'cedit'|	CTRL-F		'cedit' が標準設定なら、コマンドラインウィンド
 				ウを開く。そうでないなら未使用
-		CTRL-G		未使用
+|c_CTRL-G|	CTRL-G		'incsearch' がアクティブならば、次マッチへ移動
 |c_<BS>|	<BS>		カーソル直前の文字を削除
 |c_digraph|	{char1} <BS> {char2}
 				'digraph' がオンの時、ダイグラフを入力する
@@ -1029,7 +1034,7 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 				カーソル位置のオブジェクトまたはレジスタの内容
 				を文字通りに挿入
 		CTRL-S		(端末制御に使用)
-		CTRL-T		未使用
+|c_CTRL-T|	CTRL-T		'incsearch' がアクティブならば、前マッチへ移動
 |c_CTRL-U|	CTRL-U		すべての文字を削除
 |c_CTRL-V|	CTRL-V		続いて入力する、数字以外の文字をそのまま挿入
 				もしくは3桁の10進数で1バイト文字を指定して挿入
@@ -1156,6 +1161,7 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 |:caddfile|	:caddf[ile]	現在のQuickFixリストにエラーメッセージを追加
 |:call|		:cal[l]		関数を実行する
 |:catch|	:cat[ch]	:tryコマンドの一部
+|:cbottom|	:cbo[ttom]	QuickFixウィンドウの最下へスクロールする
 |:cbuffer|	:cb[uffer]	エラーメッセージを解釈し、最初のエラーへジャン
 				プ
 |:cc|		:cc		指定のエラーへジャンプ
@@ -1176,8 +1182,10 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 |:chdir|	:chd[ir]	ディレクトリの移動
 |:checkpath|	:che[ckpath]	インクルードファイルを一覧表示
 |:checktime|	:checkt[ime]	開いているファイルのタイムスタンプを確認する
-|:clist|	:cl[ist]	すべてのエラーを一覧表示
+|:chistory|	:chi[story]	エラーリストの一覧を表示する
 |:clast|	:cla[st]	指定のエラーへジャンプ、省略時は最後のエラー
+|:clearjumps|	:cle[arjumps]	ジャンプリストを削除する
+|:clist|	:cl[ist]	すべてのエラーを一覧表示
 |:close|	:clo[se]	カレントウィンドウを閉じる
 |:cmap|		:cm[ap]		コマンドラインモードを対象とする":map"コマンド
 |:cmapclear|	:cmapc[lear]	コマンドラインモードのすべてのマップを削除
@@ -1232,7 +1240,7 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 |:display|	:di[splay]	レジスタの内容を表示
 |:djump|	:dj[ump]	#define へジャンプ
 |:dl|		:dl		'l' フラグ付き |:delete| の短縮形
-|:dl|		:del[ete]l	'l' フラグ付き |:delete| の短縮形
+|:del|		:del[ete]l	'l' フラグ付き |:delete| の短縮形
 |:dlist|	:dli[st]	#define をリスト表示
 |:doautocmd|	:do[autocmd]	カレントバッファに対しオートコマンドを適用する
 |:doautoall|	:doautoa[ll]	ロードされているバッファすべてにオートコマンド
@@ -1265,6 +1273,7 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 |:file|		:f[ile]		カレントファイルの名前を設定または表示
 |:files|	:files		バッファリストの全ファイルを一覧表示
 |:filetype|	:filet[ype]	ファイルタイプ検出の on/off 切換
+|:filter|	:filt[er]	コマンドの出力をフィルターする
 |:find|		:fin[d]		'path' の中からファイルを検索し、開く
 |:finally|	:fina[lly]	:try コマンドの一部
 |:finish|	:fini[sh]	Vimスクリプトの読み込みを終了する
@@ -1330,6 +1339,7 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 |:last|		:la[st]		引数リストの最後のファイルを編集
 |:language|	:lan[guage]	言語(ロケール)を設定する
 |:later|	:lat[er]	バッファを時間的に新しい状態に戻す。リドゥ
+|:lbottom|	:lbo[ttom]	ロケーションウィンドウの最下へスクロールする
 |:lbuffer|	:lb[uffer]	バッファからロケーションリストを解釈し、
 				最初のエラーへジャンプ
 |:lcd|		:lc[d]		ウィンドウのカレントディレクトリを変更する
@@ -1355,6 +1365,7 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 |:lgrep|	:lgr[ep]	'grepprg' を実行し、最初のマッチへジャンプする
 |:lgrepadd|	:lgrepa[dd]	:grepと同様だが現在のリストに追加する
 |:lhelpgrep|	:lh[elpgrep]	":helpgrep" と同様だがロケーションリストを使う
+|:lhistory|	:lhi[story]	ロケーションリストの一覧を表示する
 |:ll|		:ll		特定のロケーションへ移動する
 |:llast|	:lla[st]	特定のロケーションへ移動する。デフォルトは最後
 				のロケーション
@@ -1368,7 +1379,6 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 |:lnfile|	:lnf[ile]	次のファイルの最初のロケーションへ移動
 |:lnoremap|	:ln[oremap]	":noremap!" と同じだが、Lang-Argモードも対象
 |:loadkeymap|	:loadk[eymap]	次の行からEOFまでキーマップを読み込む
-|:loadplugin|	:loadp[lugin]	'packpath' からプラグインを読み込む
 |:loadview|	:lo[adview]	カレントウィンドウにビューを読み込む
 |:lockmarks|	:loc[kmarks]	マークを調整せずにコマンドを実行する
 |:lockvar|	:lockv[ar]	変数をロックする
@@ -1446,6 +1456,8 @@ Note: 1 = カーソル移動コマンド  2 = アンドゥ/リドゥ可能
 				コマンド
 |:ounmenu|	:ounme[nu]	Operator-pending モードのメニューを削除
 |:ownsyntax|	:ow[nsyntax]	ウィンドウのローカル構文強調を新たに設定する
+|:packadd|	:pa[ckadd]	'packpath' からプラグインを追加する
+|:packloadall|	:packl[oadall]	'packpath' 下の全プラグインをロードする
 |:pclose|	:pc[lose]	プレビューウィンドウを閉じる
 |:pedit|	:ped[it]	プレビューウィンドウでファイルを開く
 |:perl|		:pe[rl]		Perl コマンドを実行
