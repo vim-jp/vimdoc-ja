@@ -1,4 +1,4 @@
-*usr_41.txt*	For Vim バージョン 8.0.  Last change: 2016 Feb 02
+*usr_41.txt*	For Vim バージョン 8.0.  Last change: 2016 Sep 01
 
 		     VIM USER MANUAL - by Bram Moolenaar
 
@@ -568,6 +568,7 @@ substitute() コマンドの前後にいろいろな処理を入れたりする�
 	match()			文字列の中でパターンにマッチした位置
 	matchend()		文字列の中でパターンにマッチした末尾の位置
 	matchstr()		文字列の中でパターンにマッチした文字列
+	matchstrpos()		match and positions of a pattern in a string
 	matchlist()		matchstr()と同様だが、部分マッチも返す
 	stridx()		文字列の中で部分文字列が見つかった最初の位置
 	strridx()		文字列の中で部分文字列が見つかった最後の位置
@@ -577,13 +578,16 @@ substitute() コマンドの前後にいろいろな処理を入れたりする�
 	strdisplaywidth()	表示された文字列のサイズ、タブに関係する
 	substitute()		パターンにマッチする文字列を置換
 	submatch()		":s" と substitute() の中で部分マッチを得る
-	strpart()		文字列の一部分を得る
+	strpart()		文字列の一部分を得る(バイト数指定)
+	strcharpart()		get part of a string using char index
+	strgetchar()		get character from a string using char index
 	expand()		特殊キーワードを展開する
 	iconv()			テキストのエンコーディングを変換する
 	byteidx()		文字列中の文字のバイトインデックス
 	byteidxcomp()		byteidx() と同様だが合成文字を数に入れる
 	repeat()		文字列を複数回繰り返す
 	eval()			文字列を式として評価する
+	execute()		execute an Ex command and get the output
 
 リスト操作:						*list-functions*
 	get()			要素を取得。存在しないインデックスでもエラーを
@@ -655,6 +659,7 @@ substitute() コマンドの前後にいろいろな処理を入れたりする�
 	sinh()			双曲線正弦 (ハイパボリックサイン)
 	cosh()			双曲線余弦 (ハイパボリックコサイン)
 	tanh()			双曲線正接 (ハイパボリックタンジェント)
+	isnan()			check for not a number
 
 その他の計算:						*bitwise-function*
 	and()			ビットごとの論理積
@@ -709,11 +714,14 @@ substitute() コマンドの前後にいろいろな処理を入れたりする�
 	searchpair()		start/skip/end の対を探す
 	searchpairpos()		start/skip/end の対を探す
 	searchdecl()		名前が宣言されている場所を探す
+	getcharsearch()		return character search information
+	setcharsearch()		set character search information
 
 					*system-functions* *file-functions*
 システム関数とファイル繰作:
 	glob()			ワイルドカードを展開する
 	globpath()		複数のディレクトリを対象にワイルドカードを展開
+	glob2regpat()		convert a glob pattern into a search pattern
 	findfile()		複数のディレクトリからファイルを探す
 	finddir()		複数のディレクトリからディレクトリを探す
 	resolve()		ショートカットのリンク先を得る
@@ -725,6 +733,7 @@ substitute() コマンドの前後にいろいろな処理を入れたりする�
 	filereadable()		ファイルが読み込み可能かどうかをチェックする
 	filewritable()		ファイルが書き込み可能かどうかをチェックする
 	getfperm()		ファイルのパーミッションを得る
+	setfperm()		set the permissions of a file
 	getftype()		ファイルの種類を得る
 	isdirectory()		ディレクトリの存在をチェックする
 	getfsize()		ファイルのサイズを得る
@@ -747,6 +756,7 @@ substitute() コマンドの前後にいろいろな処理を入れたりする�
 	strftime()		時刻を文字列に変換する
 	reltime()		現在時刻または経過時間を正確に取得する
 	reltimestr()		reltime()の結果を文字列に変換する
+	reltimefloat()		convert reltime() result to a Float
 
 			*buffer-functions* *window-functions* *arg-functions*
 バッファ、ウィンドウ、引数リスト:
@@ -763,9 +773,18 @@ substitute() コマンドの前後にいろいろな処理を入れたりする�
 	tabpagenr()		タブページの番号を取得する
 	tabpagewinnr()		タブページを対象にwinnr()と同様
 	winnr()			カレントウィンドウの番号を得る
+	bufwinid()		get the window ID of a specific buffer
 	bufwinnr()		バッファのウィンドウ番号を得る
 	winbufnr()		ウィンドウのバッファ番号を得る
 	getbufline()		バッファの行のリストを得る
+	win_findbuf()		find windows containing a buffer
+	win_getid()		get window ID of a window
+	win_gotoid()		go to window with ID
+	win_id2tabwin()		get tab and window nr from window ID
+	win_id2win()		get window nr from window ID
+	getbufinfo()		get a list with buffer information
+	gettabinfo()		get a list with tab page information
+	getwininfo()		get a list with window information
 
 コマンドライン:					*command-line-functions*
 	getcmdline()		現在のコマンドラインを取得
@@ -773,6 +792,7 @@ substitute() コマンドの前後にいろいろな処理を入れたりする�
 	setcmdpos()		コマンドラインにおけるカーソル位置を設定
 	getcmdtype()		現在のコマンドラインの種類を返す
 	getcmdwintype()		現在のコマンドラインウィンドウの種類を返す
+	getcompletion()		list of command-line completion matches
 
 Quickfixとロケーションリスト:			*quickfix-functions*
 	getqflist()		quickfixエラーのリスト
@@ -868,16 +888,61 @@ Vimサーバー:					*server-functions*
 
 テスト用:					*test-functions*
 	assert_equal()		2つの式が等しいかどうかテストする
+	assert_notequal()	assert that two expressions values are not equal
+	assert_inrange()	assert that an expression is inside a range
+	assert_match()		assert that a pattern matches the value
+	assert_notmatch()	assert that a pattern does not match the value
 	assert_false()		式がfalseかどうかテストする
 	assert_true()		式がtrueかどうかテストする
+	assert_exception()	assert that a command throws an exception
+	assert_fails()		assert that a function call fails
+	test_alloc_fail()	make memory allocation fail
+	test_autochdir()	enable 'autochdir' during startup
+	test_disable_char_avail()	test without typeahead
+	test_garbagecollect_now()	free memory right now
+	test_null_channel()	return a null Channel
+	test_null_dict()	return a null Dict
+	test_null_job()		return a null Job
+	test_null_list()	return a null List
+	test_null_partial()	return a null Partial function
+	test_null_string()	return a null String
 
-プロセス間通信:
+プロセス間通信:					*channel-functions*
 	ch_open()		チャンネルを開く
 	ch_close()		チャンネルを閉じる
+	ch_close_in()		close the in part of a channel
+	ch_read()		read a message from a channel
+	ch_readraw()		read a raw message from a channel
 	ch_sendexpr()		チャンネルにJSONメッセージを送る
 	ch_sendraw()		チャンネルにrawメッセージを送る
+	ch_evalexpr()		evaluates an expression over channel
+	ch_evalraw()		evaluates a raw string over channel
+	ch_status()		get status of a channel
+	ch_getbufnr()		get the buffer number of a channel
+	ch_getjob()		get the job associated with a channel
+	ch_info()		get channel information
+	ch_log()		write a message in the channel log file
+	ch_logfile()		set the channel log file
+	ch_setoptions()		set the options for a channel
 	jsonencode()		式をJSONの文字列に変換する
 	jsondecode()		JSONの文字列を式に変換する
+	js_encode()		encode an expression to a JSON string
+	js_decode()		decode a JSON string to Vim types
+
+Jobs:		    			        *job-functions*
+	job_start()		start a job
+	job_stop()		stop a job
+	job_status()		get the status of a job
+	job_getchannel()	get the channel used by a job
+	job_info()		get information about a job
+	job_setoptions()	set options for a job
+
+Timers:						*timer-functions*
+	timer_start()		create a timer
+	timer_pause()		pause or unpause a timer
+	timer_stop()		stop a timer
+	timer_stopall()		stop all timers
+	timer_info()		get information about timers
 
 その他:						*various-functions*
 	mode()			現在の編集モードを得る
@@ -902,6 +967,8 @@ Vimサーバー:					*server-functions*
 
 	shiftwidth()		'shiftwidth' の実際の値
 
+	wordcount()		バッファ内のバイト数/単語数/文字数などを得る
+
 	taglist()		マッチするタグのリストを取得
 	tagfiles()		タグファイルのリストを取得
 
@@ -910,7 +977,6 @@ Vimサーバー:					*server-functions*
 	perleval()		|Perl|の式を評価する (|+perl|)
 	py3eval()		|Python|の式を評価する (|+python3|)
 	pyeval()		|Python|の式を評価する (|+python|)
-	wordcount()		バッファ内のバイト数/単語数/文字数などを得る
 
 ==============================================================================
 *41.7*	関数を定義する
@@ -1368,9 +1434,9 @@ self.words はまだありません。よって、これは抽象クラスと呼
 さらにドイツ語の翻訳機を作ります: >
 
 	:let uk2de = copy(transdict)
-	:let uk2de.words = {'one': 'ein', 'two': 'zwei', 'three': 'drei'}
+	:let uk2de.words = {'one': 'eins', 'two': 'zwei', 'three': 'drei'}
 	:echo uk2de.translate('three one')
-<	drei ein ~
+<	drei eins ~
 
 copy() 関数を使って "transdict" 辞書をコピーし、そのコピーに対して単語を追加し
 ています。元の辞書はもちろん変更されません。
@@ -2210,7 +2276,7 @@ exists(":Cmd")		ユーザー定義コマンドが既にあるかどうかをチ�
 	:endif
 <
 
-アンドゥ						*undo_ftplugin*
+アンドゥ					*undo_indent* *undo_ftplugin*
 --------
 
 ユーザーが ":setfiletype xyz" としたとき、それ以前のファイルタイプの効果は無効
@@ -2225,6 +2291,9 @@ exists(":Cmd")		ユーザー定義コマンドが既にあるかどうかをチ�
 
 このように行継続を使うには 'cpoptions' から "C" フラグを取り除く必要がありま
 す。上述の |use-cpo-save| を参照してください。
+
+For undoing the effect of an indent script, the b:undo_indent variable should
+be set accordingly.
 
 
 ファイル名

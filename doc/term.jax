@@ -1,4 +1,4 @@
-*term.txt*      For Vim バージョン 8.0.  Last change: 2015 Nov 24
+*term.txt*      For Vim バージョン 8.0.  Last change: 2016 Sep 02
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -302,7 +302,10 @@ Vim 独自のもの (標準的なコードはないもの):
 	t_u7	カーソル位置を要求 (xterm 用)			*t_u7* *'t_u7'*
 		|'ambiwidth'| 参照
 	t_RB	端末の背景色を要求				*t_RB* *'t_RB'*
-		|'ambiwidth'| 参照
+	t_8f	前景色を設定する (R, G, B)			*t_8f* *'t_8f'*
+		|xterm-true-color|
+	t_8b	背景色を設定する (R, G, B)			*t_8b* *'t_8b'*
+		|xterm-true-color|
 
 キーコード
 Note: 可能なかぎり <> 形式を使ってください。
@@ -420,6 +423,26 @@ Note t_so と t_mrについて: termcap に "so" エントリがない場合は 
 Note: これは起動時にのみ行われます。Vim が起動した後で xterm のオプションが変
 更された場合は、これらのエスケープシーケンスはそれ以降、認識されなくなる可能性
 があります。
+
+							*xterm-true-color*
+Vimは端末がサポートするならば、トゥルーカラーを使うこと (|highlight-guifg| 及
+び |highlight-guibg| を流用する) をサポートします。これを機能させるには
+'termguicolors' オプションをセットする必要があります。
+トゥルーカラーをサポートする端末の一覧については
+https://gist.github.com/XVilka/8346728 を参照してください。
+
+場合によっては 'termguicolors' を設定するだけでは不十分で、|t_8f| と |t_8b| オ
+プションを明示的に設定しなければならないことがあります。これらのオプションのデ
+フォルトはそれぞれ "^[[38;2;%lu;%lu;%lum" と "^[[48;2;%lu;%lu;%lum" で、
+`$TERM` が `xterm` の時にだけ設定されます。幾つかの端末は同じシーケンスを受け
+付けますが、全てのセミコロンをコロンで置き換える必要があります (実際にはコチラ
+のほうが互換性の高い方法ですが、広くはサポートされていません): >
+	 let &t_8f = "\<Esc>[38:2:%lu:%lu:%lum"
+	 let &t_8b = "\<Esc>[48:2:%lu:%lu:%lum"
+
+これらのオプションは printf 用の文字列を含んでおり、|printf()| (実際には `l`
+modifier ゆえに C 言語のものと同等) により t_ オプションの値と、赤、青、緑を表
+現する 0 から 255 の 3 つの符号なし長整数の値が組み合わせれます。
 
 							*xterm-resize*
 xterm でのウィンドウサイズ変更はリソース allowWindowOps が有効なときのみ動作し
@@ -544,7 +567,7 @@ Amiga 上では端末名が "amiga" または "builtin_amiga" であればアミ
 
 スクリーンサイズを設定するには次のコマンドを使います:
 
-						*:mod* *:mode* *E359* *E362*
+						*:mod* *:mode* *E359*
 :mod[e] [mode]
 
 引数が指定されない場合はスクリーンサイズを検出し、スクリーンを再描画します。
