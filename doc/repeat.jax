@@ -1,4 +1,4 @@
-*repeat.txt*    For Vim バージョン 8.0.  Last change: 2016 Mar 15
+*repeat.txt*    For Vim バージョン 8.0.  Last change: 2016 Sep 11
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -12,9 +12,10 @@
 2. 多重繰り返し			|multi-repeat|
 3. 複雑な繰り返し		|complex-repeat|
 4. Vimスクリプトを使う		|using-scripts|
-5. Vimスクリプトのパッケージ	|packages|
-6. スクリプトのデバッグ		|debug-scripts|
-7. プロファイリング		|profiling|
+5. Vimパッケージを使う		|packages|
+6. Vimパッケージを作る		|package-create|
+7. スクリプトのデバッグ		|debug-scripts|
+8. プロファイリング		|profiling|
 
 ==============================================================================
 1. 単発繰り返し						*single-repeat*
@@ -67,8 +68,9 @@ NOTE [cmd] は範囲指定を含むかもしれない。実例は |collapse| や
 
 globalコマンドの動作はまず第1に[range]の行をスキャンしマッチした行すべてに印を
 つける(複数行にかかるパターンではマッチの最初の行だけが重要である)。
-次のスキャンでマークされたすべての行の行番号が指定(前置)されて[cmd]が実行され
-る。行が変更されたり削除された場合そのマークは消滅する。
+次のスキャンでマークされたすべての行について、カーソルがその行にあるかのように
+[cmd]が実行される。":v" と ":g!" の場合は、マークされていないすべての行につい
+てコマンドが実行される。行が削除された場合そのマークは消滅する。
 省略した場合の[range]はバッファ全体(1,$)である。コマンドを中断するには "CTRL-C"
 を使用する。ある行についてエラーメッセージが与えられると、そのラインに対するコ
 マンドは中断されglobalコマンドはマッチした次の行の処理を続ける。
@@ -157,7 +159,7 @@ q			レコーディングを終了する。(実装のメモ: レコーディン�
 :[addr]@:		最後のコマンドラインを繰り返す。まずカーソルを[addr]行
 			に設定する(省略した場合現在の行)。 {Vi にはない}
 
-							*:@@*
+:[addr]@							*:@@*
 :[addr]@@		最後の :@{0-9a-z"} を繰り返す。まず最初にカーソルを
 			[addr]行に設定する(省略した場合現在の行)。 {Vi: 幾つか
 			のバージョンだけ}
@@ -231,10 +233,16 @@ Vimスクリプトの書き方はユーザーマニュアルの41章|usr_41.txt|
 				pack/*/opt/{name} ~
 			見つかったディレクトリは、もし含まれていなければ
 			'runtimepath' に追加される。
+			もしディレクトリ pack/*/opt/{name}/after が存在すれば、
+			'runtimepath' の最後に追加される。
 
 			Note {name} はディレクトリの名前である。.vimファイルの
-			名前ではない。もし "{name}/plugin" ディレクトリが1つよ
-			り多くのファイルを含むなら全て読み込まれる。
+			名前ではない。以下のパターンにマッチする全てのファイル
+			が読み込まれる。
+				pack/*/opt/{name}/plugin/**/*.vim ~
+			これにより、ちょうど 'runtimepath' 内のプラグインのよ
+			うに、"plugin" 以下のサブディレクトリを使うことができ
+			る。
 
 			ファイルタイプの検知が有効化されていない場合(これは通
 			常.vimrc中の "syntax enable" か "filetype on" コマンド
@@ -248,15 +256,24 @@ Vimスクリプトの書き方はユーザーマニュアルの41章|usr_41.txt|
 			み込まれる。|load-plugins|を参照。また|pack-add|も参照。
 
 						*:packl* *:packloadall*
-:packloadall[!]		'packpath' 以下の "start" ディレクトリ中の全パッケージ
-			を読み込む。見つかったディレクトリは 'runtimepath' に
-			追加される。これは通常起動時に.vimrcが読み込まれた後に
+:packl[oadall][!]	'packpath' 以下の "start" ディレクトリ中の全パッケージ
+			を読み込む。
+
+			最初に、見つかったディレクトリが全て 'runtimepath' に
+			追加され、次にそのディレクトリ内で見つかったのプラグイ
+			ンが読み込まれる。 This allows for a plugin to
+			depend on something of another plugin, e.g. an
+			"autoload" directory.  See |packload-two-steps| for
+			how this can be useful.
+
+			これは通常起動時に.vimrcが読み込まれた後に
 			自動的に行われる。このコマンドはそれよりも前に行うこと
 			ができる。
 			パッケージの読み込みは一度だけ行われる。よってこのコマ
 			ンドを実行した後に読み込みは行われない。任意の ! が付
 			けられた場合はすでに読み込みが行われていてもパッケージ
 			を読み込む。
+
 			(スクリプトを読み込む際の)エラーは読み込んでいるスクリ
 			プトの読み込みのみを中止させる。その他のプラグインは読
 			み込まれる。
@@ -277,7 +294,8 @@ Vimスクリプトの書き方はユーザーマニュアルの41章|usr_41.txt|
 				... 変換されない ...
 
 <			変換がシステムによって提供されない場合、エラーメッセー
-			ジは表示されず変換もされない。
+			ジは表示されず変換もされない。ある行が変換できなかった
+			場合、エラーにはならず元の行が保持される。
 
 			"ucs-2" や "ucs-4" を使わないこと。スクリプトをその文
 			字コードで書くことはできない (NULバイトが含まれてしま
@@ -428,7 +446,7 @@ Note 関数の中でその手のコマンドを実行するには、関数定義
 <	従って一般的ではないが行頭のバックスラッシュを採用している。
 
 ==============================================================================
-5. Vimスクリプトのパッケージ				*packages*
+5. Vimパッケージを使う					*packages*
 
 Vimスクリプトのパッケージは1つかそれ以上のプラグインを含むディレクトリである。
 通常のプラグインと比べた長所は以下の通りである:
@@ -460,8 +478,9 @@ Vimスクリプトのパッケージは1つかそれ以上のプラグインを�
 	pack/foo/opt/foodebug/plugin/debugger.vim
 
 Vim が起動した時、.vimrcを処理した後、'packpath' に含まれる "pack/*/start" ディ
-レクトリの下の全てのディレクトリをスキャンして読み込む。そのディレクトリは
-'runtimepath' に追加される。
+レクトリの下の全てのディレクトリをスキャンする。最初にそのディレクトリは
+'runtimepath' に追加される。次に全てのプラグインがロードされる。
+See |packload-two-steps| for how these two steps can be useful.
 
 上記の例では "pack/foo/start/foobar/plugin/foo.vim" を見つけて
 "~/.vim/pack/foo/start/foobar" を 'runtimepath' に追加する。
@@ -483,6 +502,9 @@ Note "pack/foo/opt" 以下のファイルは自動的に読み込まれず、"pa
 	:packloadall
 これはプラグインの読み込みを無効化していても効果がある。自動読み込みは一度だけ
 行われる。
+
+If the package has an "after" directory, that directory is added to the end of
+'runtimepath', so that anything there will be loaded later.
 
 
 Using a single plugin and loading it automatically ~
@@ -508,14 +530,107 @@ From here it works like above.
 これは 'packpath' の "pack/*/opt/foodebug" から
 ~/.vim/pack/foo/opt/foodebug/plugin/debugger.vim を見つけ読み込む。
 
-This could be done inside always.vim, if some conditions are met.  Or you
-could add this command to your |.vimrc|.
+This could be done if some conditions are met.  For example, depending on
+whether Vim supports a feature or a dependency is missing.
 
-パッケージが "opt" ディレクトリしか持たなかったとしても一向に構わない。それを
-使いたい場合は(明示的に)読み込む必要がある。
+You can also load an optional plugin at startup, by putting this command in
+your |.vimrc|: >
+	:packadd! foodebug
+The extra "!" is so that the plugin isn't loaded if Vim was started with
+|--noplugin|.
+
+パッケージが "opt" ディレクトリしか持たなかったとしても一向に構わない。その場
+合、それを使いたいときは(明示的に)読み込む必要がある。
+
+
+どこに何を置くか ~
+
+Since color schemes, loaded with `:colorscheme`, are found below
+"pack/*/start" and "pack/*/opt", you could put them anywhere.  We recommend
+you put them below "pack/*/opt", for example
+".vim/pack/mycolors/opt/dark/colors/very_dark.vim".
+
+Filetype plugins should go under "pack/*/start", so that they are always
+found.  Unless you have more than one plugin for a file type and want to
+select which one to load with `:packadd`.  E.g. depending on the compiler
+version: >
+	if foo_compiler_version > 34
+	  packadd foo_new
+	else
+	  packadd foo_old
+	endif
+
+The "after" directory is most likely not useful in a package.  It's not
+disallowed though.
 
 ==============================================================================
-6. スクリプトのデバッグ					*debug-scripts*
+6. Vimパッケージを作る					*package-create*
+
+This assumes you write one or more plugins that you distribute as a package.
+
+If you have two unrelated plugins you would use two packages, so that Vim
+users can chose what they include or not.  Or you can decide to use one
+package with optional plugins, and tell the user to add the ones he wants with
+`:packadd`.
+
+Decide how you want to distribute the package.  You can create an archive or
+you could use a repository.  An archive can be used by more users, but is a
+bit harder to update to a new version.  A repository can usually be kept
+up-to-date easily, but it requires a program like "git" to be available.
+You can do both, github can automatically create an archive for a release.
+
+Your directory layout would be like this:
+   start/foobar/plugin/foo.vim    	" always loaded, defines commands
+   start/foobar/plugin/bar.vim    	" always loaded, defines commands
+   start/foobar/autoload/foo.vim  	" loaded when foo command used
+   start/foobar/doc/foo.txt       	" help for foo.vim
+   start/foobar/doc/tags          	" help tags
+   opt/fooextra/plugin/extra.vim  	" optional plugin, defines commands
+   opt/fooextra/autoload/extra.vim  	" loaded when extra command used
+   opt/fooextra/doc/extra.txt  	        " help for extra.vim
+   opt/fooextra/doc/tags  	        " help tags
+
+This allows for the user to do: >
+	mkdir ~/.vim/pack/myfoobar
+	cd ~/.vim/pack/myfoobar
+	git clone https://github.com/you/foobar.git
+
+Here "myfoobar" is a name that the user can choose, the only condition is that
+it differs from other packages.
+
+In your documentation you explain what the plugins do, and tell the user how
+to load the optional plugin: >
+	:packadd! fooextra
+
+You could add this packadd command in one of your plugins, to be executed when
+the optional plugin is needed.
+
+Run the `:helptags` command to generate the doc/tags file.  Including this
+generated file in the package means that the user can drop the package in his
+pack directory and the help command works right away.  Don't forget to re-run
+the command after changing the plugin help: >
+	:helptags path/start/foobar/doc
+	:helptags path/opt/fooextra/doc
+
+
+Dependencies between plugins ~
+							*packload-two-steps*
+Suppose you have two plugins that depend on the same functionality. You can
+put the common functionality in an autoload directory, so that it will be
+found automatically.  Your package would have these files:
+
+	pack/foo/start/one/plugin/one.vim  >
+		call foolib#getit()
+<	pack/foo/start/two/plugin/two.vim >
+		call foolib#getit()
+<	pack/foo/start/lib/autoload/foolib.vim >
+		func foolib#getit()
+
+This works, because loading packages will first add all found directories to
+'runtimepath' before sourcing the plugins.
+
+==============================================================================
+7. スクリプトのデバッグ					*debug-scripts*
 
 スクリプトの動作を知るためのコードを追加することができるのは当り前として、Vim
 はデバッグモードを提供している。これはスクリプトファイルやユーザーファンクショ
@@ -736,7 +851,7 @@ Note 関数はまず読み込まれ、後で実行される。読み込まれた
 		使わず、ユーザーから直接デバッグモードコマンドを受け取る。
 
 ==============================================================================
-7. プロファイリング					*profile* *profiling*
+8. プロファイリング					*profile* *profiling*
 
 プロファイリングとは、関数やスクリプトの実行にかかる時間を計測することである。
 これを行うには |+profile| 機能が必要である。
