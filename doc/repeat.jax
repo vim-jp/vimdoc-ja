@@ -457,7 +457,7 @@ Vimスクリプトのパッケージは1つかそれ以上のプラグインを�
   簡素化する。
 - パッケージはお互いに依存する複数のプラグインを含むことができる。
 - パッケージは起動時に自動的に読み込まれるプラグインと、必要になった時のみ
-  `:packadd`により読み込まれるプラグインを含むことができる。
+  `:packadd` により読み込まれるプラグインを含むことができる。
 
 
 パッケージの使用と自動読み込み ~
@@ -480,7 +480,7 @@ Vimスクリプトのパッケージは1つかそれ以上のプラグインを�
 Vim が起動した時、.vimrcを処理した後、'packpath' に含まれる "pack/*/start" ディ
 レクトリの下の全てのディレクトリをスキャンする。最初にそのディレクトリは
 'runtimepath' に追加される。次に全てのプラグインがロードされる。
-See |packload-two-steps| for how these two steps can be useful.
+これら2つのステップがどのように役立つかについては、|packload-two-steps| 参照。
 
 上記の例では "pack/foo/start/foobar/plugin/foo.vim" を見つけて
 "~/.vim/pack/foo/start/foobar" を 'runtimepath' に追加する。
@@ -503,41 +503,42 @@ Note "pack/foo/opt" 以下のファイルは自動的に読み込まれず、"pa
 これはプラグインの読み込みを無効化していても効果がある。自動読み込みは一度だけ
 行われる。
 
-If the package has an "after" directory, that directory is added to the end of
-'runtimepath', so that anything there will be loaded later.
+パッケージに "after" ディレクトリがある場合、そのディレクトリは 'runtimepath'
+の末尾に追加される。そのため、そこにあるものは全て後でロードされる。
 
 
-Using a single plugin and loading it automatically ~
+単一のプラグインを自動的にロードして使用する ~
 
-If you don't have a package but a single plugin, you need to create the extra
-directory level:
+パッケージでなく単一のプラグインがある場合は、余分なディレクトリ階層を作成する
+必要がある。
 	% mkdir -p ~/.vim/pack/foo/start/foobar
 	% cd ~/.vim/pack/foo/start/foobar
 	% unzip /tmp/someplugin.zip
 
-You would now have these files:
+これで、次のファイルが作成される。
 	pack/foo/start/foobar/plugin/foo.vim
 	pack/foo/start/foobar/syntax/some.vim
 
-From here it works like above.
+ここから上のように動作する。
 
 
 任意のプラグイン ~
 							*pack-add*
-上記の pack ディレクトリから任意のプラグインをロードするには`:packadd`コマンド
-を使う: >
+上記の pack ディレクトリから任意のプラグインをロードするには `:packadd` コマン
+ドを使う: >
 	:packadd foodebug
 これは 'packpath' の "pack/*/opt/foodebug" から
 ~/.vim/pack/foo/opt/foodebug/plugin/debugger.vim を見つけ読み込む。
 
-This could be done if some conditions are met.  For example, depending on
-whether Vim supports a feature or a dependency is missing.
+これにより何かしらの条件が満たされる時に実行されるようにできる。例えば、Vim が
+ある機能をサポートしているかどうかとか、依存したモノが見つからないとか、そうい
+うことに依存させることができる。
 
-You can also load an optional plugin at startup, by putting this command in
-your |.vimrc|: >
+このコマンドをあなたの |.vimrc| に入れることで、起動時に任意のプラグインを読み
+込むこともできる。
 	:packadd! foodebug
-The extra "!" is so that the plugin isn't loaded if Vim was started with
-|--noplugin|.
+余分な "!" は Vim が |--noplugin| で起動されていれば、プラグインがロードされな
+いようにするためである。
 
 パッケージが "opt" ディレクトリしか持たなかったとしても一向に構わない。その場
 合、それを使いたいときは(明示的に)読み込む必要がある。
@@ -545,79 +546,78 @@ The extra "!" is so that the plugin isn't loaded if Vim was started with
 
 どこに何を置くか ~
 
-Since color schemes, loaded with `:colorscheme`, are found below
-"pack/*/start" and "pack/*/opt", you could put them anywhere.  We recommend
-you put them below "pack/*/opt", for example
-".vim/pack/mycolors/opt/dark/colors/very_dark.vim".
+`:colorscheme` で読み込まれるカラースキームは "pack/*/start" と "pack/*/opt"
+の下から探し出されるのでどこにでも置くことができる。たとえば、
+".vim/pack/mycolors/opt/dark/colors/very_dark.vim" のように、"pack/*/opt" の下
+に置くことをお勧めする。
 
-Filetype plugins should go under "pack/*/start", so that they are always
-found.  Unless you have more than one plugin for a file type and want to
-select which one to load with `:packadd`.  E.g. depending on the compiler
-version: >
+Filetype プラグインはファイルタイプに複数のプラグインがあり、`:packadd` でロー
+ドするプラグインを選択したいのでない限り "pack/*/start" の下に置く必要がある。
+例えば、コンパイラのバージョンに依存する場合: >
 	if foo_compiler_version > 34
 	  packadd foo_new
 	else
 	  packadd foo_old
 	endif
 
-The "after" directory is most likely not useful in a package.  It's not
-disallowed though.
+"after" ディレクトリはパッケージで使うには十中八九便利ではない。しかし、使用が
+禁じられているわけではない。
 
 ==============================================================================
 6. Vimパッケージを作る					*package-create*
 
-This assumes you write one or more plugins that you distribute as a package.
+パッケージとして配布する1つ以上のプラグインを記述していることを前提とする。
 
-If you have two unrelated plugins you would use two packages, so that Vim
-users can chose what they include or not.  Or you can decide to use one
-package with optional plugins, and tell the user to add the ones he wants with
-`:packadd`.
+2つの無関係なプラグインがある場合は、2つのパッケージを使用するので、Vimユー
+ザーはそのパッケージに含まれるものを選択できる。あるいは、オプションのプラグイ
+ンで1つのパッケージを使用し、`:packadd` で必要なプラグインを追加するようにユー
+ザーに指示することもできる。
 
-Decide how you want to distribute the package.  You can create an archive or
-you could use a repository.  An archive can be used by more users, but is a
-bit harder to update to a new version.  A repository can usually be kept
-up-to-date easily, but it requires a program like "git" to be available.
-You can do both, github can automatically create an archive for a release.
+パッケージの配布方法を決める。アーカイブを作成することも、リポジトリを使用する
+こともできる。より多くのユーザーがアーカイブを使用できるが、新しいバージョンに
+更新するのは少し難しくなる。リポジトリは通常、最新の状態に保つことができるが、
+"git" のようなプログラムが必要である。github ではリリースを作成すると自動的に
+アーカイブが作られるので、あなたは両方を同時に行うことができる。
 
-Your directory layout would be like this:
-   start/foobar/plugin/foo.vim    	" always loaded, defines commands
-   start/foobar/plugin/bar.vim    	" always loaded, defines commands
-   start/foobar/autoload/foo.vim  	" loaded when foo command used
-   start/foobar/doc/foo.txt       	" help for foo.vim
-   start/foobar/doc/tags          	" help tags
-   opt/fooextra/plugin/extra.vim  	" optional plugin, defines commands
-   opt/fooextra/autoload/extra.vim  	" loaded when extra command used
-   opt/fooextra/doc/extra.txt  	        " help for extra.vim
-   opt/fooextra/doc/tags  	        " help tags
+ディレクトリ構成は次のようになる。 >
+   start/foobar/plugin/foo.vim    	" 常にロードされ、コマンドを定義する
+   start/foobar/plugin/bar.vim    	" 常にロードされ、コマンドを定義する
+   start/foobar/autoload/foo.vim  	" fooコマンドを使用した時に読み込む
+   start/foobar/doc/foo.txt       	" foo.vimのヘルプ
+   start/foobar/doc/tags          	" ヘルプタグ
+   opt/fooextra/plugin/extra.vim  	" オプションのプラグイン、コマンド定義
+   opt/fooextra/autoload/extra.vim  	" extraコマンドを使用した時に読み込む
+   opt/fooextra/doc/extra.txt  	        " extra.vimのヘルプ
+   opt/fooextra/doc/tags  	        " ヘルプタグ
 
-This allows for the user to do: >
+これにより、ユーザーは次の操作を行うことができる。 >
 	mkdir ~/.vim/pack/myfoobar
 	cd ~/.vim/pack/myfoobar
 	git clone https://github.com/you/foobar.git
 
-Here "myfoobar" is a name that the user can choose, the only condition is that
-it differs from other packages.
+ここで "myfoobar" はユーザーが選択できる名前だが、唯一の条件は他のパッケージと
+は異なることである。
 
-In your documentation you explain what the plugins do, and tell the user how
-to load the optional plugin: >
+ドキュメントでは、プラグインの機能について説明し、オプションのプラグインをロー
+ドする方法をユーザーに伝える。 >
 	:packadd! fooextra
 
-You could add this packadd command in one of your plugins, to be executed when
-the optional plugin is needed.
+このpackaddコマンドをプラグインの1つに追加して、オプションのプラグインが必要な
+ときに実行することができる。
 
-Run the `:helptags` command to generate the doc/tags file.  Including this
-generated file in the package means that the user can drop the package in his
-pack directory and the help command works right away.  Don't forget to re-run
-the command after changing the plugin help: >
+`:helptags` コマンドを実行して、doc/tags ファイルを生成する。この生成されたファ
+イルをパッケージに含めるということは、パッケージディレクトリにパッケージを落と
+すことができ、ヘルプコマンドがすぐに動作することを意味する。プラグインヘルプを
+変更した後にコマンドを再実行することを忘れないでほしい。 >
 	:helptags path/start/foobar/doc
 	:helptags path/opt/fooextra/doc
 
 
-Dependencies between plugins ~
+プラグイン間の依存関係 ~
 							*packload-two-steps*
-Suppose you have two plugins that depend on the same functionality. You can
-put the common functionality in an autoload directory, so that it will be
-found automatically.  Your package would have these files:
+同じ機能に依存する2つのプラグインがあるとする。共通機能を autoload ディレクト
+リに置くことで、自動的に見つかるようにすることができる。あなたのパッケージには
+次のファイルがあるとする。
 
 	pack/foo/start/one/plugin/one.vim  >
 		call foolib#getit()
@@ -626,8 +626,8 @@ found automatically.  Your package would have these files:
 <	pack/foo/start/lib/autoload/foolib.vim >
 		func foolib#getit()
 
-This works, because loading packages will first add all found directories to
-'runtimepath' before sourcing the plugins.
+これは動作する。なぜなら、パッケージをロードすると、プラグインを読み込む前に見
+つかったすべてのディレクトリが 'runtimepath' に追加されるからである。
 
 ==============================================================================
 7. スクリプトのデバッグ					*debug-scripts*
