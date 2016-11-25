@@ -2,7 +2,7 @@
 layout: vimdoc
 helpname: 'channel'
 ---
-<a class="Constant" href="channel.html" name="channel.txt">*channel.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For Vim バージョン 8.0.&nbsp;&nbsp;Last change: 2016 Jan 28<br>
+<a class="Constant" href="channel.html" name="channel.txt">*channel.txt*</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For Vim バージョン 8.0.&nbsp;&nbsp;Last change: 2016 Nov 07<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar<br>
@@ -10,26 +10,60 @@ helpname: 'channel'
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;プロセス間通信&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel" name="channel">*channel*</a><br>
 <br>
-ドラフト&nbsp;&nbsp;ドラフト&nbsp;&nbsp;ドラフト&nbsp;&nbsp;ドラフト&nbsp;&nbsp;ドラフト&nbsp;&nbsp;ドラフト&nbsp;&nbsp;ドラフト<br>
-<br>
 Vimは別のプロセスと通信するのにチャンネルを用います。<br>
-チャンネルはソケットを用います。&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#socket-interface" name="socket-interface">*socket-interface*</a><br>
-<br>
-現在のところVimは同時に10個までのチャンネルをサポートします。<br>
+チャンネルはソケットまたはパイプを用います。&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#socket-interface" name="socket-interface">*socket-interface*</a><br>
+Jobs can be used to start processes and communicate with them.<br>
 Netbeansインターフェイスもチャンネルを使っています。&nbsp;<a class="Identifier" href="netbeans.html#netbeans">|netbeans|</a><br>
 <br>
-1. デモ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-demo">|channel-demo|</a><br>
-2. チャンネルを開く&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-open">|channel-open|</a><br>
-3. JSONチャンネルを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-use">|channel-use|</a><br>
-4. Vimコマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-commands">|channel-commands|</a><br>
-5. rawチャンネルを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-use">|channel-use|</a><br>
-6. ジョブ制御&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#job-control">|job-control|</a><br>
+1. 概要&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#job-channel-overview">|job-channel-overview|</a><br>
+2. チャンネルデモ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-demo">|channel-demo|</a><br>
+3. チャンネルを開く&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-open">|channel-open|</a><br>
+4. JSON、JSチャンネルを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-use">|channel-use|</a><br>
+5. チャンネルコマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-commands">|channel-commands|</a><br>
+6. RAW、NLチャンネルをつかう&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-raw">|channel-raw|</a><br>
+7. More channel functions&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-more">|channel-more|</a><br>
+8. Starting a job with a channel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#job-start">|job-start|</a><br>
+9. Starting a job without a channel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#job-start-nochannel">|job-start-nochannel|</a><br>
+10. ジョブオプション&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#job-options">|job-options|</a><br>
+11. ジョブを制御する&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#job-control">|job-control|</a><br>
 <br>
 <span class="Special">{Vi にはこれらの機能はありません}</span><br>
-{<a class="Identifier" href="various.html#+channel">|+channel|</a>&nbsp;機能付きでコンパイルされたときのみ利用可能}<br>
+<span class="Special">{only when compiled with the&nbsp;</span><a class="Identifier" href="various.html#+channel">|+channel|</a><span class="Special">&nbsp;feature for channel stuff}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You can check this with: `has(<span class="MissingTag">'channel'</span>)`<br>
+<span class="Special">{only when compiled with the&nbsp;</span><a class="Identifier" href="various.html#+job">|+job|</a><span class="Special">&nbsp;feature for job stuff}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You can check this with: `has(<span class="MissingTag">'job'</span>)`<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-1. デモ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-demo" name="channel-demo">*channel-demo*</a><br>
+1. 概要&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-channel-overview" name="job-channel-overview">*job-channel-overview*</a><br>
+<br>
+There are four main types of jobs:<br>
+1. A daemon, serving several Vim instances.<br>
+&nbsp;&nbsp; Vim connects to it with a socket.<br>
+2. One job working with one Vim instance, asynchronously.<br>
+&nbsp;&nbsp; Uses a socket or pipes.<br>
+3. A job performing some work for a short time, asynchronously.<br>
+&nbsp;&nbsp; Uses a socket or pipes.<br>
+4. Running a filter, synchronously.<br>
+&nbsp;&nbsp; Uses pipes.<br>
+<br>
+For when using sockets See&nbsp;<a class="Identifier" href="channel.html#job-start">|job-start|</a>,&nbsp;<a class="Identifier" href="channel.html#job-start-nochannel">|job-start-nochannel|</a>&nbsp;and<br>
+<a class="Identifier" href="channel.html#channel-open">|channel-open|</a>.&nbsp;&nbsp;For 2 and 3, one or more jobs using pipes, see&nbsp;<a class="Identifier" href="channel.html#job-start">|job-start|</a>.<br>
+For 4 use the &quot;:<span class="Special">{range}</span>!cmd&quot; command, see&nbsp;<a class="Identifier" href="change.html#filter">|filter|</a>.<br>
+<br>
+Over the socket and pipes these protocols are available:<br>
+RAW&nbsp;&nbsp;&nbsp;&nbsp; nothing known, Vim cannot tell where a message ends<br>
+NL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;every message ends in a NL (newline) character<br>
+JSON&nbsp;&nbsp;&nbsp;&nbsp;JSON encoding&nbsp;<a class="Identifier" href="eval.html#json_encode()">|json_encode()|</a><br>
+JS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;JavaScript style JSON-like encoding&nbsp;<a class="Identifier" href="eval.html#js_encode()">|js_encode()|</a><br>
+<br>
+Common combination are:<br>
+- Using a job connected through pipes in NL mode.&nbsp;&nbsp;E.g., to run a style<br>
+&nbsp;&nbsp;checker and receive errors and warnings.<br>
+- Using a deamon, connecting over a socket in JSON mode.&nbsp;&nbsp;E.g. to lookup<br>
+&nbsp;&nbsp;cross-references in a database.<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+2. チャンネルデモ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-demo" name="channel-demo">*channel-demo*</a>&nbsp;<a class="Constant" href="channel.html#demoserver.py" name="demoserver.py">*demoserver.py*</a><br>
 <br>
 デモにはPythonが必要です。デモプログラムは次の場所にあります。<br>
 $VIMRUNTIME/tools/demoserver.py<br>
@@ -37,13 +71,13 @@ $VIMRUNTIME/tools/demoserver.py<br>
 <br>
 次に別のターミナルでVimを実行します。そして以下のコマンドでサーバーに接続しま<br>
 す:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let handle = connect('localhost:8765', 'json')</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let channel = ch_open('localhost:8765')</div>
 <br>
 T1の中に次のように表示されます:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">=== socket opened ===</span><br>
 <br>
 ついにサーバーにメッセージを送信できます:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo sendexpr(handle, 'hello!')</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo ch_evalexpr(channel, 'hello!')</div>
 <br>
 このメッセージはT1で受信され、Vimには応答が送り返されます。<br>
 T1ではVimが送った生のメッセージを確認できます:<br>
@@ -54,72 +88,157 @@ T1ではVimが送った生のメッセージを確認できます:<br>
 <br>
 サーバーはVimにコマンドを送信できます。T1に於いて、次のように正確に(引用符を含<br>
 めて文字通りに)タイプしてください:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ま　だ　実　装　さ　れ　て　い　ま　せ　ん<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;ex&quot;,&quot;echo 'hi there'&quot;]</div>
-するとそのメッセージがVimに表示されます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[&quot;ex&quot;,&quot;echo 'hi there'&quot;]</span><br>
+するとそのメッセージがVimに表示されます。You can move the cursor a word forward:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[&quot;normal&quot;,&quot;w&quot;]</span><br>
 <br>
 非同期通信を取り扱うためにはコールバック(以下ハンドラー)が必要です:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func MyHandler(handle, msg)<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func MyHandler(channel, msg)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo &quot;from the handler: &quot; . a:msg<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call sendexpr(handle, 'hello!', &quot;MyHandler&quot;)</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call ch_sendexpr(channel, 'hello!', {'callback': &quot;MyHandler&quot;})</div>
+Vim will not wait for a response.&nbsp;&nbsp;Now the server can send the response later<br>
+and MyHandler will be invoked.<br>
 <br>
 sendを呼ぶたびに毎回コールバックを指定する代わりに、チャンネルを開く際に指定す<br>
 ることもできます:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call disconnect(handle)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let handle = connect('localhost:8765', 'json', &quot;MyHandler&quot;)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call sendexpr(handle, 'hello!', 0)</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call ch_close(channel)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let channel = ch_open('localhost:8765', {'callback': &quot;MyHandler&quot;})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call ch_sendexpr(channel, 'hello!')</div>
+<br>
+When trying out channels it's useful to see what is going on.&nbsp;&nbsp;You can tell<br>
+Vim to write lines in log file:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call ch_logfile('channellog', 'w')</div>
+See&nbsp;<a class="Identifier" href="eval.html#ch_logfile()">|ch_logfile()|</a>.<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-2. チャンネルを開く&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-open" name="channel-open">*channel-open*</a><br>
+3. チャンネルを開く&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-open" name="channel-open">*channel-open*</a><br>
 <br>
 チャンネルを開くには次のようにします:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let handle = connect({address}, {mode}, {callback})</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let channel = ch_open({address} [, {options}])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if ch_status(channel) == &quot;open&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; use the channel</div>
+<br>
+Use&nbsp;<a class="Identifier" href="eval.html#ch_status()">|ch_status()|</a>&nbsp;to see if the channel could be opened.<br>
 <br>
 <span class="Special">{address}</span>&nbsp;は &quot;ホスト名:ポート番号&quot; の形式です。 例:&quot;localhost:8765&quot;<br>
 <br>
-<span class="Special">{mode}</span>&nbsp;でモード(通信フォーマット)を指定します:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-mode" name="channel-mode">*channel-mode*</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;json&quot; - JSONを使う(詳しくは下記を参照。もっとも使いやすい方法)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;raw&quot;&nbsp;&nbsp;- rawメッセージを使う<br>
+<span class="Special">{options}</span>&nbsp;is a dictionary with optional entries:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-open-options" name="channel-open-options">*channel-open-options*</a><br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-callback" name="channel-callback">*channel-callback*</a><br>
-<span class="Special">{callback}</span>&nbsp;はメッセージ受信時に他のハンドラーで扱われない時に呼ばれます。<br>
-これはチャンネルのハンドルと、受信したメッセージの2つの引数を取ります。例:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func Handle(handle, msg)<br>
+&quot;mode&quot; でモード(通信フォーマット)を指定します:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-mode" name="channel-mode">*channel-mode*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;json&quot; - JSONを使う(詳しくは下記を参照。もっとも使いやすい方法。既定)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;js&quot;&nbsp;&nbsp; - Use JS (JavaScript) encoding, more efficient than JSON.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;nl&quot;&nbsp;&nbsp; - Use messages that end in a NL character<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;raw&quot;&nbsp;&nbsp;- rawメッセージを使う<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-callback" name="channel-callback">*channel-callback*</a>&nbsp;<a class="Constant" href="channel.html#E921" name="E921">*E921*</a><br>
+&quot;callback&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;メッセージ受信時に他のハンドラーで扱われない時に呼ばれます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;これはチャンネルのハンドルと、受信したメッセージの2つの引数を<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;取ります。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func Handle(channel, msg)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo '受信した: ' . a:msg<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let handle = connect(&quot;localhost:8765&quot;, 'json', &quot;Handle&quot;)</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let channel = ch_open(&quot;localhost:8765&quot;, {&quot;callback&quot;: &quot;Handle&quot;})</div>
 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;mode&quot; が &quot;json&quot;, &quot;js&quot; の時には、&quot;msg&quot; 引数は受信したメッセー<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ジの本文で、Vimの型に変換されています。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When &quot;mode&quot; is &quot;nl&quot; the &quot;msg&quot; argument is one message,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;excluding the NL.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;mode&quot; が &quot;raw&quot; の時には、 &quot;msg&quot; 引数はメッセージ全体を格納し<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;た文字列です。<br>
 <br>
-<span class="Special">{mode}</span>&nbsp;が &quot;json&quot; の時には、&quot;msg&quot; 引数は受信したメッセージの本文で、Vimの型に変<br>
-換されています。<br>
-一方&nbsp;<span class="Special">{mode}</span>&nbsp;が &quot;raw&quot; の時には、 &quot;msg&quot; 引数はメッセージ全体を格納した文字列で<br>
-す。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For all callbacks: Use&nbsp;<a class="Identifier" href="eval.html#function()">|function()|</a>&nbsp;to bind it to arguments<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;and/or a Dictionary.&nbsp;&nbsp;Or use the form &quot;dict.function&quot; to bind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the Dictionary.<br>
 <br>
-<span class="Special">{mode}</span>&nbsp;が &quot;json&quot; の時には&nbsp;<span class="Special">{callback}</span>&nbsp;はオプションです。これを省略した場合、<br>
-メッセージを1つ受信するにはメッセージを1つ送信する必要があります。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Callbacks are only called at a &quot;safe&quot; moment, usually when Vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is waiting for the user to type a character.&nbsp;&nbsp;Vim does not use<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;multi-threading.<br>
 <br>
-ハンドラーは後から追加したり、変更したりできます:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call sethandler(handle, {callback})</div>
-<span class="Special">{callback}</span>&nbsp;が空の場合 (一度も指定しないか、空文字列を指定した場合) ハンドラー<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#close_cb" name="close_cb">*close_cb*</a><br>
+&quot;close_cb&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A function that is called when the channel gets closed, other<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;than by calling ch_close().&nbsp;&nbsp;It should be defined like this:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func MyCloseHandler(channel)</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Vim will invoke callbacks that handle data before invoking<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;close_cb, thus when this function is called no more data will<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;be received.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#waittime" name="waittime">*waittime*</a><br>
+&quot;waittime&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The time to wait for the connection to be made in<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;milliseconds.&nbsp;&nbsp;A negative number waits forever.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The default is zero, don't wait, which is useful if a local<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;server is supposed to be running already.&nbsp;&nbsp;On Unix Vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;actually uses a 1 msec timeout, that is required on many<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;systems.&nbsp;&nbsp;Use a larger value for a remote server, e.g.&nbsp;&nbsp;10<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;msec at least.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-timeout" name="channel-timeout">*channel-timeout*</a><br>
+&quot;timeout&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The time to wait for a request when blocking, E.g. when using<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ch_evalexpr().&nbsp;&nbsp;In milliseconds.&nbsp;&nbsp;The default is 2000 (2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;seconds).<br>
+<br>
+&quot;mode&quot; が &quot;json&quot; か &quot;js&quot; の時には &quot;callback&quot; はオプションです。これを省略した<br>
+場合、メッセージを1つ受信するにはメッセージを1つ送信する必要があります。<br>
+<br>
+To change the channel options after opening it use&nbsp;<a class="Identifier" href="eval.html#ch_setoptions()">|ch_setoptions()|</a>.&nbsp;&nbsp;The<br>
+arguments are similar to what is passed to&nbsp;<a class="Identifier" href="eval.html#ch_open()">|ch_open()|</a>, but &quot;waittime&quot; cannot<br>
+be given, since that only applies to opening the channel.<br>
+<br>
+例えば、ハンドラーは後から追加したり、変更したりできます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call ch_setoptions(channel, {'callback': callback})</div>
+&quot;callback&quot; が空の場合 (一度も指定しないか、空文字列を指定した場合) ハンドラー<br>
 は削除されます。<br>
 <br>
+After a callback has been invoked Vim will update the screen and put the<br>
+cursor back where it belongs.&nbsp;&nbsp;Thus the callback should not need to do<br>
+`:redraw`.<br>
+<br>
+The timeout can be changed:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call ch_setoptions(channel, {'timeout': msec})</div>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-close" name="channel-close">*channel-close*</a>&nbsp;<a class="Constant" href="channel.html#E906" name="E906">*E906*</a><br>
 チャンネルを使い終わったら、以下のように切断してください:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call disconnect(handle)</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call ch_close(channel)</div>
+When a socket is used this will close the socket for both directions.&nbsp;&nbsp;When<br>
+pipes are used (stdin/stdout/stderr) they are all closed.&nbsp;&nbsp;This might not be<br>
+what you want!&nbsp;&nbsp;Stopping the job with job_stop() might be better.<br>
+All readahead is discarded, callbacks will no longer be invoked.<br>
+<br>
+<span class="Todo">Note</span>&nbsp;that a channel is closed in three stages:<br>
+&nbsp;&nbsp;- The I/O ends, log message: &quot;Closing channel&quot;. There can still be queued<br>
+&nbsp;&nbsp;&nbsp;&nbsp;messages to read or callbacks to invoke.<br>
+&nbsp;&nbsp;- The readahead is cleared, log message: &quot;Clearing channel&quot;.&nbsp;&nbsp;Some variables<br>
+&nbsp;&nbsp;&nbsp;&nbsp;may still reference the channel.<br>
+&nbsp;&nbsp;- The channel is freed, log message: &quot;Freeing channel&quot;.<br>
+<br>
+When the channel can't be opened you will get an error message.&nbsp;&nbsp;There is a<br>
+difference between MS-Windows and Unix: On Unix when the port doesn't exist<br>
+ch_open() fails quickly.&nbsp;&nbsp;On MS-Windows &quot;waittime&quot; applies.<br>
+<a class="Constant" href="channel.html#E898" name="E898">*E898*</a>&nbsp;<a class="Constant" href="channel.html#E901" name="E901">*E901*</a>&nbsp;<a class="Constant" href="channel.html#E902" name="E902">*E902*</a><br>
+<br>
+If there is an error reading or writing a channel it will be closed.<br>
+<a class="Constant" href="channel.html#E630" name="E630">*E630*</a>&nbsp;<a class="Constant" href="channel.html#E631" name="E631">*E631*</a>&nbsp;<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-3. JSONチャンネルを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-use" name="channel-use">*channel-use*</a><br>
+4. JSON、JSチャンネルを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-use" name="channel-use">*channel-use*</a><br>
 <br>
-<span class="Special">{mode}</span>&nbsp;が &quot;json&quot; 場合は、以下のようにメッセージを同期的に送信できます:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let response = sendexpr(handle, {expr})</div>
+&quot;mode&quot; が JSON の場合は、以下のようにメッセージを同期的に送信できます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let response = ch_evalexpr(channel, {expr})</div>
 これは通信相手から応答があるまで待ち合わせます。<br>
 <br>
-応答を処理する必要が無いのであれば、以下のように送れます:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call sendexpr(handle, {expr}, 0)</div>
+When mode is JS this works the same, except that the messages use<br>
+JavaScript encoding.&nbsp;&nbsp;See&nbsp;<a class="Identifier" href="eval.html#js_encode()">|js_encode()|</a>&nbsp;for the difference.<br>
+<br>
+To send a message, without handling a response or letting the channel callback<br>
+handle the response:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call ch_sendexpr(channel, {expr})</div>
 <br>
 メッセージを送信し、応答を特別な関数で非同期的に処理する場合には、このようにし<br>
 ます:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call sendexpr(handle, {expr}, {callback})</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call ch_sendexpr(channel, {expr}, {'callback': Handler})</div>
+<br>
+Vim will match the response with the request using the message ID.&nbsp;&nbsp;Once the<br>
+response is received the callback will be invoked.&nbsp;&nbsp;Further responses with the<br>
+same ID will be ignored.&nbsp;&nbsp;If your server sends back multiple responses you<br>
+need to send them with ID zero, they will be passed to the channel callback.<br>
 <br>
 <span class="Special">{expr}</span>&nbsp;は JSON に変換され、配列で包まれます。<span class="Special">{expr}</span>&nbsp;として文字列 &quot;hello&quot; を送<br>
 信した場合に、通信相手が受け取るメッセージの例は次のようになります:<br>
@@ -136,9 +255,15 @@ sendを呼ぶたびに毎回コールバックを指定する代わりに、チ�
 でき、正しいハンドラーを呼び出すことができます。これによって応答メッセージの到<br>
 着順序を気にしなくても良くなります。<br>
 <br>
+A newline character is terminating the JSON text.&nbsp;&nbsp;This can be used to<br>
+separate the read text.&nbsp;&nbsp;For example, in Python:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;splitidx = read_text.find('\n')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;message = read_text[:splitidx]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rest = read_text[splitidx + 1:]<br>
+<br>
 送信側はかならず有効なJSONをVimへ送らなければなりません。VimはJSONとして解釈す<br>
 ることで、受信メッセージの終端をチェックします。終端を受信することが、<br>
-メッセージを受理する唯一の方法です。<br>
+メッセージを受理する唯一の方法です。A newline after the message is optional.<br>
 <br>
 サーバープロセスがVimからのメッセージを受信すること無く、メッセージを送信する<br>
 には、数値に 0 を使う必要があります。<br>
@@ -148,79 +273,486 @@ sendを呼ぶたびに毎回コールバックを指定する代わりに、チ�
 しょう。チャンネルにハンドラーが関連付けられていない場合には、メッセージは破棄<br>
 されます。<br>
 <br>
-読み込みエラーが発生した場合や&nbsp;<span class="MissingTag">|disconnect()|</span>&nbsp;した場合には、可能であるなら文字<br>
-列 &quot;DETACH&quot; が送られます。チャンネルはそれから非アクティブになります。<br>
+It is also possible to use ch_sendraw() and ch_evalraw() on a JSON or JS<br>
+channel.&nbsp;&nbsp;The caller is then completely responsible for correct encoding and<br>
+decoding.<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-4. Vimコマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-commands" name="channel-commands">*channel-commands*</a><br>
+5. チャンネルコマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-commands" name="channel-commands">*channel-commands*</a><br>
 <br>
-ま　だ　実　装　さ　れ　て　い　ま　せ　ん<br>
+JSON チャンネルを使用すると、サーバープロセス側はVimへコマンドを送信できます。<br>
+そのコマンドはチャンネルのハンドラーを介さずに、Vimの内部で実行されます。<br>
 <br>
-&quot;json&quot; チャンネルを使用すると、サーバープロセス側はVimへコマンドを送信できま<br>
-す。そのコマンドはチャンネルのハンドラーを介さずに、Vimの内部で実行されます。<br>
-<br>
-実行可能なコマンドは以下のとおりです:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;[&quot;ex&quot;,&nbsp;&nbsp;&nbsp;&nbsp; {Ex コマンド}]<br>
+実行可能なコマンドは以下のとおりです:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#E903" name="E903">*E903*</a>&nbsp;<a class="Constant" href="channel.html#E904" name="E904">*E904*</a>&nbsp;<a class="Constant" href="channel.html#E905" name="E905">*E905*</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;[&quot;redraw&quot;,&nbsp;<span class="Special">{forced}</span>]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[&quot;ex&quot;,&nbsp;&nbsp;&nbsp;&nbsp; {Ex コマンド}]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[&quot;normal&quot;, {ノーマルモードコマンド}]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[&quot;eval&quot;,&nbsp;&nbsp; {数値}, {式}]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[&quot;expr&quot;,&nbsp;&nbsp; {式}]</div>
+&nbsp;&nbsp;&nbsp;&nbsp;[&quot;eval&quot;,&nbsp;&nbsp; {式}, {数値}]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[&quot;expr&quot;,&nbsp;&nbsp; {式}]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[&quot;call&quot;,&nbsp;&nbsp; {func name}, {argument list},&nbsp;<span class="Special">{number}</span>]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[&quot;call&quot;,&nbsp;&nbsp; {func name}, {argument list}]<br>
 <br>
 これらを使うときは、これらのコマンドが何をするかに十分気をつけてください!<br>
 ユーザーが何をしているかによっては容易に干渉してしまいます。トラブルを避けるに<br>
 は&nbsp;<a class="Identifier" href="eval.html#mode()">|mode()|</a>&nbsp;を使い、エディタが期待した状態にあるかチェックしてください。例え<br>
 ば、コマンド実行ではなくテキストとして入力させたい文字列を送るには、以下のよう<br>
 にします:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;[&quot;ex&quot;,&quot;if mode() == 'i' | call feedkeys('ClassName') | endif&quot;]</div>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[&quot;ex&quot;,&quot;if mode() == 'i' | call feedkeys('ClassName') | endif&quot;]</span><br>
+<br>
+Errors in these commands are normally not reported to avoid them messing up<br>
+the display.&nbsp;&nbsp;If you do want to see them, set the&nbsp;<a class="Type" href="options.html#'verbose'">'verbose'</a>&nbsp;option to 3 or<br>
+higher.<br>
+<br>
+<br>
+<span class="PreProc">Command &quot;redraw&quot;</span><br>
+<br>
+The other commands do not update the screen, so that you can send a sequence<br>
+of commands without the cursor moving around.&nbsp;&nbsp;You must end with the &quot;redraw&quot;<br>
+command to show any changed text and show the cursor where it belongs.<br>
+<br>
+The argument is normally an empty string:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[&quot;redraw&quot;, &quot;&quot;]</span><br>
+To first clear the screen pass &quot;force&quot;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[&quot;redraw&quot;, &quot;force&quot;]</span><br>
+<br>
+<br>
+<span class="PreProc">Command &quot;ex&quot;</span><br>
 <br>
 &quot;ex&quot; コマンドは Ex コマンドを実行します。完了やエラーの応答はありませ<br>
-ん。<a class="Identifier" href="eval.html#autoload">|autoload|</a>&nbsp;スクリプトの中の関数を使えます。何かを入力するのに&nbsp;<a class="Identifier" href="eval.html#feedkeys()">|feedkeys()|</a><br>
-を実行することもできます。<br>
+ん。<a class="Identifier" href="eval.html#autoload">|autoload|</a>&nbsp;スクリプトの中の関数を使えます:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;ex&quot;,&quot;call myscript#MyFunc(arg)&quot;]<br>
 <br>
-&quot;normal&quot; コマンドは&nbsp;<a class="Identifier" href="various.html#:normal">|:normal|</a>&nbsp;のように実行されます。<br>
+You can also use &quot;call&nbsp;<a class="Identifier" href="eval.html#feedkeys()">|feedkeys()|</a>&quot; to insert any key sequence.<br>
 <br>
-&quot;eval&quot; コマンドは式の評価結果を以下の様に返信します:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{数値}, {result}]</div>
-{数値} は、リクエストに指定したのと同じものです。<br>
+When there is an error a message is written to the channel log, if it exists,<br>
+and v:errmsg is set to the error.<br>
 <br>
-&quot;expr&quot; コマンドはそれに近いのですが、応答を返信しません。例:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;expr&quot;,&quot;setline('$', ['one', 'two', 'three'])&quot;]</div>
+<br>
+<span class="PreProc">Command &quot;normal&quot;</span><br>
+<br>
+&quot;normal&quot; コマンドは &quot;:normal!&quot; のように実行され、commands are not mapped.<br>
+Example to open the folds under the cursor:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;normal&quot; &quot;zO&quot;]<br>
+<br>
+<br>
+<span class="PreProc">Command &quot;expr&quot;&nbsp;&nbsp;with response</span><br>
+<br>
+The &quot;expr&quot; command can be used to get the result of an expression.&nbsp;&nbsp;For<br>
+example, to get the number of lines in the current buffer:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[&quot;expr&quot;,&quot;line('$')&quot;, -2]</span><br>
+<br>
+It will send back the result of the expression:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[-2, &quot;last line&quot;]</span><br>
+The format is:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="Special">{number}</span>,&nbsp;<span class="Special">{result}</span>]<br>
+<br>
+<span class="Special">{number}</span>&nbsp;は、リクエストに指定したのと同じものです。Use a negative number to<br>
+avoid confusion with message that Vim sends.&nbsp;&nbsp;Use a different number on every<br>
+request to be able to match the request with the response.<br>
+<br>
+<span class="Special">{result}</span>&nbsp;is the result of the evaluation and is JSON encoded.&nbsp;&nbsp;If the<br>
+evaluation fails or the result can't be encoded in JSON it is the string<br>
+&quot;ERROR&quot;.<br>
+<br>
+<br>
+<span class="PreProc">Command &quot;expr&quot; without a response</span><br>
+<br>
+このコマンドは上記の &quot;expr&quot; に近いのですが、応答を返信しません。<br>
+例:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[&quot;expr&quot;,&quot;setline('$', ['one', 'two', 'three'])&quot;]</span><br>
+There is no third argument in the request.<br>
+<br>
+<br>
+<span class="PreProc">Command &quot;call&quot;</span><br>
+<br>
+This is similar to &quot;expr&quot;, but instead of passing the whole expression as a<br>
+string this passes the name of a function and a list of arguments.&nbsp;&nbsp;This<br>
+avoids the conversion of the arguments to a string and escaping and<br>
+concatenating them.&nbsp;&nbsp;Example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[&quot;call&quot;, &quot;line&quot;, [&quot;$&quot;], -2]</span><br>
+<br>
+Leave out the fourth argument if no response is to be sent:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">[&quot;call&quot;, &quot;setline&quot;, [&quot;$&quot;, [&quot;one&quot;, &quot;two&quot;, &quot;three&quot;]]]</span><br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-5. rawチャンネルを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-raw" name="channel-raw">*channel-raw*</a><br>
+6. RAW、NLチャンネルを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-raw" name="channel-raw">*channel-raw*</a><br>
 <br>
-<span class="Special">{mode}</span>&nbsp;が &quot;raw&quot; の場合には、以下のようにしてメッセージを送信します:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let response = sendraw(handle, {string})</div>
+モードがRAWかNLの場合には、以下のようにしてメッセージを送信します:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let response = ch_evalraw(channel, {string})</div>
+<br>
 <span class="Special">{string}</span>&nbsp;はそのまま送信されます。受信した応答メッセージは直ちにチャンネルから<br>
 読み込み可能になります。この時、Vimにはメッセージの終了をどう判断するかがわか<br>
-りませんから、あなた自身が面倒を見る必要があります。<br>
+りませんから、あなた自身が面倒を見る必要があります。The timeout applies for<br>
+reading the first byte, after that it will not wait for anything more.<br>
+<br>
+If mode is &quot;nl&quot; you can send a message in a similar way.&nbsp;&nbsp;You are expected<br>
+to put in the NL after each message.&nbsp;&nbsp;Thus you can also send several messages<br>
+ending in a NL at once.&nbsp;&nbsp;The response will be the text up to and including the<br>
+first NL.&nbsp;&nbsp;This can also be just the NL for an empty response.<br>
+If no NL was read before the channel timeout an empty string is returned.<br>
+<br>
 <br>
 応答を必要としないメッセージを送信するには以下のようにします:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call sendraw(handle, {string}, 0)</div>
-プロセス(訳注:サーバーのこと)はレスポンスを返し、チャンネルのハンドラーに渡さ<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call ch_sendraw(channel, {string})</div>
+プロセス{訳注:サーバーのこと}はレスポンスを返し、チャンネルのハンドラーに渡さ<br>
 れます。<br>
 <br>
 メッセージを送信し、レスポンスを特定の関数で非同期的に取り扱うには以下のように<br>
 します:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call sendraw(handle, {string}, {callback})</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call ch_sendraw(channel, {string}, {'callback': 'MyHandler'})</div>
 <br>
-この&nbsp;<span class="Special">{string}</span>&nbsp;はJSONにもできます。その場合&nbsp;<span class="MissingTag">|jsonencode()|</span>&nbsp;それを作成し<br>
-<span class="MissingTag">|jsondecode()|</span>&nbsp;で受信したJSONメッセージを取り扱います。<br>
+この&nbsp;<span class="Special">{string}</span>&nbsp;はJSONにもできます。その場合、<a class="Identifier" href="eval.html#json_encode()">|json_encode()|</a>&nbsp;でそれを作成し<br>
+<a class="Identifier" href="eval.html#json_decode()">|json_decode()|</a>&nbsp;で受信したJSONメッセージを取り扱います。<br>
+<br>
+It is not possible to use&nbsp;<a class="Identifier" href="eval.html#ch_evalexpr()">|ch_evalexpr()|</a>&nbsp;or&nbsp;<a class="Identifier" href="eval.html#ch_sendexpr()">|ch_sendexpr()|</a>&nbsp;on a raw channel.<br>
+<br>
+A String in Vim cannot contain NUL bytes.&nbsp;&nbsp;To send or receive NUL bytes read<br>
+or write from a buffer.&nbsp;&nbsp;See&nbsp;<a class="Identifier" href="channel.html#in_io-buffer">|in_io-buffer|</a>&nbsp;and&nbsp;<a class="Identifier" href="channel.html#out_io-buffer">|out_io-buffer|</a>.<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-6. ジョブ制御&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-control" name="job-control">*job-control*</a><br>
+7. More channel functions&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-more" name="channel-more">*channel-more*</a><br>
 <br>
-ま　だ　実　装　さ　れ　て　い　ま　せ　ん<br>
+To obtain the status of a channel: ch_status(channel).&nbsp;&nbsp;The possible results<br>
+are:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;fail&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Failed to open the channel.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;open&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The channel can be used.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;buffered&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The channel was closed but there is data to read.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;closed&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The channel was closed.<br>
 <br>
-別のプロセスを開始するには:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call startjob({command})</div>
+To obtain the job associated with a channel: ch_getjob(channel)<br>
 <br>
-これは&nbsp;<span class="Special">{command}</span>&nbsp;の終了を待ちません。<br>
+To read one message from a channel:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let output = ch_read(channel)</div>
+This uses the channel timeout.&nbsp;&nbsp;To read without a timeout, just get any<br>
+message that is available:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let output = ch_read(channel, {'timeout': 0})</div>
+When no message was available then the result is v:none for a JSON or JS mode<br>
+channels, an empty string for a RAW or NL channel.<br>
 <br>
-TODO:<br>
+To read all output from a RAW channel that is available:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let output = ch_readraw(channel)</div>
+To read the error output:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let output = ch_readraw(channel, {&quot;part&quot;: &quot;err&quot;})</div>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;let handle = startjob(<span class="Special">{command}</span>, 's')&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 標準入出力を使う<br>
-&nbsp;&nbsp;&nbsp;&nbsp;let handle = startjob(<span class="Special">{command}</span>, '',&nbsp;<span class="Special">{address}</span>)&nbsp;&nbsp;# ソケットを使う<br>
-&nbsp;&nbsp;&nbsp;&nbsp;let handle = startjob(<span class="Special">{command}</span>, 'd',&nbsp;<span class="Special">{address}</span>) # 接続に失敗したら開始<br>
+ch_read() and ch_readraw() use the channel timeout.&nbsp;&nbsp;When there is nothing to<br>
+read within that time an empty string is returned.&nbsp;&nbsp;To specify a different<br>
+timeout in msec use the &quot;timeout&quot; option:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">{&quot;timeout&quot;: 123}</span><br>
+To read from the error output use the &quot;part&quot; option:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">{&quot;part&quot;: &quot;err&quot;}</span><br>
+To read a message with a specific ID, on a JS or JSON channel:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">{&quot;id&quot;: 99}</span><br>
+When no ID is specified or the ID is -1, the first message is returned. This<br>
+overrules any callback waiting for this message.<br>
+<br>
+For a RAW channel this returns whatever is available, since Vim does not know<br>
+where a message ends.<br>
+For a NL channel this returns one message.<br>
+For a JS or JSON channel this returns one decoded message.<br>
+This includes any sequence number.<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+8. Starting a job with a channel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-start" name="job-start">*job-start*</a>&nbsp;<a class="Constant" href="channel.html#job" name="job">*job*</a><br>
+<br>
+To start a job and open a channel for stdin/stdout/stderr:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let job = job_start(command, {options})</div>
+<br>
+You can get the channel with:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let channel = job_getchannel(job)</div>
+<br>
+The channel will use NL mode.&nbsp;&nbsp;If you want another mode it's best to specify<br>
+this in&nbsp;<span class="Special">{options}</span>.&nbsp;&nbsp;When changing the mode later some text may have already<br>
+been received and not parsed correctly.<br>
+<br>
+If the command produces a line of output that you want to deal with, specify<br>
+a handler for stdout:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let job = job_start(command, {&quot;out_cb&quot;: &quot;MyHandler&quot;})</div>
+The function will be called with the channel and a message. You would define<br>
+it like this:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;func MyHandler(channel, msg)</div>
+<br>
+Without the handler you need to read the output with&nbsp;<a class="Identifier" href="eval.html#ch_read()">|ch_read()|</a>&nbsp;or<br>
+<a class="Identifier" href="eval.html#ch_readraw()">|ch_readraw()|</a>. You can do this in the close callback, see&nbsp;<a class="Identifier" href="channel.html#read-in-close-cb">|read-in-close-cb|</a>.<br>
+<br>
+<span class="Todo">Note</span>&nbsp;that if the job exits before you read the output, the output may be lost.<br>
+This depends on the system (on Unix this happens because closing the write end<br>
+of a pipe causes the read end to get EOF).&nbsp;&nbsp;To avoid this make the job sleep<br>
+for a short while before it exits.<br>
+<br>
+The handler defined for &quot;out_cb&quot; will not receive stderr.&nbsp;&nbsp;If you want to<br>
+handle that separately, add an &quot;err_cb&quot; handler:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let job = job_start(command, {&quot;out_cb&quot;: &quot;MyHandler&quot;,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;err_cb&quot;: &quot;ErrHandler&quot;})</div>
+<br>
+If you want to handle both stderr and stdout with one handler use the<br>
+&quot;callback&quot; option:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let job = job_start(command, {&quot;callback&quot;: &quot;MyHandler&quot;})&nbsp;</div>
+<br>
+You can send a message to the command with ch_evalraw().&nbsp;&nbsp;If the channel is in<br>
+JSON or JS mode you can use ch_evalexpr().<br>
+<br>
+There are several options you can use, see&nbsp;<a class="Identifier" href="channel.html#job-options">|job-options|</a>.<br>
+For example, to start a job and write its output in buffer &quot;dummy&quot;:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let logjob = job_start(&quot;tail -f /tmp/log&quot;,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \ {'out_io': 'buffer', 'out_name': 'dummy'})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sbuf dummy</div>
+<br>
+<br>
+<span class="PreProc">Job input from a buffer</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#in_io-buffer" name="in_io-buffer">*in_io-buffer*</a><br>
+To run a job that reads from a buffer:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let job = job_start({command},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ {'in_io': 'buffer', 'in_name': 'mybuffer'})</div>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#E915" name="E915">*E915*</a>&nbsp;<a class="Constant" href="channel.html#E918" name="E918">*E918*</a><br>
+The buffer is found by name, similar to&nbsp;<a class="Identifier" href="eval.html#bufnr()">|bufnr()|</a>. The buffer must exist and<br>
+be loaded when job_start() is called.<br>
+<br>
+By default this reads the whole buffer.&nbsp;&nbsp;This can be changed with the &quot;in_top&quot;<br>
+and &quot;in_bot&quot; options.<br>
+<br>
+A special mode is when &quot;in_top&quot; is set to zero and &quot;in_bot&quot; is not set: Every<br>
+time a line is added to the buffer, the last-but-one line will be send to the<br>
+job stdin.&nbsp;&nbsp;This allows for editing the last line and sending it when pressing<br>
+Enter.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-close-in" name="channel-close-in">*channel-close-in*</a><br>
+When not using the special mode the pipe or socket will be closed after the<br>
+last line has been written.&nbsp;&nbsp;This signals the reading end that the input<br>
+finished.&nbsp;&nbsp;You can also use&nbsp;<a class="Identifier" href="eval.html#ch_close_in()">|ch_close_in()|</a>&nbsp;to close it sooner.<br>
+<br>
+NUL bytes in the text will be passed to the job (internally Vim stores these<br>
+as NL bytes).<br>
+<br>
+<br>
+<span class="PreProc">Reading job output in the close callback</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#read-in-close-cb" name="read-in-close-cb">*read-in-close-cb*</a><br>
+If the job can take some time and you don't need intermediate results, you can<br>
+add a close callback and read the output there:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func! CloseHandler(channel)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while ch_status(a:channel, {'part': 'out'}) == 'buffered'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echomsg ch_read(a:channel)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endwhile<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let job = job_start(command, {'close_cb': 'CloseHandler'})</div>
+<br>
+You will want to do something more useful than &quot;echomsg&quot;.<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+9. Starting a job without a channel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-start-nochannel" name="job-start-nochannel">*job-start-nochannel*</a><br>
+<br>
+To start another process without creating a channel:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let job = job_start(command,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ {&quot;in_io&quot;: &quot;null&quot;, &quot;out_io&quot;: &quot;null&quot;, &quot;err_io&quot;: &quot;null&quot;})</div>
+<br>
+This starts&nbsp;<span class="Special">{command}</span>&nbsp;in the background, Vim does not wait for it to finish.<br>
+<br>
+When Vim sees that neither stdin, stdout or stderr are connected, no channel<br>
+will be created.&nbsp;&nbsp;Often you will want to include redirection in the command to<br>
+avoid it getting stuck.<br>
+<br>
+There are several options you can use, see&nbsp;<a class="Identifier" href="channel.html#job-options">|job-options|</a>.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-start-if-needed" name="job-start-if-needed">*job-start-if-needed*</a><br>
+To start a job only when connecting to an address does not work, do something<br>
+like this:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let channel = ch_open(address, {&quot;waittime&quot;: 0})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if ch_status(channel) == &quot;fail&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let job = job_start(command)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let channel = ch_open(address, {&quot;waittime&quot;: 1000})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif</div>
+<br>
+<span class="Todo">Note</span>&nbsp;that the waittime for ch_open() gives the job one second to make the port<br>
+available.<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+10. ジョブオプション&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-options" name="job-options">*job-options*</a><br>
+<br>
+The&nbsp;<span class="Special">{options}</span>&nbsp;argument in job_start() is a dictionary.&nbsp;&nbsp;All entries are<br>
+optional.&nbsp;&nbsp;Some options can be used after the job has started, using<br>
+job_setoptions(job,&nbsp;<span class="Special">{options}</span>).&nbsp;&nbsp;Many options can be used with the channel<br>
+related to the job, using ch_setoptions(channel,&nbsp;<span class="Special">{options}</span>).<br>
+See&nbsp;<a class="Identifier" href="eval.html#job_setoptions()">|job_setoptions()|</a>&nbsp;and&nbsp;<a class="Identifier" href="eval.html#ch_setoptions()">|ch_setoptions()|</a>.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#in_mode" name="in_mode">*in_mode*</a>&nbsp;<a class="Constant" href="channel.html#out_mode" name="out_mode">*out_mode*</a>&nbsp;<a class="Constant" href="channel.html#err_mode" name="err_mode">*err_mode*</a><br>
+&quot;in_mode&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mode specifically for stdin, only when using pipes<br>
+&quot;out_mode&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mode specifically for stdout, only when using pipes<br>
+&quot;err_mode&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mode specifically for stderr, only when using pipes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;See&nbsp;<a class="Identifier" href="channel.html#channel-mode">|channel-mode|</a>&nbsp;for the values.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: when setting &quot;mode&quot; the part specific mode is<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;overwritten.&nbsp;&nbsp;Therefore set &quot;mode&quot; first and the part<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;specific mode later.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: when writing to a file or buffer and when<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reading from a buffer NL mode is used by default.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-callback" name="job-callback">*job-callback*</a><br>
+&quot;callback&quot;: handler&nbsp;&nbsp;&nbsp;&nbsp; Callback for something to read on any part of the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;channel.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-out_cb" name="job-out_cb">*job-out_cb*</a>&nbsp;<a class="Constant" href="channel.html#out_cb" name="out_cb">*out_cb*</a><br>
+&quot;out_cb&quot;: handler&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Callback for when there is something to read on<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stdout.&nbsp;&nbsp;Only for when the channel uses pipes.&nbsp;&nbsp;When<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;out_cb&quot; wasn't set the channel callback is used.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The two arguments are the channel and the message.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-err_cb" name="job-err_cb">*job-err_cb*</a>&nbsp;<a class="Constant" href="channel.html#err_cb" name="err_cb">*err_cb*</a><br>
+&quot;err_cb&quot;: handler&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Callback for when there is something to read on<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stderr.&nbsp;&nbsp;Only for when the channel uses pipes.&nbsp;&nbsp;When<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;err_cb&quot; wasn't set the channel callback is used.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The two arguments are the channel and the message.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-close_cb" name="job-close_cb">*job-close_cb*</a><br>
+&quot;close_cb&quot;: handler&nbsp;&nbsp;&nbsp;&nbsp; Callback for when the channel is closed.&nbsp;&nbsp;Same as<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;close_cb&quot; on&nbsp;<a class="Identifier" href="eval.html#ch_open()">|ch_open()|</a>, see&nbsp;<a class="Identifier" href="channel.html#close_cb">|close_cb|</a>.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-exit_cb" name="job-exit_cb">*job-exit_cb*</a><br>
+&quot;exit_cb&quot;: handler&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Callback for when the job ends.&nbsp;&nbsp;The arguments are the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;job and the exit status.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Vim checks up to 10 times per second for jobs that<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ended.&nbsp;&nbsp;The check can also be triggered by calling<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#job_status()">|job_status()|</a>, which may then invoke the exit_cb<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;handler.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>&nbsp;that data can be buffered, callbacks may still be<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;called after the process ends.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-timeout" name="job-timeout">*job-timeout*</a><br>
+&quot;timeout&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The time to wait for a request when blocking, E.g.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;when using ch_evalexpr().&nbsp;&nbsp;In milliseconds.&nbsp;&nbsp;The<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default is 2000 (2 seconds).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#out_timeout" name="out_timeout">*out_timeout*</a>&nbsp;<a class="Constant" href="channel.html#err_timeout" name="err_timeout">*err_timeout*</a><br>
+&quot;out_timeout&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Timeout for stdout.&nbsp;&nbsp;Only when using pipes.<br>
+&quot;err_timeout&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Timeout for stderr.&nbsp;&nbsp;Only when using pipes.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: when setting &quot;timeout&quot; the part specific mode is<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;overwritten.&nbsp;&nbsp;Therefore set &quot;timeout&quot; first and the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;part specific mode later.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-stoponexit" name="job-stoponexit">*job-stoponexit*</a><br>
+&quot;stoponexit&quot;:&nbsp;<span class="Special">{signal}</span>&nbsp;&nbsp;Send&nbsp;<span class="Special">{signal}</span>&nbsp;to the job when Vim exits.&nbsp;&nbsp;See<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#job_stop()">|job_stop()|</a>&nbsp;for possible values.<br>
+&quot;stoponexit&quot;: &quot;&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Do not stop the job when Vim exits.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The default is &quot;term&quot;.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-term" name="job-term">*job-term*</a><br>
+&quot;term&quot;: &quot;open&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Start a terminal and connect the job<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stdin/stdout/stderr to it.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">NOTE</span>: Not implemented yet!<br>
+<br>
+&quot;channel&quot;:&nbsp;<span class="Special">{channel}</span>&nbsp;&nbsp;&nbsp;&nbsp;Use an existing channel instead of creating a new one.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The parts of the channel that get used for the new job<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;will be disconnected from what they were used before.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If the channel was still use by another job this may<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cause I/O errors.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Existing callbacks and other settings remain.<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-in_io" name="job-in_io">*job-in_io*</a>&nbsp;<a class="Constant" href="channel.html#in_top" name="in_top">*in_top*</a>&nbsp;<a class="Constant" href="channel.html#in_bot" name="in_bot">*in_bot*</a>&nbsp;<a class="Constant" href="channel.html#in_name" name="in_name">*in_name*</a>&nbsp;<a class="Constant" href="channel.html#in_buf" name="in_buf">*in_buf*</a><br>
+&quot;in_io&quot;: &quot;null&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; disconnect stdin (read from /dev/null)<br>
+&quot;in_io&quot;: &quot;pipe&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; stdin is connected to the channel (default)<br>
+&quot;in_io&quot;: &quot;file&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; stdin reads from a file<br>
+&quot;in_io&quot;: &quot;buffer&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; stdin reads from a buffer<br>
+&quot;in_top&quot;: number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;when using &quot;buffer&quot;: first line to send (default: 1)<br>
+&quot;in_bot&quot;: number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;when using &quot;buffer&quot;: last line to send (default: last)<br>
+&quot;in_name&quot;: &quot;/path/file&quot; the name of the file or buffer to read from<br>
+&quot;in_buf&quot;: number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the number of the buffer to read from<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-out_io" name="job-out_io">*job-out_io*</a>&nbsp;<a class="Constant" href="channel.html#out_name" name="out_name">*out_name*</a>&nbsp;<a class="Constant" href="channel.html#out_buf" name="out_buf">*out_buf*</a><br>
+&quot;out_io&quot;: &quot;null&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;disconnect stdout (goes to /dev/null)<br>
+&quot;out_io&quot;: &quot;pipe&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stdout is connected to the channel (default)<br>
+&quot;out_io&quot;: &quot;file&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stdout writes to a file<br>
+&quot;out_io&quot;: &quot;buffer&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stdout appends to a buffer (see below)<br>
+&quot;out_name&quot;: &quot;/path/file&quot; the name of the file or buffer to write to<br>
+&quot;out_buf&quot;: number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; the number of the buffer to write to<br>
+&quot;out_modifiable&quot;: 0&nbsp;&nbsp;&nbsp;&nbsp; when writing to a buffer,&nbsp;<a class="Type" href="options.html#'modifiable'">'modifiable'</a>&nbsp;will be off<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(see below)<br>
+&quot;out_msg&quot;: 0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;when writing to a new buffer, the first line will be<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set to &quot;Reading from channel output...&quot;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-err_io" name="job-err_io">*job-err_io*</a>&nbsp;<a class="Constant" href="channel.html#err_name" name="err_name">*err_name*</a>&nbsp;<a class="Constant" href="channel.html#err_buf" name="err_buf">*err_buf*</a><br>
+&quot;err_io&quot;: &quot;out&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; stderr messages to go to stdout<br>
+&quot;err_io&quot;: &quot;null&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;disconnect stderr&nbsp;&nbsp;(goes to /dev/null)<br>
+&quot;err_io&quot;: &quot;pipe&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stderr is connected to the channel (default)<br>
+&quot;err_io&quot;: &quot;file&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stderr writes to a file<br>
+&quot;err_io&quot;: &quot;buffer&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stderr appends to a buffer (see below)<br>
+&quot;err_name&quot;: &quot;/path/file&quot; the name of the file or buffer to write to<br>
+&quot;err_buf&quot;: number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; the number of the buffer to write to<br>
+&quot;err_modifiable&quot;: 0&nbsp;&nbsp;&nbsp;&nbsp; when writing to a buffer,&nbsp;<a class="Type" href="options.html#'modifiable'">'modifiable'</a>&nbsp;will be off<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(see below)<br>
+&quot;err_msg&quot;: 0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;when writing to a new buffer, the first line will be<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set to &quot;Reading from channel error...&quot;<br>
+<br>
+&quot;block_write&quot;: number&nbsp;&nbsp; only for testing: pretend every other write to stdin<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;will block<br>
+<br>
+<br>
+<span class="PreProc">Writing to a buffer</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#out_io-buffer" name="out_io-buffer">*out_io-buffer*</a><br>
+When the out_io or err_io mode is &quot;buffer&quot; and there is a callback, the text<br>
+is appended to the buffer before invoking the callback.<br>
+<br>
+When a buffer is used both for input and output, the output lines are put<br>
+above the last line, since the last line is what is written to the channel<br>
+input.&nbsp;&nbsp;Otherwise lines are appended below the last line.<br>
+<br>
+When using JS or JSON mode with &quot;buffer&quot;, only messages with zero or negative<br>
+ID will be added to the buffer, after decoding + encoding.&nbsp;&nbsp;Messages with a<br>
+positive number will be handled by a callback, commands are handled as usual.<br>
+<br>
+The name of the buffer from &quot;out_name&quot; or &quot;err_name&quot; is compared the full name<br>
+of existing buffers, also after expanding the name for the current directory.<br>
+E.g., when a buffer was created with &quot;:edit somename&quot; and the buffer name is<br>
+&quot;somename&quot; it will use that buffer.<br>
+<br>
+If there is no matching buffer a new buffer is created.&nbsp;&nbsp;Use an empty name to<br>
+always create a new buffer.&nbsp;&nbsp;<a class="Identifier" href="eval.html#ch_getbufnr()">|ch_getbufnr()|</a>&nbsp;can then be used to get the<br>
+buffer number.<br>
+<br>
+For a new buffer&nbsp;<a class="Type" href="options.html#'buftype'">'buftype'</a>&nbsp;is set to &quot;nofile&quot; and&nbsp;<a class="Type" href="options.html#'bufhidden'">'bufhidden'</a>&nbsp;to &quot;hide&quot;.&nbsp;&nbsp;If<br>
+you prefer other settings, create the buffer first and pass the buffer number.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#out_modifiable" name="out_modifiable">*out_modifiable*</a>&nbsp;<a class="Constant" href="channel.html#err_modifiable" name="err_modifiable">*err_modifiable*</a><br>
+The &quot;out_modifiable&quot; and &quot;err_modifiable&quot; options can be used to set the<br>
+<a class="Type" href="options.html#'modifiable'">'modifiable'</a>&nbsp;option off, or write to a buffer that has&nbsp;<a class="Type" href="options.html#'modifiable'">'modifiable'</a>&nbsp;off.&nbsp;&nbsp;That<br>
+means that lines will be appended to the buffer, but the user can't easily<br>
+change the buffer.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#out_msg" name="out_msg">*out_msg*</a>&nbsp;<a class="Constant" href="channel.html#err_msg" name="err_msg">*err_msg*</a><br>
+The &quot;out_msg&quot; option can be used to specify whether a new buffer will have the<br>
+first line set to &quot;Reading from channel output...&quot;.&nbsp;&nbsp;The default is to add the<br>
+message.&nbsp;&nbsp;&quot;err_msg&quot; does the same for channel error.<br>
+<br>
+<a class="Type" href="options.html#'modifiable'">'modifiable'</a>&nbsp;option off, or write to a buffer that has&nbsp;<a class="Type" href="options.html#'modifiable'">'modifiable'</a>&nbsp;off.&nbsp;&nbsp;That<br>
+means that lines will be appended to the buffer, but the user can't easily<br>
+change the buffer.<br>
+<br>
+When an existing buffer is to be written where&nbsp;<a class="Type" href="options.html#'modifiable'">'modifiable'</a>&nbsp;is off and the<br>
+&quot;out_modifiable&quot; or &quot;err_modifiable&quot; options is not zero, an error is given<br>
+and the buffer will not be written to.<br>
+<br>
+When the buffer written to is displayed in a window and the cursor is in the<br>
+first column of the last line, the cursor will be moved to the newly added<br>
+line and the window is scrolled up to show the cursor if needed.<br>
+<br>
+Undo is synced for every added line.&nbsp;&nbsp;NUL bytes are accepted (internally Vim<br>
+stores these as NL bytes).<br>
+<br>
+<br>
+<span class="PreProc">Writing to a file</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#E920" name="E920">*E920*</a><br>
+The file is created with permissions 600 (read-write for the user, not<br>
+accessible for others).&nbsp;&nbsp;Use&nbsp;<a class="Identifier" href="eval.html#setfperm()">|setfperm()|</a>&nbsp;to change this.<br>
+<br>
+If the file already exists it is truncated.<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+11. ジョブを制御する&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#job-control" name="job-control">*job-control*</a><br>
+<br>
+To get the status of a job:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo job_status(job)</div>
+<br>
+To make a job stop running:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;job_stop(job)</div>
+<br>
+This is the normal way to end a job. On Unix it sends a SIGTERM to the job.<br>
+It is possible to use other ways to stop the job, or even send arbitrary<br>
+signals.&nbsp;&nbsp;E.g. to force a job to stop, &quot;kill it&quot;:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;job_stop(job, &quot;kill&quot;)</div>
+<br>
+For more options see&nbsp;<a class="Identifier" href="eval.html#job_stop()">|job_stop()|</a>.<br>
 <br>
 <br>
 &nbsp;vim&#0058;tw=78:ts=8:ft=help:norl:<br>
