@@ -1,4 +1,4 @@
-*autocmd.txt*   For Vim バージョン 8.0.  Last change: 2015 Dec 05
+*autocmd.txt*   For Vim バージョン 8.0.  Last change: 2016 Sep 27
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -51,9 +51,6 @@
 ==============================================================================
 2. 自動コマンドの定義					*autocmd-define*
 
-Note: コマンド ":autocmd" には他のコマンドを続けることはできない。'|' はみなコ
-マンドの一部と認識されるからである。
-
 							*:au* *:autocmd*
 :au[tocmd] [group] {event} {pat} [nested] {cmd}
 			{pat} |autocmd-patterns| に一致するファイルで、{event}
@@ -66,6 +63,12 @@ Note: コマンド ":autocmd" には他のコマンドを続けることはで�
 特殊なパターン<buffer>や<buffer=N>はバッファローカルな自動コマンドを定義する。
 |autocmd-buflocal|を参照。
 
+Note: '|' が {cmd} の前にある場合、":autocmd" コマンドの後には別のコマンドを続
+けることができる。これは動作する: >
+	:augroup mine | au! BufRead | augroup END
+しかし、これは定義されたコマンドの一部として "augroup" を見る: >
+	:augroup mine | au BufRead * set tw=70 | augroup END
+
 Note ":autocmd" の引数の中の特別な文字 (例えば "%" や "<cword>" 等) は、
 自動コマンドが定義されたときに展開されるのではなく、イベントの発生が認識され、
 {cmd} が実行されるときに展開されることに注意せよ。唯一の例外は、"<sfile>" が
@@ -75,11 +78,14 @@ Note ":autocmd" の引数の中の特別な文字 (例えば "%" や "<cword>" �
 
 ここで <sfile> は、この行を含むファイルの名前に展開される。
 
-ファイル .vimrc が2回読み込まれるとき、自動コマンドは二度現れる。これを避ける
-ため、このコマンドをファイル .vimrc の自動コマンドを定義する所の前に入れてお
-く必要がある。 >
-
-	:autocmd!     " 現在のグループに対する「全て」の自動コマンドを削除。
+`:autocmd` は、すでに存在しているかどうかに関わらず、自動コマンドのリストに
+追加する。 .vimrc ファイルが2回読み込まれると、自動コマンドが2回表示される。こ
+れを避けるには、グループ内に自動コマンドを定義することで、簡単にクリアできる:
+>
+	augroup vimrc
+	  autocmd!	" 「全ての」vimrcの自動コマンドを削除する
+	  au BufNewFile,BufRead *.html so <sfile>:h/html.vim
+	augroup END
 
 もし全ての自動コマンドを消去したくなかったら、代わりに変数を使って
 自動コマンドを読み込むのがただ1度だけにすることができる。 >
@@ -129,8 +135,13 @@ Note [group] はあらかじめ定義されていなければならないこと�
 :au[tocmd]! [group] {event}
 			{event} に関連づけられた「全ての」自動コマンドを除去す
 			る。
+			警告: |BufRead| や他の一般的なイベントのためのグループ
+			なしでこれを行うべきではない。プラグインや構文のハイラ
+			イトなどを壊すことがある。
 
 :au[tocmd]! [group]	「全ての」自動コマンドを除去する。
+			警告: 通常はグループなしでこれを行うべきではない。プラ
+			グインや構文の強調表示などが壊れる。
 
 引数 [group] が指定されないと、現在のグループが使われる (":augroup" で定義され
 たもの)。そうでなければ、 [group] で定義されたグループが使われる。
@@ -303,6 +314,9 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 |CursorMoved|		ノーマルモードでカーソルが移動したとき
 |CursorMovedI|		挿入モードでカーソルが移動したとき
 
+|WinNew|		新しいウィンドウを作成した後
+|TabNew|		新しいタブページを作成した後
+|TabClosed|		タブページを閉じた後
 |WinEnter|		別のウィンドウに入った後
 |WinLeave|		ウィンドウから離れる前
 |TabEnter|		別のタブページに入った後
@@ -425,8 +439,8 @@ BufUnload			バッファを解放する前。これは、バッファ内のテ�
 				ときは、"%" で表されるカレントバッファと
 				"<afile>" で表される解放されるバッファとは異な
 				るかもしれないことに注意。
-				他のバッファに切り替えないこと。もしすると問題
-				が発生するだろう。
+				他のバッファやウィンドウに切り替えないこと。問
+				題が発生するだろう。
 				終了時に v:dying が 2 以上のときはこのイベント
 				は発生しません。
 							*BufWinEnter*
@@ -549,7 +563,9 @@ CursorHold			'updatetime' の時間の間、ユーザーがキーを押さ
 				全てのGUI 版でのみ有効}
 							*CursorHoldI*
 CursorHoldI			CursorHoldと同様だが、挿入モードのとき発生す
-				る。
+				る。例えば別のキーを待っているとき、例えば
+				CTRL-V の後で、CTRL-X モード |insert_expand|
+				ではないときにはトリガーされない。
 							*CursorMoved*
 CursorMoved			ノーマルモードかビジュアルモードでカーソルが移
 				動した後。カーソル行のテキストが変更されたとき
@@ -765,7 +781,9 @@ QuickFixCmdPre			QuickFixコマンドが実行される前 (|:make|,
 				|:vimgrepadd|, |:lvimgrepadd|, |:cscope|,
 				|:cfile|, |:cgetfile|, |:caddfile|, |:lfile|,
 				|:lgetfile|, |:laddfile|, |:helpgrep|,
-				|:lhelpgrep|)。
+				|:lhelpgrep|, |:cexpr|, |:cgetexpr|,
+				|:caddexpr|, |:cbuffer|, |:cgetbuffer|,
+				|:caddbuffer|)。
 				パターンには実行されるコマンドを記述する。
 				|:grep| が書かれていると、'grepprg' が
 				"internal" にセットされていても実行される。
@@ -865,12 +883,18 @@ Syntax				オプション 'syntax' が設定されたとき。
 				として使える。<amatch> は 'syntax' の新しい値
 				として使える。
 				|:syn-on| を参照。
+							*TabClosed*
+TabClosed			タブページを閉じた後。
 							*TabEnter*
 TabEnter			タブページに入った直後 |tab-page|。WinEnterが
 				発生した後、BufEnterが発生する前。
 							*TabLeave*
 TabLeave			タブページを離れる直前 |tab-page|。最初に
 				WinLeaveが発生する。
+							*TabNew*
+TabNew				タブページが作成されたとき。 |tab-page|
+				WinEnter イベントが最初にトリガーされ、
+				TabEnter が実行される。
 							*TermChanged*
 TermChanged			オプション 'term' を変更した後。色やフォント等、
 				ターミナル依存の設定を更新するために構文定義ファ
@@ -910,7 +934,15 @@ VimEnter			ファイル .vimrc の読み込みを含む、全てのスター
 				トアップ処理を行い、"-c cmd" の引数を実行し、
 				全てのウィンドウを構築し、それらにバッファを読
 				み込んだ後。
-							*VimLeave*
+				このイベントがトリガーされる直前に、
+				|v:vim_did_enter| 変数が設定されているので、以
+				下のことができる: >
+				   if v:vim_did_enter
+				     call s:init()
+				   else
+				     au VimEnter * call s:init()
+				   endif
+<							*VimLeave*
 VimLeave			Vim を終了する前で、ファイル .viminfo を書き込
 				んだ後。VimLeavePre のように、ただ1度だけ実行
 				される。
@@ -946,6 +978,10 @@ WinLeave			ウィンドウを離れる前。次に入るウィンドウで他の
 				の前に BufLeave が発生する (ただし ":new" を使っ
 				たときはそうならない)。
 				":qa" や "q" でVimを終了するときには発生しない。
+							*WinNew*
+WinNew				新しいウィンドウが作成されたとき。 Vim がちょ
+				うど開始したとき、最初のウィンドウのためには行
+				われない。 WinEnter イベントの前。
 
 ==============================================================================
 6. パターン					*autocmd-patterns* *{pat}*
@@ -1024,6 +1060,9 @@ Note: パスの途中だけにマッチさせ、ルートディレクトリに�
 '/' という文字は、全てのシステムでパスの区切り文字に使われることに注意すること
 (MS-DOSとOS/2でさえも)。これは、パターン内でバックスラッシュを使うことが難しい
 上に、別々のシステムでも自動コマンドが動作するようにするためである。
+
+|pattern| を使うことができる。上記の翻訳が行われているため、期待通りに機能しな
+い可能性がある。
 
 							*autocmd-changes*
 パターンマッチの検索は、イベントの発生時に行われる。自動コマンドのどれかでバッ
@@ -1123,11 +1162,13 @@ Note: パスの途中だけにマッチさせ、ルートディレクトリに�
 				名前をつけるべきである。これはたいてい意図しな
 				い動作を引き起こす。
 
-						*:augroup-delete* *E367*
+					*:augroup-delete* *E367* *W19* *E936*
 :aug[roup]! {name}		自動コマンドのグループ {name} を削除する。その
 				グループを使っている自動コマンドがまだあるな
 				ら、これは使わないこと！その点はチェックされな
-				い。
+				い。とにかくそれをしたら、警告が表示される。グ
+				ループが現在のグループの場合、エラーE936が表示
+				される。
 
 特定のグループとして自動コマンドを定義するには、次の手順に従うこと。
 1. ":augroup {name}" によってグループを選択する。
@@ -1181,6 +1222,8 @@ NOTE オプション 'eventignore' はここにも適用されることに注意
 			れている場合はモードラインは処理されない。バッファの
 			ロード以外で使われるイベント (例えば |User|) などは
 			<nomodeline> を指定したほうがよいかもしれない。
+			一致する自動コマンドが実行されなかった場合も、モードラ
+			インの処理はスキップされる。
 
 						*:doautoa* *:doautoall*
 :doautoa[ll] [<nomodeline>] [group] {event} [fname]
