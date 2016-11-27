@@ -82,36 +82,23 @@ CTRL-]はtelnetの標準エスケープキーである。タグにジャンプ�
 すること。これは ":tnext" を使うときの混乱を避けるためである。優先度のリストは
 ":tag {ident}" を使ったときに変化する。
 
-{訳注: 原文が以下の通り大きく書き換わっているので、旧訳文を残しておく:
-'ignorecase' オプションがオフになっており 'tagcase' オプションが "followic" の
-時、または 'tagcase' が"match" の時、":tag" コマンドでは大文字小文字を区別しな
-いマッチは見つからない。 ("/" で始まる) パターンで ":tselect" を使い、
-'ignorecase' がオフで 'tagcase' が "followic" の時、または 'tagcase' が
-"match" の時には見つけることができる。大文字小文字を区別しないタグ検索を使うと、
-tags ファイル内の二分探索が無効になり処理が遅くなる点に注意。これは大文字と小文
-字を区別せずにソートすることで回避できる。'tagbsearch' オプションの説明も参照の
-こと。
-:旧訳文ここまで}
+以下の場合は ":tag " で大文字小文字を無視した検索は行われません:
+- 'ignorecase' オプションがオフで 'tagcase' が "followic" の時
+- 'tagcase' が "match" である
+- 'tagcase' が "smart" でパターンに大文字が含まれる時
+- 'tagcase' が "followscs" で 'smartcase' オプションがオンで、パターンに大文字
+  が含まれる時
 
-The ignore-case matches are not found for a ":tag" command when:
-- the 'ignorecase' option is off and 'tagcase' is "followic"
-- 'tagcase' is "match"
-- 'tagcase' is "smart" and the pattern contains an upper case character.
-- 'tagcase' is "followscs" and 'smartcase' option is on and the pattern
-  contains an upper case character.
+以下の場合は大文字小文字を無視した検索が行われます:
+- パターンが使用される時 ("/" で始まる)
+- ":tselect" の時
+- 'tagcase' が "followic" で 'ignorecase' がオフの時
+- 'tagcase' が "match" の時
+- 'tagcase' が "followscs" で 'smartcase' オプションがオフの時
 
-The gnore-case matches are found when:
-- a pattern is used (starting with a "/")
-- for ":tselect"
-- when 'tagcase' is "followic" and 'ignorecase' is off
-- when 'tagcase' is "match"
-- when 'tagcase' is "followscs" and the 'smartcase' option is off
-
-Note that using ignore-case tag searching disables binary searching in the
-tags file, which causes a slowdown.  This can be avoided by fold-case sorting
-the tag file. See the 'tagbsearch' option for an explanation.
-
-{訳注: 変更後の原文ここまで}
+Note 大文字小文字を無視したタグ検索はタグファイル内でのバイナリ検索を無効にし
+速度の低下を引き起こします。これは大文字小文字を保持したままタグファイルを並び
+替える事で回避できます。'tagbsearch' オプションの説明を参照
 
 ==============================================================================
 2. タグスタック				*tag-stack* *tagstack* *E425*
@@ -454,30 +441,19 @@ Emacs タグファイルの行は非常に長くなることがある。Vim は�
 以下のようなときは、リストの次のファイルを使わない:
 - 現在のバッファに対するstaticタグが見つかった場合。
 - globalタグが見つかった場合。
-{訳注: 原文が以下の通り大きく書き換わっているので、旧訳文を残しておく:
-これは大文字小文字を区別するかどうかにも依存する。 'ignorecase' がセットされて
-かつ 'tagcase' が "followic" の時、または 'tagcase' が "ignore" の時に大文字小
-文字は無視される。大文字小文字を無視せず、タグファイル大文字小文字が一致するマ
-ッチが tags ファイルに無い場合、次の tags ファイルを検索する。もし大文字小文字
-が一致するタグがなければ、大文字小文字を無視して最初にマッチしたものが使われる。
-大文字小文字を無視し、大文字小文字を区別するしないに関わらず global タグが見つ
-かった場合、それが使われてそれ以降の tags ファイルは検索されない。
-:旧訳文ここまで}
-
-This also depends on whether case is ignored.  Case is ignored when:
-- 'tagcase' is "followic" and 'ignorecase' is set
-- 'tagcase' is "ignore"
-- 'tagcase' is "smart" and the pattern only contains lower case
-  characters.
-- 'tagcase' is "followscs" and 'smartcase' is set and the pattern only
-  contains lower case characters.
-If case is not ignored, and the tags file only has a match without matching
-case, the next tags file is searched for a match with matching case.  If no
-tag with matching case is found, the first match without matching case is
-used.  If case is ignored, and a matching global tag with or without matching
-case is found, this one is used, no further tags files are searched.
-
-{訳注: 変更後の原文ここまで}
+これは大文字小文字が無視されるかどうかにも依存します。大文字小文字は以下の場合
+に無視されます:
+- 'tagcase' が "followic" で 'ignorecase' が設定されている
+- 'tagcase' が "ignore" である
+- 'tagcase' が "smart" でパターンに小文字だけが含まれている
+- 'tagcase' が "followscs" で 'smartcase' が設定されておりパターンに小文字のみ
+  が含まれている
+大文字小文字が無視されず、タグファイルが大文字小文字を除外したマッチのみとなる
+場合、続くタグファイルは大文字小文字をマッチして検索されます。大文字小文字を
+マッチしてタグファイルが見つからない場合、大文字小文字を除外してマッチした最初
+の結果が使用されます。もし大文字小文字が無視されグローバルのタグでマッチした、
+もしくは大文字小文字を除外してマッチした場合、タグファイルの検索は行われず見
+付かったそのファイルが使用されます。
 
 タグファイル名が "./" で始まるとき、'.' は現在のファイルのパスで置き換えられ
 る。これにより、現在のファイルがあるディレクトリのtagsファイルを使用することが
