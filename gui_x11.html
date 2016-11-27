@@ -2,7 +2,7 @@
 layout: vimdoc
 helpname: 'gui_x11'
 ---
-<a class="Constant" href="gui_x11.html" name="gui_x11.txt">*gui_x11.txt*</a>&nbsp;&nbsp; For Vim バージョン 8.0.&nbsp;&nbsp;Last change: 2014 Mar 08<br>
+<a class="Constant" href="gui_x11.html" name="gui_x11.txt">*gui_x11.txt*</a>&nbsp;&nbsp; For Vim バージョン 8.0.&nbsp;&nbsp;Last change: 2016 Sep 12<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar<br>
@@ -315,7 +315,7 @@ X11に組み込まれたポインタを使うことができる。<br>
 ンタが使われる。<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-5. GTKバージョン&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="gui_x11.html#gui-gtk" name="gui-gtk">*gui-gtk*</a>&nbsp;<a class="Constant" href="gui_x11.html#GTK+" name="GTK+">*GTK+*</a>&nbsp;<a class="Constant" href="gui_x11.html#GTK" name="GTK">*GTK*</a><br>
+5. GTKバージョン&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="gui_x11.html#gui-gtk" name="gui-gtk">*gui-gtk*</a>&nbsp;<a class="Constant" href="gui_x11.html#GTK+" name="GTK+">*GTK+*</a>&nbsp;<a class="Constant" href="gui_x11.html#GTK" name="GTK">*GTK*</a>&nbsp;<a class="Constant" href="gui_x11.html#GTK3" name="GTK3">*GTK3*</a><br>
 <br>
 GUIのGTKバージョンはほんの少し異なった動作をする。<br>
 <br>
@@ -376,6 +376,15 @@ app-defaultsは使われない。<br>
 ~/.gtkrcファイルの中にこれを書くとGTKで用いられるだろう。GTK+ 2では<br>
 ~/.gtkrc-2.0を使わなければいけないかも知れない。環境による。<br>
 <br>
+GTK+ 3 でも、以下の CSS コードのスニペットを $XDG_HOME_DIR/gtk-3.0/gtk.css<br>
+(通常 $HOME/.config/gtk-3.0/gtk.css)に追加する事で上記と同様の効果が得られる。<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.tooltip {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;background-color: #ffffcc;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;color: #000000;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+<br>
 GTK+プラグインとしてVimを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="gui_x11.html#gui-gtk-socketid" name="gui-gtk-socketid">*gui-gtk-socketid*</a><br>
 <br>
 GTK+版のVimを普通に起動すると、Vimは自身のトップレベルウィンドウを作成する(技<br>
@@ -416,6 +425,9 @@ GNOME GUI は GTK+ バージョンと同じように機能する。どのよう�
 GNOME バージョンは configure が GNOME を認識し、引数--enable-gnome-checkが指定<br>
 されていればコンパイルされる。<br>
 <br>
+<span class="Todo">Note</span>: GTK+ 3 GUIビルドで --enable-gnome-check を使用しない。上記で述べた機能は<br>
+GTK+ 3で統合されている。<br>
+<br>
 <br>
 GNOME セッションサポート&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="gui_x11.html#gui-gnome-session" name="gui-gnome-session">*gui-gnome-session*</a>&nbsp;<a class="Constant" href="gui_x11.html#gnome-session" name="gnome-session">*gnome-session*</a><br>
 <br>
@@ -452,19 +464,36 @@ KDE バージョンの Vim は存在しない。Qt ツールキットを使っ�
 <span class="PreProc">==============================================================================</span><br>
 8. コンパイル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="gui_x11.html#gui-x11-compiling" name="gui-x11-compiling">*gui-x11-compiling*</a><br>
 <br>
-X11を使用しているならば、VimのMakefileはデフォルトでは最初にシステム上の必要と<br>
-なるGTK+ファイルを見つけようとするだろう。GTK+ファイルが見つけられなかったなら<br>
-ば、Motifファイルが検索されるだろう。最終的に、これが失敗するならば、Athena<br>
-ファイルが検索されるだろう。3つとも全て失敗するならば、GUIは無効になるだろう。<br>
+X11を使用しているならば、Vimのconfigureはデフォルトでは最初にシステム上の必要<br>
+となるGTK+ファイルを見つけようとするだろう。GTK+ 2とGTK+ 3の両方のファイルがシ<br>
+ステムで見つかった場合は、configureに明示的に --enable-gui=gtk3 が指定されて<br>
+いない限り GTK+ 2が使われる。<br>
 <br>
-GTK+については、VimのコンフィギュレーションプロセスはGTK+が適切にインストール<br>
-されていることを要求する。つまり、シェルスクリプト 'gtk-config' があなたの‘パ<br>
-ス’にあり、既にGTK+プログラムをコンパイル、ビルド、実行できなければならない。<br>
-この理由はコンパイラフラグ(CFLAGS)とリンクフラグ(LDFLAGS)が 'gtk-config' シェ<br>
-ルスクリプトを通して得られるからである。<br>
+GTK+のファイルが見つからなかった場合は、Motifファイルが検索されるだろう。最終<br>
+的に、これが失敗するならば、Athenaファイルが検索されるだろう。3つとも全て失敗<br>
+するならば、GUIは無効になるだろう。<br>
 <br>
-もしもGTK+ 2を使いたいなら ./configure の引数に --enable-gtk2-check を渡すこ<br>
-と。--enable-gnome-check オプションも指定されたときはGNOME 2もサポートされる。<br>
+GTK+については、Vimのコンフィギュレーションプロセスは必要なGTK+が適切にインス<br>
+トールされ、使用可能であるかをチェックする為に pkg-config(1) が使われる。した<br>
+がって configure を実行する前に必要とされるGTK+の .pc ファイルで pkg-config が<br>
+システムで動作する事を確認するのは良い事である。例えば GTK+ 2 の pkg-config で<br>
+あれば以下のコマンドラインを実行する:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;$ pkg-config --modversion gtk+-2.0</div>
+<br>
+GTK+ 3 であれば gtk+-2.0 を gtk+-3.0 で置換しなさい。もし GTK+ のバージョン番<br>
+号が正しいのであれば、実行できるはずだ: もしできないのならば、おそらくシステム<br>
+管理者に正しい pkg-config と GTK+ にセットアップして貰う必要がある。<br>
+<br>
+GTK+ 2 GUI がデフォルトでビルドされる。したがって通常 --enable-gui=gtk2 の様な<br>
+オプションを configure に渡してビルドする必要はない。<br>
+<br>
+補足として GTK+ 2 GUI は GNOME 2 のサポートと統合可能である。これは configure<br>
+に --enable-gnome-check を渡す事で有効になる。<br>
+<br>
+もし GTK+ 3 GUI でビルドしたいならば、 --enable-gui=gtk3 を明示的に configure<br>
+に渡す必要がある。GTK+ 3 では既にサポート済みの GNOME 2 サポートを有効にするの<br>
+に --enable-gnome-check を渡す事を避けるべきである。<br>
 <br>
 そうではなくて、MotifあるいはAthenaを使用しているならば、configureが見に行かな<br>
 いないディレクトリにMotifあるいはAthenaファイルがあるときには、ディレクトリ名<br>
@@ -472,17 +501,16 @@ GTK+については、VimのコンフィギュレーションプロセスはGTK+
 る例については &quot;GUI_INC_LOC&quot;、Athenaについては &quot;CONF_OPT_X&quot; を検索するとよい。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="gui_x11.html#gui-x11-gtk" name="gui-x11-gtk">*gui-x11-gtk*</a><br>
-これを書いている時点で GTK+ 1.0.6 と 1.2 は古いものになっている。GTK 2 の使用<br>
-を推奨する。GTK 1 のサポートはおそらくすぐに廃止される。<br>
+現在、Vim は GTK+ 2 と GTK+ 3 の両方をサポートしている。<br>
 <br>
 GTK+ 2 GUI を使うときは GTK+ 2.0 か GTK+ 2.2 シリーズの最新版を使うことが推奨<br>
 される。<br>
 <br>
-最後に、GTK+はWin32プラットフォームに恐らく移植されているけれども、これはVim<br>
-ではテストされていないし、サポートされてもいない。さらに、GTK+ GUI は一般的<br>
-な X11 のコードを使うのでコンパイルできそうもない。これはいつの日か変更され<br>
-るかもしれない。特に中心の X11 のコードを取り除くことは GTK+ フレームバッ<br>
-ファのサポートにも必要なため。<br>
+GTK+はWin32プラットフォームに恐らく移植されているけれども、これはVimではテスト<br>
+されていないし、サポートされてもいない。さらに、GTK+ GUI は一般的な X11 の<br>
+コードを使うのでコンパイルできそうもない。これはいつの日か変更されるかもしれ<br>
+ない。特に中心の X11 のコードを取り除くことは GTK+ フレームバッファのサポート<br>
+にも必要なため。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="gui_x11.html#gui-x11-motif" name="gui-x11-motif">*gui-x11-motif*</a><br>
 Motifについては、少なくともMotifバージョン1.2と／あるいはX11R5が必要である。<br>
