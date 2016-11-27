@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim バージョン 8.0.  Last change: 2015 Oct 31
+*pi_netrw.txt*  For Vim バージョン 8.0.  Last change: 2016 Apr 20
 
 	    ------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell
@@ -6,7 +6,7 @@
 Author:  Charles E. Campbell  <NdrOchip@ScampbellPfamily.AbizM>
 	  (まずメールアドレスから NOSPAM を削除してください)
 
-Copyright: Copyright (C) 1999-2015 Charles E Campbell    *netrw-copyright*
+Copyright: Copyright (C) 2016 Charles E Campbell    *netrw-copyright*
 	The VIM LICENSE applies to the files in this package, including
 	netrw.vim, pi_netrw.txt, netrwFileHandlers.vim, netrwSettings.vim, and
 	syntax/netrw.vim.  Like anything else that's free, netrw.vim and its
@@ -47,9 +47,10 @@ Copyright: Copyright (C) 1999-2015 Charles E Campbell    *netrw-copyright*
       ブラウジングの紹介..................................|netrw-intro-browse|
       クイックリファレンス: マップ........................|netrw-browse-maps|
       クイックリファレンス: コマンド......................|netrw-browse-cmds|
+      バナーの表示を切り替える............................|netrw-I|
       ディレクトリをブックマークする......................|netrw-mb|
       ブラウジング........................................|netrw-cr|
-        現在のツリー表示ディレクトリを閉じる..............|:netrw-s-cr|
+      現在のツリー表示ディレクトリを閉じる................|netrw-s-cr|
       水平分割ウィンドウを使ったブラウジング..............|netrw-o|
       タブを使ったブラウジング............................|netrw-t|
       垂直分割ウィンドウを使ったブラウジング..............|netrw-v|
@@ -74,11 +75,13 @@ Copyright: Copyright (C) 1999-2015 Charles E Campbell    *netrw-copyright*
       ブラウジングディレクトリをカレントディレクトリにする |netrw-c|
       ファイルをマークする................................|netrw-mf|
       ファイルのマークを外す..............................|netrw-mF|
+      ロケーションリストを使ってファイルをマークする.........|netrw-qL|
       QuickFix リストを使ってファイルをマークする.........|netrw-qF|
       正規表現を使ってファイルをマークする................|netrw-mr|
       マークファイル: シェルコマンド......................|netrw-mx|
       マークファイル: 一括シェルコマンド..................|netrw-mX|
       マークファイル: Vimコマンド.........................|netrw-mv|
+      マークファイル: 引数リスト..........................|netrw-ma| |netrw-mA|
       マークファイル: 圧縮と伸長..........................|netrw-mz|
       マークファイル: コピー..............................|netrw-mc|
       マークファイル: Diff................................|netrw-md|
@@ -1086,6 +1089,7 @@ QUICK HELP						*netrw-quickhelp* {{{2
 	   qb	ブックマークと履歴の一覧を表示する                   |netrw-qb|
 	   qf	ファイル情報を表示する                               |netrw-qf|
 	   qF	QuickFix リストを使ってファイルをマークする          |netrw-qF|
+	   qL	|location-list| を使ってファイルをマークする           |netrw-qF|
 	   r	ソート順を逆にする                                   |netrw-r|
 	   R	ファイル/ディレクトリ(複数可)の名前を変える          |netrw-R|
 	   s	ソート方法を変える: name, time, file size            |netrw-s|
@@ -1133,6 +1137,13 @@ QUICK HELP						*netrw-quickhelp* {{{2
      :Texplore[!] [dir] タブ & Explore.........................|netrw-explore|
      :Vexplore[!] [dir] 垂直分割 & Explore.....................|netrw-explore|
 
+バナーの表示を切り替える				*netrw-I*
+
+"I" を押すことによってバナーの表示を切り替えることができます。
+
+参照: |g:netrw_banner|
+
+
 ディレクトリをブックマークする {{{2
 				*netrw-mb* *netrw-bookmark* *netrw-bookmarks*
 
@@ -1177,7 +1188,7 @@ QUICK HELP						*netrw-quickhelp* {{{2
 	|g:netrw_home| .netrwbook が保存される場所を制御する
 
 
-ブラウジング						*netrw-cr* {{{2
+ブラウジング					*netrw-enter*	*netrw-cr* {{{2
 
 ブラウジングは簡単です。ファイルまたはディレクトリの上にカーソルを移動して、
 <cr> (リターンキー) を押すとファイルが開きます。ディレクトリを開くとそのファイ
@@ -1212,11 +1223,19 @@ gui (gvim) では <leftmouse> (左クリック) でファイルを選択でき�
 ルが作成された) 場合でも、表示されるファイル一覧は古いままです。最新の情報に更
 新するには ctrl-L (|netrw-ctrl-l|参照) を押してください。
 
-								*:netrw-s-cr*
-    現在のツリー表示ディレクトリを閉じる~
-    gvim でツリー表示をしているとき (|netrw-i| 参照)、<s-cr> を使うと、カーソ
-    ルが置かれているディレクトリを閉じることができます。
+								*netrw-s-cr*
+現在のツリー表示ディレクトリを閉じる~
 
+gvim でツリー表示をしているとき (|netrw-i| 参照)、<s-cr> を使うと、カーソルが
+置かれているディレクトリを閉じることができます。
+
+あるいは、この効果をユーザーが選択したキーの組み合わせにリマップすることができま
+す: >
+
+    nmap <buffer> <silent> <nowait> YOURKEYCOMBO  <Plug>NetrwTreeSqueeze
+<
+この行を $HOME/ftplugin/netrw/netrw.vim に置いてください。netrw バッファのみに
+生成される必要があります。
 
 関連トピック:
 	|netrw-ctrl-r|	|netrw-o|	|netrw-p|
@@ -1458,13 +1477,15 @@ gx マッピングはすべてのバッファに適用できます。カーソ�
 (|visual-start| 参照) により選択することもできます。通常 gx はカーソル位置のテ
 キストを取得するのに expand("<cfile>") を使用しますが、|g:netrw_gx| 変数で
 |expand()| が使用する引数を変えることができます。また、代わりに gx で使用する
-テキストを最初にビジュアル選択を行っておくことで選択することもできます
+テキストを最初にビジュアル選択を行っておくか、|'isfname'| オプション (グローバル
+なので netrw は変更しません) を変更することで選択することもできます
 (|visual-block| 参照)。
 
 関連設定:
 	|g:netrw_gx|	gx がどのようにカーソル位置のテキストを取得するか制御
 			する
 	|g:netrw_nogx|	編集中 gx マップを無効にする
+	|g:netrw_suppress_gx_mesg| gx がブラウザーの出力を抑制するか制御する
 
 							*netrw_filehandler*
 
@@ -1674,7 +1695,9 @@ g:netrw_rmdir_cmd によるディレクトリの削除が失敗した場合は�
 スターとパターンを使った探索 {{{2
 
 Explore, Sexplore, Hexplore, Vexplore それぞれのコマンドで、次のようなパターン
-が使われた場合、Explore はそれにマッチするようなファイルのリストを生成します。
+が使われた場合、Explore はそれにマッチするようなファイルのリストをローカルファ
+イルシステムに対して生成します。これらの探索パターンはリモートファイルのブラウ
+ジングに対しては機能しません。
 >
     */filepat	カレントディレクトリの、filepat にマッチするファイル
     **/filepat	カレントディレクトリとそれ以下のディレクトリの、filepat にマッ
@@ -2026,16 +2049,23 @@ netrw はファイルをマークする方法をいくつか提供していま�
 
 		:MF *.c
 <
-	* Note: :MF の引数は |<f-args>| として、空白区切りで解釈される。
+	* (Note: :MF の引数は |<f-args>| として、空白区切りで解釈される)
+
+	* |argument-list| を使用してファイルをマークする (|netrw-mA|)
+
+	* |location-list| 上のファイルをマークする (|netrw-qL|)
 
 	* クイックフィックスリストに基づいてマークする (|netrw-qF|)
+	  (|quickfix-error-lists|)
 
 マークしたファイルは以下の netrw マップを使って操作できます:
 
     |netrw-a|	ファイル/ディレクトリを隠す
     |netrw-D|	ファイル/ディレクトリを削除する
-    |netrw-mb|	マークされたファイルをブックマークに追加する
-    |netrw-mB|	マークされたファイルをブックマークから削除する
+    |netrw-ma|	マークしたファイルを |arglist| に移動する
+    |netrw-mA|	|arglist| をマークしたファイルに移動する
+    |netrw-mb|	マークしたファイルをブックマークに追加する
+    |netrw-mB|	マークしたファイルをブックマークから削除する
     |netrw-mc|	ファイルをターゲットディレクトリにコピーする
     |netrw-md|	マークしたファイルに vimdiff を適用する
     |netrw-me|	マークしたファイルを開く
@@ -2091,8 +2121,14 @@ netrw はファイルをマークする方法をいくつか提供していま�
 できます。ファイルごとに個別にマークを外したい場合は mf (|netrw-mf|) を使いま
 す。
 
+ロケーションリストを使ってファイルをマークする			*netrw-qL* {{{2
+	(also see |netrw-mf|)
 
-QUICKFIX リストを使ってファイルをマークする		*netrw-qF* {{{2
+|location-list| のファイルをマークするには "qL" を使います。続けて me
+(|netrw-me|) などのコマンドを使うとそれらのファイルを開くことができます。
+
+
+QuickFix リストを使ってファイルをマークする			*netrw-qF* {{{2
 	(|netrw-mf| も参照)
 
 |quickfix-error-lists| のファイルをマークするには "qF" を使います。続けて me
@@ -2167,6 +2203,15 @@ regexp: " というプロンプトが表示されるので、例えば *.c$ の�
 
 	tar cf mynewtarball.tar 'file1' 'file2' ...
 
+マークファイル: 引数リスト				*netrw-ma* *netrw-mA*
+	     (マークの設定方法は |netrw-mf| と |netrw-mr| を参照)
+		     (グローバルマークファイルリスト使用)
+
+ma を使うと、マークファイルリストを引数リストに移動します。
+mA を使うと、引数リストをマークファイルリストに移動します。
+
+参照: |netrw-qF| |argument-list| |:args|
+
 
 マークファイル: 圧縮と伸長				*netrw-mz* {{{2
 	     (マークの設定方法は |netrw-mf| と |netrw-mr| を参照)
@@ -2231,8 +2276,8 @@ mt (|netrw-mt|) でコピー先ディレクトリを選択し、ファイルの�
 	pattern
 <
 /pattern/ でvimgrepによりセットされた |quickfix| リストの最初の項目が開かれま
-す (|:copen|, |:cnext|, |:cprevious| 参照)。'g' なしの場合、マッチしたすべての
-行が一度だけ追加されます。'g' ありの場合、すべてのマッチが追加されます。
+す (|:copen|, |:cnext|, |:cprevious|, |:cclose| 参照)。'g' なしの場合、マッチしたすべ
+ての行が一度だけ追加されます。'g' ありの場合、すべてのマッチが追加されます。
 
 /pattern/j により "mg" はマークされたファイルから指定されたパターンを持つもの
 のみに選別します。 >
@@ -2680,6 +2725,16 @@ netrw ブラウザーの各種設定は変数で管理されていて、それ�
 				この変数を定義するとバルーン評価は抑制される。
 				(参照 |'ballooneval'|)
 
+ *g:netrw_sizestyle*		未定義: 実際のバイト数 (デフォルト)
+ 				="b" : 実際のバイト数  (デフォルト)
+ 				="h" : 人間が読める形式 (例: 5k, 4m, 3g)
+				       1000 ベース
+ 				="H" : 人間が読める形式 (例: 5K, 4M, 3G)
+				       1024 ベース
+				long 形式の一覧表示スタイル (|netrw-i|) と
+				query-file maps (|netrw-qf|) はファイルサイズを
+				指定されたスタイルで表示します。
+
   *g:netrw_usetab*		もしこの変数が存在し、その値が 非0 なら、<tab>
 				マップは Lexplore または netrw ウィンドウの縮
 				小・拡張をサポートするようになります。
@@ -2797,6 +2852,12 @@ netrw ブラウザーの各種設定は変数で管理されていて、それ�
 				に使われます。
 				 初期設定: ssh
 
+ *g:netrw_suppress_gx_mesg*	=1 : ブラウザーは時々、ページと入り混じった
+				不必要と思われるメッセージを出力することがあり
+				ます。しかし、例えば links を使用している時、
+				それらの出力はブラウザーが出力したものです。
+				このオプションを 0 にセットすることで、netrw
+				はブラウザーのメッセージを抑制しなくなります。
 
   *g:netrw_tmpfile_escape*	=' &;'
 				一時ファイルを escape() で処理するときに使われ
@@ -2945,14 +3006,14 @@ netrw を次のように設定すると便利かもしれません: >
 	      :Lexplore (|netrw-:Lexplore|) や |g:netrw_chgwin| にも
 	      興味を持つでしょう。
 
-参照: |g:netrw_chgwin| |netrw-P| |'previewwindow'|
+参照: |g:netrw_chgwin| |netrw-P| |'previewwindow'| |CTRL-W_z| |:pclose|
 
 
 以前のウィンドウ				*netrw-P* *netrw-prvwin* {{{2
 
-ファイル/ディレクトリを以前の (最後にアクセスした) ウィンドウ (:he |CTRL-W_p|)
-で開くには、"P" を押します。ウィンドウが 1 つしかない場合は、新しいウィンドウ
-が水平分割 (初期設定) で作成されます。
+カーソル下のファイル/ディレクトリを以前の (最後にアクセスした) ウィンドウ
+(:he |CTRL-W_p|) で開くには、"P" を押します。ウィンドウが 1 つしかない場合は、
+新しいウィンドウが水平分割 (初期設定) で作成されます。
 
 ウィンドウが複数ある場合は、以前のウィンドウを使ってファイル/ディレクトリが開
 かれます。以前のウィンドウで表示されているバッファに未保存の変更があり、その
@@ -3084,9 +3145,9 @@ netrw ウィンドウ/エクスプローラーウィンドウを拡大・縮小�
   * 最後に、 |:Lexplore| ウィンドウを持ち上げます
 
 もし |g:netrw_usetab| が存在し 非0 の場合、もしくはすでに <c-tab> にマッピング
-が存在するなら、 <tab> はマッピングされません。 もし <c-tab> 以外にマップされ
-ていた場合も同様です: (しかしその場合も g:netrw_usetab をセットしている必要が
-あります) >
+が存在するなら、 <c-tab> はマッピングされません。 もし <c-tab> 以外にマップさ
+れていた場合も同様です: (しかしその場合も g:netrw_usetab をセットしている必要
+があります) >
 
 	nmap <unique> (whatever)	<Plug>NetrwShrink
 <
@@ -3548,12 +3609,13 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 <
 次に netrw を次のように起動してください: >
 
-	vim -u netrw.vimrc --noplugins [他にパスがあればここに追加]
+	vim -u netrw.vimrc --noplugins -i NONE [他にパスがあればここに追加]
 <
 必要な netrw のコマンドを実行し、問題がまだ起きていることを確認してください。
-この手順は個人の .vimrc の設定や他のプラグインによる問題を回避するためです。も
-し問題が再現しなくなったら、あなたの .vimrc のどの設定が netrw かあるいは他の
-プラグインと衝突しているかを見極める必要があります。
+この手順は個人の .vimrc の設定、.viminfo ファイル、他のプラグインによる問題を
+回避するためです。もし問題が再現しなくなったら、あなたの .vimrc のどの設定が
+netrw かあるいは関与している他のプラグインと衝突しているかを見極める必要があり
+ます。
 
 ステップ3: 問題がまだ起きているようなら、netrw からデバッグトレースを取得して
 ください:
@@ -3607,6 +3669,54 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 ==============================================================================
 12. 変更履歴						*netrw-history* {{{1
 
+	v156:	Feb 18, 2016	* Changed =~ to =~# where appropriate
+		Feb 23, 2016	* s:ComposePath(base,subdir) now uses
+				  fnameescape() on the base portion
+		Mar 01, 2016	* (gt_macki) reported where :Explore would
+				  make file unlisted. Fixed (tst943)
+		Apr 04, 2016	* (reported by John Little) netrw normally
+				  suppresses browser messages, but sometimes
+				  those "messages" are what is wanted.
+				  See |g:netrw_suppress_gx_mesg|
+		Apr 06, 2016	* (reported by Carlos Pita) deleting a remote
+				  file was giving an error message.  Fixed.
+		Apr 08, 2016	* (Charles Cooper) had a problem with an
+				  undefined b:netrw_curdir.  He also provided
+				  a fix.
+		Apr 20, 2016	* Changed s:NetrwGetBuffer(); now uses
+				  dictionaries.  Also fixed the "No Name"
+				  buffer problem.
+	v155:	Oct 29, 2015	* (Timur Fayzrakhmanov) reported that netrw's
+				  mapping of ctrl-l was not allowing refresh of
+				  other windows when it was done in a netrw
+				  window.
+		Nov 05, 2015	* Improved s:TreeSqueezeDir() to use search()
+				  instead of a loop
+				* NetrwBrowse() will return line to
+				  w:netrw_bannercnt if cursor ended up in
+				  banner
+		Nov 16, 2015	* Added a <Plug>NetrwTreeSqueeze (|netrw-s-cr|)
+		Nov 17, 2015	* Commented out imaps -- perhaps someone can
+				  tell me how they're useful and should be
+				  retained?
+		Nov 20, 2015	* Added |netrw-ma| and |netrw-mA| support
+		Nov 20, 2015	* gx (|netrw-gx|) on an url downloaded the
+				  file in addition to simply bringing up the
+				  url in a browser.  Fixed.
+		Nov 23, 2015	* Added |g:netrw_sizestyle| support
+		Nov 27, 2015	* Inserted a lot of <c-u>s into various netrw
+				  maps.
+		Jan 05, 2016	* |netrw-qL| implemented to mark files based
+				  upon |location-list|s; similar to |netrw-qF|.
+		Jan 19, 2016	* using - call delete(directoryname,"d") -
+				  instead of using g:netrw_localrmdir if
+				  v7.4 + patch#1107 is available
+		Jan 28, 2016	* changed to using |winsaveview()| and
+				  |winrestview()|
+		Jan 28, 2016	* s:NetrwTreePath() now does a save and
+				  restore of view
+		Feb 08, 2016	* Fixed a tree-listing problem with remote
+				  directories
 	v154:	Feb 26, 2015	* (Yuri Kanivetsky) reported a situation where
 				  a file was not treated properly as a file
 				  due to g:netrw_keepdir == 1
@@ -3767,7 +3877,7 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 				  handling.
 				* |:Lexplore| path: will be used to update
 				  a left-side netrw browsing directory.
-		Mar 12, 2014	* |:netrw-s-cr|: use <s-cr>  to close
+		Mar 12, 2014	* |netrw-s-cr|: use <s-cr>  to close
 				  tree directory implemented
 		Mar 13, 2014	* (Tony Mechylynck) reported that using
 				  the browser with ftp on a directory,
