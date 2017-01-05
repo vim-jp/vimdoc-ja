@@ -7512,81 +7512,78 @@ test_settime({expr})					*test_settime()*
 
 							*timer_info()*
 timer_info([{id}])
-		Return a list with information about timers.
-		When {id} is given only information about this timer is
-		returned.  When timer {id} does not exist an empty list is
-		returned.
-		When {id} is omitted information about all timers is returned.
+		タイマーに関する情報のリストを返す。
+		{id} が指定された場合はそのタイマーに関する情報だけが返され
+		る。タイマー {id} が存在しない場合は空のリストが返される。
+		{id} が省略された場合は全てのタイマーに関する情報が返される。
 
-		For each timer the information is stored in a Dictionary with
-		these items:
-		    "id"	    the timer ID
-		    "time"	    time the timer was started with
-		    "remaining"	    time until the timer fires
-		    "repeat"	    number of times the timer will still fire;
-				    -1 means forever
-		    "callback"	    the callback
-		    "paused"	    1 if the timer is paused, 0 otherwise
+		各タイマーの情報は以下の項目を含んだ辞書で格納される:
+		    "id"	    タイマーのID
+		    "time"	    タイマーが開始してからの時間
+		    "remaining"	    タイマーが発火するまでの時間
+		    "repeat"	    何回タイマーを発火させるかの回数;
+				    -1 は無限を意味する
+		    "callback"	    コールバック
+		    "paused"	    タイマーが一時停止中なら 1、それ以外は 0
 
-		{only available when compiled with the |+timers| feature}
+		{|+timers| 機能を有効にしてコンパイルしたときのみ有効}
 
 timer_pause({timer}, {paused})				*timer_pause()*
-		Pause or unpause a timer.  A paused timer does not invoke its
-		callback when its time expires.  Unpausing a timer may cause
-		the callback to be invoked almost immediately if enough time
-		has passed.
+		タイマーを一時停止もしくは再開する。一時停止したタイマーは時間
+		が経過してもコールバックを呼び出さない。タイマーの再開は十分
+		に時間が経過しているなら、すぐさまコールバックが呼び出されるか
+		もしれない。
 
-		Pausing a timer is useful to avoid the callback to be called
-		for a short time.
+		タイマーの停止は少しの間、コールバックが呼び出されるのを避ける
+		のに便利である。
 
-		If {paused} evaluates to a non-zero Number or a non-empty
-		String, then the timer is paused, otherwise it is unpaused.
-		See |non-zero-arg|.
+		{paused} が 0 以外の数値、もしくは空でない文字列で評価される
+		場合にタイマーが停止し、それ以外は再開する。
+		|non-zero-arg| を参照。
 
-		{only available when compiled with the |+timers| feature}
+		{|+timers| 機能を有効にしてコンパイルしたときのみ有効}
 
 						*timer_start()* *timer* *timers*
 timer_start({time}, {callback} [, {options}])
-		Create a timer and return the timer ID.
+		タイマーを作成しその ID を返す。
 
-		{time} is the waiting time in milliseconds. This is the
-		minimum time before invoking the callback.  When the system is
-		busy or Vim is not waiting for input the time will be longer.
+		{time} はミリ秒での待機時間。これはコールバックが呼び出される
+		までの最短の時間である。システムがビジーもしくは Vim が入力待
+		ちでない場合、これは長くなる。
 
-		{callback} is the function to call.  It can be the name of a
-		function or a |Funcref|.  It is called with one argument, which
-		is the timer ID.  The callback is only invoked when Vim is
-		waiting for input.
+		{callback} は呼び出す関数。関数の名前もしくは|Funcref|であって
+		も良い。引数にはタイマーIDの引数が1つだけ渡されて呼び出され
+		る。コールバックは Vim が入力待ちの場合だけ呼び出される。
 
-		{options} is a dictionary.  Supported entries:
-		   "repeat"	Number of times to repeat calling the
-				callback.  -1 means forever.  When not present
-				the callback will be called once.
+		{options} は辞書。以下がサポートされている:
+		   "repeat"	コールバックを呼び出す繰り返し回数。-1 は無限
+				を意味する。指定されない場合はコールバックは一
+				度だけ呼び出される。
 
-		Example: >
+		例: >
 			func MyHandler(timer)
 			  echo 'Handler called'
 			endfunc
 			let timer = timer_start(500, 'MyHandler',
 				\ {'repeat': 3})
-<		This will invoke MyHandler() three times at 500 msec
-		intervals.
+<		これは MyHandler() を 500ms 間隔で3回呼び出す。
 
-		{only available when compiled with the |+timers| feature}
+		{|+timers| 機能を有効にしてコンパイルしたときのみ有効}
 
 timer_stop({timer})					*timer_stop()*
-		Stop a timer.  The timer callback will no longer be invoked.
-		{timer} is an ID returned by timer_start(), thus it must be a
-		Number.  If {timer} does not exist there is no error.
+		タイマーを停止する。タイマーのコールバックは以降呼び出されな
+		い。{timer} は timer_start() が返した ID である。よって数値で
+		なければならない。{timer} が存在しなかった場合でもエラーは発生
+		しない。
 
-		{only available when compiled with the |+timers| feature}
+		{|+timers| 機能を有効にしてコンパイルしたときのみ有効}
 
 timer_stopall()						*timer_stopall()*
-		Stop all timers.  The timer callbacks will no longer be
-		invoked.  Useful if some timers is misbehaving.  If there are
-		no timers there is no error.
+		全てのタイマーを停止する。タイマーのコールバックは以降呼び出さ
+		れない。タイマーが不作法に振る舞う場合に便利である。タイマーが
+		存在しなかった場合でもエラーは発生しない。
 
-		{only available when compiled with the |+timers| feature}
+		{|+timers| 機能を有効にしてコンパイルしたときのみ有効}
 
 tolower({expr})						*tolower()*
 		引数の文字列の大文字を小文字に変換してできた文字列を返す(文字
@@ -7778,31 +7775,32 @@ wildmenumode()					*wildmenumode()*
 
 
 win_findbuf({bufnr})					*win_findbuf()*
-		Returns a list with |window-ID|s for windows that contain
-		buffer {bufnr}.  When there is none the list is empty.
+		バッファ {bufnr} が含まれているウィンドウについて |window-ID|
+		のリストを返す。存在しない場合は空のリストになる。
 
 win_getid([{win} [, {tab}]])				*win_getid()*
-		Get the |window-ID| for the specified window.
-		When {win} is missing use the current window.
-		With {win} this is the window number.  The top window has
-		number 1.
-		Without {tab} use the current tab, otherwise the tab with
-		number {tab}.  The first tab has number one.
-		Return zero if the window cannot be found.
+		特定のウィンドウに関する |window-ID|を得る。
+		{win} が未指定の時は現在のウィンドウとなる。
+		この {win} はウィンドウ番号である。トップウィンドウは番号 1 を
+		持つ。
+		{tab} が未指定の場合現在のタブが使用され、{tab} が番号で指定さ
+		れた場合はそのタブとなる。最初のタブ番号は 1 である。
+		ウィンドウが見付からない場合には 0 を返す。
 
 win_gotoid({expr})					*win_gotoid()*
-		Go to window with ID {expr}.  This may also change the current
-		tabpage.
-		Return 1 if successful, 0 if the window cannot be found.
+		{expr} の ID で示されるウィンドウへ移動する。これは現在のタブ
+		ページも移動する。
+		成功した場合は 1 を、ウィンドウが見付からない場合は 0 を返す。
 
 win_id2tabwin({expr})					*win_id2tabwin()*
-		Return a list with the tab number and window number of window
-		with ID {expr}: [tabnr, winnr].
-		Return [0, 0] if the window cannot be found.
+		{expr} の ID で示されるタブ番号とウィンドウ番号のリストを返す:
+		[tabnr, winnr]
+		ウィンドウが見付からなかった場合は [0, 0] を返す。
 
 win_id2win({expr})					*win_id2win()*
-		Return the window number of window with ID {expr}.
-		Return 0 if the window cannot be found in the current tabpage.
+		{expr} の ID で示されるウィンドウのウィンドウ番号を返す。
+		現在のタブページ内でそのウィンドウが見付からなかった場合は 0
+		を返す。
 
 							*winbufnr()*
 winbufnr({nr})	結果は数値で、{nr}番目のウィンドウに関連付けられているバッファ
