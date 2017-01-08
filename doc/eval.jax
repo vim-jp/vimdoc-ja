@@ -1963,29 +1963,33 @@ byteidxcomp({expr}, {nr})	数値	{expr}の{nr}文字目のバイトインデッ�
 call({func}, {arglist} [, {dict}])
 				任意	引数{arglist}をつけて{func}を呼ぶ
 ceil({expr})			浮動小数点数	{expr} を切り上げる
-ch_close({handle})		none	close {handle}
-ch_close_in({handle})		none	close in part of {handle}
+ch_close({handle})		なし	{handle} を閉じる
+ch_close_in({handle})		なし	{handle} の入力を閉じる
 ch_evalexpr({handle}, {expr} [, {options}])
-				any	evaluate {expr} on JSON {handle}
+				任意	{handle} に {expr} を送り応答をJSONと
+					して評価する
 ch_evalraw({handle}, {string} [, {options}])
-				any	evaluate {string} on raw {handle}
-ch_getbufnr({handle}, {what})	Number	get buffer number for {handle}/{what}
-ch_getjob({channel})		Job	get the Job of {channel}
-ch_info({handle})		String	info about channel {handle}
-ch_log({msg} [, {handle}])	none	write {msg} in the channel log file
-ch_logfile({fname} [, {mode}])	none	start logging channel activity
+				任意	{handle} に {string} を送り応答を生の
+					文字列として評価する
+ch_getbufnr({handle}, {what})	Number	{handle}/{what} に割り当てられたバッ
+					ファ番号を得る
+ch_getjob({channel})		ジョブ	{channel} の Job を得る
+ch_info({handle})		文字列	チャンネル {handle} に関する情報を得る
+ch_log({msg} [, {handle}])	なし	チャンネルのログファイルに {msg} を書
+					き込む
+ch_logfile({fname} [, {mode}])	なし	チャンネルの挙動ログ出力を開始する
 ch_open({address} [, {options}])
-				Channel	open a channel to {address}
-ch_read({handle} [, {options}]) String	read from {handle}
+				チャンネル	{address} へのチャンネルを開く
+ch_read({handle} [, {options}]) 文字列	{handle} から読み込む
 ch_readraw({handle} [, {options}])
-				String	read raw from {handle}
+				文字列	{handle} から生の文字列を読み込む
 ch_sendexpr({handle}, {expr} [, {options}])
 				任意	{expr}をJSONチャンネル{handle}に送る
 ch_sendraw({handle}, {string} [, {options}])
 				任意	{string}をrawチャンネル{handle}に送る
 ch_setoptions({handle}, {options})
-				none	set options for {handle}
-ch_status({handle})		String	status of channel {handle}
+				なし	set options for {handle}
+ch_status({handle})		文字列	status of channel {handle}
 changenr()			数値	現在の変更番号
 char2nr({expr}[, {utf8}])	数値	{expr}の先頭文字のASCII/UTF8コード
 cindent({lnum})			数値	{lnum}行目のCインデント量
@@ -2713,7 +2717,7 @@ byte2line({byte})
 		かを返す。これにはカレントバッファの 'fileformat' に依存した、
 		改行文字も含まれる。先頭の文字にはバイトカウント1が与えられる。
 		|line2byte()|と|go|と|:goto|も参照。
-		{|+byte_offset|機能付きでコンパイルされたときのみ有効}
+		{|+byte_offset| 機能付きでコンパイルされたときのみ有効}
 
 byteidx({expr}, {nr})					*byteidx()*
 		文字列{expr}の{nr}番目の文字のバイトインデックスを返す。
@@ -2924,107 +2928,108 @@ confirm({msg} [, {choices} [, {default} [, {type}]]])
 		れる。
 
 ch_close({handle})						*ch_close()*
-		Close {handle}.  See |channel-close|.
-		{handle} can be Channel or a Job that has a Channel.
-		A close callback is not invoked.
+		{handle} を閉じる。|channel-close| を参照。
+		{handle} はチャンネルもしくはチャンネルを持つジョブであっても
+		良い。
+		閉じられたコールバックは呼び出されない。
 
-		{only available when compiled with the |+channel| feature}
+		{|+channel| 機能付きでコンパイルされたときのみ有効}
 
 ch_close_in({handle})						*ch_close_in()*
-		Close the "in" part of {handle}.  See |channel-close-in|.
-		{handle} can be Channel or a Job that has a Channel.
-		A close callback is not invoked.
+		{handle} の "入力" を閉じる。|channel-close-in| を参照。
+		{handle} はチャンネルもしくはチャンネルを持つジョブであっても
+		良い。
+		閉じられたコールバックは呼び出されない。
 
-		{only available when compiled with the |+channel| feature}
+		{|+channel| 機能付きでコンパイルされたときのみ有効}
 
 ch_evalexpr({handle}, {expr} [, {options}])			*ch_evalexpr()*
-		Send {expr} over {handle}.  The {expr} is encoded
-		according to the type of channel.  The function cannot be used
-		with a raw channel.  See |channel-use|.
-		{handle} can be Channel or a Job that has a Channel.
+		{handle} へ {expr} を送信する。{expr} はチャンネル側と同じ型に
+		エンコードされる。この関数は生のチャンネルでは使用できない。
+		|channel-use| を参照。
+		{handle} はチャンネルもしくはチャンネルを持つジョブであっても
+		良い。
 								*E917*
-		{options} must be a Dictionary.  It must not have a "callback"
-		entry.  It can have a "timeout" entry to specify the timeout
-		for this specific request.
+		{options} は辞書でなければならない。また "callback" のエントリ
+		を持ってはならない。また個別のリクエストに対して "timeout" を
+		持つ事ができる。
 
-		ch_evalexpr() waits for a response and returns the decoded
-		expression.  When there is an error or timeout it returns an
-		empty string.
+		ch_evalexpr() は応答を待ち、式をデコードした物が返される。エ
+		ラーもしくはタイムアウトの場合は空文字列が返る。
 
-		{only available when compiled with the |+channel| feature}
+		{|+channel| 機能付きでコンパイルされたときのみ有効}
 
 ch_evalraw({handle}, {string} [, {options}])		*ch_evalraw()*
-		Send {string} over {handle}.
-		{handle} can be Channel or a Job that has a Channel.
+		{handle} へ {expr} を送信する。
+		{handle} はチャンネルもしくはチャンネルを持つジョブであっても
+		良い。
 
-		Works like |ch_evalexpr()|, but does not encode the request or
-		decode the response.  The caller is responsible for the
-		correct contents.  Also does not add a newline for a channel
-		in NL mode, the caller must do that.  The NL in the response
-		is removed.
-		See |channel-use|.
+		|ch_evalexpr()| と同様に動作する。しかしリクエストをエンコード
+		したり応答をデコードしたりはしない。呼び出しは正しいコンテンツ
+		である事が保証される。また NL モードでは改行が行われるが、ここ
+		では改行が付与されない。NL は応答から削除される。
+		|channel-use| を参照。
 
-		{only available when compiled with the |+channel| feature}
+		{|+channel| 機能付きでコンパイルされたときのみ有効}
 
 ch_getbufnr({handle}, {what})				 *ch_getbufnr()*
-		Get the buffer number that {handle} is using for {what}.
-		{handle} can be Channel or a Job that has a Channel.
-		{what} can be "err" for stderr, "out" for stdout or empty for
-		socket output.
-		Returns -1 when there is no buffer.
-		{only available when compiled with the |+channel| feature}
+		{what} に使用されている {handle} のバッファ番号を得る。
+		{handle} はチャンネルもしくはチャンネルを持つジョブであっても
+		良い。
+		{what} は標準エラーの為の "err"、標準出力の為の "out"、もしく
+		はソケット出力の為の空文字列が指定できる。
+		バッファが存在しない場合は -1 が返る。
+		{|+channel| 機能付きでコンパイルされたときのみ有効}
 
 ch_getjob({channel})						*ch_getjob()*
-		Get the Job associated with {channel}.
-		If there is no job calling |job_status()| on the returned Job
-		will result in "fail".
+		{channel} に関連付けられた Job を得る。
+		もしジョブが無い場合、戻り値の Job で |job_status()| を呼び出
+		すと "fail" が返される。
 
-		{only available when compiled with the |+channel| and
-		|+job| features}
+		{|+channel| と |+job| 機能付きでコンパイルされたときのみ有効}
 
 ch_info({handle})						*ch_info()*
-		Returns a Dictionary with information about {handle}.  The
-		items are:
-		   "id"		  number of the channel
-		   "status"	  "open" (any part is open) or "closed"
-		When opened with ch_open():
-		   "hostname"	  the hostname of the address
-		   "port"	  the port of the address
-		   "sock_status"  "open" or "closed"
-		   "sock_mode"	  "NL", "RAW", "JSON" or "JS"
+		{handle} に関する情報を辞書で返す。アイテムは:
+		   "id"		  チャネル番号
+		   "status"	  "open" (どれかが開いている) または "closed"
+		ch_open() で開いた場合:
+		   "hostname"	  アドレスのホスト名
+		   "port"	  アドレスのポート
+		   "sock_status"  "open" または "closed"
+		   "sock_mode"	  "NL", "RAW", "JSON" または "JS"
 		   "sock_io"	  "socket"
-		   "sock_timeout" timeout in msec
-		When opened with job_start():
-		   "out_status"	  "open" or "closed"
-		   "out_mode"	  "NL", "RAW", "JSON" or "JS"
-		   "out_io"	  "null", "pipe", "file" or "buffer"
-		   "out_timeout"  timeout in msec
-		   "err_status"	  "open" or "closed"
-		   "err_mode"	  "NL", "RAW", "JSON" or "JS"
-		   "err_io"	  "out", "null", "pipe", "file" or "buffer"
-		   "err_timeout"  timeout in msec
-		   "in_status"	  "open" or "closed"
-		   "in_mode"	  "NL", "RAW", "JSON" or "JS"
-		   "in_io"	  "null", "pipe", "file" or "buffer"
-		   "in_timeout"	  timeout in msec
+		   "sock_timeout" タイムアウト(ミリ秒)
+		job_start() で開いた場合:
+		   "out_status"	  "open" または "closed"
+		   "out_mode"	  "NL", "RAW", "JSON" または "JS"
+		   "out_io"	  "null", "pipe", "file" または "buffer"
+		   "out_timeout"  タイムアウト(ミリ秒)
+		   "err_status"	  "open" または "closed"
+		   "err_mode"	  "NL", "RAW", "JSON" または "JS"
+		   "err_io"	  "out", "null", "pipe", "file" または "buffer"
+		   "err_timeout"  タイムアウト(ミリ秒)
+		   "in_status"	  "open" または "closed"
+		   "in_mode"	  "NL", "RAW", "JSON" または "JS"
+		   "in_io"	  "null", "pipe", "file" または "buffer"
+		   "in_timeout"	  タイムアウト(ミリ秒)
 
 ch_log({msg} [, {handle}])					*ch_log()*
-		Write {msg} in the channel log file, if it was opened with
-		|ch_logfile()|.
-		When {handle} is passed the channel number is used for the
-		message.
-		{handle} can be Channel or a Job that has a Channel.  The
-		Channel must open.
+		|ch_logfile()| によってログファイルが開かれている場合はチャン
+		ネルのログファイルに {msg} を書き込む。
+		{handle} が渡されている場合はチャンネル番号がメッセージの中で
+		使われる。
+		{handle} はチャンネルもしくはチャンネルを持つジョブであっても
+		良い。チャンネルは開いていなければならない。。
 
 ch_logfile({fname} [, {mode}])					*ch_logfile()*
-		Start logging channel activity to {fname}.
-		When {fname} is an empty string: stop logging.
+		{fname} へチャンネルの挙動ログ出力を開始する。
+		{fname} が空の場合、ロギングは停止する。
 
-		When {mode} is omitted or "a" append to the file.
-		When {mode} is "w" start with an empty file.
+		{mode} が省略されるか "a" の場合、ファイルへの追加になる。
+		{mode} が "w" の場合、空のファイルへで開始される。
 
-		The file is flushed after every message, on Unix you can use
-		"tail -f" to see what is going on in real time.
+		UNIX で "tail -f" にてリアルタイムで何が行われているかが見える
+		様に、ファイルはメッセージ毎にフラッシュされる。
 
 
 ch_open({address} [, {options}])				*ch_open()*
@@ -3032,68 +3037,71 @@ ch_open({address} [, {options}])				*ch_open()*
 		チャンネルを返す。失敗をチェックするには |ch_status()| を使用
 		する。
 
-		{address}は "localhost:8765" のように "ホスト名:ポート" の形式
-		である。
+		{address} は "localhost:8765" のように "ホスト名:ポート" の形
+		式である。
 
-		If {options} is given it must be a |Dictionary|.
-		See |channel-open-options|.
+		{options} が与えられる場合は辞書でなければならない。
+		|channel-open-options| を参照。
 
-		{only available when compiled with the |+channel| feature}
+		{|+channel| 機能付きでコンパイルされたときのみ有効}
 
 ch_read({handle} [, {options}])					*ch_read()*
-		Read from {handle} and return the received message.
-		{handle} can be Channel or a Job that has a Channel.
-		See |channel-more|.
-		{only available when compiled with the |+channel| feature}
+		{handle} から読み込みメッセージを受信する。
+		{handle} はチャンネルもしくはチャンネルを持つジョブであっても
+		良い。
+		|channel-more| を参照。
+		{|+channel| 機能付きでコンパイルされたときのみ有効}
 
 ch_readraw({handle} [, {options}])			*ch_readraw()*
-		Like ch_read() but for a JS and JSON channel does not decode
-		the message.  See |channel-more|.
-		{only available when compiled with the |+channel| feature}
+		ch_read() と同様に動作するが JS や JSON の場合でもメッセージは
+		デコードされない。|channel-more| を参照。
+		{|+channel| 機能付きでコンパイルされたときのみ有効}
 
 ch_sendexpr({handle}, {expr} [, {options}])			*ch_sendexpr()*
-		{expr}を{handle}に送る。The {expr} is encoded
-		according to the type of channel.  The function cannot be used
-		with a raw channel.
-		|channel-use|を参照。
-		{handle} can be Channel or a Job that has a Channel.
+		{handle} へ {expr} を送信する。{expr} はチャンネル側と同じ型に
+		エンコードされる。この関数は生のチャンネルでは使用できない。
+		|channel-use| を参照。
+		{handle} はチャンネルもしくはチャンネルを持つジョブであっても
+		良い。チャンネルは開いていなければならない。。
 
-		{only available when compiled with the |+channel| feature}
+		{|+channel| 機能付きでコンパイルされたときのみ有効}
 
 ch_sendraw({handle}, {string} [, {options}])		*ch_sendraw()*
-		{string}を{handle}に送る。
-		|ch_sendexpr()|のように動作するがリクエストをエンコードしたり、
-		レスポンスをデコードしたりはしない。The caller is responsible
-		for the correct contents.  Also does not add a newline for a
-		channel in NL mode, the caller must do that.  The NL in the
-		response is removed.
-		|channel-use|を参照。
+		{handle} を {string} に送る。
+		|ch_sendexpr()| と同様に動作するが、リクエストをエンコードした
+		り応答をデコードしたりはしない。呼び出しは正しいコンテンツで
+		ある事が保証される。また NL モードでは改行が行われるが、ここ
+		では改行が付与されない。NL は応答から削除される。
+		|channel-use| を参照。
 
-		{only available when compiled with the |+channel| feature}
+		{|+channel| 機能付きでコンパイルされたときのみ有効}
 
 ch_setoptions({handle}, {options})			*ch_setoptions()*
-		Set options on {handle}:
-			"callback"	the channel callback
-			"timeout"	default read timeout in msec
-			"mode"		mode for the whole channel
-		See |ch_open()| for more explanation.
-		{handle} can be Channel or a Job that has a Channel.
+		{handle} にオプションを設定する:
+			"callback"	チャンネルのコールバック
+			"timeout"	デフォルトの読み込みタイムアウト(ミリ秒)
+			"mode"		チャンネル全体のモード
+		より詳しい説明は |ch_open()| を参照。
+		{handle} はチャンネルもしくはチャンネルを持つジョブであっても
+		良い。
 
-		Note that changing the mode may cause queued messages to be
-		lost.
+		Note: モードの変更はキューイングされているメッセージを失ってし
+		まうかもしれない。
 
-		These options cannot be changed:
-			"waittime"	only applies to |ch_open()|
+		以下のオプションは変更できない:
+			"waittime"	|ch_open()|だけで適用できる
 
 ch_status({handle})						*ch_status()*
-		Return the status of {handle}:
-			"fail"		failed to open the channel
-			"open"		channel can be used
-			"buffered"	channel can be read, not written to
-			"closed"	channel can not be used
-		{handle} can be Channel or a Job that has a Channel.
-		"buffered" is used when the channel was closed but there is
-		still data that can be obtained with |ch_read()|.
+		{handle} の状態を返す:
+			"fail"		チャンネルのオープンに失敗
+			"open"		チャンネルは利用可能
+			"buffered"	チャンネルは読込可能、または書き込まれ
+					ていない
+			"closed"	チャンネルは利用不可
+		{handle} はチャンネルもしくはチャンネルを持つジョブであっても
+		良い。
+		チャンネルは閉じられているが |ch_read()| を使って残ったデータ
+		をまだ読み取る事ができる場合には "buffered" が利用できる。
 
 							*copy()*
 copy({expr})	{expr}のコピーを作る。数値と文字列の場合は、{expr}そのものとコ
