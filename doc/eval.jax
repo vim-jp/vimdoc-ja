@@ -2133,13 +2133,13 @@ isdirectory({directory})	数値	{directory}がディレクトリならばTRUE
 islocked({expr})		数値	{expr}がロックされているならTRUE
 isnan({expr})			Number	|TRUE| if {expr} is NaN
 items({dict})			リスト	{dict}のキーと値のペアを取得
-job_getchannel({job})		Channel	get the channel handle for {job}
-job_info({job})			Dict	get information about {job}
-job_setoptions({job}, {options}) none	set options for {job}
+job_getchannel({job})		チャンネル  {job}のチャンネルハンドルを取得
+job_info({job})			辞書	{job}についての情報を取得
+job_setoptions({job}, {options}) なし	{job}のオプションを設定する
 job_start({command} [, {options}])
-				Job	start a job
-job_status({job})		String	get the status of {job}
-job_stop({job} [, {how}])	Number	stop {job}
+				ジョブ	ジョブを開始する
+job_status({job})		文字列	{job}のステータスを取得する
+job_stop({job} [, {how}])	数値	{job}を停止する
 join({list} [, {sep}])		文字列	{list}の要素を連結して文字列にする
 js_decode({string})		任意	JS形式のJSONをデコードする
 js_encode({expr})		文字列	JS形式のJSONにエンコードする
@@ -4955,120 +4955,117 @@ items({dict})						*items()*
 		の要素の順序は不定である。
 
 job_getchannel({job})					 *job_getchannel()*
-		Get the channel handle that {job} is using.
-		To check if the job has no channel: >
+		{job}が使用しているチャンネルハンドルを取得する。
+		ジョブにチャンネルがないかどうかを確認するには: >
 			if string(job_getchannel()) == 'channel fail'
 <
-		{only available when compiled with the |+job| feature}
+		{Vimが|+job|機能付きでコンパイルされたときのみ有効}
 
 job_info({job})						*job_info()*
-		Returns a Dictionary with information about {job}:
-		   "status"	what |job_status()| returns
-		   "channel"	what |job_getchannel()| returns
-		   "exitval"	only valid when "status" is "dead"
-		   "exit_cb"	function to be called on exit
+		{job}に関する情報を持つ辞書を返す:
+		   "status"	|job_status()|が返すもの
+		   "channel"	|job_getchannel()|が返すもの
+		   "exitval"	"status" が "dead" のときのみ有効
+		   "exit_cb"	終了時に呼び出される関数
 		   "stoponexit"	|job-stoponexit|
 
 job_setoptions({job}, {options})			*job_setoptions()*
-		Change options for {job}.  Supported are:
+		{job}のオプションを変更する。サポートされているものは:
 		   "stoponexit"	|job-stoponexit|
 		   "exit_cb"	|job-exit_cb|
 
 job_start({command} [, {options}])			*job_start()*
-		Start a job and return a Job object.  Unlike |system()| and
-		|:!cmd| this does not wait for the job to finish.
+		ジョブを開始し、ジョブオブジェクトを返す。|system()|と|:!cmd|
+		とは異なり、これはジョブが終了するのを待つことはない。
 
-		{command} can be a String.  This works best on MS-Windows.  On
-		Unix it is split up in white-separated parts to be passed to
-		execvp().  Arguments in double quotes can contain white space.
+		{command}は文字列にできる。これはMS-Windowsで最も効果的である。
+		Unixでは、それはexecvp()に渡すために空白で区切られたパーツに分
+		割される。二重引用符で囲まれた引数には空白を含められる。
 
-		{command} can be a List, where the first item is the executable
-		and further items are the arguments.  All items are converted
-		to String.  This works best on Unix.
+		{command}はリストにでき、最初の項目は実行可能ファイルであり、
+		残りの項目は引数である。すべての項目は文字列に変換される。これ
+		はUnixで最も効果的である。
 
-		On MS-Windows, job_start() makes a GUI application hidden. If
-		want to show it, Use |:!start| instead.
+		MS-Windowsでは、|job_start()|はGUIアプリケーションを隠す。それ
+		を表示したい場合は、|:!start|を代わりに使用すること。
 
-		The command is executed directly, not through a shell, the
-		'shell' option is not used.  To use the shell: >
+		コマンドはシェルではなく直接実行され、'shell' オプションは使用
+		されない。シェルを使用するには: >
 	let job = job_start(["/bin/sh", "-c", "echo hello"])
-<		Or: >
+<		または: >
 	let job = job_start('/bin/sh -c "echo hello"')
-<		Note that this will start two processes, the shell and the
-		command it executes.  If you don't want this use the "exec"
-		shell command.
+<		これは2つのプロセス、シェルとそれが実行するコマンドを開始する
+		ことに注意すること。これを望まない場合は、"exec" シェルコマン
+		ドを使用する。
 
-		On Unix $PATH is used to search for the executable only when
-		the command does not contain a slash.
+		Unixでは$PATHは、コマンドにスラッシュが含まれていない場合にの
+		み実行可能ファイルを検索するために使用される。
 
-		The job will use the same terminal as Vim.  If it reads from
-		stdin the job and Vim will be fighting over input, that
-		doesn't work.  Redirect stdin and stdout to avoid problems: >
+		ジョブはVimと同じ端末を使用する。ジョブがstdinを読む場合、ジョ
+		ブとVimが入力を奪い合うことになるのでうまく動作しない。問題を
+		避けるためにstdinとstdoutをリダイレクトする: >
 	let job = job_start(['sh', '-c', "myserver </dev/null >/dev/null"])
 <
-		The returned Job object can be used to get the status with
-		|job_status()| and stop the job with |job_stop()|.
+		返されたジョブオブジェクトを使用して、|job_status()|でステータ
+		スを取得し、|job_stop()|でジョブを停止することができる。
 
-		{options} must be a Dictionary.  It can contain many optional
-		items, see |job-options|.
+		{options}は辞書でなければならない。多くのオプション項目を含め
+		ることができる。|job-options|参照。
 
-		{only available when compiled with the |+job| feature}
+		{Vimが|+job|機能付きでコンパイルされたときのみ有効}
 
 job_status({job})					*job_status()* *E916*
-		Returns a String with the status of {job}:
-			"run"	job is running
-			"fail"	job failed to start
-			"dead"	job died or was stopped after running
-		
-		On Unix a non-existing command results in "dead" instead of
-		"fail", because a fork happens before the failure can be
-		detected.
+		ステータスが{job}のStringを返す:
+			"run"	ジョブが実行中
+			"fail"	ジョブを開始できなかった
+			"dead"	ジョブが死んだか実行後にジョブが停止した
 
-		If an exit callback was set with the "exit_cb" option and the
-		job is now detected to be "dead" the callback will be invoked.
+		Unixでは存在しないコマンドは、失敗が検出される前にフォークが発
+		生するため、"fail" ではなく "dead" になる。
 
-		For more information see |job_info()|.
+		exitコールバックが "exit_cb" オプションで設定され、ジョブが
+		"dead" と検出された場合、コールバックが呼び出される。
 
-		{only available when compiled with the |+job| feature}
+		詳細は|job_info()|参照。
+
+		{Vimが|+job|機能付きでコンパイルされたときのみ有効}
 
 job_stop({job} [, {how}])					*job_stop()*
-		Stop the {job}.  This can also be used to signal the job.
+		{job}を停止する。これはジョブを通知するためにも使用できる。
 
-		When {how} is omitted or is "term" the job will be terminated.
-		For Unix SIGTERM is sent.  On MS-Windows the job will be
-		terminated forcedly (there is no "gentle" way).
-		This goes to the process group, thus children may also be
-		affected.
+		{how}が省略されたり、"term" の場合、ジョブは終了する。 Unixで
+		はSIGTERMが送信される。MS-Windowsでは、ジョブは強制的に終了す
+		る("優しい"方法は存在しない)。これはプロセスグループに行くの
+		で、子供たちも影響を受けるかもしれない。
 
-		Effect for Unix:
-			"term"	 SIGTERM (default)
+		UNIXへの影響:
+			"term"	 SIGTERM (既定)
 			"hup"	 SIGHUP
 			"quit"	 SIGQUIT
 			"int"	 SIGINT
-			"kill"	 SIGKILL (strongest way to stop)
-			number	 signal with that number
+			"kill"	 SIGKILL (停止するための最も強い方法)
+			number	 その番号の信号
 
-		Effect for MS-Windows:
-			"term"	 terminate process forcedly (default)
+		MS-Windowsへの影響:
+			"term"	 プロセスを強制終了 (既定)
 			"hup"	 CTRL_BREAK
 			"quit"	 CTRL_BREAK
 			"int"	 CTRL_C
-			"kill"	 terminate process forcedly
+			"kill"	 プロセスを強制終了
 			Others	 CTRL_BREAK
 
-		On Unix the signal is sent to the process group.  This means
-		that when the job is "sh -c command" it affects both the shell
-		and the command.
+		Unixでは、シグナルはプロセスグループに送られる。これは、ジョブ
+		が "sh -c command" であるときにシェルとコマンドの両方に影響を与
+		えることを意味する。
 
-		The result is a Number: 1 if the operation could be executed,
-		0 if "how" is not supported on the system.
-		Note that even when the operation was executed, whether the
-		job was actually stopped needs to be checked with
-		job_status().
-		The status of the job isn't checked, the operation will even
-		be done when Vim thinks the job isn't running.
+		結果は数値で、操作が実行できる場合は1、システムでは "how" がサ
+		ポートされていない場合は0。
+		ジョブが実際に停止したかどうかは、操作が実行された場合でも、
+		job_status()でチェックする必要があることに注意すること。
+		ジョブのステータスがチェックされていない場合、Vimがジョブが実
+		行されていないと判断した場合でも操作が実行される。
 
-		{only available when compiled with the |+job| feature}
+		{Vimが|+job|機能付きでコンパイルされたときのみ有効}
 
 join({list} [, {sep}])					*join()*
 		リスト{list}の要素を連結し、1個の文字列にして返す。
