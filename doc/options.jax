@@ -1,4 +1,4 @@
-*options.txt*	For Vim バージョン 8.0.  Last change: 2016 Sep 13
+*options.txt*	For Vim バージョン 8.0.  Last change: 2017 Jan 02
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -10,7 +10,7 @@
 2. オプションの自動設定			|auto-setting|
 3. オプションの要約			|option-summary|
 
-オプションの概要については、help.txt |option-list| を参照。
+オプションの概要については、quickref.txt |option-list| を参照。
 
 Vimには、特別な働きをさせるための多くの内部変数とスイッチがある。それらのオプ
 ションには3種類ある。
@@ -1796,12 +1796,12 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	オプション	+ Viの既定値	効果	~
 
 	'allowrevins'	  オフ		コマンド CTRL-_ なし
-	'backupcopy'	  Unix: "yes"	バックアップファイルがコピーになる
-			  他: "auto"    バップアップはコピーまたはリネーム
 	'backspace'	  ""		普通のバックスペース
+	'backupcopy'	  Unix: "yes"	バックアップファイルがコピーになる
+			  他: "auto"	バップアップはコピーまたはリネーム
 	'backup'	  オフ		バックアップファイルなし
-	'cindent'	  オフ		C言語ファイルにインデントなし
 	'cedit'		+ ""		|cmdwin| を開くキーなし
+	'cindent'	  オフ		C言語ファイルにインデントなし
 	'cpoptions'	+ (全フラグ)	Vi互換のフラグ
 	'cscopetag'	  オフ		":tag" に cscope を使わない
 	'cscopetagorder'  0		|cscopetagorder| を参照
@@ -1842,6 +1842,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	'textwidth'	  0		自動行分割なし
 	'tildeop'	  オフ		チルダはオペレータではない
 	'ttimeout'	  オフ		ターミナルの時間切れなし
+	'viminfo'       + {変更なし}	viminfo ファイルなし
 	'whichwrap'	+ ""		左から右への移動は行を超えない
 	'wildchar'	+ CTRL-E	現在の値が <Tab> のときのみ、コマンド
 					ライン補完に CTRL-E を使う
@@ -3956,6 +3957,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 
 	このオプションのフォーマットは 'statusline' のフォーマットに似ている。
 	ツールチップには 'guitabtooltip' が使われる。下記参照。
+	このオプションがモードラインで設定されたときは、式はサンドボックス
+	(|sandbox|) の中で評価される。|sandbox-option| を参照。
 
 	GUI のタブページが表示されるときのみ使われる。'guioptions' に 'e' が含
 	まれていなければならない。GUI でないタブページ行については 'tabline'
@@ -5138,7 +5141,10 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	帰呼び出しを捉えるために使われる。関数のさらに深い再帰呼び出しを使うと
 	きは、オプション 'maxfuncdepth' に、さらに大きい値を設定すること。しか
 	しこうするとメモリを余計に消費するので、メモリを使い果たしたときに落ち
-	る危険がある。|:function| も参照。
+	る危険がある。
+	この制限を200より大きな値に増やした場合、Exコマンドの再帰の最大値も変
+	更される。|E169| 参照。
+	|:function| も参照。
 
 						*'maxmapdepth'* *'mmd'* *E223*
 'maxmapdepth' 'mmd'	数値	(既定では 1000)
@@ -5813,6 +5819,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			パイルされたときのみ有効}
 	コマンド ":hardcopy" で生成されるPostScript (PS) ファイルを印刷するた
 	めに評価される expression を指定する。|pexpr-option| を参照。
+	安全上の理由から、このオプションをモードライン|modeline|やサンドボック
+	ス|sandbox|の中で設定することはできない。
 
 						*'printfont'* *'pfn'*
 'printfont' 'pfn'	文字列	(既定では "courier")
@@ -6296,7 +6304,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	るので注意。
 
 						*'scrolloff'* *'so'*
-'scrolloff' 'so'	数値	(既定では 0)
+'scrolloff' 'so'	数値	(既定では 0、|defaults.vim| 内で 5 に設定され
+				る)
 			グローバル
 			{Vi にはない}
 	カーソルの上または下には、最低でもこのオプションに指定した数の行が表示
@@ -7830,7 +7839,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 'timeout' 'to'		切替	(既定ではオン)
 			グローバル
 						*'ttimeout'* *'nottimeout'*
-'ttimeout'		切替	(既定ではオフ)
+'ttimeout'		切替	(既定ではオフ、|defaults.vim| 内でオンに設定さ
+				れる)
 			グローバル
 			{Vi にはない}
 	これら2個のオプションは共に、Vimがマッピングされたキー列やキーコードの
@@ -7864,7 +7874,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			グローバル
 			{Vi のバージョンによってはないものもある}
 						*'ttimeoutlen'* *'ttm'*
-'ttimeoutlen' 'ttm'	数値	(既定では -1)
+'ttimeoutlen' 'ttm'	数値	(既定では -1、|defaults.vim| 内で100に設定され
+				る)
 			グローバル
 			{Vi にはない}
 	キーコードやマッピングされたキー列が完了するのを待つ時間 (ミリ秒単位)。
@@ -8110,8 +8121,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	"xterm"、"xterm2"、"urxvt"、"sgr" でないときのみ認識される (dec マウス
 	コードはそれらのコードと競合するため)。
 	このオプションが自動的に "xterm" に設定されるのは、'term' が "xterm"、
-	"mlterm"、"screen"、"st" (完全一致のみ)、"st-"、"stterm" のいずれかで
-	始まり、'ttymouse' がまだ設定されていないときである。
+	"mlterm"、"screen"、"tmux"、"st" (完全一致のみ)、"st-"、"stterm" のい
+	ずれかで始まり、'ttymouse' がまだ設定されていないときである。
 	加えて、Vim が |+termresponse| 機能付きでコンパイルされていて、|t_RV|
 	に xterm のバージョン番号を要求するためのエスケープシーケンスが設定さ
 	れているときは、さらに高度な判定手続きが使われる。
