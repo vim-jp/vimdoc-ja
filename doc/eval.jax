@@ -2182,7 +2182,7 @@ matchlist({expr}, {pat}[, {start}[, {count}]])
 matchstr({expr}, {pat}[, {start}[, {count}]])
 				文字列	{expr}内の{count}番目の{pat}のマッチ
 matchstrpos({expr}, {pat}[, {start}[, {count}]])
-				List	{count}'th match of {pat} in {expr}
+				リスト	{expr}内の{count}番目の{pat}のマッチ
 max({list})			数値	{list}内の要素の最大値
 min({list})			数値	{list}内の要素の最小値
 mkdir({name} [, {path} [, {prot}]])
@@ -2205,7 +2205,7 @@ range({expr} [, {max} [, {stride}]])
 readfile({fname} [, {binary} [, {max}]])
 				リスト	ファイル{fname}から行のリストを取得
 reltime([{start} [, {end}]])	リスト	時刻の値を取得
-reltimefloat({time})		Float	turn the time value into a Float
+reltimefloat({time})		浮動小数点数	時刻の値を浮動小数点に変換
 reltimestr({time})		文字列	時刻の値を文字列に変換
 remote_expr({server}, {string} [, {idvar}])
 				文字列	式を送信する
@@ -2243,7 +2243,8 @@ setbufvar({expr}, {varname}, {val})	バッファ{expr}内の変数{varname}に{v
 					をセット
 setcharsearch({dict})		辞書	文字検索を{dict}に設定
 setcmdpos({pos})		数値	コマンドライン内のカーソル位置を設定
-setfperm({fname}, {mode})	Number	set {fname} file permissions to {mode}
+setfperm({fname}, {mode})	数値	ファイル {fname} のパーミッションを
+					{mode} に設定
 setline({lnum}, {line})		数値	行{lnum}に{line}(文字列)をセット
 setloclist({nr}, {list}[, {action}[, {what}]])
 				数値	{list}を使ってロケーションリストを変更
@@ -2280,10 +2281,12 @@ str2float({expr})		浮動小数点数	文字列を浮動小数点数に変換す
 str2nr({expr} [, {base}])	数値	文字列を数値に変換する
 strchars({expr} [, {skipcc}])	数値	文字列{expr}の文字の数
 strcharpart({str}, {start}[, {len}])
-				String	{len} characters of {str} at {start}
+				文字列	{str} の {start} から長さ {len} の文字
+					列を得る
 strdisplaywidth({expr} [, {col}]) 数値	文字列{expr}の表示幅
 strftime({format}[, {time}])	文字列	指定されたフォーマットでの時刻
-strgetchar({str}, {index})	Number	get char {index} from {str}
+strgetchar({str}, {index})	数値	{str} から {index} 番目の文字インデッ
+					クスを得る
 stridx({haystack}, {needle}[, {start}])
 				数値	{haystack}内の{needle}のインデックス
 string({expr})			文字列	{expr}の値の文字列表現
@@ -5087,24 +5090,24 @@ join({list} [, {sep}])					*join()*
 		この逆を行う関数は|split()|である。
 
 js_decode({string})					*js_decode()*
-		This is similar to |json_decode()| with these differences:
-		- Object key names do not have to be in quotes.
-		- Empty items in an array (between two commas) are allowed and
-		  result in v:none items.
+		|json_decode()| に似ているが以下が異なる:
+		- オブジェクトのキー名はクォートされてなくてもよい
+		- 配列内の(2つのコンマで区切られた)空アイテムが許可され結果と
+		  して v:none のアイテムとなる。
 
 js_encode({expr})					*js_encode()*
-		This is similar to |json_encode()| with these differences:
-		- Object key names are not in quotes.
-		- v:none items in an array result in an empty item between
-		  commas.
-		For example, the Vim object:
+		|json_encode()| に似ているが以下が異なる:
+		- オブジェクトのキー名がクォートされない
+		- 配列の中のアイテム v:none はコンマで区切られた空のアイテムに
+		  なる。
+		例えば Vim オブジェクト:
 			[1,v:none,{"one":1},v:none] ~
-		Will be encoded as:
+		は以下にエンコードされ:
 			[1,,{one:1},,] ~
-		While json_encode() would produce:
+		json_encode() であれば以下にエンコードされる:
 			[1,null,{"one":1},null] ~
-		This encoding is valid for JavaScript. It is more efficient
-		than JSON, especially when using an array with optional items.
+		このエンコードは JavaScript では妥当である。特に配列内でオプ
+		ショナルアイテムを扱う場合には JSON より能率的である。
 
 
 json_decode({string})					*json_decode()*
@@ -5611,22 +5614,21 @@ matchstr({expr}, {pat}[, {start}[, {count}]])			*matchstr()*
 		い。
 
 matchstrpos({expr}, {pat}[, {start}[, {count}]])		*matchstrpos()*
-		Same as |matchstr()|, but return the matched string, the start
-		position and the end position of the match.  Example: >
+		|matchstr()| と同じだがマッチした文字列とマッチした開始位置と
+		終了位置を返す。例: >
 			:echo matchstrpos("testing", "ing")
-<		results in ["ing", 4, 7].
-		When there is no match ["", -1, -1] is returned.
-		The {start}, if given, has the same meaning as for |match()|. >
+<		結果は ["ing", 4, 7] である。
+		マッチが無い場合は ["", -1, -1] が返る。
+		{start} が指定されている場合は |match()| と同じ意味になる。 >
 			:echo matchstrpos("testing", "ing", 2)
-<		results in ["ing", 4, 7]. >
+<		結果は ["ing", 4, 7] である。 >
 			:echo matchstrpos("testing", "ing", 5)
-<		result is ["", -1, -1].
-		When {expr} is a |List| then the matching item, the index
-		of first item where {pat} matches, the start position and the
-		end position of the match are returned. >
+<		結果は ["", -1, -1] である。
+		{expr} が |List| の場合、マッチしたアイテム、{pat} でマッチし
+		た最初のインデックス、マッチの開始位置と終了位置が返る。 >
 			:echo matchstrpos([1, '__x'], '\a')
-<		result is ["x", 1, 2, 3].
-		The type isn't changed, it's not necessarily a String.
+<		結果は ["x", 1, 2, 3] である。
+		型は変更されない。必ずしも文字列である必要はない。
 
 							*max()*
 max({list})	{list}の全要素の値の最大値を返す。
@@ -5872,16 +5874,16 @@ printf({fmt}, {expr1} ...)				*printf()*
 			フィールド幅が存在しない場合や小さすぎる場合でも、数値
 			の幅を切り詰めることは決してない。変換結果がフィールド
 			幅より多くの桁を必要とする場合は、十分な幅に広げられる。
-			The 'h' modifier indicates the argument is 16 bits.
-			The 'l' modifier indicates the argument is 32 bits.
-			The 'L' modifier indicates the argument is 64 bits.
-			Generally, these modifiers are not useful. They are
-			ignored when type is known from the argument.
+			モディファイア 'h' は引数が16ビット引数である事を示す。
+			モディファイア 'l' は引数が32ビット引数をある事を示す。
+			モディファイア 'L' は引数が64ビット引数をある事を示す。
+			一般的にモディファイアは便利ではない。引数から型が分か
+			る時には無視されてしまう。
 
-		i	alias for d
-		D	alias for ld
-		U	alias for lu
-		O	alias for lo
+		i	d のエイリアス
+		D	ld のエイリアス
+		U	lu のエイリアス
+		O	lo のエイリアス
 
 							*printf-c*
 		c	引数の数値を1バイトに変換し、結果の文字列を書き出す。
@@ -6024,14 +6026,14 @@ reltime([{start} [, {end}]])				*reltime()*
 		{|+reltime| 機能付きでコンパイルされたときのみ利用可能}
 
 reltimefloat({time})				*reltimefloat()*
-		Return a Float that represents the time value of {time}.
-		Example: >
+		{time} の値を代わりに浮動小数点で返す。
+		例: >
 			let start = reltime()
 			call MyFunction()
 			let seconds = reltimefloat(reltime(start))
-<		See the note of reltimestr() about overhead.
+<		オーバーヘッドについては reltimestr() の note を参照。
 		Also see |profiling|.
-		{only available when compiled with the |+reltime| feature}
+		{|+reltime| 機能付きでコンパイルされたときのみ利用可能}
 
 reltimestr({time})				*reltimestr()*
 		時刻値{time}を表現する文字列を返す。秒、ドット、マイクロ秒とい
@@ -6219,7 +6221,7 @@ screencol()							*screencol()*
 screenrow()							*screenrow()*
 		現在のカーソルのスクリーン行を数値で返す。一番上の行番号は 1。
 		この関数は主にテスト用。
-		Alternatively you can use |winline()|.
+		代用として |winline()| を使う事ができる。
 
 		Note: |screencol()| と同様の制約あり。
 
@@ -6494,21 +6496,20 @@ setcmdpos({pos})					*setcmdpos()*
 		成功なら0、コマンドラインを編集しているとき以外には1を返す。
 
 setfperm({fname}, {mode})				*setfperm()* *chmod*
-		Set the file permissions for {fname} to {mode}.
-		{mode} must be a string with 9 characters.  It is of the form
-		"rwxrwxrwx", where each group of "rwx" flags represent, in
-		turn, the permissions of the owner of the file, the group the
-		file belongs to, and other users.  A '-' character means the
-		permission is off, any other character means on.  Multi-byte
-		characters are not supported.
+		{fname} のファイル許可属性を {mode} に設定する。
+		{mode} は9文字の文字列でなければならない。形式は "rwxrwxrwx"
+		であり、それぞれはファイルの所有者権限、グループ権限、その他
+		のユーザーを表す "rwx" というフラグのグループである。文字 "-"
+		は許可属性がオフであり、その他の文字はオンである。マルチバイト
+		文字はサポートされない。
 
-		For example "rw-r-----" means read-write for the user,
-		readable by the group, not accessible by others.  "xx-x-----"
-		would do the same thing.
+		例えば "rw-r-----" はそのユーザーの読み書き、グループでは読み
+		取り専用、その他のユーザーはアクセス不可である。"xx-x-----" は
+		同じ意味となる。
 
-		Returns non-zero for success, zero for failure.
+		成功するとゼロ以外を返し、失敗するとゼロを返す。
 
-		To read permissions see |getfperm()|.
+		許可属性の読み取りについては|getfperm()|を参照。
 
 
 setline({lnum}, {text})					*setline()*
@@ -6538,9 +6539,9 @@ setloclist({nr}, {list}[, {action}[, {what}]])		*setloclist()*
 		合、-1を返す。それ以外は|setqflist()|と同じ。
 		|location-list| も参照。
 
-		If the optional {what} dictionary argument is supplied, then
-		only the items listed in {what} are set. Refer to |setqflist()|
-		for the list of supported keys in {what}.
+		オプショナル引数の辞書 {what} が提供される場合、{what} で指定
+		されるアイテムのみが設定される。サポートされる {what} の一覧は
+		|setqflist()|を参照。
 
 setmatches({list})					*setmatches()*
 		|getmatches()| で取得したマッチのリストを復元する。成功なら 
@@ -6631,17 +6632,16 @@ setqflist({list} [, {action}[, {what}]])		*setqflist()*
 		{action}が指定されないとき、または ' ' のときは新しい QuickFix
 		リストを作成する。
 
-		If the optional {what} dictionary argument is supplied, then
-		only the items listed in {what} are set. The first {list}
-		argument is ignored.  The following items can be specified in
-		{what}:
-		    nr		list number in the quickfix stack
-		    title	quickfix list title text
-		Unsupported keys in {what} are ignored.
-		If the "nr" item is not present, then the current quickfix list
-		is modified.
+		オプショナル引数の辞書 {what} が提供される場合、{what} で指定
+		されるアイテムのみが設定される。最初の {list} は無視される。
+		{what} では以下のアイテムを指定する事ができる:
+		    nr		quickfix スタックでのリスト番号
+		    title	quickfix リストのタイトルテキスト
+		{what} 内でのサポートされていないキーは無視される。
+		"nr" 番目のアイテムが提供されていない場合は現在の quickfix リ
+		ストが変更される。
 
-		Examples: >
+		例: >
 			:call setqflist([], 'r', {'title': 'My search'})
 			:call setqflist([], 'r', {'nr': 2, 'title': 'Errors'})
 <
@@ -6998,12 +6998,12 @@ strchars({expr} [, {skipcc}])					*strchars()*
 		    endif
 <
 strcharpart({src}, {start}[, {len}])			*strcharpart()*
-		Like |strpart()| but using character index and length instead
-		of byte index and length.
-		When a character index is used where a character does not
-		exist it is assumed to be one byte.  For example: >
+		|strpart()| と同様だがバイトのインデックスおよび長さではなく文
+		字のインデックスおよび長さを使用する。
+		文字インデックスが存在しない文字を指す場合、それは1バイトであ
+		るとして扱われる。例: >
 			strcharpart('abc', -1, 2)
-<		results in 'a'.
+<		結果は "a" である。
 
 strdisplaywidth({expr}[, {col}])			*strdisplaywidth()*
 		結果は数値で、文字列 {expr} が {col} で始まる時のスクリーン上
@@ -7039,10 +7039,10 @@ strftime({format} [, {time}])
 			:if exists("*strftime")
 
 strgetchar({str}, {index})				*strgetchar()*
-		Get character {index} from {str}.  This uses a character
-		index, not a byte index.  Composing characters are considered
-		separate characters here.
-		Also see |strcharpart()| and |strchars()|.
+		{str} 内の {index} 番目の文字インデックスを得る。これは文字の
+		インデックスでありバイトのインデックスではない。合成文字は分割
+		された文字として考慮される。
+		|strcharpart()| と |strchars()| も参照。
 
 stridx({haystack}, {needle} [, {start}])		*stridx()*
 		結果は数値で、{heystack}の中で文字列{needle}が最初に現れる位置
@@ -7191,12 +7191,11 @@ substitute({expr}, {pat}, {sub}, {flags})
 		   :echo substitute(s, '%\(\x\x\)',
 			   \ '\=nr2char("0x" . submatch(1))', 'g')
 
-<		When {sub} is a Funcref that function is called, with one
-		optional argument.  Example: >
+<		{sub} が関数リファレンスの場合、1個のオプショナル引数と共にそ
+		の関数が呼び出される。例: >
 		   :echo substitute(s, '%\(\x\x\)', SubNr, 'g')
-<		The optional argument is a list which contains the whole
-		matched string and up to nine submatches, like what
-		|submatch()| returns.  Example: >
+<		オプショナル引数はマッチ文字列全体と9個のサブマッチが含まれる
+		以下の |submatch()| が返す様なリストである。例: >
 		   :echo substitute(s, '%\(\x\x\)', {m -> '0x' . m[1]}, 'g')
 
 synID({lnum}, {col}, {trans})				*synID()*
