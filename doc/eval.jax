@@ -2057,8 +2057,8 @@ function({name} [, {arglist}] [, {dict}])
 garbagecollect([{atexit}])	なし	メモリを解放する。循環参照を断ち切る
 get({list}, {idx} [, {def}])	任意	{list}や{def}から要素{idx}を取得
 get({dict}, {key} [, {def}])	任意	{dict}や{def}から要素{key}を取得
-get({func}, {what})		any	get property of funcref/partial {func}
-getbufinfo([{expr}])		List	information about buffers
+get({func}, {what})		任意	funcref/partial {func}のプロパティ取得
+getbufinfo([{expr}])		リスト	バッファに関する情報
 getbufline({expr}, {lnum} [, {end}])
 				リスト	バッファ{expr}の{lnum}から{end}行目
 getbufvar({expr}, {varname} [, {def}])
@@ -2071,7 +2071,7 @@ getcmdpos()			数値	コマンドラインのカーソル位置を取得
 getcmdtype()			文字列	現在のコマンドラインの種類を取得
 getcmdwintype()			文字列	現在のコマンドラインウィンドウの種類
 getcompletion({pat}, {type} [, {filtered}])
-				List	list of cmdline completion matches
+				リスト	コマンドライン補完にマッチするリスト
 getcurpos()			リスト	カーソルの位置
 getcwd([{winnr} [, {tabnr}]])	文字列	現在の作業ディレクトリを取得
 getfontname([{name}])		文字列	使用しているフォントの名前
@@ -2089,12 +2089,12 @@ getqflist([{what}])		リスト	quickfix要素のリスト
 getreg([{regname} [, 1 [, {list}]]])
 				文字列/リスト   レジスタの中身を取得
 getregtype([{regname}])		文字列	レジスタの種類を取得
-gettabinfo([{expr}])		List	list of tab pages
+gettabinfo([{expr}])		リスト	タブページのリスト
 gettabvar({nr}, {varname} [, {def}])
 				任意	タブ{nr}の変数{varname}または{def}
 gettabwinvar({tabnr}, {winnr}, {name} [, {def}])
 				任意	タブページ{tabnr}の{winnr}の{name}
-getwininfo([{winid}])		List	list of windows
+getwininfo([{winid}])		リスト	ウィンドウのリスト
 getwinposx()			数値	GUI vim windowのX座標
 getwinposy()			数値	GUI vim windowのY座標
 getwinvar({nr}, {varname} [, {def}])
@@ -2694,14 +2694,14 @@ bufnr({expr} [, {create}])
 		bufnr("$")の以前の名前: last_buffer_nr().
 
 bufwinid({expr})					*bufwinid()*
-		The result is a Number, which is the |window-ID| of the first
-		window associated with buffer {expr}.  For the use of {expr},
-		see |bufname()| above.  If buffer {expr} doesn't exist or
-		there is no such window, -1 is returned.  Example: >
+		その結果は数値で、バッファ{expr}に関連付けられた最初のウィンド
+		ウの|window-ID|。 {expr}の使い方は前述の|bufname()|を参照。バッ
+		ファ{expr}が存在しないか、ウィンドウが無い場合は、-1が返され
+		る。例: >
 
 	echo "A window containing buffer 1 is " . (bufwinid(1))
 <
-		Only deals with the current tab page.
+		現在のタブページのみを処理する。
 
 							*bufwinnr()*
 bufwinnr({expr})
@@ -3921,10 +3921,10 @@ garbagecollect([{atexit}])				*garbagecollect()*
 		にもガーべッジコレクションが行われる。これはメモリリークを発見
 		するのに役に立つ。
 
-		The garbage collection is not done immediately but only when
-		it's safe to perform.  This is when waiting for the user to
-		type a character.  To force garbage collection immediately use
-		|test_garbagecollect_now()|.
+		ガーベッジコレクションはすぐには実行されず、安全な場合のみ実行
+		される。これはユーザーが文字を入力するのを待っているときであ
+		る。ガーベッジコレクションを強制するには、すぐに
+		|test_garbagecollect_now()|を使用すること。
 
 get({list}, {idx} [, {default}])			*get()*
 		リスト|List| {list}から{idx}番目の要素を取得する。この要素を取
@@ -3935,54 +3935,48 @@ get({dict}, {key} [, {default}])
 		る。この要素を取得できないときは{default}を返す。{default}が省
 		略されたときは0を返す。
 get({func}, {what})
-		Get an item with from Funcref {func}.  Possible values for
-		{what} are:
-			'name'	The function name
-			'func'	The function
-			'dict'	The dictionary
-			'args'	The list with arguments
+		Funcref {func}から項目を取得する。{what}の可能な値は:
+			'name'	関数名
+			'func'	関数
+			'dict'	辞書
+			'args'	引数リストThe list with arguments
 
 							*getbufinfo()*
 getbufinfo([{expr}])
 getbufinfo([{dict}])
-		Get information about buffers as a List of Dictionaries.
+		バッファの情報を辞書のリストとして取得する。
 
-		Without an argument information about all the buffers is
-		returned.
+		引数なしの場合、すべてのバッファに関する情報が返される。
 
-		When the argument is a Dictionary only the buffers matching
-		the specified criteria are returned.  The following keys can
-		be specified in {dict}:
-			buflisted	include only listed buffers.
-			bufloaded	include only loaded buffers.
+		引数が辞書の場合、指定された条件を満たすバッファのみが返され
+		る。{dict}には以下のキーを指定できる：
+			buflisted	リストされたバッファのみを含む。
+			bufloaded	ロードされたバッファのみを含む。
 
-		Otherwise, {expr} specifies a particular buffer to return
-		information for.  For the use of {expr}, see |bufname()|
-		above.  If the buffer is found the returned List has one item.
-		Otherwise the result is an empty list.
+		それ以外の場合、{expr}は情報を返す特定のバッファを指定する。
+		{expr}の使用については、上記の|bufname()|を参照。バッファが見
+		つかった場合、返されるListには1つの項目がある。それ以外の場合、
+		結果は空のリストになる。
 
-		Each returned List item is a dictionary with the following
-		entries:
-			bufnr		buffer number.
-			changed		TRUE if the buffer is modified.
-			changedtick	number of changes made to the buffer.
-			hidden		TRUE if the buffer is hidden.
-			listed		TRUE if the buffer is listed.
-			lnum		current line number in buffer.
-			loaded		TRUE if the buffer is loaded.
-			name		full path to the file in the buffer.
-			signs		list of signs placed in the buffer.
-					Each list item is a dictionary with
-					the following fields:
-					    id	  sign identifier
-					    lnum  line number
-					    name  sign name
-			variables	a reference to the dictionary with
-					buffer-local variables.
-			windows		list of |window-ID|s that display this
-					buffer
+		返される各List項目は、次のエントリを持つ辞書である:
+			bufnr		バッファ番号。
+			changed		バッファが変更されている場合はTRUE。
+			changedtick	バッファに加えられた変更の数。
+			hidden		バッファが隠されている場合はTRUE。
+			listed		バッファがリストされている場合はTRUE。
+			lnum		バッファ内の現在の行番号。
+			loaded		バッファがロードされている場合はTRUE。
+			name		バッファ内のファイルへのフルパス。
+			signs		バッファに配置された目印のリスト。
+					各リスト項目は、次のフィールドを含む辞
+					書である:
+					    id	  目印識別子
+					    lnum  行番号
+					    name  目印名
+			variables	バッファローカル変数の辞書への参照。
+			windows		バッファを表示する|window-ID|のリスト
 
-		Examples: >
+		例: >
 			for buf in getbufinfo()
 			    echo buf.name
 			endfor
@@ -3992,7 +3986,7 @@ getbufinfo([{dict}])
 			    endif
 			endfor
 <
-		To get buffer-local options use: >
+		バッファローカルオプションを取得するには: >
 			getbufvar({bufnr}, '&')
 
 <
@@ -4175,51 +4169,51 @@ getcmdwintype()						*getcmdwintype()*
 		ウィンドウでなければ空文字列を返す。
 
 getcompletion({pat}, {type} [, {filtered}])		*getcompletion()*
-		Return a list of command-line completion matches. {type}
-		specifies what for.  The following completion types are
-		supported:
+		コマンドライン補完のマッチするリストを返す。{type}は何のための
+		ものかを指定する。 次の補完タイプがサポートされている:
 
-		augroup		autocmd groups
-		buffer		buffer names
-		behave		:behave suboptions
-		color		color schemes
-		command		Ex command (and arguments)
-		compiler	compilers
-		cscope		|:cscope| suboptions
-		dir		directory names
-		environment	environment variable names
-		event		autocommand events
-		expression	Vim expression
-		file		file and directory names
-		file_in_path	file and directory names in |'path'|
-		filetype	filetype names |'filetype'|
-		function	function name
-		help		help subjects
-		highlight	highlight groups
-		history		:history suboptions
-		locale		locale names (as output of locale -a)
-		mapping		mapping name
-		menu		menus
-		option		options
-		shellcmd	Shell command
-		sign		|:sign| suboptions
-		syntax		syntax file names |'syntax'|
-		syntime		|:syntime| suboptions
-		tag		tags
-		tag_listfiles	tags, file names
-		user		user names
-		var		user variables
+		augroup		自動コマンドグループ
+		buffer		バッファ名
+		behave		|:behave|サブオプション
+		color		カラースキーム
+		command		Exコマンド (および引数)
+		compiler	コンパイラ
+		cscope		|:cscope|のサブオプション
+		dir		辞書名
+		environment	環境変数名
+		event		自動コマンドのイベント
+		expression	Vim式
+		file		ファイルおよびディレクトリ名
+		file_in_path	|'path'|のファイルおよびディレクトリ名
+		filetype	ファイルタイプ名 |'filetype'|
+		function	関数名
+		help		ヘルプ項目
+		highlight	ハイライトグループ
+		history		|:history|サブオプション
+		locale		ロケール名 (locale -aの出力)
+		mapping		マッピング名
+		menu		メニュー
+		option		オプション
+		shellcmd	シェルコマンド
+		sign		|:sign|サブオプション
+		syntax		構文ファイル名 |'syntax'|
+		syntime		|:syntime|サブオプション
+		tag		タグ
+		tag_listfiles	タグ、ファイル名
+		user		ユーザー名
+		var		ユーザー変数
 
-		If {pat} is an empty string, then all the matches are returned.
-		Otherwise only items matching {pat} are returned. See
-		|wildcards| for the use of special characters in {pat}.
+		{pat}が空文字列の場合、すべてのマッチが返される。それ以外の場
+		合、{pat}と一致する項目のみが返される。{pat}での特殊文字の使用
+		については、|wildcards|を参照。
 
-		If the optional {filtered} flag is set to 1, then 'wildignore'
-		is applied to filter the results.  Otherwise all the matches
-		are returned. The 'wildignorecase' option always applies.
+		オプションの{filtered}フラグが1に設定されている場合、結果をフィ
+		ルタリングするために 'wildignore'が適用される。そうでなければ、
+		すべての一致が返される。'wildignorecase'オプションは常に適用さ
+		れる。
 
-		If there are no matches, an empty list is returned.  An
-		invalid value for {type} produces an error.
+		一致するものがなければ、空のリストが返される。{type}の値が無効
+		だと、エラーが発生する。
 
 							*getcurpos()*
 getcurpos()	カーソルの位置を返す。これは getpos('.') に似ているが、追加の
@@ -4338,9 +4332,9 @@ getloclist({nr}[, {what}])				*getloclist()*
 		ているロケーションリストが返る。ウィンドウ番号{nr}が無効な場合
 		は、空リストが返る。それ以外は|getqflist()|と同じ。
 
-		If the optional {what} dictionary argument is supplied, then
-		returns the items listed in {what} as a dictionary. Refer to
-		|getqflist()| for the supported items in {what}.
+		オプションの{what}辞書引数が指定されている場合、{what}にリスト
+		されている項目を辞書として返す。 {what}のサポートされている項
+		目については、|getqflist()|を参照。
 
 getmatches()						*getmatches()*
 		|matchadd()| と |:match| により定義された全てのマッチの |List|
@@ -4415,24 +4409,23 @@ getqflist([{what}])					*getqflist()*
 			:   echo bufname(d.bufnr) ':' d.lnum '=' d.text
 			:endfor
 <
-		If the optional {what} dictionary argument is supplied, then
-		returns only the items listed in {what} as a dictionary. The
-		following string items are supported in {what}:
-			nr	get information for this quickfix list
-			title	get the list title
-			winid	get the |window-ID| (if opened)
-			all	all of the above quickfix properties
-		Non-string items in {what} are ignored.
-		If "nr" is not present then the current quickfix list is used.
-		In case of error processing {what}, an empty dictionary is
-		returned.
+		オプションの{what}辞書引数が指定されている場合は、{what}にリス
+		トされている項目のみを辞書として返す。 {what}では、以下の文字
+		列項目がサポートされている:
+			nr	このquickfixリストの情報を取得
+			title	リストタイトルを取得
+			winid	|window-ID|を取得 (もし開かれていれば)
+			all	上記のquickfixのすべてのプロパティ
+		{what}の文字列以外の項目は無視される。
+		"nr" が存在しない場合、現在のquickfixリストが使用される。{what}
+		の処理中にエラーとなった場合、空の辞書が返される。
 
-		The returned dictionary contains the following entries:
-			nr	quickfix list number
-			title	quickfix list title text
-			winid	quickfix |window-ID| (if opened)
+		返される辞書には、次のエントリが含まれる:
+			nr	quickfixリスト番号
+			title	quickfixリストのタイトルテキスト
+			winid	quickfixの|window-ID| (もし開かれていれば)
 
-		Examples: >
+		例: >
 			:echo getqflist({'all': 1})
 			:echo getqflist({'nr': 2, 'title': 1})
 <
@@ -4467,17 +4460,15 @@ getregtype([{regname}])					*getregtype()*
 		{regname}を指定しないときは|v:register|が使われる。
 
 gettabinfo([{arg}])					*gettabinfo()*
-		If {arg} is not specified, then information about all the tab
-		pages is returned as a List. Each List item is a Dictionary.
-		Otherwise, {arg} specifies the tab page number and information
-		about that one is returned.  If the tab page does not exist an
-		empty List is returned.
+		{arg}を指定しないと、すべてのタブページに関する情報がリストと
+		して返される。各リスト項目は辞書である。それ以外の場合、{arg}
+		はタブページ番号を指定し、それに関する情報が返される。タブペー
+		ジが存在しない場合、空のリストが返される。
 
-		Each List item is a Dictionary with the following entries:
-			tabnr		tab page number.
-			variables	a reference to the dictionary with
-					tabpage-local variables
-			windows		List of |window-ID|s in the tag page.
+		各リストアイテムは、次のエントリを持つ辞書である:
+			tabnr		タブページ番号。
+			variables	タブページローカル変数の辞書への参照。
+			windows		タブページの|window-ID|のリスト。
 
 gettabvar({tabnr}, {varname} [, {def}])				*gettabvar()*
 		タブページ {tabnr} のタブローカル変数 {varname} を取得する。
@@ -4521,30 +4512,31 @@ getwinposy()	結果はGUIのVimウィンドウの上端の、デスクトップ�
 		値)。情報が存在しない(コンソールの)場合は-1となる。
 
 getwininfo([{winid}])					*getwininfo()*
-		Returns information about windows as a List with Dictionaries.
+		ウィンドウに関する情報を、辞書のリストとして返す。
 
-		If {winid} is given Information about the window with that ID
-		is returned.  If the window does not exist the result is an
-		empty list.
+		{winid}が与えられた場合、そのIDを持つウィンドウに関する情報が
+		返される。ウィンドウが存在しない場合、結果は空のリストになる。
 
-		Without {winid} information about all the windows in all the
-		tab pages is returned.
+		{winid}がなければすべてのタブページのすべてのウィンドウに関す
+		る情報が返される。
 
-		Each List item is a Dictionary with the following entries:
-			bufnr		number of buffer in the window
-			height		window height
-			loclist		1 if showing a location list
-					{only with the +quickfix feature}
-			quickfix	1 if quickfix or location list window
-					{only with the +quickfix feature}
-			tabnr		tab page number
-			variables	a reference to the dictionary with
-					window-local variables
-			width		window width
+		各Listアイテムは次のエントリを持つ辞書である:
+			bufnr		ウィンドウ内のバッファ数
+			height		ウィンドウの高さ
+			loclist		ロケーションリストを表示してる場合は1
+					{Vimが|+quickfix|機能付きでコンパイルさ
+					れたときのみ有効}
+			quickfix	quickfixまたはロケーションリストウィン
+					ドウの場合は1
+					{Vimが|+quickfix|機能付きでコンパイルさ
+					れたときのみ有効}
+			tabnr		タブページ番号
+			variables	ウィンドウローカル変数の辞書への参照
+			width		ウィンドウ幅
 			winid		|window-ID|
-			winnr		window number
+			winnr		ウィンドウ番号
 
-		To obtain all window-local variables use: >
+		すべてのウィンドウローカル変数を取得するには: >
 			gettabwinvar({tabnr}, {winnr}, '&')
 
 getwinvar({winnr}, {varname} [, {def}])				*getwinvar()*
@@ -4592,10 +4584,9 @@ glob2regpat({expr})					 *glob2regpat()*
 			if filename =~ glob2regpat('Make*.mak')
 <		上記は次と同じである: >
 			if filename =~ '^Make.*\.mak$'
-<		When {expr} is an empty string the result is "^$", match an
-		empty string.
-		Note that the result depends on the system.  On MS-Windows
-		a backslash usually means a path separator.
+<		{expr}が空文字列の場合、結果は "^$" で、空文字列にマッチする。
+		結果はシステムによって異なることに注意すること。MS-Windowsで
+		は、バックスラッシュは通常、パス区切りを意味する。
 
 								*globpath()*
 globpath({path}, {expr} [, {nosuf} [, {list} [, {alllinks}]]])
@@ -7910,8 +7901,7 @@ winwidth({nr})						*winwidth()*
   :if winwidth(0) <= 50
   :  exe "normal 50\<C-W>|"
   :endif
-<               For getting the terminal or screen size, see the 'columns'
-               option.
+<               端末または画面サイズを取得するには、'columns' オプション参照。
 
 
 wordcount()						*wordcount()*
@@ -7988,8 +7978,8 @@ xor({expr}, {expr})					*xor()*
 	:if has("patch-7.4.248")
 <    Note: 148 が適用されていても、147 が抜けていることもありうるので注意。
 
-Hint: To find out if Vim supports backslashes in a file name (MS-Windows),
-use: `if exists('+shellslash')`
+ヒント: Vim がファイル名(MS-Windows)でバックスラッシュをサポートしているかどうか
+を調べるには `if exists('+shellslash')` を使用する。
 
 
 acl			|ACL| をサポート
