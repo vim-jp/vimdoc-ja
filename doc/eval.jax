@@ -3872,44 +3872,43 @@ function({name} [, {arglist}] [, {dict}])
 		関数{name}を参照する|Funcref|の変数を返す。{name}はユーザー定義
 		関数でも組み込み関数でもよい。
 
-		{name} can also be a Funcref or a partial.  When it is a
-		partial the dict stored in it will be used and the {dict}
-		argument is not allowed. E.g.: >
+		ここで{name}は関数の参照、もしくは部分適用である。部分適用
+		であるとき、それに格納されている辞書が使用され、{dict}引数
+		が使用できない。例: >
 			let FuncWithArg = function(dict.Func, [arg])
 			let Broken = function(dict.Func, [arg], dict)
 <
-		When using the Funcref the function will be found by {name},
-		also when it was redefined later.  Use |funcref()| to keep the
-		same function.
+		Funcrefが利用されるとき、その関数は{name}から見つけられる。
+		これは後で再定義された場合も同様である。常に同じ関数を見つける
+		ためには|funcref()|を使うこと。
 
-		When {arglist} or {dict} is present this creates a partial.
-		That means the argument list and/or the dictionary is stored in
-		the Funcref and will be used when the Funcref is called.
+		{arglist}もしくは{dict}が与えられると、関数の部分適用が作られ
+		る。すなわち引数のリスト及び/または辞書はFuncrefに格納され、
+		そのFuncrefが呼ばれるときに使用される。
 		
-		The arguments are passed to the function in front of other
-		arguments.  Example: >
+		格納された引数は他の引数よりも前に関数に渡される。例えば: >
 			func Callback(arg1, arg2, name)
 			...
 			let Func = function('Callback', ['one', 'two'])
 			...
 			call Func('name')
-<		Invokes the function as with: >
+<		関数は次のように呼び出す: >
 			call Callback('one', 'two', 'name')
 
-<		The function() call can be nested to add more arguments to the
-		Funcref.  The extra arguments are appended to the list of
-		arguments.  Example: >
+<		function()はFuncrefにより多くの引数を加えるためにネストして呼
+		び出すことができる。余分な引数は、引数のリストに追加される。
+		例えば: >
 			func Callback(arg1, arg2, name)
 			...
 			let Func = function('Callback', ['one'])
 			let Func2 = function(Func, ['two'])
 			...
 			call Func2('name')
-<		Invokes the function as with: >
+<		これは次のように関数を呼び出す:
 			call Callback('one', 'two', 'name')
 
-<		The Dictionary is only useful when calling a "dict" function.
-		In that case the {dict} is passed in as "self". Example: >
+<		辞書は "dict" 関数を呼び出すときのみ有用である。
+		この場合、{dict}は "self" として渡される。例えば: >
 			function Callback() dict
 			   echo "called for " . self.name
 			endfunction
@@ -3918,19 +3917,19 @@ function({name} [, {arglist}] [, {dict}])
 			let Func = function('Callback', context)
 			...
 			call Func()	" will echo: called for example
-<		The use of function() is not needed when there are no extra
-		arguments, these two are equivalent: >
+<		余分な引数がない場合、funciton()は必要ない。以下の二つは同等で
+		ある: >
 			let Func = function('Callback', context)
 			let Func = context.Callback
 
-<		The argument list and the Dictionary can be combined: >
+<		引数のリストと辞書を同時に使用することもできる: >
 			function Callback(arg1, count) dict
 			...
 			let context = {"name": "example"}
 			let Func = function('Callback', ['one'], context)
 			...
 			call Func(500)
-<		Invokes the function as with: >
+<		これは次のように関数を呼び出す: >
 			call context.Callback('one', 500)
 
 
