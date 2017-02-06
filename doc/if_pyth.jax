@@ -1,4 +1,4 @@
-*if_pyth.txt*   For Vim バージョン 8.0.  Last change: 2016 Sep 17
+*if_pyth.txt*   For Vim バージョン 8.0.  Last change: 2017 Jan 28
 
 
 		  VIMリファレンスマニュアル    by Paul Moore
@@ -16,6 +16,7 @@ VimのPythonインターフェイス				*python* *Python*
 8. Vim 関数 pyeval() と py3eval()		|python-pyeval|
 9. 動的ローディング				|python-dynamic|
 10. Python 3					|python3|
+11. Python X					|python_x|
 
 {Vi にはこれらのコマンドはありません}
 
@@ -699,6 +700,7 @@ vim.Function オブジェクト			*python-Function*
 
 双方向インターフェイスを容易にするため、|pyeval()| 関数と |py3eval()| 関数を
 使って Python の式を評価して、その値を VimL に渡すことができます。
+|pyxeval()| も使用可能です。
 
 ==============================================================================
 9. 動的ローディング					*python-dynamic*
@@ -801,6 +803,73 @@ Note: Python の 2 と 3 の両方が利用可能で、Python が動的ロード
 ている場合、この has() 呼び出しによってそれらがロードされます。もし、同時に
 ロードできるのがどちらか一方だけだった場合、Python の 2 と 3 のどちらが利用で
 きるか調べるだけで、もう一方は利用できなくなります。
+
+==============================================================================
+11. Python X						*python_x* *pythonx*
+
+多くの python コードは、python 2.6+ と python 3 に両方で動くことができるように
+書けるため、pyx* 関数とコマンドが用意されました。それらは、Python 2 や 3 向け
+の変種とまったく同じように動作しますが、'pyxversion' 設定を用いて Python のバー
+ジョンを選択できる点が異なります。
+
+Python コマンドに Python 2 と 3 のどちらを使いたいかに応じて、|.vimrc| の中で
+'pyxversion' を設定してください。もしこの設定を実行時に変更すると、プラグイン
+の状態(例えば初期化など)が失われる危険性があります。
+
+モジュールを使用したい場合には、{rtp}/pythonx ディレクトリの中に置くことができ
+ます。|pythonx-directory| を参照してください。
+
+							*:pyx* *:pythonx*
+`:pyx` コマンドと `:pythonx` コマンドは `:python` と同様に機能します。`:pyx`
+コマンドが機能するか簡単にチェックするには: >
+	:pyx print("Hello")
+
+使っている Python のバージョンを見るには: >
+	:pyx import sys
+	:pyx print(sys.version)
+<
+					*:pyxfile* *python_x-special-comments*
+`:pyxfile` コマンドは `:pyfile` と同様に機能します。しかし、Vim が `:pyfile`
+または `:py3file` を使うように強制したい場合は以下のコメントのうち 1 つを追加
+することができます: >
+  #!/any string/python2		" Shebang。ファイルの先頭でなければならない。
+  #!/any string/python3		" Shebang。ファイルの先頭でなければならない。
+  # requires python 2.x		" 最大行数は 'modelines' に依存。
+  # requires python 3.x		" 最大行数は 'modelines' に依存。
+通常のモードラインとは異なり、ファイルの末尾はチェックされません。
+いずれのコメントも見つからない場合は、'pyxversion' の設定が使われます。
+							*W20* *W21*
+もし Vim が指定された Python のバージョンをサポートしない場合、静かなメッセー
+ジが表示されます。それらを読むには `:messages` を使用してください。
+
+							*:pyxdo*
+`:pyxdo` コマンドは `:pydo` と同様に機能します。
+
+							*has-pythonx*
+pyx* コマンドが使用できるかどうかを調べるには以下が使えます: >
+	if has('pythonx')
+	  echo 'pyx* commands are available. (Python ' . &pyx . ')'
+	endif
+
+|+python| または |+python3| のどちらか一方のみでコンパイルされている場合は、
+has() は 1 を返します。
+|+python| と |+python3| の両方でコンパイルされている場合は、テストは
+'pyxversion' の設定に依存します。もし 'pyxversion' が 0 ならば最初に Python 3
+がテストされ、使用可能でなければ Python 2 がテストされます。もし 'pyxversion'
+が 2 または 3 であれば、Python 2 または 3 のそれぞれどちらか一方のみをテストし
+ます。
+
+has('pythonx') が動作するために、Python 3 または 2 を動的にロードしようとする
+ことがある点に注意してください。これは特に Vim が 2 つのうち 1 つしかロードで
+きない場合に副作用があります。
+
+もしもユーザーが Python 2 を優先し、Python 3 にフォールバックしたい場合は、
+|.vimrc| で 'pyxversion' を明示的に設定する必要があります。例: >
+	if has('python')
+	  set pyx=2
+	elseif has('python3')
+	  set pyx=3
+	endif
 
 ==============================================================================
  vim:tw=78:ts=8:ft=help:norl:
