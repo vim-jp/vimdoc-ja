@@ -1,0 +1,436 @@
+---
+layout: vimdoc
+helpname: 'terminal'
+---
+<div id='vimCodeElement'>
+<a class="Constant" href="terminal.html" name="terminal.txt">terminal.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.0.</span>&nbsp;&nbsp;Last change: 2017 Sep 14<br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
+<br>
+<br>
+端末ウィンドウサポート&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#terminal" name="terminal">terminal</a><br>
+<br>
+<br>
+WARNING: THIS IS ONLY PARTLY IMPLEMENTED, ANYTHING CAN STILL CHANGE<br>
+<br>
+端末機能はオプションなので、あなたのVimが対応しているかは次のコマンドを使って<br>
+確認できます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo has('terminal')</div>
+結果が &quot;1&quot; ならば対応しています。<br>
+<br>
+<br>
+1. 基本的な使い方&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="terminal.html#terminal-use">terminal-use</a><br>
+2. リモートテスト&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="terminal.html#terminal-testing">terminal-testing</a><br>
+3. デバッグ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="terminal.html#terminal-debug">terminal-debug</a><br>
+<br>
+<span class="Special">{Vi にはこれらのコマンドはありません}</span><br>
+<span class="Special">{only:&nbsp;</span><span class="MissingTag">+terminal</span><span class="Special">&nbsp;の機能は、コンパイル時に有効にされていなければ使えません}</span><br>
+<br>
+端末機能を使うには&nbsp;<a class="Identifier" href="various.html#+multi_byte">+multi_byte</a>,&nbsp;<a class="Identifier" href="various.html#+job">+job</a>&nbsp;そして&nbsp;<a class="Identifier" href="various.html#+channel">+channel</a>&nbsp;機能が必要です。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+1. 基本的な使い方&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#terminal-use" name="terminal-use">terminal-use</a><br>
+<br>
+これは Vim のウィンドウ内で端末エミュレーターを実行する機能です。端末エミュ<br>
+レーターに接続すると1つのジョブが開始されます。例としてシェルを実行するならば<br>
+以下のようになります:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp; :term bash</div>
+<br>
+またビルドコマンドを実行するにはこうなります:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp; :term make myprogram</div>
+<br>
+ジョブはVimとは非同期的に動作し、他のウィンドウで編集中であってもジョブからの<br>
+出力は随時端末ウィンドウに反映されます。<br>
+<br>
+<br>
+<span class="PreProc">キー入力</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#terminal-typing" name="terminal-typing">terminal-typing</a><br>
+端末ウィンドウにキーボードのフォーカスがある時には、入力したキーはジョブに送ら<br>
+れます。これには可能ならば pty を使用します。端末ウィンドウ外をクリックすれ<br>
+ば、キーボードフォーカスを外に動かせます。<br>
+<br>
+ウィンドウや他の&nbsp;<span class="Special">CTRL-W</span>&nbsp;コマンドを操作するために&nbsp;<span class="Special">CTRL-W</span>&nbsp;を使えます。例えば:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-W</span>&nbsp;<span class="Special">CTRL-W</span>&nbsp;&nbsp; 次のウィンドウにフォーカスを移動する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-W</span>&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Exコマンドに入る<br>
+他のコマンドについては&nbsp;<a class="Identifier" href="vimindex.html#CTRL-W">CTRL-W</a>&nbsp;参照してください。<br>
+<br>
+<br>
+端末ウィンドウでの特別な操作:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#CTRL-W_." name="CTRL-W_.">CTRL-W_.</a>&nbsp;&nbsp;<a class="Constant" href="terminal.html#CTRL-W_N" name="CTRL-W_N">CTRL-W_N</a>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-W</span>&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;端末内のジョブに&nbsp;<span class="Special">CTRL-W</span>&nbsp;を送る<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-W</span>&nbsp;<span class="Special">N</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Terminal-Normal モードに移行,&nbsp;<a class="Identifier" href="terminal.html#Terminal-mode">Terminal-mode</a>&nbsp;を参照<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-\</span>&nbsp;<span class="Special">CTRL-N</span>&nbsp;&nbsp; Terminal-Normal モードに移行,&nbsp;<a class="Identifier" href="terminal.html#Terminal-mode">Terminal-mode</a>&nbsp;を参照<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-W</span>&nbsp;&quot;&nbsp;<span class="Special">{reg}</span>&nbsp;&nbsp;レジスタ&nbsp;<span class="Special">{reg}</span>&nbsp;の内容を貼り付け&nbsp;<a class="Constant" href="terminal.html#CTRL-W_quote" name="CTRL-W_quote">CTRL-W_quote</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;式の評価結果を挿入するためのレジスタ = も機能する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-W</span>&nbsp;<span class="Special">CTRL-C</span>&nbsp;&nbsp; ジョブを停止する, 下記の&nbsp;<a class="Identifier" href="terminal.html#t_CTRL-W_CTRL-C">t_CTRL-W_CTRL-C</a>&nbsp;を参照<br>
+<br>
+<span class="Special">CTRL-W</span>&nbsp;の代わりに別のキーを使うにはオプション&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;を参照してください。し<br>
+かし&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;を2回タイプすると&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;が job へ送信されます。例:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;<span class="Special">CTRL-W</span>&nbsp;&nbsp;&nbsp;&nbsp;次のウィンドウにフォーカスを移動する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Exコマンドに入る<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;端末内のジョブに&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;を送信する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 端末内のジョブに&nbsp;<span class="Special">CTRL-W</span>&nbsp;を送信する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;<span class="Special">N</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Terminal-Normal モードへ移行、以下を参照<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;<span class="Special">CTRL-N</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-W</span>&nbsp;<span class="Special">N</span>&nbsp;と同じ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;<span class="Special">CTRL-C</span>&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="terminal.html#t_CTRL-W_CTRL-C">t_CTRL-W_CTRL-C</a>&nbsp;と同じ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#t_CTRL-\_CTRL-N" name="t_CTRL-\_CTRL-N">t_CTRL-\_CTRL-N</a><br>
+他のモードと同じように、ノーマルモードへ移行するための特別なキーの組み合わせで<br>
+ある&nbsp;<span class="Special">CTRL-\</span>&nbsp;<span class="Special">CTRL-N</span>&nbsp;が利用できます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#t_CTRL-W_CTRL-C" name="t_CTRL-W_CTRL-C">t_CTRL-W_CTRL-C</a><br>
+ジョブを強制停止するのに&nbsp;<span class="Special">CTRL-W</span>&nbsp;<span class="Special">CTRL-C</span>&nbsp;を使えます。MS-Windowsでは&nbsp;<span class="Special">CTRL-B</span>REAK<br>
+でも同様にジョブを停止できます。<br>
+<br>
+<span class="Special">CTRL-C</span>&nbsp;を入力した場合、その効果は pty がどのように構成されているかに従います。<br>
+シンプルなコマンドにおいては SIGINT がジョブに送られ、結果的にジョブが停止する<br>
+でしょう。中には SIGINT を無視するコマンドもあるでしょうし、また (Vim がそうし<br>
+ているように)&nbsp;<span class="Special">CTRL-C</span>&nbsp;をプログラム自身で取り扱うものもあるでしょう。<br>
+<br>
+入力したキーを別のものに読み返させるには端末モードマッピング、詳細は&nbsp;<span class="MissingTag">:tmap</span>を<br>
+使用してください。これはどのようなマッピングでも定義できますが、端末内で実行さ<br>
+れているジョブに送信されるキー入力にのみ作用します。<br>
+<br>
+<br>
+<span class="PreProc">サイズと色</span><br>
+<br>
+端末ウィンドウのサイズを制御するにはオプション&nbsp;<span class="MissingTag">'termsize'</span>&nbsp;を参照してください。<br>
+(TODO: 端末がウィンドウよりも大きい場合にはスクロールすることを記述する)<br>
+<br>
+端末内のジョブは端末の色を変更できます。デフォルトの前景色及び背景色はVimの<br>
+Normal ハイライトグループにより決定されます。<br>
+<br>
+カラー端末を開始する際に、背景に白と黒どちらの系統の色を使用するかは、オプショ<br>
+ン&nbsp;<a class="Type" href="options.html#'background'">'background'</a>&nbsp;を用いて決定します。<br>
+<br>
+異なる色を使う場合には Terminal ハイライトグループを利用できます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;hi Terminal ctermbg=lightgrey ctermfg=blue guibg=lightgrey guifg=blue</div>
+<br>
+<br>
+<span class="PreProc">文法</span><br>
+<br>
+:<span class="Special">[range]</span>ter[minal]&nbsp;<span class="Special">[options]</span>&nbsp;<span class="Special">[command]</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#:ter" name=":ter">:ter</a>&nbsp;<a class="Constant" href="terminal.html#:terminal" name=":terminal">:terminal</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;新しい端末ウィンドウを開きます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">[command]</span>&nbsp;が指定された場合、それをジョブとして実行し、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;端末の入出力を接続します。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">[command]</span>&nbsp;が指定されなかった場合、オプション&nbsp;<a class="Type" href="options.html#'shell'">'shell'</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を使用します。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">[command]</span>&nbsp;が NONE の場合ジョブは開始されず、端末の pty<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;は gdb のようなコマンドによって利用できます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;新しいバッファが作られ、&nbsp;<span class="Special">[command]</span>&nbsp;もしくは&nbsp;<a class="Type" href="options.html#'shell'">'shell'</a>&nbsp;に<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;!&quot; が前置された名前が与えられます。すでに同じ名前の<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;バッファが存在する場合には、カッコに囲まれた番号が付与<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;されます。例えば &quot;gdb&quot; が存在して2つ目の端末には &quot;!gdb<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(1)&quot; という名前が使われます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">[range]</span>&nbsp;が与えられた場合は、指定された範囲の行がジョブ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;の入力として使われます。その際の端末ウィンドウではキー<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;入力ができなくなります。MS-Windows においては以下の<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;++eof オプションも参照してください。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コンマで分けられた2つの数字は &quot;行数,桁数&quot; のように利用<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;されます。例えば&nbsp;<span class="Comment">:24,80gdb</span>&nbsp;は 24 行かつ 80 桁の端末<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を開きます。しかし端末ウィンドウが Vim のウィンドウを<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;またがる場合には、垂直分割は起こさずに Vim のウィンド<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ウの幅を利用します。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#term++close" name="term++close">term++close</a>&nbsp;<a class="Constant" href="terminal.html#term++open" name="term++open">term++open</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;サポートされる&nbsp;<span class="Special">[options]</span>&nbsp;は以下の通り:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;++close&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ジョブが終了した際には自動的に端末ウィ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ンドウを閉じる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;++open&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ジョブが終了した際にウィンドウが表示さ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れていない場合に、ウィンドウを表示す<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。割り込み的に発生しうることに留意。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;++curwin&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;現在のウィンドウで端末を開き、現在の<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ウィンドウを分割しない。現在のバッファ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を放棄(&nbsp;<a class="Identifier" href="editing.html#abandon">abandon</a>&nbsp;)できない場合は失敗<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;++hidden&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;端末を隠しバッファとして開く。ウィンド<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ウは使用されない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;++rows=<span class="Special">{height}</span>&nbsp;端末ウィンドウの高さとして&nbsp;<span class="Special">{height}</span>&nbsp;を<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;使う<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;++cols=<span class="Special">{width}</span>&nbsp;&nbsp;端末ウィンドウの幅として&nbsp;<span class="Special">{width}</span>&nbsp;を使<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;う<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;++eof=<span class="Special">{text}</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">[range]</span>&nbsp;を使った場合: 最後の行を送信し<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;たあとに指定したテキストが送られる。空<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;白を含むことはできない。 CR が 1 つ付<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;け加えられる。MS-Windows ではデフォル<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;トでは&nbsp;<span class="Special">CTRL-D</span>&nbsp;が送られる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例: シェルには &quot;++eof=exit&quot; を、Python<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;には &quot;++eof=exit()&quot; を指定する。特殊<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コードが&nbsp;<a class="Comment" href="map.html#:map">:map</a>&nbsp;と同様に利用できる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例: &quot;<span class="Special">&lt;C-Z&gt;</span>&quot; は&nbsp;<span class="Special">CTRL-Z</span>&nbsp;を示す。<br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;より詳細なオプションを使いたいならば&nbsp;<span class="MissingTag">term_start()</span>&nbsp;関<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;数を使ってください。<br>
+<br>
+端末に関連付けられたバッファがアンロードもしくは削除された場合には、<br>
+<span class="Comment">job_stop(job, &quot;kill&quot;)</span>&nbsp;を呼んだのと同じようにそのジョブが殺されます。<br>
+<br>
+ジョブが実行され続けるとウィンドウはそのバッファが変更されたかのように振る舞い<br>
+ます。&nbsp;<span class="Comment">CTRL-W :quit</span>&nbsp;でウィンドウを閉じようとしても失敗します。&nbsp;<span class="Comment">CTRL-W :quit!</span><br>
+を使うとジョブは終了します。ウィンドウのテキストは失われます。バッファは依然存<br>
+在しますが、&nbsp;<a class="Comment" href="windows.html#:buffer">:buffer</a>&nbsp;でウィンドウに割り当てても空のバッファが表示されます。<br>
+<br>
+<span class="Comment">CTRL-W :close</span>&nbsp;で閉じようとしてもまた失敗します。&nbsp;<span class="Comment">CTRL-W :close!</span>&nbsp;はウィンド<br>
+ウを閉じ、バッファを隠し状態にします。<br>
+<br>
+<span class="Comment">CTRL-W :hide</span>&nbsp;を使うとジョブを実行したまま、端末ウィンドウを閉じバッファを隠<br>
+し状態にできます。<a class="Comment" href="windows.html#:buffer">:buffer</a>&nbsp;コマンドで現在のウィンドウを端末ウィンドウにするこ<br>
+とができます。未保存の変更があった場合にはこれは失敗しますが、通常と同じように<br>
+! で強制できます。<br>
+<br>
+バックグラウンドジョブをウィンドウ無しで実行し、終了したらウィンドウに表示する<br>
+には、次のようにオプションを指定します:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:term ++hidden ++open make</div>
+ウィンドウが予期せぬタイミングで開かれ、あなたが行っている操作に割り込む可能性<br>
+があることに留意してください。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#E947" name="E947">E947</a>&nbsp;<a class="Constant" href="terminal.html#E948" name="E948">E948</a><br>
+ジョブが実行され続けると、バッファが変更されたとみなされ Vim を簡単には終了で<br>
+きなくなります。&nbsp;<a class="Identifier" href="editing.html#abandon">abandon</a>&nbsp;を参照してください。<br>
+<br>
+ジョブが終了しバッファになんの変更も及ぼさなかった場合、そのウィンドウを閉じる<br>
+とバッファは削除されます。<br>
+<br>
+端末バッファを変更するにはオプション&nbsp;<a class="Type" href="options.html#'modifiable'">'modifiable'</a>&nbsp;をセットする必要があります。<br>
+これはジョブが終了した後にのみ行なえます。バッファを最初に変更した瞬間に普通の<br>
+バッファになりハイライトは削除されます。バッファを保存可能にするために&nbsp;<a class="Identifier" href="editing.html#:file">:file</a><br>
+でバッファの名前を、コマンド名から変更することもできます。<br>
+<br>
+<br>
+<span class="PreProc">サイズ変更</span><br>
+<br>
+端末のサイズは3つのモードのいずれか1つで決まります:<br>
+<br>
+1. オプション&nbsp;<span class="MissingTag">'termsize'</span>&nbsp;が空の場合: 端末サイズはウィンドウのサイズに従う。最<br>
+&nbsp;&nbsp; 小で2行、10桁。<br>
+<br>
+2. オプション&nbsp;<span class="MissingTag">'termsize'</span>&nbsp;が &quot;rows*cols&quot; の場合、 &quot;rows&quot; を最小行数、 &quot;cols&quot; を<br>
+&nbsp;&nbsp; 最小桁数とする。<br>
+<br>
+3. オプション&nbsp;<span class="MissingTag">'termsize'</span>&nbsp;が &quot;rowsXcols&quot; (&quot;X&quot; は大文字小文字を問わない) の場合:<br>
+&nbsp;&nbsp; 端末サイズは指定された行数と桁数で固定される。もしもウィンドウがそれよりも<br>
+&nbsp;&nbsp; 大きい場合には、使用されない空の領域ができる。<br>
+<br>
+ウィンドウサイズが端末サイズよりも小さい場合、端末の一部の領域(左下に相当する<br>
+部分)のみが描画されます。<br>
+<br>
+端末の現在のサイズを取得するのに関数&nbsp;<span class="MissingTag">term_getsize()</span>&nbsp;が使えます。<br>
+<span class="MissingTag">term_setsize()</span>&nbsp;は 1 か 2 のモードの時にだけ、すなわち&nbsp;<span class="MissingTag">'termsize'</span>&nbsp;が<br>
+&quot;rowsXcols&quot; 形式ではない時に使えます。<br>
+<br>
+<br>
+<span class="PreProc">Terminal-Job と Terminal-Normal モード</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#Terminal-mode" name="Terminal-mode">Terminal-mode</a><br>
+ジョブが実行中には端末の内容はジョブの制御下にあります。それにはカーソルの位置<br>
+も含まれます。入力したキーはジョブに送られます。端末の内容はいつでも更新されえ<br>
+ます。これを Terminal-Job モードと呼びます。<br>
+<br>
+<span class="Special">CTRL-W</span>&nbsp;<span class="Special">N</span>&nbsp;(もしくは&nbsp;<span class="MissingTag">'termkey'</span>&nbsp;<span class="Special">N</span>) を入力すると Terminal-Normal モードに遷移しま<br>
+す。このモードでは端末ウィンドウのコンテンツはVimの制御下に置かれ、ジョブの出<br>
+力は一時保留されます。&nbsp;<span class="Special">CTRL-\</span>&nbsp;<span class="Special">CTRL-N</span>&nbsp;でも同じようになります。<br>
+<br>
+<span class="MissingTag">tmap</span>&nbsp;のマッピングは Terminal-Job モードにおいて作用します。<br>
+<span class="MissingTag">term_sendkeys()</span>&nbsp;で送ったキーには tmap は適用されませんが、<br>
+<a class="Identifier" href="eval.html#feedkeys()">feedkeys()</a>&nbsp;で送ったキーには適用されます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#E946" name="E946">E946</a><br>
+Terminal-Normal モードでは、Vimの普通のコマンドでカーソルを自由に動かせます。<br>
+視覚的にテキストをマークしたり、テキストをヤンクしたり思いのままです。しかし<br>
+バッファの内容を変更することはできません。 'i' や 'a' など挿入モードを開始する<br>
+コマンドを使うと Terminal-Job モードに戻ります。結果としてウィンドウは端末のコ<br>
+ンテンツを反映させるために更新されます。<br>
+<br>
+Terminal-Normal モードではステータスラインとウィンドウタイトルには<br>
+&quot;(Terminal)&quot; と表示されます。 Terminal-Normal モード中にジョブが終了してしまっ<br>
+た場合にはそれが &quot;(Terminal-finished)&quot; に変わります。<br>
+<br>
+Terminal-Job モードから挿入モードに移る方法はありません。<br>
+<br>
+<br>
+<span class="PreProc">カーソルスタイル</span><br>
+<br>
+デフォルトでは端末ウィンドウのカーソルには点滅しないブロックが使われます。カー<br>
+ソルの点滅状態や形を変更するのに、普通の xterm のエスケープシーケンスが使われ<br>
+ます。端末ウィンドウからフォーカスが外れる際に Vim は元々のカーソルを復元しま<br>
+す。<br>
+<br>
+xterm を &quot;-bc&quot; 引数で起動した場合、または他の方法でカーソルの点滅を発生させた<br>
+場合、が1つの例外となります。それらにより点滅フラグが逆転したことが問題の引き<br>
+金となります。なぜなら Vim はその逆転を検出できず、端末ウィンドウのカーソルの<br>
+点滅も逆転します。<br>
+<br>
+<br>
+<span class="PreProc">Unix</span><br>
+<br>
+UNIX ではすべての種類のコマンドを実行可能とするために pty を用いています。端末<br>
+内で Vim ですら実行できるのです! これは以下のようにデバッグに利用できます。<br>
+<br>
+実行中のジョブに情報を伝えるのに以下の環境変数が利用できます:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TERM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;端末の名前&nbsp;<a class="Type" href="options.html#'term'">'term'</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;ROWS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;端末の初期行数<br>
+&nbsp;&nbsp;&nbsp;&nbsp;LINES&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ROWS と同じ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;COLUMNS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 端末の初期桁数<br>
+&nbsp;&nbsp;&nbsp;&nbsp;COLORS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;色数&nbsp;<a class="Type" href="term.html#'t_Co'">'t_Co'</a>&nbsp;(GUIでは 256*256*256)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;VIM_SERVERNAME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v:servername<br>
+<br>
+ジョブを開始した Vim インスタンスと通信するのに&nbsp;<a class="Identifier" href="remote.html#client-server">client-server</a>&nbsp;機能を使えま<br>
+す。この方法は v:servername が空ではないときのみ機能します。必要ならば次のよう<br>
+にしてそれを設定できます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call remote_startserver('vim-server')</div>
+<br>
+ジョブの中で以下の様なことができます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim --servername $VIM_SERVERNAME --remote +123 some_file.c</div>
+これは &quot;some_file.c&quot; の 123 行目を開かせます。<br>
+<br>
+<br>
+<span class="PreProc">MS-Windows</span><br>
+<br>
+MS-Windows ではすべての種類のコマンドを実行可能とするために winpty を用いてい<br>
+ます。あたりまえのことですが、ここで実行するコマンドは端末の中で動くもので、独<br>
+自のウィンドウを開くものであってはいけません。<br>
+<br>
+winpty 内の以下の2つのファイルが必要です:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;winpty.dll<br>
+&nbsp;&nbsp;&nbsp;&nbsp;winpty-agent.exe<br>
+<br>
+これらは以下のページからダウンロードできます:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="Constant"><a href="https://github.com/rprichard/winpty">https://github.com/rprichard/winpty</a></span><br>
+<br>
+ファイルを環境変数 PATH のいずれかに置くだけです。必要ならばオプション<br>
+<span class="MissingTag">'winptydll'</span>&nbsp;でファイルの場所を指定できます。もしも32ビット版と64ビット版を同じ<br>
+ディレクトリに置きたいのであれば、Vimのビルドに合わせてそれぞれを winpty32.dll<br>
+もしくは winpty64.dll という名前に変更してください。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+2. リモートテスト&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#terminal-testing" name="terminal-testing">terminal-testing</a><br>
+<br>
+VimのほとんどのテストはVimのなかでスクリプトを実行しています。テスト対象のコー<br>
+ドと干渉してしまうような、幾つかのテストではこれは機能しません。これを避けるた<br>
+めに端末ウィンドウ内でさらにVimを実行しています。そのテストではキーストローク<br>
+を端末に送信し、その結果として端末画面の状態が変わるのを検査します。<br>
+<br>
+<span class="PreProc">関数</span><br>
+<br>
+term_sendkeys()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 端末にキーストロークを送信する (tmap の影響を受けない)<br>
+term_wait()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 端末画面が更新されるのを待つ<br>
+term_scrape()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 端末画面の内容を検査する<br>
+<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+3. デバッグ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#terminal-debug" name="terminal-debug">terminal-debug</a><br>
+<br>
+Vim のウィンドウでソースコードを表示しながらプログラムを gdb でデバッグするの<br>
+に、端末デバッグプラグインが利用できます。これは Vim の中だけで完結するので、<br>
+SSH 接続が1つあればリモートで機能します。<br>
+<br>
+<br>
+<span class="PreProc">はじめに</span><br>
+<br>
+以下のコマンドでプラグインを読み込みます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;packadd termdebug</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#:Termdebug" name=":Termdebug">:Termdebug</a><br>
+デバッグを開始するには&nbsp;<span class="Comment">:TermDebug</span>&nbsp;に続けてコマンド名を入力します。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:TermDebug vim</div>
+<br>
+これにより2つのウィンドウが開きます:<br>
+gdb のウィンドウ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;gdb vim&quot; を実行した端末ウィンドウ。ここでは直接 gdb とやりと<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;りできる。バッファ名は &quot;!gdb&quot;<br>
+プログラムのウィンドウ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;実行したプログラムの端末ウィンドウ。 gdb 内で &quot;run&quot; をしてプロ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;グラムの I/O が発生するとこのウィンドウに反映される。その内容<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;は gdb の制御下にない。バッファ名は &quot;gdb program&quot;<br>
+<br>
+現在のウィンドウはソースコードを表示するのに使われます。gdb が一時停止した際<br>
+に、可能ならばその場所が表示されます。現在の位置を示すためにサインが利用されま<br>
+す (ハイライトグループ debugPC を使う)。<br>
+<br>
+現在のウィンドウの内容が変更されると、現在の gdb の位置を表示するために別の<br>
+ウィンドウが開きます。<br>
+<br>
+実行中のプログラムを操作するにはその端末にフォーカスを合わせます。以降の操作は<br>
+普通の端末ウィンドウと同様です。<br>
+<br>
+デバッガが終了すると、通常は gdb のウィンドウで &quot;quit&quot; とタイプすることで終了<br>
+しますが、2つのウィンドウは閉じます。<br>
+<br>
+<br>
+<span class="PreProc">コードをステップ実行する</span><br>
+<br>
+gdb ウィンドウにフォーカスを移しコマンドを入力します。一般的なものは以下:<br>
+-&nbsp;<span class="Special">CTRL-C</span>&nbsp;&nbsp;&nbsp;&nbsp;プログラムを中断する<br>
+- next&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;現在の行を実行し、次の行(の手前)で停止する<br>
+- step&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;現在の行を実行し、次の文(の手前)で停止する。関数の内側に入る<br>
+- finish&nbsp;&nbsp;&nbsp;&nbsp;現在の関数を抜けるまで実行する<br>
+- where&nbsp;&nbsp;&nbsp;&nbsp; スタックを表示する<br>
+- frame&nbsp;<span class="Special">N</span>&nbsp;&nbsp;&nbsp;<span class="Special">N</span>&nbsp;番目のスタックフレームに移動する<br>
+- continue&nbsp;&nbsp;実行を再開する<br>
+<br>
+ソースコードを表示しているウィンドウでは gdb を制御するのに幾つかのコマンドが<br>
+使えます:<br>
+&nbsp;:Break&nbsp;&nbsp;&nbsp;&nbsp; 現在の行にブレークポイントを設定する。サインが表示される<br>
+&nbsp;:Delete&nbsp;&nbsp;&nbsp;&nbsp;現在の行のブレークポイントを削除する<br>
+&nbsp;:Step&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gdb の &quot;step&quot; コマンドを実行する<br>
+&nbsp;:Over&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gdb の &quot;next&quot; コマンドを実行する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(:Next だと Vim のコマンドとかぶるので)<br>
+&nbsp;:Finish&nbsp;&nbsp;&nbsp;&nbsp;gdb の &quot;finish&quot; コマンドを実行する<br>
+&nbsp;:Continue&nbsp;&nbsp;gdb の &quot;continue&quot; コマンドを実行する<br>
+<br>
+<br>
+<span class="PreProc">変数を検査する</span><br>
+<br>
+&nbsp;:Evaluate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソルの下の式を評価する<br>
+&nbsp;K&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上に同じ<br>
+&nbsp;:Evaluate&nbsp;<span class="Special">{expr}</span>&nbsp;&nbsp;&nbsp;<span class="Special">{expr}</span>&nbsp;を評価する<br>
+&nbsp;:'&lt;,'&gt;Evaluate&nbsp;&nbsp;&nbsp;&nbsp; ビジュアル選択したテキストを評価する<br>
+&nbsp;<br>
+これは gdb ウィンドウで &quot;print&quot; コマンドを使ったのに相当します。<br>
+<br>
+<br>
+<span class="PreProc">その他のコマンド</span><br>
+<br>
+&nbsp;:Gdb&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gdb ウィンドウに移動する<br>
+&nbsp;:Program&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;デバッグ中のプログラムウィンドウに移動する<br>
+<br>
+<br>
+<span class="PreProc">通信</span><br>
+<br>
+Vim が gdb と通信するために他に隠されたバッファを利用します。バッファ名は &quot;gdb<br>
+communicate&quot; です。このバッファは消さないでください。消してしまうとデバッガが<br>
+動作しなくなってしまうでしょう。<br>
+<br>
+<br>
+<span class="PreProc">カスタマイズ</span><br>
+<br>
+gdb コマンド以外のデバッガを使うには、&nbsp;<a class="Comment" href="terminal.html#:Termdebug">:Termdebug</a>&nbsp;を実行する前に<br>
+&quot;termdebugger&quot; 変数を変更してください:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let termdebugger = &quot;mygdb&quot;</div>
+gdb と完全互換のあるデバッガのみが使えます。Vim は gdb の操作に GDB/MI イン<br>
+ターフェイスを利用しています。<br>
+<br>
+サインの色は以下のハイライトグループで調整できます:<br>
+- debugPC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 現在の位置<br>
+- debugBreakpoint&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ブレークポイント<br>
+<br>
+<a class="Type" href="options.html#'background'">'background'</a>&nbsp;オプションが &quot;light&quot; の時のデフォルトは以下のとおりです:<br>
+&nbsp;&nbsp;hi debugPC term=reverse ctermbg=lightblue guibg=lightblue<br>
+&nbsp;&nbsp;hi debugBreakpoint term=reverse ctermbg=red guibg=red<br>
+<br>
+<a class="Type" href="options.html#'background'">'background'</a>&nbsp;オプションが &quot;dark&quot; の時は以下のとおりです:<br>
+&nbsp;&nbsp;hi debugPC term=reverse ctermbg=darkblue guibg=darkblue<br>
+&nbsp;&nbsp;hi debugBreakpoint term=reverse ctermbg=red guibg=red<br>
+<br>
+デバッグを開始した際に Vim のウィンドウ幅を変更し、垂直分割を利用するには次の<br>
+ように設定します:<br>
+<div class="helpExample">&nbsp;&nbsp;let g:termdebug_wide = 163</div>
+これは :Termdebug を実行した際に &amp;columns を 163 に設定します。元の値はデバッ<br>
+ガが終了する際に復元されます。<br>
+<br>
+<br>
+<br>
+&nbsp;vim:tw=78:ts=8:ft=help:norl:<br>
+</div>
