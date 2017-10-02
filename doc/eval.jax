@@ -1453,8 +1453,9 @@ v:completed_item
 		|Dictionary|は空である。
 
 					*v:count* *count-variable*
-v:count		最後に実行されたノーマルモードコマンドに渡されたコマンドの実行
-		回数を返す。読出し専用。使用例: >
+v:count		最後に実行されたノーマルモードコマンドに渡されたカウント数。
+		マッピングの前のカウントを取得するのに使用できる。読出し専用。
+		使用例: >
 	:map _x :<C-U>echo "the count is " . v:count<CR>
 <		Note: <C-U>は、カウントの後に ':' をタイプした時に示される行範
 		囲指定を削除するために必要となる。
@@ -1464,8 +1465,8 @@ v:count		最後に実行されたノーマルモードコマンドに渡され�
 		また "count" は、以前の版のVimとの互換性の為に動作する。
 
 					*v:count1* *count1-variable*
-v:count1	"v:count" と同じように、しかしカウントが指定されなかった時の省
-		略値として存在する。
+v:count1	"v:count" と同じだが、カウントが指定されなかった時の既定値が 1
+		となる。
 
 						*v:ctype* *ctype-variable*
 v:ctype		文字に関する実行環境の現在のロケール設定。これを使えばVim
@@ -1712,10 +1713,10 @@ v:operator	ノーマルモードにおいて最後に実行したオペレータ
 		読出し専用。
 
 					*v:prevcount* *prevcount-variable*
-v:prevcount	最後のノーマルモードコマンドに与えられたカウントの値。前のコマ
-		ンドのv:countの値である。ビジュアルモードやオペレータ待機モー
-		ドをキャンセルし、その後にカウントを使う場合に便利である。
-		例: >
+v:prevcount	最後の1つ前のノーマルモードコマンドに与えられたカウントの値。
+		前のコマンドのv:countの値である。ビジュアルモードやオペレータ
+		待機モードをキャンセルし、その後にカウントを使う場合に便利であ
+		る。例: >
 			:vmap % <Esc>:call MyFilter(v:prevcount)<CR>
 <		読出し専用。
 
@@ -1841,8 +1842,8 @@ v:termresponse	termcapのエントリ|t_RV|で端末から返されるエスケ�
 		TermResponseが発生し、端末からの応答に反応することができる。
 		新しいxtermからの応答は次の形式である:
 		 "<Esc>[ Pp ; Pv ; Pc c"。ここでPpは端末のタイプ: 0ならvt100、
-		 1ならvt220。Pvはパッチレベル(パッチ95で導入されたため常
-		 に95以上)。Pcは常に0。
+		 1ならvt220。Pvはパッチレベル(パッチ95で導入されたため常に95以
+		 上)。Pcは常に0。
 		{Vimが|+termresponse|機能付きでコンパイルされたときのみ有効}
 
 					*v:testing* *testing-variable*
@@ -2037,7 +2038,7 @@ exp({expr})			浮動小数点数	{expr}の指数
 expand({expr} [, {nosuf} [, {list}]])
 				任意	{expr}内の特別なキーワードを展開
 feedkeys({string} [, {mode}])	数値	先行入力バッファにキーシーケンスを追加
-filereadable({file})		数値	{file}が読みこみ可能なら|TRUE|
+filereadable({file})		数値	{file}が読み込み可能なら|TRUE|
 filewritable({file})		数値	{file}が書き込み可能なら|TRUE|
 filter({expr1}, {expr2})	リスト/辞書  {expr2}が0となる要素を{expr1}から
 					とり除く
@@ -3669,7 +3670,7 @@ feedkeys({string} [, {mode}])				*feedkeys()*
 
 							*filereadable()*
 filereadable({file})
-		結果は数値で、{file}というファイルが存在し、読みこむことが可能
+		結果は数値で、{file}というファイルが存在し、読み込むことが可能
 		ならば|TRUE|となる。ファイル{file}が存在しないかディレクトリ
 		だった場合には、結果は|FALSE|となる。引数{file}は文字列として
 		使えればどのような表現でもよい。
@@ -3888,9 +3889,9 @@ foreground()	Vimのウィンドウを前面に移動する。この関数はク�
 
 						*funcref()*
 funcref({name} [, {arglist}] [, {dict}])
-		|function()|と全く同じである。ただし、Funcrefは名前ではなく関
-		数の参照で検索された関数の参照を返す。これは関数{name}が後で
-		再定義されるときに重要である。
+		|function()|と同様である。ただし、返されたFuncrefは、関数を名
+		前ではなく参照で検索する。これは関数{name}が後で再定義されると
+		きに重要である。
 
 		|function()|とは違い、{name}はユーザー定義関数として存在してい
 		なければならない。また、autoload関数についても同様である。
@@ -3946,7 +3947,7 @@ function({name} [, {arglist}] [, {dict}])
 			let Func = function('Callback', context)
 			...
 			call Func()	" will echo: called for example
-<		余分な引数がない場合、funciton()は必要ない。以下の二つは同等で
+<		余分な引数がない場合、function()は必要ない。以下の二つは同等で
 		ある: >
 			let Func = function('Callback', context)
 			let Func = context.Callback
@@ -5945,8 +5946,8 @@ printf({fmt}, {expr1} ...)				*printf()*
 			の幅を切り詰めることは決してない。変換結果がフィールド
 			幅より多くの桁を必要とする場合は、十分な幅に広げられる。
 			モディファイア 'h' は引数が16ビット引数である事を示す。
-			モディファイア 'l' は引数が32ビット引数をある事を示す。
-			モディファイア 'L' は引数が64ビット引数をある事を示す。
+			モディファイア 'l' は引数が32ビット引数である事を示す。
+			モディファイア 'L' は引数が64ビット引数である事を示す。
 			一般的にモディファイアは便利ではない。引数から型が分か
 			る時には無視されてしまう。
 
