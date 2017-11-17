@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'os_win32'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="os_win32.html" name="os_win32.txt">os_win32.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.0.</span>&nbsp;&nbsp;Last change: 2016 Oct 12<br>
+<a class="Constant" href="os_win32.html" name="os_win32.txt">os_win32.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.0.</span>&nbsp;&nbsp;Last change: 2017 Mar 21<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by George Reilly</span><br>
@@ -86,10 +86,45 @@ Vim 実行ファイルのディレクトリが $PATH に追加される。これ
 executable() が 1 を返すときは実際にその実行ファイルが実行可能であるように<br>
 なる。<br>
 <br>
-ファイル名のクォート&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="os_win32.html#win32-quotes" name="win32-quotes">win32-quotes</a><br>
+コマンドライン引数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="os_win32.html#win32-cmdargs" name="win32-cmdargs">win32-cmdargs</a><br>
 <br>
-ファイル名の中のクォート(もしくは他のコマンドコマンド引数)はバックスラッシュで<br>
-エスケープできる。例。<br>
+コマンドラインからパラメーターへの解析は MS Windows で標準化されていない。<br>
+Vim と gvim はかつては(7.4.432以前)、それをパースするために異なるロジックを用<br>
+いており、さらにどのコンパイラでコンパイルしたかにも依存していた。現在では Vim<br>
+も gvim も CommandLineToArgvW() Win32 API を使用しており、どちらも同じように動<br>
+作する。<br>
+<br>
+基本的なルール:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="os_win32.html#win32-backslashes" name="win32-backslashes">win32-backslashes</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a) パラメーターは表示可能文字である<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b) パラメーターはスペースで区切られている<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c) ダブルクォートで囲めばパラメーターにスペースを含むことができる<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d) バックスラッシュ(\)が一つ以上の後に続くダブルクォート(&quot;)は特別な文<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;字である。バックスラッシュの数を半分に割って小数を切捨てた数に意味が<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ある。奇数ならバックスラッシュはスペースやタブの効果を変える。偶数な<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;らバックスラッシュはリテラルのダブルクォートを作る。<br>
+<br>
+つまり:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; は特別なダブルクォート<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;はリテラルのダブルクォート<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\\&quot;&nbsp;&nbsp;&nbsp;&nbsp; はリテラルのバックスラッシュと特別なダブルクォート<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\\\&quot;&nbsp;&nbsp;&nbsp;&nbsp;はリテラルのバックスラッシュとリテラルのダブルクォート<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\\\\&quot;&nbsp;&nbsp; はリテラルのバックスラッシュ二つと特別なダブルクォート<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\\\\\&quot;&nbsp;&nbsp;はリテラルのバックスラッシュ二つとリテラルのダブルクォート<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;etc.<br>
+<br>
+例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gvim &quot;C:\My Music\freude&quot; +&quot;set ignorecase&quot; +/&quot;\&quot;foo\\&quot; +\&quot;bar\\\&quot;</div>
+<br>
+は &quot;C:\My Music\freude&quot; を開き、次のコマンドを実行する:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set ignorecase; /&quot;foo\ and /bar\&quot;</div>
+<br>
+これらのルールは CommandLineToArgvW API のリファレンスにも記載されている:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="Constant"><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/bb776391.aspx">https://msdn.microsoft.com/en-us/library/windows/desktop/bb776391.aspx</a></span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="os_win32.html#win32-quotes" name="win32-quotes">win32-quotes</a><br>
+クォートには追加のルールがある(これらはちゃんとドキュメント化されていない)。<br>
+前述の通り、ファイル名(もしくは他のコマンドライン引数)の中のクォートはバックス<br>
+ラッシュでエスケープできる。例。<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim -c &quot;echo 'foo\&quot;bar'&quot;</div>
 <br>
 その代わりにクォートを3つ使う事もできる:<br>
@@ -99,9 +134,9 @@ executable() が 1 を返すときは実際にその実行ファイルが実行�
 <br>
 1. 一つの&nbsp;<span class="Comment">&quot;</span>&nbsp;はクォートの始まり。<br>
 2. 他の&nbsp;<span class="Comment">&quot;</span>&nbsp;や&nbsp;<span class="Comment">&quot;&quot;</span>&nbsp;はクォートの終わり。もしクォートが&nbsp;<span class="Comment">&quot;&quot;</span>&nbsp;で終わっているなら<br>
-&nbsp;&nbsp;&nbsp;<span class="Comment">&quot;</span>&nbsp;はクォートされた文字列の終わりとして処理される。<br>
+&nbsp;&nbsp; クォートされた文字列の終わりに&nbsp;<span class="Comment">&quot;</span>&nbsp;が生成される。<br>
 <br>
-例えば引数を1つずつを [] で囲った場合:<br>
+例えば、引数を1つずつ [] で囲った場合:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;foo&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt;&nbsp;<span class="Special">[foo]</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;foo&quot;&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; [foo&quot;]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;foo&quot;bar&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt;&nbsp;<span class="Special">[foobar]</span><br>
@@ -140,7 +175,7 @@ Windows 95/98/ME のサポートはパッチ 8.0.0029 にて削除された。�
 6. Windows 3.1での使用&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="os_win32.html#win32-win3.1" name="win32-win3.1">win32-win3.1</a><br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="os_win32.html#win32s" name="win32s">win32s</a>&nbsp;<a class="Constant" href="os_win32.html#windows-3.1" name="windows-3.1">windows-3.1</a>&nbsp;<a class="Constant" href="os_win32.html#gui-w32s" name="gui-w32s">gui-w32s</a><br>
-これらは Windows 3.1 や 3.11 上で実行される Gvim の特別なバージョンであった。<br>
+かつて Windows 3.1 や 3.11 上で動作する gvim の特別なバージョンがあった。<br>
 パッチ 7.4.1363 にてサポートは削除された。<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
@@ -219,10 +254,19 @@ A. できない！ これはNTコンソールの制限である。NT 5.0では�
 &nbsp;&nbsp; ドウに対して、同時に点滅頻度を設定できるようになるといわれている。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="os_win32.html#:!start" name=":!start">:!start</a><br>
-Q. 非同期的に外部コマンドやプログラムを実行するにはどうしたらよいか？<br>
-A. :!を使って外部コマンドを実行している場合、&quot;start&quot; と共に実行できる:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:!start winfile.exe&lt;CR&gt;</div>
-&nbsp;&nbsp;&nbsp;&quot;start&quot; を使うと、Vimは他のスクリーンに切り替えたり、新しいコンソールを開い<br>
+Q. 非同期的に外部コマンドやプログラムを実行したり、ドキュメントや URL を既定の<br>
+&nbsp;&nbsp; プログラムで開くにはどうしたらよいか？<br>
+A. :!を使って外部コマンドを実行している場合、&quot;start&quot; と共に実行できる。例えば<br>
+&nbsp;&nbsp; notepad を起動するには:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:!start notepad</div>
+&nbsp;&nbsp;&nbsp; 既定のイメージビューワーで &quot;image.jpg&quot; を開くには:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:!start image.jpg</div>
+&nbsp;&nbsp;&nbsp; 現在のファイルのフォルダーを Windows エクスプローラーで開くには:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:!start %:h</div>
+&nbsp;&nbsp;&nbsp; 既定のブラウザーで Vim のホームページを開くには:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:!start <a href="http://www.vim.org/">http://www.vim.org/</a></div>
+<br>
+&nbsp;&nbsp; &quot;start&quot; を使うと、Vimは他のスクリーンに切り替えたり、新しいコンソールを開い<br>
 &nbsp;&nbsp; たり、プログラムが終了するまで待ったりしなくなる; つまり、走らせるプログラ<br>
 &nbsp;&nbsp; ムは編集中のファイルに何の影響も与えない。:!startで始まったプログラムは、<br>
 &nbsp;&nbsp; Vimの開いたファイルハンドルを受け渡されないため、Vimより早く終了する必要は<br>
