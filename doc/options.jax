@@ -6151,15 +6151,16 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 
 		オプション:
 		  名前	    意味		型	値       ~
-		  gamma	    gamma		float	1.0 - 2.2 (maybe)
-		  contrast  enhancedContrast	float	(unknown)
-		  level	    clearTypeLevel	float	(unknown)
-		  geom	    pixelGeometry	int	0 - 2 (see below)
-		  renmode   renderingMode	int	0 - 6 (see below)
-		  taamode   textAntialiasMode	int	0 - 3 (see below)
+		  gamma	    gamma		float	1.0 - 2.2 (おそらく)
+		  contrast  enhancedContrast	float	(不明)
+		  level	    clearTypeLevel	float	(不明)
+		  geom	    pixelGeometry	int	0 - 2 (下記参照)
+		  renmode   renderingMode	int	0 - 6 (下記参照)
+		  taamode   textAntialiasMode	int	0 - 3 (下記参照)
+		  scrlines  Scroll Lines	int	>= 0  (下記参照)
 
-		詳細は次の URL を参照:
-		  http://msdn.microsoft.com/en-us/library/dd368190.aspx
+		詳細は次の URL を参照 (scrlines を除く):
+		  https://msdn.microsoft.com/en-us/library/dd368190.aspx
 
 		geom: デバイスピクセルの内部構造。
 		  0 - DWRITE_PIXEL_GEOMETRY_FLAT
@@ -6167,7 +6168,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		  2 - DWRITE_PIXEL_GEOMETRY_BGR
 
 		詳細は次の URL を参照:
-		  http://msdn.microsoft.com/en-us/library/dd368114.aspx
+		  https://msdn.microsoft.com/en-us/library/dd368114.aspx
 
 		renmode: 文字レンダリングの方法。
 		  0 - DWRITE_RENDERING_MODE_DEFAULT
@@ -6179,7 +6180,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		  6 - DWRITE_RENDERING_MODE_OUTLINE
 
 		詳細は次の URL を参照:
-		  http://msdn.microsoft.com/en-us/library/dd368118.aspx
+		  https://msdn.microsoft.com/en-us/library/dd368118.aspx
 
 		taamode: テキスト描画に使われるアンチエイリアスモード。
 		  0 - D2D1_TEXT_ANTIALIAS_MODE_DEFAULT
@@ -6188,7 +6189,24 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		  3 - D2D1_TEXT_ANTIALIAS_MODE_ALIASED
 
 		詳細は次の URL を参照:
-		  http://msdn.microsoft.com/en-us/library/dd368170.aspx
+		  https://msdn.microsoft.com/en-us/library/dd368170.aspx
+
+		scrlines: スクロールする行数の閾値。
+		    0 - 常にスクロールする。 (既定)
+		    1 - ページ全体の再描画を行う。
+		  > 1 - スクロールされようとしている行数が指定された数値以上で
+			あれば再描画を行う。そうでなければスクロールする。
+
+		もし DirectX レンダラを有効にした時に、ページ単位のスクロール
+		(|CTRL-F|) が遅いと感じるならば、この "scrlines" オプションを
+		試してみるとよい。
+		"1" に設定すると、Vim はスクロールを行う代わりに、ページ全体の
+		再描画を行う。一部の環境では、ページ全体の再描画の方がスクロー
+		ルよりも速い。
+		その後、行単位のスクロール (|CTRL-Y|) が遅くなったと感じるなら
+		ば、"2" またはそれ以上の値を試してみるとよい。この値はスクロー
+		ルから再描画に切り替えるための閾値として働く。一部の環境では、
+		少数の行数のスクロールはページ全体の再描画よりも速い。
 
 		例: >
 		  set encoding=utf-8
@@ -6197,15 +6215,13 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 <
 		'guifont' にラスターフォント (Courier、Terminal、FixedSysなど
 		拡張子に ".fon" が付いているもの) が選択されているときは、自動
-		的に GDI による描画に切り替わる。この切り替わりが発生したとき
-		は大幅な描画の速度低下が発生する。
+		的に GDI による描画に切り替わる。
 
 		NOTE: 一部のフォントとオプションの組み合わせによってはグリフが
 		描画されない場合がある。
 
-		  - 'rendmode:5' と 'renmode:6' は一部の特製フォント (ビット
-		    マップしか含まない TrueType フォントなど) に対して動作しな
-		    い。
+		  - 'renmode:5' と 'renmode:6' は一部の特製フォント (ビットマッ
+		    プしか含まない TrueType フォントなど) に対して動作しない。
 		  - 'taamode:3' は一部のベクターフォントに対して動作しない。
 
 		NOTE: Windows 8.1 またはそれ以降では、このオプションを使うこと
