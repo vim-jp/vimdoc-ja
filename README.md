@@ -6,11 +6,11 @@
 
 詳しい利用方法については [wiki](https://github.com/vim-jp/vimdoc-ja/wiki) を参照してください。
 
-HTML 版は <https://vim-jp.org/vimdoc-ja/> から参照することができます。
+HTML 版は [http://vim-jp.org/vimdoc-ja/](http://vim-jp.org/vimdoc-ja/) から参照することができます。
 
 間違いを見つけた場合、メーリングリストか issue トラッカーでお知らせください。
 
-- メーリングリスト <https://groups.google.com/group/vimdoc-ja>
-- issue トラッカー <https://github.com/vim-jp/vimdoc-ja-working/issues>
+- メーリングリスト http://groups.google.com/group/vimdoc-ja
+- issue トラッカー https://github.com/vim-jp/vimdoc-ja-working/issues
 
-翻訳作業に協力していただける方は <https://github.com/vim-jp/vimdoc-ja-working> をご覧ください。
+翻訳作業に協力していただける方は [https://github.com/vim-jp/vimdoc-ja-working](https://github.com/vim-jp/vimdoc-ja-working) をご覧ください。
