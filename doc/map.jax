@@ -1,4 +1,4 @@
-*map.txt*       For Vim バージョン 8.0.  Last change: 2017 Mar 10
+*map.txt*       For Vim バージョン 8.1.  Last change: 2018 May 13
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -53,6 +53,7 @@
 :im[ap]	{lhs} {rhs}		|mapmode-i|		*:im* *:imap*
 :lm[ap]	{lhs} {rhs}		|mapmode-l|		*:lm* *:lmap*
 :cm[ap]	{lhs} {rhs}		|mapmode-c|		*:cm* *:cmap*
+:tma[p]	{lhs} {rhs}		|mapmode-t|		*:tma* *:tmap*
 			キー入力 {lhs} を {rhs} に割り当てます。作成したマップ
 			は、マップコマンドに対応したモードで使用できます。マッ
 			プが使用されたときに {rhs} が調べられ、再マップされま
@@ -69,6 +70,7 @@
 :ino[remap] {lhs} {rhs}		|mapmode-i|	*:ino* *:inoremap*
 :ln[oremap] {lhs} {rhs}		|mapmode-l|	*:ln*  *:lnoremap*
 :cno[remap] {lhs} {rhs}		|mapmode-c|	*:cno* *:cnoremap*
+:tno[remap] {lhs} {rhs}		|mapmode-t|	*:tno* *:tnoremap*
 			キー入力 {lhs} を {rhs} に割り当てます。作成したマッ
 			プ、はマップコマンドに対応したモードで使用できます。
 			{rhs} は再マップされないので、マップが入れ子になったり
@@ -87,6 +89,7 @@
 :iu[nmap] {lhs}			|mapmode-i|		*:iu*   *:iunmap*
 :lu[nmap] {lhs}			|mapmode-l|		*:lu*   *:lunmap*
 :cu[nmap] {lhs}			|mapmode-c|		*:cu*   *:cunmap*
+:tunma[p] {lhs}			|mapmode-t|		*:tunma* *:tunmap*
 			マップコマンドに対応したモードの {lhs} というマップを
 			削除します。他のモードのマップは残ります。
 			Note: 末尾の空白は {lhs} に含まれます。次の unmap コマ
@@ -104,6 +107,7 @@
 :imapc[lear]			|mapmode-i|		*:imapc*  *:imapclear*
 :lmapc[lear]			|mapmode-l|		*:lmapc*  *:lmapclear*
 :cmapc[lear]			|mapmode-c|		*:cmapc*  *:cmapclear*
+:tmapc[lear]			|mapmode-t|		*:tmapc*  *:tmapclear*
 			マップコマンドに対応したモードのすべてのマップを削除し
 			ます。{Vi にはありません}
 			バッファローカルなマップを削除するには <buffer> 引数を
@@ -120,6 +124,7 @@
 :im[ap]				|mapmode-i|
 :lm[ap]				|mapmode-l|
 :cm[ap]				|mapmode-c|
+:tma[p]				|mapmode-t|
 			マップコマンドに対応したモードのすべてのマップを一覧表
 			示します。Note: ":map" と ":map!" は複数のモードを表示
 			できるのでよく使われます。
@@ -134,6 +139,7 @@
 :im[ap] {lhs}			|mapmode-i|		*:imap_l*
 :lm[ap] {lhs}			|mapmode-l|		*:lmap_l*
 :cm[ap] {lhs}			|mapmode-c|		*:cmap_l*
+:tma[p] {lhs}			|mapmode-t|		*:tmap_l*
 			マップコマンドに対応したモードの {lhs} で始まるマップ
 			を一覧表示します。
 			{Vi にはありません}
@@ -313,6 +319,7 @@ Note: 特殊キーが機能するようにしたり、テキスト中の CSI バ
 :imap  :inoremap :iunmap    挿入
 :lmap  :lnoremap :lunmap    挿入、コマンドライン、Lang-Arg
 :cmap  :cnoremap :cunmap    コマンドライン
+:tmap  :tnoremap :tunmap    端末ジョブ
 
 {訳注: Lang-Argについては |language-mapping| を参照}
 
@@ -358,6 +365,10 @@ NOTE: 選択モードで印字可能文字にマップを定義するとユー�
 ンドは複数のモードに対してマップを設定したり表示したりします。
 Vim では ":nmap"、":vmap"、":omap"、":cmap"、":imap" を使い分けることで、それ
 ぞれのモード別にマップを設定することができます。
+
+							*mapmode-t*
+端末マップは、端末ウィンドウの中で動作しているジョブに対してキーが入力されたと
+きに機能します。|terminal-typing| を参照してください。
 
 							*omap-info*
 オペレータ待機マップを使うと、移動コマンドを定義できます。そして、オペレータと
@@ -417,6 +428,7 @@ CTRL-U (<C-U>) を使って (Vimによって挿入される) 範囲指定を削�
 	i		挿入
 	l		挿入、コマンドライン、Lang-Argでの ":lmap" マップ
 	c		コマンドライン
+	t		端末ジョブ
 
 {訳注: Lang-Argについては |language-mapping| を参照}
 
@@ -890,7 +902,9 @@ non-id	  "non-id" タイプは非キーワード文字で終わります。他�
 
 full-id   マッチした場所の前が非キーワード文字、行頭、挿入を開始した場所、であ
 	  ること。例外: 短縮入力が1文字の場合、その前の文字がスペース、タブ、
-	  以外の非キーワード文字なら短縮入力は展開されません。
+	  以外の非キーワード文字なら短縮入力は展開されません。ただし、コマンド
+	  ラインにおける "'<,'>" (もしくはその他のマーク) は無視され、コマンド
+	  ラインがその後から始まっているように動作します。
 
 end-id	  マッチした場所の前が非キーワード文字、スペース、タブ、行頭、挿入を開
 	  始した場所、であること。
@@ -1243,6 +1257,7 @@ script2.vimを実行すると "None" が表示されます。期待した結果�
 属性を指定しない場合、ユーザー定義コマンドの入力時に引数は補完されません。下記
 の属性のうちいずれか1つを指定することで、引数が補完されるようになります。
 
+	-complete=arglist	引数リスト内のファイル名
 	-complete=augroup	オートコマンドのグループ
 	-complete=buffer	バッファ
 	-complete=behave	|:behave| サブオプション
@@ -1262,6 +1277,7 @@ script2.vimを実行すると "None" が表示されます。期待した結果�
 	-complete=highlight	強調グループ
 	-complete=history	|:history| サブオプション
 	-complete=locale	ロケール名 (locale -a の出力)
+	-complete=mapclear	バッファ引数
 	-complete=mapping	マップ
 	-complete=menu		メニュー
 	-complete=messages	|:messages| サブオプション
@@ -1393,6 +1409,8 @@ Note これらの引数は省略できますが、これは廃止される機能
 	<line1>	コマンド範囲の最初の行
 						*<line2>*
 	<line2>	コマンド範囲の最後の行
+						*<range>*
+	<range>	コマンド範囲を指定するために使われた要素の数: 0, 1 もしくは 2
 						*<count>*
 	<count>	与えられたカウント('-range' と '-count' 属性で記述されている)
 						*<bang>*
