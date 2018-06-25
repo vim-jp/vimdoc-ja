@@ -1,4 +1,4 @@
-*repeat.txt*    For Vim バージョン 8.0.  Last change: 2017 Jun 10
+*repeat.txt*    For Vim バージョン 8.1.  Last change: 2018 Mar 04
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -238,6 +238,10 @@ Vim script の書き方はユーザーマニュアルの41章|usr_41.txt|を参�
 			もしディレクトリ pack/*/opt/{name}/after が存在すれば、
 			'runtimepath' の最後に追加される。
 
+			"pack/*/start" からのパッケージの読み込みがスキップさ
+			れた場合、次のディレクトリが最初に検索される。
+				pack/*/start/{name} ~
+
 			Note {name} はディレクトリの名前である。.vimファイルの
 			名前ではない。以下のパターンにマッチする全てのファイル
 			が読み込まれる。
@@ -256,6 +260,7 @@ Vim script の書き方はユーザーマニュアルの41章|usr_41.txt|を参�
 			トリのみ 'runtimepath' に追加される。これは.vimrcに書
 			く場合は便利である。追加されたプラグインは初期化時に読
 			み込まれる。|load-plugins|を参照。また|pack-add|も参照。
+			{+eval 機能付きでコンパイルされたときのみ有効}
 
 						*:packl* *:packloadall*
 :packl[oadall][!]	'packpath' 以下の "start" ディレクトリ中の全パッケージ
@@ -280,6 +285,7 @@ Vim script の書き方はユーザーマニュアルの41章|usr_41.txt|を参�
 			プトの読み込みのみを中止させる。その他のプラグインは読
 			み込まれる。
 			|packages|を参照。
+			{+eval 機能付きでコンパイルされたときのみ有効}
 
 :scripte[ncoding] [encoding]		*:scripte* *:scriptencoding* *E167*
 			スクリプトで使われている文字コードを宣言する。
@@ -791,6 +797,19 @@ NOTE: デバッグモードは未完成である。デバッグはVimの動作�
 			:breakadd file <cursor-line> <current-file>
 <		Note これはファイルを読み込むときに実行されるコマンドに対して
 		だけ働く。そのファイル中で定義される関数に対しては働かない。
+
+:breaka[dd] expr {expression}
+		{expression} の評価結果が異なる値となるときに常にブレークする
+		ブレークポイントを設定する。例: >
+			:breakadd expr g:lnum
+
+<		これはグローバル変数の lnum が変化するときに常にブレークする。
+		Note: |script-variable| を監視する場合、スクリプトが切り替わっ
+		たときにブレークする。これは、定義されたスクリプト内でのみ、そ
+		のスクリプト変数が有効だからである。そしてそのスクリプトがいく
+		つかのその他のスクリプトから呼び出される場合、その特定の変数が
+		可視となったとき、もしくは再度アクセス不能となったときに常に停
+		止する。
 
 [lnum] はブレークポイントにする行番号である。Vimはその行かそれ以降で停止する。
 省略時すると1行目になる。
