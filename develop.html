@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'develop'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="develop.html" name="develop.txt">develop.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.0.</span>&nbsp;&nbsp;Last change: 2017 Jul 31<br>
+<a class="Constant" href="develop.html" name="develop.txt">develop.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.1.</span>&nbsp;&nbsp;Last change: 2018 May 02<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -21,7 +21,8 @@ Vimの開発&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n
 ソースコードの概要については &quot;src&quot; ディレクトリのREADME.txtを見てください。<br>
 <br>
 Vimはオープンソースソフトウェアです。誰でもVimの開発に協力できます。パッチを送<br>
-る時はなるべく &quot;context diff&quot; 形式 (&quot;diff -c&quot; で作る) でお願いします。<br>
+る時はなるべく &quot;unified diff&quot; 形式 (&quot;diff -u&quot; で作る) でお願いします。<br>
+GitHub上でプルリクエストを作ることも可能ですが、必須ではありません。<br>
 <span class="Constant"><a href="http://vim.wikia.com/wiki/How_to_make_and_submit_a_patch">http://vim.wikia.com/wiki/How_to_make_and_submit_a_patch</a></span>&nbsp;も見てください。<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
@@ -190,14 +191,44 @@ Vimのソースコードに変更を加える際、守るべきルールがあ�
 &nbsp;&nbsp; るか GitHub でプルリクエストを作成する。<br>
 <br>
 <br>
-<span class="Statement">C COMPILER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#style-compiler" name="style-compiler">style-compiler</a><br>
+<span class="Statement">C COMPILER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#style-compiler" name="style-compiler">style-compiler</a>&nbsp;<a class="Constant" href="develop.html#ANSI-C" name="ANSI-C">ANSI-C</a>&nbsp;<a class="Constant" href="develop.html#C89" name="C89">C89</a>&nbsp;<a class="Constant" href="develop.html#C99" name="C99">C99</a><br>
 <br>
 サポートされている最小の C コンパイラのバージョンは C89 (ANSI C とも呼ばれてい<br>
-る) である。C89 以降の標準規格にはあまり多くの機能追加が無く C89 はもっとも普及<br>
-している。<br>
+る) である。C99 のような後継の標準規格はあまり普及していない、もしくは少なくと<br>
+も 100% サポートされているわけではない。したがって C99 のいくつかの機能だけを<br>
+使用し、その他の使用は (少なくとも現時点では) 禁止する。<br>
 <br>
-この項目が暗に示している制限の1つとして、 // コメントではなく /* コメント */ を<br>
-使わなければならない。<br>
+現存するパッチに対してマージの問題を引き起こすため、C99の機能を使う変更を至る<br>
+所に入れてはいけない。新しくコードを書く場合、もしくは既存のコードを書き直す場<br>
+合に限り使用してもよい。<br>
+<br>
+<span class="PreProc">コメント</span><br>
+<br>
+慣習的に Vim では /* コメント */ を使用する。特にファイルと関数のヘッダに関し<br>
+てはこれを維持するつもりである。新しいコードもしくは変更される行については、<br>
+// コメント を使用してもよい。特にコードの後ろに続くコメントなど:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int some_var;&nbsp;&nbsp;// single line comment useful here<br>
+<br>
+<span class="PreProc">列挙型 (Enums)</span><br>
+<br>
+列挙型の末尾の要素にコンマ (trailing comma) が付いていてもよい。C89 では認めら<br>
+れていなかった。<br>
+<br>
+<span class="PreProc">型 (Types)</span><br>
+<br>
+&quot;long long&quot; は使用してもよく、64 bit を想定している。printf では %lld を使用す<br>
+ること。同じように &quot;long long unsigned&quot; では %llu を使用する。<br>
+<br>
+<span class="PreProc">使用してはいけないもの</span><br>
+<br>
+これらの C99 の機能は、コンパイラのサポートが不十分なため使用してはいけない。<br>
+- ステートメントの後の宣言 (MSVC 2012 はこれをサポートしていない)。すべての宣<br>
+&nbsp;&nbsp;言はブロックの先頭になければならない。<br>
+- 可変長配列 (C11 でもこれはオプショナルな機能である)。<br>
+- _Bool 型と _Complex 型。<br>
+- &quot;inline&quot; (ほとんど必要ない、コンパイラに最適化させよう。)<br>
+- フレキシブル配列メンバ: HP-UX C コンパイラはサポートしていない。(John<br>
+&nbsp;&nbsp;Marriott)<br>
 <br>
 <br>
 <span class="Statement">USE OF COMMON FUNCTIONS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="develop.html#style-functions" name="style-functions">style-functions</a><br>
