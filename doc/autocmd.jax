@@ -1,10 +1,10 @@
-*autocmd.txt*   For Vim バージョン 8.0.  Last change: 2017 Jan 14
+*autocmd.txt*   For Vim バージョン 8.1.  Last change: 2018 May 03
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
 
 
-自動コマンド						*autocommand*
+自動コマンド					*autocommand* *autocommands*
 
 基本的な説明については、ユーザーマニュアルの |40.3| 章を参照。
 
@@ -21,7 +21,6 @@
 11.自動コマンドを無効にする		|autocmd-disable|
 
 {Vi にはこれらのコマンドはない}
-{only: |+autocmd| の機能は、コンパイル時に有効にされていなければ使えない。}
 
 ==============================================================================
 1. はじめに						*autocmd-intro*
@@ -33,7 +32,7 @@
 ることができる。圧縮ファイルを編集するといったような機能だ (|gzip-example| を
 参照)。こういった自動コマンドはファイル .vimrc かファイル .exrc に書き込む。
 
-					*E203* *E204* *E143* *E855* *E937*
+				*E203* *E204* *E143* *E855* *E937* *E952*
 警告: 自動コマンドは大変強力であるので、思いも寄らない副作用をもたらすことがあ
 る。テキストを壊さないように注意しなければならない。
 - 捨ててもよいようなファイルのコピーに対して、最初にテストしておくのがよい。例
@@ -56,6 +55,8 @@
 			{pat} |autocmd-patterns| に一致するファイルで、{event}
 			のときに自動的に実行するコマンドのリストに、{cmd} を加
 			える。
+			Note: クォートは :autocmd への引数と見なされ、コメント
+			を開始しない。
 			{cmd} は常に既存の自動コマンドの後に追加されるので、
 			自動コマンドは指定された順に実行される。 [nested] につ
 			いては|autocmd-nested| を参照。
@@ -67,7 +68,14 @@ Note: '|' が {cmd} の前にある場合、":autocmd" コマンドの後には�
 けることができる。これは動作する: >
 	:augroup mine | au! BufRead | augroup END
 しかし、これは定義されたコマンドの一部として "augroup" を見る: >
+	:augroup mine | au! BufRead * | augroup END
 	:augroup mine | au BufRead * set tw=70 | augroup END
+代わりにグループ名をコマンドの中に置くことができる: >
+	:au! mine BufRead *
+	:au mine BufRead * set tw=70
+もしくは `:execute` を使用する: >
+	:augroup mine | exe "au! BufRead *" | augroup END
+	:augroup mine | exe "au BufRead * set tw=70" | augroup END
 
 Note ":autocmd" の引数の中の特別な文字 (例えば "%" や "<cword>" 等) は、
 自動コマンドが定義されたときに展開されるのではなく、イベントの発生が認識され、
@@ -83,7 +91,8 @@ Note ":autocmd" の引数の中の特別な文字 (例えば "%" や "<cword>" �
 れを避けるには、グループ内に自動コマンドを定義することで、簡単にクリアできる:
 >
 	augroup vimrc
-	  autocmd!	" 「全ての」vimrcの自動コマンドを削除する
+	  " 「全ての」vimrcの自動コマンドを削除する
+	  autocmd!
 	  au BufNewFile,BufRead *.html so <sfile>:h/html.vim
 	augroup END
 
@@ -140,6 +149,8 @@ Note [group] はあらかじめ定義されていなければならないこと�
 			イトなどを壊すことがある。
 
 :au[tocmd]! [group]	「全ての」自動コマンドを除去する。
+			Note: クォートは :autocmd への引数と見なされ、コメント
+			を開始しない。
 			警告: 通常はグループなしでこれを行うべきではない。プラ
 			グインや構文の強調表示などが壊れる。
 
@@ -258,6 +269,7 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 |BufCreate|		バッファリストにバッファを追加した直後
 |BufDelete|		バッファリストからバッファを削除する前
 |BufWipeout|		完全にバッファを削除する前
+|TerminalOpen|		端末バッファが生成された後
 
 |BufFilePre|		カレントバッファの名前を変える前
 |BufFilePost|		カレントバッファの名前を変えた後
@@ -286,7 +298,8 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 |GUIFailed|		GUIの起動が失敗した後
 |TermResponse|		|t_RV|に対する端末の反応を受け取った後
 
-|QuitPre|		`:quit` を使ったとき、本当に閉じるか決定する前
+|QuitPre|		`:quit` を使ったとき、本当に終了するか決定する前
+|ExitPre|		Vimを終了するコマンドを使ったとき
 |VimLeavePre|		Vimを終了する前、viminfoファイルを書き出す前
 |VimLeave|		Vimを終了する前、viminfoファイルを書き出した後
 
@@ -294,6 +307,8 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 |FileChangedShell|	編集を始めた後にファイルが変更されたことを検出したとき
 |FileChangedShellPost|	編集を始めた後にファイルが変更されたことに対処した後
 |FileChangedRO|		読み込み専用ファイルに対して最初に変更を加える前
+
+|DirChanged|		作業ディレクトリが変更された後
 
 |ShellCmdPost|		シェルコマンドを実行した後
 |ShellFilterPost|	シェルコマンドでフィルタをかけた後
@@ -324,6 +339,10 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 |CmdwinEnter|		コマンドラインウィンドウに入った後
 |CmdwinLeave|		コマンドラインウィンドウから離れる前
 
+|CmdlineChanged|	コマンドラインのテキストに変更が加えられた後
+|CmdlineEnter|		カーソルがコマンドラインに移動した後
+|CmdlineLeave|		カーソルがコマンドラインを離れる前
+
 |InsertEnter|		挿入モードを開始したとき
 |InsertChange|		挿入や置換モードで<Insert>をタイプしたとき
 |InsertLeave|		挿入モードを抜けるとき
@@ -331,8 +350,13 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 			前
 
 |TextChanged|		ノーマルモードでテキストが変更された後
-|TextChangedI|		挿入モードでテキストが変更された後
+|TextChangedI|		ポップアップメニューが表示されていないときに、挿入モー
+			ドでテキストが変更された後
+|TextChangedP|		ポップアップメニューが表示されているときに、挿入モード
+			でテキストが変更された後
+|TextYankPost|		テキストがヤンクもしくは削除された後
 
+|ColorSchemePre|	カラースキームを読み込む前
 |ColorScheme|		カラースキームを読み込んだ後
 
 |RemoteReply|		Vimサーバーからの返答を受け取ったとき
@@ -455,6 +479,10 @@ BufWinEnter			バッファがウィンドウ内に表示された後。これは
 				まま使われるためである。しかし、カレントバッファ
 				の名前を指定して ":split" をすると、そのバッファ
 				を再読み込みすることになるので、発生する。
+				端末ウィンドウでは発生しない。何故なら端末ジョ
+				ブモードで開始され、ノーマルモードコマンドは機
+				能しないからである。代わりに |TerminalOpen| を
+				使用すること。
 							*BufWinLeave*
 BufWinLeave			バッファがウィンドウから取り除かれる前。そのバッ
 				ファが別のウィンドウ内で表示中ならば発生しない。
@@ -505,6 +533,28 @@ CmdUndefined			ユーザー定義コマンドが使われたが、定義され�
 				マンドを常に定義するようにしてそのコマンドから
 				autoload 関数を呼び出すようにするという方法も
 				ある。|autoload| 参照。
+							*CmdlineChanged*
+CmdlineChanged			コマンドラインのテキストに変更が加えられた後。
+				Vim が固まってしまう可能性があるので、コマンド
+				ラインで間違いを起こさないよう注意すること。
+				<afile> はコマンドラインの種類を示す 1 文字に
+				設定される。
+				|cmdwin-char|
+							*CmdlineEnter*
+CmdlineEnter			ユーザーがコマンドを入力もしくは文字列を検索で
+				きるコマンドラインにカーソルが移動した後。
+				<afile> はコマンドラインの種類を示す 1 文字に
+				設定される。
+				|cmdwin-char|
+							*CmdlineLeave*
+CmdlineLeave			カーソルがコマンドラインを離れる前。CTRL-C も
+				しくは <Esc> の入力によってコマンドラインを放
+				棄する場合も同様。
+				コマンドの結果がエラーとなる場合は、コマンドラ
+				インは引き続き実行中となる。
+				<afile> はコマンドラインの種類を示す 1 文字に
+				設定される。
+				|cmdwin-char|
 							*CmdwinEnter*
 CmdwinEnter			Command-lineウィンドウに入った後。この特殊な
 				ウィンドウに対してのみオプションを設定するのに
@@ -524,6 +574,12 @@ ColorScheme			カラースキームを読み込んだ後。 |:colorscheme|
 				パターンはカラースキーム名にマッチする。
 				<afile> はこのオプションを設定したファイルの名
 				前になる。<amatch> はカラースキーム名になる。
+
+							*ColorSchemePre*
+ColorSchemePre			カラースキームを読み込む前。|:colorscheme|
+				あるカラースキームが読み込まれる前に、それ以前
+				に別のカラースキームによって追加されたものを取
+				り除くのに便利。
 
 							*CompleteDone*
 CompleteDone			挿入モード補完が完了したとき。補完が実行されて
@@ -608,14 +664,33 @@ FileChangedRO			読み込み専用ファイルに最初の変更を加える前�
 							*E881*
 				行数が変化した場合 undo のための保存は失敗し、
 				その変更は中止されるだろう。
+							*DirChanged*
+DirChanged			|:cd| もしくは |:lcd| コマンドによって、もしく
+				は 'autochdir' オプションの結果として作業ディ
+				レクトリが変更された後。
+				パターンは以下のようになる:
+					"window" `:lcd` により発生する
+					"global" `:cd` により発生する
+					"auto"   'autochdir' により発生する
+					"drop"   ファイルの編集により発生する
+				<afile> は新ディレクトリ名に設定される。
+							*ExitPre*
+ExitPre				Vim を終了させる `:quit`, `:wq` もしくは
+				`:qall` を使用したときで、|QuitPre| の直後。不
+				必要なウィンドウを閉じるのに使うことができる。
+				自動的に保存されない変更済みのバッファがある場
+				合には、終了はまだキャンセルされる可能性があ
+				る。本当に終了するときのためには |VimLeavePre|
+				を使用すること。
 							*FileChangedShell*
 FileChangedShell		ファイルのタイムスタンプが、ファイルの編集が始
 				まってから変更されたことを発見したとき。
 				ファイルの属性やファイルサイズが変更されたとき
 				にも使われる。|timestamp|
 				大抵はシェルコマンドの実行後に発生する。またコ
-				マンド |:checktime| の実行後や、Vimが入力フォー
-				カスを一度失い、再び得たときにも発生する。
+				マンド |:checktime| の実行後や、gvimが入力
+				フォーカスを一度失い、再び得たときにも発生す
+				る。
 				このイベントは変更されたファイルそれぞれに対し
 				て発生する。オプション 'autoread' がオンであり、
 				かつバッファが変更されていないときには使われな
@@ -656,7 +731,8 @@ FileType			オプション 'filetype' が設定されたとき。
 				パターンはファイルタイプに対して照合される。
 				<afile> は 'filetype' が設定されたファイルの名
 				前として使える。<amatch> は 'filetype' の新し
-				い値として使える。
+				い値として使える。他のウィンドウもしくはバッ
+				ファへの移動は許されていない。
 				|filetypes| を参照。
 							*FileWriteCmd*
 FileWriteCmd			バッファ全体を書き込まない場合の、ファイルに書
@@ -733,7 +809,8 @@ InsertCharPre			挿入モードで文字が入力されたとき、その文字�
 				ま (literally) 挿入される。
 				テキストを変更することはできない |textlock|。
 				このイベントは 'paste' がオンに設定されている
-				ときは発行されない。
+				ときは発行されない。{+eval 機能が有効な場合の
+				み}
 							*InsertEnter*
 InsertEnter			挿入モード・置換モード・仮想置換モードを開始す
 				る直前。変数|v:insertmode|がモードを示す。
@@ -804,6 +881,7 @@ QuitPre				`:quit`, `:wq`, `:qall` を使ったとき、カレント
 				定する前に発行される。例えば、普通のウィンドウ
 				がカレントウィンドウだけだったときに、他の余分
 				なウィンドウを閉じることができる。
+				|ExitPre| も参照。
 							*RemoteReply*
 RemoteReply			サーバーとして働くVimからの応答を受け取ったとき
 				|server2client()|。パターンは{serverid}に対し
@@ -875,7 +953,7 @@ SwapExists			ファイルの編集を始めようとしてスワップファイ�
 							*E812*
 				ここでは他のバッファに切り替えること、バッファ
 				名を変更すること、ディレクトリを変更することは
-				許可されていない。
+				許可されていない。{+eval 機能が有効な場合のみ}
 							*Syntax*
 Syntax				オプション 'syntax' が設定されたとき。
 				パターンは構文名に対して照合される。
@@ -900,6 +978,11 @@ TermChanged			オプション 'term' を変更した後。色やフォント等�
 				ターミナル依存の設定を更新するために構文定義ファ
 				イルを再読み込みするのに便利である。読み込まれ
 				たバッファ全てで発生する。
+							*TerminalOpen*
+TerminalOpen			`:terminal` もしくは |term_start()| により端末
+				バッファが生成された直後。このイベントは、
+				++hidden オプションによってウィンドウなしに
+				バッファが生成された場合でも発生する。
 							*TermResponse*
 TermResponse			|t_RV| に対する応答をターミナルから受け取った
 				とき。Vim変数 |v:termresponse| の値を使って、
@@ -922,10 +1005,36 @@ TextChangedI			挿入モードでカレントバッファのテキストが変�
 				ポップアップメニューが表示されているときは発生
 				しない。
 				他は TextChanged と同じ。
+							*TextChangedP*
+TextChangedP			挿入モードでカレントバッファのテキストに変更が
+				加えられた後で、ポップアップメニューが表示され
+				ている場合に限られる。そうでなければ
+				TextChanged と同じ。
+							*TextYankPost*
+TextYankPost			カレントバッファでテキストがヤンクもしくは削除
+				された後。|v:event| の以下の値は、この autocmd
+				を発生させた操作を特定するのに使用できる:
+				   operator	オペレーションが実行された。
+				   regcontents	行のリストとしてレジスタに格納
+						されたテキスト、例: >
+						getreg(r, 1, 1)
+<				   regname	レジスタの名前、もしくは無名レ
+						ジスタの場合は空文字列。
+				   regtype	レジスタの種類、|getregtype()|
+						を参照。
+				|quote_| が使用された場合、もしくは再帰的に呼
+				び出された場合には発生しない。
+				バッファのテキストを変更することは許されていな
+				い、|textlock| を参照。
+				{+eval 機能付きでコンパイルされた場合のみ有効}
 							*User*
 User				自動的に実行されることはない。コマンド
 				":doautocmd" によってのみ実行される
 				自動コマンドのために使用される。
+				Note: 該当する自動コマンドが存在しないときに
+				`:doautocmd User MyEvent` が使用された場合、エ
+				ラーが発生する。これを回避したい場合、ダミーの
+				自動コマンドを自身で定義すること。
 							*UserGettingBored*
 UserGettingBored		ユーザーが同じキーを 42 回押したとき。
 				ただの冗談！ :-)
@@ -969,9 +1078,10 @@ WinEnter			別のウィンドウに入った後。Vimの開始直後、1個目
 				ウの高さを設定するのに便利である。
 				そのウィンドウで他のバッファを開いていたときは、
 				イベント WinEnter の後に BufEnter が発生する。
-				Note: ":split fname" を実行したとき、WinEnter
-				が発生するのは、ウィンドウ分割の後だがファイル
-				"fname" が読み込まれる前の時点である。
+				Note: split と tabpage コマンドに関しては、
+				WinEnter イベントが発生するのは分割もしくはタ
+				ブコマンドの後だが、ファイルが読み込まれる前で
+				ある。
 							*WinLeave*
 WinLeave			ウィンドウを離れる前。次に入るウィンドウで他の
 				バッファを開いていたときは、イベント WinLeave
