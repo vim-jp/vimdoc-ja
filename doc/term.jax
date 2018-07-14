@@ -1,4 +1,4 @@
-*term.txt*      For Vim バージョン 8.0.  Last change: 2017 Feb 02
+*term.txt*      For Vim バージョン 8.1.  Last change: 2017 Oct 14
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -109,6 +109,16 @@ termcap のコードが有効になり、カーソルキーとファンクショ
 もし Vim の実行中にこれを実行した場合、bracketed paste を無効化するため 't_BD'
 が端末に送信されます。
 
+端末が bracketed paste をサポートしているにもかかわらずオプションが自動的に設
+定されない場合、以下のような設定を試すことができます: >
+
+	if &term =~ "screen"
+	  let &t_BE = "\e[?2004h"
+	  let &t_BD = "\e[?2004l"
+	  exec "set t_PS=\e[200~"
+	  exec "set t_PE=\e[201~"
+	endif
+<
 							*cs7-problem*
 Note: Vim を起動した後で端末の設定を変えると、設定が一貫しない状態になるかもし
 れません。Solaris 2.5 で "stty cs8 parenb" が "stty cs7 parenb" に復元されてし
@@ -295,13 +305,11 @@ termcap コードに対応するオプションを設定することによって
 	t_ts	(ステータスラインに)ウィンドウタイトル設定開始	*t_ts* *'t_ts'*
 	t_ue	下線終了					*t_ue* *'t_ue'*
 	t_us	下線モード					*t_us* *'t_us'*
-	t_Ce	下波線終了					*t_Ce* *'t_Ce'*
-	t_Cs	下波線モード					*t_Cs* *'t_Cs'*
 	t_ut	現在の背景色を使ってクリア			*t_ut* *'t_ut'*
 	t_vb	ビジュアルベル					*t_vb* *'t_vb'*
 	t_ve	カーソル表示					*t_ve* *'t_ve'*
 	t_vi	カーソル非表示					*t_vi* *'t_vi'*
-	t_vs	カーソル強調表示				*t_vs* *'t_vs'*
+	t_vs	カーソル強調表示 (点滅)				*t_vs* *'t_vs'*
 								*t_xs* *'t_xs'*
 	t_xs	空でない場合は強調が上書きによって消されない(hpterm)
 								*t_xn* *'t_xn'*
@@ -311,10 +319,16 @@ termcap コードに対応するオプションを設定することによって
 	t_ZR	斜体終了					*t_ZR* *'t_ZR'*
 
 Vim 独自のもの (標準的なコードはないもの):
+	t_Ce	下波線終了					*t_Ce* *'t_Ce'*
+	t_Cs	下波線モード					*t_Cs* *'t_Cs'*
+	t_Te	取り消し線終了					*t_Te* *'t_Te'*
+	t_Ts	取り消し線モード				*t_Ts* *'t_Ts'*
 	t_IS	アイコンテキスト設定開始			*t_IS* *'t_IS'*
 	t_IE	アイコンテキスト設定終了			*t_IE* *'t_IE'*
 	t_WP	ウィンドウ位置 (Y, X) をピクセルで指定		*t_WP* *'t_WP'*
-	t_WS	ウィンドウサイズ (height, width) を文字数で指定	*t_WS* *'t_WS'*
+	t_GP	ウィンドウ位置 (Y, X) をピクセルで取得		*t_GP* *'t_GP'*
+	t_WS	ウィンドウサイズ (height, width のセル数) を指定 *t_WS* *'t_WS'*
+	t_VS	カーソル通常表示 (点滅なし)			*t_VS* *'t_VS'*
 	t_SI	挿入モード開始 (バー型のカーソル)		*t_SI* *'t_SI'*
 	t_SR	置換モードの開始 (下線型のカーソル)		*t_SR* *'t_SR'*
 	t_EI	挿入または置換モード終了(ブロック型カーソル)	*t_EI* *'t_EI'*
@@ -323,8 +337,9 @@ Vim 独自のもの (標準的なコードはないもの):
 		|xterm-8bit| |v:termresponse| |'ttymouse'| |xterm-codes|
 	t_u7	カーソル位置を要求 (xterm 用)			*t_u7* *'t_u7'*
 		|'ambiwidth'| 参照
+	t_RF	端末の文字色を要求				*t_RF* *'t_RF'*
 	t_RB	端末の背景色を要求				*t_RB* *'t_RB'*
-	t_8f	前景色を設定する (R, G, B)			*t_8f* *'t_8f'*
+	t_8f	文字色を設定する (R, G, B)			*t_8f* *'t_8f'*
 		|xterm-true-color|
 	t_8b	背景色を設定する (R, G, B)			*t_8b* *'t_8b'*
 		|xterm-true-color|
@@ -332,6 +347,29 @@ Vim 独自のもの (標準的なコードはないもの):
 		|xterm-bracketed-paste|
 	t_BD	bracketed paste モードを無効化する		*t_BD* *'t_BD'*
 		|xterm-bracketed-paste|
+	t_SC	カーソル色開始を設定				*t_SC* *'t_SC'*
+	t_EC	カーソル色終了を設定				*t_EC* *'t_EC'*
+	t_SH	カーソルの形状を設定				*t_SH* *'t_SH'*
+	t_RC	端末カーソルの点滅を要求			*t_RC* *'t_RC'*
+	t_RS	端末カーソルの形状を要求			*t_RS* *'t_RS'*
+
+いくつかのコードは、開始、中間および終了部分を持ちます。開始と終了はオプション
+termcap で定義され、中間部分はテキストです。
+	set title text:     t_ts {title text} t_fs
+	set icon text:      t_IS {icon text} t_IE
+	set cursor color:   t_SC  {color name}  t_EC
+
+t_SH は 1 つの引数を取らなければなりません:
+	0, 1 もしくは無し	点滅する矩形カーソル
+	2			矩形カーソル
+	3			点滅する下線カーソル
+	4			下線カーソル
+	5			点滅する垂直バーカーソル
+	6			垂直バーカーソル
+
+t_RS は、t_RV に対する応答を受け取った場合のみ送られます。termresponse から
+Terminal.app が認識され得る場合、Mac OS 上では使われません。
+
 
 キーコード						*terminal-key-codes*
 Note: 可能なかぎり <> 形式を使ってください。
