@@ -1963,8 +1963,10 @@ abs({expr})			浮動小数点数または数値	{expr}の絶対値
 acos({expr})			浮動小数点数	{expr}のアークコサイン
 add({list}, {item})		リスト	{item}をリスト{list}に追加する
 and({expr}, {expr})		数値	ビット論理積
-append({lnum}, {string})	数値	{string}を{lnum}行目に付け加える
-append({lnum}, {list})		数値	行{list}を{lnum}行目に付け加える
+append({lnum}, {text})		数値	{lnum}行目に{text}を付け加える
+appendbufline({expr}, {lnum}, {text})
+				数値	バッファ{expr}の{lnum}行目に{text}を付
+					け加える
 argc()				数値	引数内のファイルの数
 argidx()			数値	引数リスト内の現在のインデックス
 arglistid([{winnr} [, {tabnr}]])
@@ -2059,8 +2061,8 @@ confirm({msg} [, {choices} [, {default} [, {type}]]])
 copy({expr})			任意	{expr}の浅いコピーを作る
 cos({expr})			浮動小数点数	{expr} の余弦(コサイン)
 cosh({expr})			浮動小数点数	{expr}のハイパボリックコサイン
-count({list}, {expr} [, {ic} [, {start}]])
-				数値	 {list}中に{expr}が何個現れるか数える
+count({comp}, {expr} [, {ic} [, {start}]])
+				数値	 {comp}中に{expr}が何個現れるか数える
 cscope_connection([{num} , {dbpath} [, {prepend}]])
 				数値	cscope接続の存在を判定する
 cursor({lnum}, {col} [, {off}])
@@ -2288,7 +2290,6 @@ remote_read({serverid} [, {timeout}])
 remote_send({server}, {string} [, {idvar}])
 				文字列	キーシーケンスを送信する
 remote_startserver({name})	なし	サーバー {name} になる
-				文字列	キーシーケンスを送信する
 remove({list}, {idx} [, {end}])	任意	{list}から{idx}と{end}間の要素を削除
 remove({dict}, {key})		任意	{dict}から要素{key}を削除
 rename({from}, {to})		数値	{file}から{to}へファイル名変更
@@ -2313,8 +2314,8 @@ searchpos({pattern} [, {flags} [, {stopline} [, {timeout}]]])
 server2client({clientid}, {string})
 				数値	返信文字列を送信する
 serverlist()			文字列	利用可能なサーバーのリストを取得
-setbufline({expr}, {lnum}, {line})
-				数値	バッファ {expr} の {lnum} 行目に {line}
+setbufline({expr}, {lnum}, {text})
+				数値	バッファ {expr} の {lnum} 行目に {text}
 					を設定する
 setbufvar({expr}, {varname}, {val})	バッファ{expr}内の変数{varname}に{val}
 					をセット
@@ -2380,6 +2381,7 @@ submatch({nr} [, {list}])	文字列/リスト
 substitute({expr}, {pat}, {sub}, {flags})
 				文字列	{expr}の{pat}を{sub}に置換え
 swapinfo({fname})		辞書	スワップファイル {fname} に関する情報
+swapname({expr})		文字列	バッファ{expr}のスワップファイル名
 synID({line}, {col}, {trans})	数値	{line}と{col}のsyntax IDを取得
 synIDattr({synID}, {what} [, {mode}])
 				文字列	syntax ID{synID}の属性{what}を取得
@@ -2434,7 +2436,7 @@ term_wait({buf} [, {time}])	数値	スクリーンが更新されるのを待つ
 test_alloc_fail({id}, {countdown}, {repeat})
 				なし	メモリの確保を失敗にさせる
 test_autochdir()		なし	起動時に 'autochdir' を有効にする
-test_feedinput()		なし	キー入力を入力バッファに追加する
+test_feedinput({string})	なし	キー入力を入力バッファに追加する
 test_garbagecollect_now()	なし	テスト用に直ちにメモリを解放する
 test_ignore_error({expr})	なし	特定のエラーを無視する
 test_null_channel()		チャネル	テスト用のnull値
@@ -2443,7 +2445,10 @@ test_null_job()			ジョブ	テスト用のnull値
 test_null_list()		リスト	テスト用のnull値
 test_null_partial()		Funcref	テスト用のnull値
 test_null_string()		文字列	テスト用のnull値
-test_override({expr}, {val})    なし	Vimの内部処理を置き換えてテストする
+test_option_not_set({name})	なし	オプション設定フラグをリセットする
+test_override({expr}, {val})	なし	Vimの内部処理を置き換えてテストする
+test_scrollbar({which}, {value}, {dragging})
+				なし	GUIのスクロールのテスト用
 test_settime({expr})		なし	テスト用に現在の時刻を設定する
 timer_info([{id}])		リスト	タイマーに関する情報
 timer_pause({id}, {pause})	なし	タイマーの一時停止または一時停止解除
@@ -2534,10 +2539,10 @@ and({expr}, {expr})					*and()*
 			:let flag = and(bits, 0x80)
 
 
-append({lnum}, {expr})					*append()*
-		{expr}がリスト|List|のときは、各要素をカレントバッファの{lnum}
+append({lnum}, {text})					*append()*
+		{text}がリスト|List|のときは、各要素をカレントバッファの{lnum}
 		行目以降にテキストとして追加する。
-		リストでないときは、{expr}をテキストとしてカレントバッファの
+		リストでないときは、{text}をテキストとしてカレントバッファの
 		{lnum}行目以降にテキストとして追加する。
 		{lnum}は0でもよく、その場合は1行目の前に行を挿入する。
 		失敗した場合は1を返す({lnum}が不正な範囲であるか、メモリ不足)。
@@ -3484,7 +3489,7 @@ deletebufline({expr}, {first} [, {last}])		*deletebufline()*
 
 		{expr} の使い方は前述の |bufname()| を参照。
 
-		{first} および {last} は |setline()| と同様に扱われる。Note:
+		{first} および {last} は |getline()| と同様に扱われる。Note:
 		|line()| の使用はカレントバッファを参照する。バッファ {expr}
 		内の最後の行を参照するには "$" を使用する。
 
@@ -3732,7 +3737,10 @@ expand({expr} [, {nosuf} [, {list}]])				*expand()*
 			<afile>		autocmdのファイル名
 			<abuf>		autocmdのバッファ名
 			<sfile>		取り込み(source)中のファイル名、関数名
-			<slnum>		取り込み(source)中の行番号
+			<slnum>		取り込み(source)中の行番号または関数内
+					の行番号
+			<sflnum>	スクリプトファイルの行番号。関数内でも
+					同様。
 			<cword>		カーソル下の単語(word)
 			<cWORD>		カーソル下の単語(WORD)
 			<client>	最後に受け取ったメッセージの{clientid}
@@ -4404,6 +4412,8 @@ getcmdline()						*getcmdline()*
 		例: >
 			:cmap <F7> <C-\>eescape(getcmdline(), ' \')<CR>
 <		|getcmdtype()|, |getcmdpos()|, |setcmdpos()|も参照。
+		パスワードを入力する時や |inputsecret()| を使う時は空文字列を
+		返す。
 
 getcmdpos()						*getcmdpos()*
 		コマンドラインにおけるカーソル位置をバイト単位で取得する。最初
@@ -5788,6 +5798,7 @@ maparg({name} [, {mode} [, {abbr} [, {dict}]]])			*maparg()*
 			     "!"     挿入、コマンドラインモード (|mapmode-ic|)
 		  "sid"	     <sid> マッピングで使用されるスクリプトローカルID
 			     (|<SID>|)。
+		  "lnum"     "sid" 内の行番号。不明の場合はゼロ。
 		  "nowait"   他の長いマッピングを待たない。(|:map-<nowait>|)。
 
 		まずカレントバッファにローカルなマッピングを探し、次のグローバ
@@ -5831,11 +5842,14 @@ match({expr}, {pat} [, {start} [, {count}]])			*match()*
 		{expr}がリストの場合は、{pat}にマッチする最初の要素のインデッ
 		クスを返す。各要素は文字列として扱われる。リストと辞書はechoし
 		たときと同じように文字列表現に変換される。
+
 		それ以外の場合は、{expr}は文字列として扱われる。{expr}の中で
 		{pat}にマッチするインデックス(バイト単位のオフセット)を表す数
 		値を返す。
+
 		最初の文字またはリストの最初の要素にマッチしたときは0を返す。
 		マッチがないときは-1を返す。
+
 		サブマッチを取得するには |matchlist()| を参照。
 		例: >
 			:echo match("testing", "ing")	" 結果は 4
@@ -7774,11 +7788,11 @@ substitute({expr}, {pat}, {sub}, {flags})
 swapinfo({fname})					*swapinfo()*
 		結果は、スワップファイル {fname} に関する情報を含む辞書。利用
 		可能なフィールドは以下のとおり:
-			version VIM バージョン
+			version Vim バージョン
 			user	ユーザー名
 			host	ホスト名
 			fname	オリジナルファイルの名前
-			pid	スワップファイルを作成した VIM プロセスの PID
+			pid	スワップファイルを作成した Vim プロセスの PID
 			mtime	秒単位での最終修正時間
 			inode	オプショナル: ファイルの INODE 番号
 			dirty	ファイルが修正されていれば 1、そうでなければ 0
@@ -7789,6 +7803,13 @@ swapinfo({fname})					*swapinfo()*
 			Cannot read file: 先頭ブロックが読めない
 			Not a swap file: 正しいブロック ID を含んでいない
 			Magic number mismatch: 先頭ブロックの情報が無効である
+
+swapname({expr})					*swapname()*
+		結果はバッファ {expr} のスワップファイルパス。
+		{expr} の使用については、上記の |bufname()| を参照。
+		バッファ {expr} がカレントバッファの場合、結果は |:swapname|
+		と等しい。(スワップファイルがない場合を除く)
+		バッファ {expr} にスワップファイルがない場合、空文字列を返す。
 
 synID({lnum}, {col}, {trans})				*synID()*
 		結果は数値で、現在のウィンドウ内での位置{lnum}と{col}の位置の
@@ -8094,7 +8115,7 @@ term_dumpdiff({filename}, {filename} [, {options}])
 		バッファの先頭部分は 1 つ目のファイルの内容を含み、バッファの
 		末尾部分は 2 つ目のファイルの内容を含む。中央部分は差分を表示
 		する。
-		それぞれの部分はダッシュの行で分割される。
+		それぞれの部分はイコールの行で分割される。
 
 		引数 {options} は辞書でなければらなず、以下のメンバを含むこと
 		ができる:
@@ -8138,7 +8159,8 @@ term_dumpwrite({buf}, {filename} [, {options}])
 		ファイル {filename} に、{buf} の端末画面の内容をダンプする。こ
 		れは |term_dumpload()| および |term_dumpdiff()| で使われる
 		フォーマットを使用する。
-		{filename} が既に存在する場合はエラーが発生する。	*E953*
+		端末のジョブがすでに終了していた場合はエラーが発生する:	*E958*
+		{filename} が既に存在する場合はエラーが発生する:	*E953*
 		|terminal-diff| も参照。
 
 		{options} は以下のオプショナルな要素を含む辞書である:
@@ -8184,7 +8206,7 @@ term_getcursor({buf})					*term_getcursor()*
 
 		"dict" は以下 3 つのメンバを持つ:
 		   "visible"	カーソルが可視のときは 1、不可視のときは 0
-		   "blink"	カーソルが可視のときは 1、不可視のときは 0
+		   "blink"	カーソルが点滅のときは 1、非点滅のときは 0
 		   "shape"	ブロックカーソルは 1、下線は 2、垂直線は 3
 
 		{buf} は端末ウィンドウのバッファ番号でなければならない。バッ
@@ -8214,7 +8236,7 @@ term_getscrolled({buf})					*term_getscrolled()*
 		セットとなるので: >
 			term_getline(buf, N)
 <		は以下と等しい: >
-			`getline(N + term_getscrolled(buf))
+			getline(N + term_getscrolled(buf))
 <		(もしその行が存在していれば)。
 
 		{buf} の扱いについては |term_getsize()| と同じ。
@@ -8478,6 +8500,16 @@ test_null_partial()					*test_null_partial()*
 test_null_string()					*test_null_string()*
 		null の String を返す。これはテストのみに使われる。
 
+test_option_not_set({name})				*test_option_not_set()*
+		オプション {name} が設定されたことを示すフラグをリセットする。
+		したがって、それはまだデフォルト値を持っているように見える。次
+		のように使う: >
+			set ambiwidth=double
+			call test_option_not_set('ambiwidth')
+<		値が "double" であっても、'ambiwidth' オプションは変更されてい
+		ないかのように振舞う。
+		テストにのみ使用する！
+
 test_override({name}, {val})				*test_override()*
 		テストを実行できるようにするため、Vimの内部処理の特定の部分を
 		置き換える。Vimをテストするためだけに使用すること!
@@ -8503,6 +8535,24 @@ test_override({name}, {val})				*test_override()*
 			call test_override('starting', 1)
 <		"starting" の値が保存される。次のようにして復元される: >
 			call test_override('starting', 0)
+
+test_scrollbar({which}, {value}, {dragging})		*test_scrollbar()*
+		スクロールバーを使ってそれを {value} の位置に移動させる。
+		{which} は次のようになる:
+			left	カレントウィンドウの左スクロールバー
+			right	カレントウィンドウの右スクロールバー
+			hor	水平スクロールバー
+
+		垂直スクロールバーの場合、{value} は1からバッファの行数までの
+		値を取りうる。水平スクロールバーの場合、'wrap' が設定されてい
+		ないと仮定すると、{value} は1から最大行の長さまでの値を取りう
+		る。
+
+		{dragging} がゼロ以外の場合は、スクロールバーをドラッグするの
+		と同じである。それ以外の場合は、スクロールバーをクリックするの
+		と同じである。
+		{which} スクロールバーが実際に存在し、GUIを使用している場合に
+		のみ動作する。
 
 test_settime({expr})					*test_settime()*
 		Vim が内部的に用いる時間を設定する。現在は history のタイムス
