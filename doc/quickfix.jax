@@ -46,9 +46,9 @@ Vim の中でコマンドを実行し結果を得る方法の一つに|:make|コ
 
 							*quickfix-ID*
 各QuickFixリストはQuickFix IDと呼ばれる一意な識別子を持ち、この番号はVimセッ
-ションの中で変わらない。getqflist() 関数はリストに割り当てられた識別子の取得に
-使用できる。QuickFixリスト番号もある。この番号は、10個以上のリストがQuickFixス
-タックに追加されるたびに変更される可能性がある。
+ションの中で変わらない。|getqflist()| 関数はリストに割り当てられた識別子の取得
+に使用できる。QuickFixリスト番号もある。この番号は、10個以上のリストがQuickFix
+スタックに追加されるたびに変更される可能性がある。
 
 						*location-list* *E776*
 ロケーションリストはウィンドウローカルなQuickFixリストである。`:vimgrep`,
@@ -67,8 +67,9 @@ Vim の中でコマンドを実行し結果を得る方法の一つに|:make|コ
 全てのQuickFixリストとロケーションリストはそのリストに行われた変更の総数を追跡
 する読み込み専用のchangedtick変数を持つ。QuickFixリストが変更されるたびに、こ
 の総数はインクリメントされる。これは、リストが変更されたときだけアクションを実
-行することに使用できる。getqflist() および getloclist() 関数は changedtick の
-現在の値を問い合わせるのに使用できる。changedtick変数を変更することはできない。
+行することに使用できる。|getqflist()| および |getloclist()| 関数は changedtick
+の現在の値を問い合わせるのに使用できる。changedtick変数を変更することはできな
+い。
 
 以下のQuickFixコマンドが利用できる。ロケーションリストコマンドはQuickFixコマン
 ドに似ていて、QuickFixコマンドのプリフィックス 'c' が 'l' に置き換わっている。
@@ -279,6 +280,10 @@ Vim の中でコマンドを実行し結果を得る方法の一つに|:make|コ
 			ラーが表示される。負であった場合最後のエラーから数え
 			る。-1が最後のエラーとなる。設定 'switchbuf' がバッファ
 			の移動に関係する。
+			|:filter| コマンドは、指定されたパターンに一致するク
+			イックフィックスのエントリだけを表示するために使用でき
+			る。パターンは、エントリのファイル名、モジュール名、パ
+			ターンおよびテキストと照合される。
 
 :cl[ist]! [from] [, [to]]
 			全てのエラーを表示する。
@@ -556,8 +561,8 @@ Note: QuickFixウィンドウ内で変更を加えてもエラーのリストに
 	echo getloclist(2, {'winid' : 1}).winid
 <
 							*getqflist-examples*
-getqflist() 関数と getloclist() 関数は、それぞれQuickFixとロケーションリストの
-さまざまな属性を取得するのに使用できる。これらの関数の使用例を以下に示す:
+|getqflist()| 関数と |getloclist()| 関数は、それぞれQuickFixとロケーションリス
+トのさまざまな属性を取得するのに使用できる。これらの関数の使用例を以下に示す:
 >
     " 現在のQuickFixリストのタイトルを取得する
     :echo getqflist({'title' : 0}).title
@@ -612,8 +617,8 @@ getqflist() 関数と getloclist() 関数は、それぞれQuickFixとロケー�
     :echo getloclist(3, {'winid' : 0}).winid
 <
 							*setqflist-examples*
-setqflist() 関数と setloclist() 関数は、それぞれQuickFixとロケーションリストの
-さまざまな属性を設定するのに使用できる。これらの関数の使用例を以下に示す:
+|setqflist()| 関数と |setloclist()| 関数は、それぞれQuickFixとロケーションリス
+トのさまざまな属性を設定するのに使用できる。これらの関数の使用例を以下に示す:
 >
     " titleとcontextを持つ空のQuickFixリストを作成する
     :let t = 'Search results'
@@ -1479,6 +1484,21 @@ Aztec compilerのファイルの書式は:
    :set mp=make\ \\\|&\ error_filter
 パイプ (|) の前のバックスラッシュはコマンドセパレータとして認識されないために
 必要。コマンド "set" では空白の前にバックスラッシュが必要。
+
+					    *cfilter-plugin* *Cfilter* *Lfilter*
+一致するメッセージが多すぎる場合は、cfilterプラグインを使用してエントリ数を減
+らすことができる。以下のようにプラグインを読み込む: >
+   packadd cfilter
+
+次に、これらのコマンドを使用することができる: >
+   :Cfilter[!] /{pat}/
+   :Lfilter[!] /{pat}/
+
+:Cfilter は現在のクイックフィックスリストの {pat} と一致するエントリから新しい
+クイックフィックスリストを作成する。エントリのファイル名とテキストの両方が{pat}
+と照合される。! が与えられると、{pat} と一致しないエントリが使われる。
+
+:Lfilter は :Cfilter と同じだが、現在のロケーションリストで動作する。
 
 =============================================================================
 8. ディレクトリスタック				*quickfix-directory-stack*
