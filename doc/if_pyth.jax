@@ -59,8 +59,9 @@ Python 3 インターフェイスは Vim が |+python3| 機能付きでコンパ
 	endfunction
 
 使っている Python のバージョンを見るには: >
-	:python import sys
 	:python print(sys.version)
+
+sys をインポートする必要はありません。これはデフォルトで行われます。
 
 Note: Pythonはインデントに関して非常に繊細です。"class" の行と "EOF" の行はまっ
 たくインデントしないでください。
@@ -79,6 +80,18 @@ Note: Pythonはインデントに関して非常に繊細です。"class" の行
 	:pydo return "%s\t%d" % (line[::-1], len(line))
 	:pydo if line: return "%4d: %s" % (linenr, line)
 <
+Pythonを使って範囲をフィルタリングするには、`:py` と組み合わせた `:pydo` を使
+用することができます。例えば: >
+
+	:py3 << EOF
+	needle = vim.eval('@a')
+	replacement = vim.eval('@b')
+
+	def py_vim_string_replace(str):
+		return str.replace(needle, replacement)
+	EOF
+	:'<,'>py3do return py_vim_string_replace(line)
+<
 							*:pyfile* *:pyf*
 :[range]pyf[ile] {file}
 			{file}内のPythonスクリプトを実行します。引数はそのまま
@@ -94,7 +107,6 @@ Pythonのコマンドは|sandbox|の中では使えません。
 
 引数を渡すためには明示的に sys.argv[] を使って設定してください。例: >
 
-	:python import sys
 	:python sys.argv = ["foo", "bar"]
 	:pyfile myscript.py
 
@@ -163,10 +175,15 @@ vim.eval(str)						*python-eval*
 	- Vimの式を評価した結果がVimの辞書ならば辞書
 	辞書とリストは再帰的に展開されます。
 	例: >
+	    :" 'textwidth' オプションの値
 	    :py text_width = vim.eval("&tw")
-	    :py str = vim.eval("12+12")		# 結果は文字列であることに注意！
-						# 数に変換するには、
-						# string.atoi()を使うこと。
+	    :
+	    :" レジスタ 'a' の内容
+	    :py a_reg = vim.eval("@a") 
+	    :
+	    :" 結果は文字列であることに注意！数値に変換するには、string.atoi()
+	    :" を使うこと。
+	    :py str = vim.eval("12+12")
 
 	    :py tagList = vim.eval('taglist("eval_expr")')
 <	最後のコマンドはPython辞書のPythonリストを返します。例:
@@ -181,19 +198,19 @@ vim.bindeval(str)					*python-bindeval*
 
 vim.strwidth(str)					*python-strwidth*
 	|strwidth()| と同じ。str の画面上の幅を数値で返す。タブ文字は 1 幅とし
-	てカウントされる。
+	てカウントされます。
 
 vim.foreach_rtp(callable)				*python-foreach_rtp*
-	'runtimepath' の各パスについてコーラブル (callable) を呼び出す。コーラ
-	ブルが None 以外の値を返すか、例外が発生するか、パスの最後まで処理が進
-	むと停止する。コーラブルが None 以外の値を返して停止した場合は、
-	vim.foreach_rtp 関数はその値を返す。
+	'runtimepath' の各パスについてコーラブル (callable) を呼び出します。
+	コーラブルが None 以外の値を返すか、例外が発生するか、パスの最後まで処
+	理が進むと停止します。コーラブルが None 以外の値を返して停止した場合
+	は、vim.foreach_rtp 関数はその値を返します。
 
 vim.chdir(*args, **kwargs)				*python-chdir*
 vim.fchdir(*args, **kwargs)				*python-fchdir*
-	os.chdir、os.fchdir を実行し、Vim にそのことを通知する。
-	Note: これらの関数は直接は使用しない。代わりに os.chdir と os.fchdir
-	      を使う。os.fchdir が存在しない場合の vim.fchdir の動作は未定義。
+	os.chdir、os.fchdir を実行し、Vim にそのことを通知します。Note: これら
+	の関数は直接は使用しません。代わりに os.chdir と os.fchdirを使います。
+	os.fchdir が存在しない場合の vim.fchdir の動作は未定義です。
 
 "vim" モジュールのエラーオブジェクト
 
