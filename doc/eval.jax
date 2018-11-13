@@ -2158,6 +2158,7 @@ gettabvar({nr}, {varname} [, {def}])
 				任意	タブ{nr}の変数{varname}または{def}
 gettabwinvar({tabnr}, {winnr}, {name} [, {def}])
 				任意	タブページ{tabnr}の{winnr}の{name}
+gettagstack([{nr}])		辞書	ウィンドウ{nr}のタグスタックを取得
 getwininfo([{winid}])		リスト	各ウィンドウに関する情報のリスト
 getwinpos([{timeout}])		リスト	Vim ウィンドウのピクセルでの X および
 					Y 座標
@@ -2336,6 +2337,8 @@ settabvar({nr}, {varname}, {val}) なし	タブページ{nr}の変数{varname}�
 settabwinvar({tabnr}, {winnr}, {varname}, {val})
 				なし	タブページ{tabnr}内のウィンドウ{winnr}
 					の変数{varname}に{val}をセット
+settagstack({nr}, {dict} [, {action}])
+				数値	{dict}を使ってタグスタックを変更
 setwinvar({nr}, {varname}, {val}) なし	ウィンドウ{nr}の変数{varname}に{val}を
 					セット
 sha256({string})		文字列	{string}のSHA256チェックサム
@@ -4859,6 +4862,32 @@ gettabwinvar({tabnr}, {winnr}, {varname} [, {def}])		*gettabwinvar()*
 		すべてのウィンドウローカル変数を取得するには: >
 			gettabwinvar({tabnr}, {winnr}, '&')
 
+gettagstack([{nr}])					*gettagstack()*
+		結果は辞書で、それはウィンドウ{nr}のタグスタックである。
+		{nr}にはウィンドウ番号または |window-ID| を指定できる。
+		{nr}を指定しない時は、カレントウィンドウが使用される。
+		ウィンドウ{nr}が存在しない場合、空の辞書が返される。
+
+		返される辞書には、次のエントリが含まれる:
+			curidx		スタック内の現在のインデックス。スタッ
+					クの最上部にあるときは、(length + 1)
+					に設定される。スタックの最下部のイン
+					デックスは1である。
+			items		スタック内の項目のリスト。各項目は、以
+					下で説明するエントリを含む辞書である。
+			length		スタック内の項目数
+
+		スタック内の各項目は、次のエントリを持つ辞書である:
+			bufnr		現在のジャンプのバッファ番号
+			from		タグジャンプの前のカーソル位置。返され
+					るリストの形式は |getpos()| を参照。
+			matchnr		現在の一致するタグ番号。名前に一致する
+					複数のタグが見つかった場合に使用され
+					る。
+			tagname		タグの名前
+
+		タグスタックについての詳細は、|tagstack| を参照。
+
 getwininfo([{winid}])					*getwininfo()*
 		ウィンドウに関する情報を、辞書のリストとして返す。
 
@@ -7308,6 +7337,37 @@ settabwinvar({tabnr}, {winnr}, {varname}, {val})	*settabwinvar()*
 			:call settabwinvar(3, 2, "myvar", "foobar")
 <		この関数は|sandbox|の中では使用できない。
 
+settagstack({nr}, {dict} [, {action}])			*settagstack()*
+		{dict}を使用してウィンドウ{nr}のタグスタックを変更する。
+		{nr}にはウィンドウ番号または |window-ID| を指定できる。
+
+		{dict}でサポートされている項目のリストについては、
+		|gettagstack()| を参照。
+							*E962*
+		{action}が与えられないか 'r' に設定されている場合、タグスタッ
+		クは置き換えられる。{action}が 'a' に設定されている場合、{dict}
+		の新しいエントリはタグスタックにプッシュされる。
+
+		成功の場合は 0 を返し、失敗の場合は -1 を返す。
+
+		例:
+		    タグスタックの現在のインデックスを 4 に設定: >
+			call settagstack(1005, {'curidx' : 4})
+
+<		    ウィンドウ番号 3 のタグスタックを空にする: >
+			call settagstack(3, {'items' : []})
+
+<		    新しい項目をタグスタックにプッシュする: >
+			let pos = [bufnr('myfile.txt'), 10, 1, 0]
+			let newtag = [{'tagname' : 'mytag', 'from' : pos}]
+			call settagstack(2, {'items' : newtag}, 'a')
+
+<		    タグスタックの保存と復元: >
+			let stack = gettagstack(1003)
+			" do something else
+			call settagstack(1003, stack)
+			unlet stack
+<
 setwinvar({nr}, {varname}, {val})			*setwinvar()*
 		|settabwinvar()|と同様。カレントタブページを対象とする。
 		例: >
@@ -9385,9 +9445,11 @@ x11			X11をサポート
 			そこへの参照がなくなると削除される。
 								*E127* *E122*
 			この名前で定義される関数が既に定義済みで [!] が使用さ
-			れなかった場合、エラーとなる。[!] が使用されていれば、
-			それまで存在していた関数は、速やかに新しいものへ置換え
-			られる。
+			れなかった場合、エラーとなる。1つの例外がある: スクリ
+			プトを再読み込みすると、そのスクリプトで以前に定義され
+			ていた関数は、静かに置き換えられる。
+			[!] が使用されていれば、それまで存在していた関数は、速
+			やかに新しいものへ置換えられる。
 			NOTE: ! は十分に注意して使用すること。注意せずに使用し
 			た場合は既存の関数を期待せず置き換える可能性があり、デ
 			バッグが難しくなる。
