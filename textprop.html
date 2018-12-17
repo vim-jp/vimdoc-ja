@@ -1,0 +1,121 @@
+---
+layout: vimdoc
+helpname: 'textprop'
+---
+<div id='vimCodeElement'>
+<a class="Constant" href="textprop.html" name="textprop.txt">textprop.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.1.</span>&nbsp;&nbsp;Last change: 2018 Dec 13<br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
+<br>
+<br>
+プロパティが付加されたテキストを表示します。&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="textprop.html#text-properties" name="text-properties">text-properties</a><br>
+<br>
+<span class="Statement">THIS IS UNDER DEVELOPMENT - ANYTHING MAY STILL CHANGE&nbsp;&nbsp;</span><a class="Constant" href="textprop.html#E967" name="E967">E967</a><br>
+{これは開発中です - 何かがまだ変更されるかもしれません}<br>
+<br>
+まだ動作していないもの:<br>
+- テキストを挿入するときの桁/長さの調整<br>
+- 複数の行にまたがるテキストプロパティ<br>
+- prop_find()<br>
+- テキストプロパティが古くなったときのコールバック<br>
+<br>
+<br>
+1. 前書き&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="textprop.html#text-prop-intro">text-prop-intro</a><br>
+2. 関数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="textprop.html#text-prop-functions">text-prop-functions</a><br>
+<br>
+<br>
+<span class="Special">{Vi にはテキストプロパティはありません}</span><br>
+<span class="Special">{Vimが&nbsp;</span><span class="MissingTag">+textprop</span><span class="Special">&nbsp;機能無効でコンパイルされたときはテキストプロパティを使用で</span><br>
+<span class="Special">きません}</span><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+1. 前書き&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="textprop.html#text-prop-intro" name="text-prop-intro">text-prop-intro</a><br>
+<br>
+テキストプロパティは、バッファ内のテキストに付加することができます。それらはテ<br>
+キストとともに移動します: 行が削除または挿入された場合、プロパティはそれらが付<br>
+加されているテキストと共に移動します。テキストプロパティの前の行にテキストを挿<br>
+入/削除する場合も同様です。また、テキストプロパティ内にテキストを挿入/削除する<br>
+と、サイズが増減します。<br>
+<br>
+テキストプロパティの主な用途は、テキストを強調表示することです。これは、構文ハ<br>
+イライトの置き換えと見ることができます。テキストと一致するようにパターンを定義<br>
+する代わりに、スクリプトによって、おそらく外部パーサーの出力を使用して強調表示<br>
+が設定されます。これは、画面を再描画するたびにではなく、一度だけおこなえば良い<br>
+ため、テキストプロパティを付加する最初のコスト以降ははるかに高速になります。<br>
+<br>
+テキストプロパティは、テキストを識別するための他の目的にも使用できます。たとえ<br>
+ば、関数名にテキストプロパティを追加すると、検索を定義して次/前の関数にジャン<br>
+プすることができます。<br>
+<br>
+テキストプロパティは、特定の行と桁に付加され、指定された長さを持ちます。プロパ<br>
+ティは複数の行にまたがることができます。<br>
+<br>
+テキストプロパティには、次のフィールドがあります:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;id&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;必要に応じて使われる番号<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;type&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;プロパティタイプ名<br>
+<br>
+<br>
+<span class="PreProc">プロパティタイプ</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="textprop.html#E971" name="E971">E971</a><br>
+テキストプロパティは、通常、テキストをハイライトする方法を定義するプロパティタ<br>
+イプ名を持ちます。プロパティタイプには、次のエントリを含めることができます:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;highlight&quot;&nbsp;&nbsp;&nbsp;&nbsp; 使用するハイライトグループ名<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;priority&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;プロパティが重なるする場合は、優先度の高いものが使用さ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;start_incl&quot;&nbsp;&nbsp;&nbsp;&nbsp;TRUEの場合、開始位置の挿入はテキストプロパティに含まれ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;end_incl&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TRUEの場合、終了位置の挿入はテキストプロパティに含まれ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ます。<br>
+<br>
+<br>
+<span class="PreProc">例</span><br>
+<br>
+バッファの11行目にこのテキスト(インデントを除く)があるとします:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The number 123 is smaller than 4567.<br>
+<br>
+数字をハイライトします:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call prop_type_add('number', {'highlight': 'Constant'})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call prop_add(11, 12, {'length': 3, 'type': 'number'})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call prop_add(11, 32, {'length': 4, 'type': 'number'})</div>
+<br>
+&quot;start_incl&quot; と &quot;end_incl&quot; を設定すると、空白がテキストを囲む場合に便利です。<br>
+例えば、関数名のために。falseを使用すると、文字列を囲む引用符などの特定の文字<br>
+で開始または終了する場合に便利です。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">func FuncName(arg)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ^^^^^^^^&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;start_incl と end_incl が設定されたプロパティ<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">var = &quot;text&quot;;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^^^^^^&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; start_incl と end_incl が設定されていないプロパ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ティ<br>
+<br>
+しかしながら、テキストが挿入または削除されると、テキストを解析してテキストプロ<br>
+パティを更新する必要があります。しかし、これは非同期で行うことができます。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+2. 関数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="textprop.html#text-prop-functions" name="text-prop-functions">text-prop-functions</a><br>
+<br>
+テキストプロパティタイプの操作:<br>
+<br>
+prop_type_add(<span class="Special">{name}</span>,&nbsp;<span class="Special">{props}</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;新しいプロパティタイプを定義<br>
+prop_type_change(<span class="Special">{name}</span>,&nbsp;<span class="Special">{props}</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 既存のプロパティタイプを変更<br>
+prop_type_delete(<span class="Special">{name}</span>&nbsp;[,&nbsp;<span class="Special">{props}</span>])&nbsp;&nbsp;&nbsp;&nbsp;プロパティタイプを削除<br>
+prop_type_get([<span class="Special">{name}</span>&nbsp;[,&nbsp;<span class="Special">{props}</span>])&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;プロパティタイプの値を取得<br>
+prop_type_list([<span class="Special">{props}</span>])&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; プロパティタイプ一覧を取得<br>
+<br>
+<br>
+テキストプロパティの操作:<br>
+<br>
+prop_add(<span class="Special">{lnum}</span>,&nbsp;<span class="Special">{col}</span>,&nbsp;<span class="Special">{props}</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;テキストプロパティを追加<br>
+prop_clear(<span class="Special">{lnum}</span>&nbsp;[, {lnum_end} [,&nbsp;<span class="Special">{bufnr}</span>]])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;全てのテキストプロパティを削除<br>
+prop_find(<span class="Special">{props}</span>&nbsp;[,&nbsp;<span class="Special">{direction}</span>])&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;テキストプロパティを検索<br>
+prop_list(<span class="Special">{lnum}</span>&nbsp;[,&nbsp;<span class="Special">{props}</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;行番号<span class="Special">{lnum}</span>のテキストプロパティを取得<br>
+prop_remove(<span class="Special">{props}</span>&nbsp;[,&nbsp;<span class="Special">{lnum}</span>&nbsp;[, {lnum_end}]])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;テキストプロパティを削除<br>
+<br>
+<br>
+&nbsp;vim:tw=78:ts=8:noet:ft=help:norl:<br>
+</div>
