@@ -1,4 +1,4 @@
-*sign.txt*      For Vim バージョン 8.1.  Last change: 2016 Aug 17
+*sign.txt*      For Vim バージョン 8.1.  Last change: 2018 Dec 26
 
 
 		VIMリファレンスマニュアル    by Gordon Prieur
@@ -47,6 +47,19 @@ Netbeansは|netbeans|を参照。
 う|hl-SignColumn|が設定される。色を設定するには次のようにする: >
 
 	:highlight SignColumn guibg=darkgrey
+<
+							*sign-group*
+各目印は、グローバルグループまたは名前付きグループのどちらにも割り当てることが
+できる。目印を設置するときに、グループ名が指定されていない場合、または空の文字
+列が使用されている場合は、目印はグローバルグループに設置される。それ以外の場合
+は名前付きグループに設置される。目印の識別子はグループ内で一意である。グループ
+を使うと、Vimプラグインは他のプラグインを妨害することなく独自の目印を使うこと
+ができる。
+
+							*sign-priority*
+設置された各目印には、優先順位値が割り当てられる。同じ行に複数の目印が設置され
+ている場合、最も優先順位の高い目印の属性が目印のグループとは独立して使用され
+る。デフォルトの優先順位は10である。優先順位は、目印の設置時に割り当てられる。
 
 ==============================================================================
 2. コマンド					*sign-commands* *:sig* *:sign*
@@ -64,6 +77,8 @@ Netbeansは|netbeans|を参照。
 
 
 目印を定義する				*:sign-define* *E255* *E160* *E612*
+
+同等のVim script関数については |sign_define()| を参照。
 
 :sign define {name} {argument}...
 		新しい目印を定義するか既にある目印に属性を設定する。{name}は番
@@ -103,12 +118,17 @@ Netbeansは|netbeans|を参照。
 
 (定義した)目印を削除する				*:sign-undefine* *E155*
 
+同等のVim script関数については |sign_undefine()| を参照。
+
 :sign undefine {name}
 		既に定義された目印を削除する。{name}という名前の目印がまだ設置
 		されたままの場合はトラブルを引き起こす。
 
 
+
 (定義した)目印を一覧表示する				*:sign-list* *E156*
+
+同等のVim script関数については |sign_getdefined()| を参照。
 
 :sign list	全部の定義済み目印とその属性を一覧表示する。
 
@@ -117,6 +137,8 @@ Netbeansは|netbeans|を参照。
 
 
 目印を設置する						*:sign-place* *E158*
+
+同等のVim script関数については |sign_place()| を参照。
 
 :sign place {id} line={lnum} name={name} file={fname}
 		{name}として定義された目印をファイル{fname}の{lnum}行目に設置
@@ -134,9 +156,27 @@ Netbeansは|netbeans|を参照。
 		も同じ回数だけ行う必要がある。同じ{id}を使うことで目印の位置を
 		変更しようという試みはうまく行かない)。
 
+		次の任意の目印属性は、"file=" の前に指定できる:
+			group={group}	目印を目印グループ{group}に設置する
+			priority={prio}	目印に優先順位{prio}を割り当てる
+
+		デフォルトでは、目印はグローバル目印グループに設置される。
+
+		デフォルトでは、目印にデフォルトの優先順位10が割り当てられてい
+		る。別の優先順位値を割り当てるには、"priority={prio}" を使用し
+		て値を指定する。優先順位は、複数の目印が同じ行に設置されている
+		ときに使用されるハイライトグループを決定するために使用される。
+
+		例: >
+			:sign place 5 line=3 name=sign1 file=a.py
+			:sign place 6 group=g2 line=2 name=sign2 file=x.py
+			:sign place 9 group=g2 priority=50 line=5
+							\ name=sign1 file=a.py
+<
 :sign place {id} line={lnum} name={name} buffer={nr}
 		上に同じ。バッファ番号を使用していることが異なる。
 
+							*E885*
 :sign place {id} name={name} file={fname}
 		ファイル{fname}に{id}で設置された目印を、{name}で定義されてい
 		る目印に変更する。{fname}については上述の|:sign-fname|を参照す
@@ -144,46 +184,131 @@ Netbeansは|netbeans|を参照。
 		これは既に設置された目印を動かすことなく変更するのに使われる。
 		(例: デバッガがブレークポイントで停止した時)
 
-							*E885*
+		任意の "group={group}" 属性を "file="の前に使用して、特定のグ
+		ループの目印を選択することができる。
+
 :sign place {id} name={name} buffer={nr}
 		上に同じ。バッファ番号を使用していることが異なる。
 
 
 (設置した)目印を解除する				*:sign-unplace* *E159*
 
+同等のVim script関数については |sign_unplace()| を参照。
+
 :sign unplace {id} file={fname}
 		ファイル{fname}に{id}で設置された目印を解除する。
 		{fname}については上述の|:sign-fname|を参照すること。
 
+:sign unplace {id} group={group} file={fname}
+		上に同じだが、目印グループ{group}の目印{id}を解除する。
+
+:sign unplace {id} group=* file={fname}
+		上に同じだが、全ての目印グループから目印{id}を解除する。
+
 :sign unplace * file={fname}
-		ファイル{fname}に設置された目印をすべて解除する。
+		ファイル{fname}に設置された目印を全て解除する。
+
+:sign unplace * group={group} file={fname}
+		ファイル{fname}からグループ{group}に設置されている全ての目印を
+		解除する。
+
+:sign unplace * group=* file={fname}
+		ファイル{fname}から全てのグループに設置されている全ての目印を
+		解除する。
 
 :sign unplace {id} buffer={nr}
 		バッファ{nr}に{id}で設置された目印を解除する。
 
+:sign unplace {id} group={group} buffer={nr}
+		バッファ{nr}からグループ{group}の以前に設置された目印{id}を解
+		除する。
+
+:sign unplace {id} group=* buffer={nr}
+		バッファ{nr}から、全てのグループで以前に設置された目印{id}を解
+		除する。
+
 :sign unplace * buffer={nr}
-		バッファ{nr}に設置された目印をすべて解除する。
+		バッファ{nr}に設置された目印を全て解除する。
+
+:sign unplace * group={group} buffer={nr}
+		グループ{group}に設置されている全ての目印をバッファ{nr}から解
+		除する。
+
+:sign unplace * group=* buffer={nr}
+		全てのグループに設置されている全ての目印をバッファ{nr}から解除
+		する。
 
 :sign unplace {id}
 		{id}で設置された目印を、全てのファイルから削除する。
 
+:sign unplace {id} group={group}
+		表示されている全てのファイルから、グループ{group}の以前に設置
+		された目印{id}を解除する。
+
+:sign unplace {id} group=*
+		表示されている全てのファイルから、全てのグループの以前に設置さ
+		れた目印{id}を解除する。
+
 :sign unplace *
-		設置された全ての目印を解除する。
+		全てのファイルからグローバルグループの設置された全ての目印を解
+		除する。
+
+:sign unplace * group={group}
+		全てのファイルからグループ{group}の設置された全ての目印を解除
+		する。
+
+:sign unplace * group=*
+		全てのファイルから全てのグループの設置された全ての目印を解除す
+		る。
 
 :sign unplace
-		カーソル位置に設置されている目印を解除する。
+		カーソル位置の設置された目印を解除する。複数の目印が行内に設置
+		されている場合は、1つだけが削除される。
+
+:sign unplace group={group}
+		カーソル位置のグループ{group}の設置された目印を解除する。
+
+:sign unplace group=*
+		カーソル位置の全てのグループの設置された目印を解除する。
 
 
 (設置した)目印を一覧表示する				*:sign-place-list*
+
+同等のVim script関数については |sign_getplaced()| を参照。
 
 :sign place file={fname}
 		ファイル{fname}に設置されている目印を一覧表示する。
 		{fname}については上述の|:sign-fname|を参照すること。
 
+:sign place group={group} file={fname}
+		ファイル{fname}に設置されているグループ{group}の目印を一覧表示
+		する。
+
+:sign place group=* file={fname}
+		ファイル{fname}に設置されている全てのグループの目印を一覧表示
+		する。
+
 :sign place buffer={nr}
 		バッファ{nr}に設置されている目印を一覧表示する。
 
-:sign place	全てのファイルに設置されている全ての目印を一覧表示する。
+:sign place group={group} buffer={nr}
+		バッファ{nr}に設置されているグループ{group}の目印を一覧表示す
+		る。
+
+:sign place group=* buffer={nr}
+		バッファ{nr}に設置されている全てのグループの目印を一覧表示す
+		る。
+
+:sign place	全てのファイルに設置されているグローバルグループの目印を一覧表
+		示する。
+
+:sign place group={group}
+		全てのファイルの目印グループ{group}に設置されている目印を一覧
+		表示する。
+
+:sign place group=*
+		全てのファイルの全ての目印グループに設置されている目印を一覧表
+		示する。
 
 
 (設置した)目印へ移動する				*:sign-jump* *E157*
@@ -195,7 +320,14 @@ Netbeansは|netbeans|を参照。
 		ファイルがウィンドウに表示されておらず、現在のファイルを放棄で
 		きない時には、これは失敗する。
 
+:sign jump {id} group={group} file={fname}
+		上に同じだが、グループ{group}の目印に移動する。
+
 :sign jump {id} buffer={nr}				*E934*
-		上に同じ。バッファ {nr} が名前を持っていない場合には失敗する。
+		上に同じだが、バッファ{nr}を使う。バッファ{nr}が名前を持ってい
+		ない場合には失敗する。
+
+:sign jump {id} group={group} buffer={nr}
+		上に同じだが、グループ{group}の目印に移動する。
 
  vim:tw=78:ts=8:noet:ft=help:norl:
