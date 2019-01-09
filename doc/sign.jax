@@ -1,4 +1,4 @@
-*sign.txt*      For Vim バージョン 8.1.  Last change: 2019 Jan 01
+*sign.txt*      For Vim バージョン 8.1.  Last change: 2019 Jan 06
 
 
 		VIMリファレンスマニュアル    by Gordon Prieur
@@ -48,13 +48,23 @@ Netbeansは|netbeans|を参照。
 
 	:highlight SignColumn guibg=darkgrey
 <
+							*sign-identifier*
+設置された各目印は、目印IDと呼ばれる番号によって識別される。この識別子は、目印
+にジャンプするため、または目印を解除するために使用される。この識別子は、
+|sign-place| コマンドまたは |sign_place()| 関数を使用して目印を設置するときに
+割り当てられる。各目印IDは固有の番号でなければならない。複数の設置された目印が
+同じ識別子を使用する場合、目印へのジャンプまたは目印の解除は予測不可能になる。
+重複する識別子を避けるために、目印グループを使うことができる。|sign_place()|
+関数は、次に使用可能な識別子を割り当てるために、目印IDを 0で呼び出すことができ
+る。
+
 							*sign-group*
-各目印は、グローバルグループまたは名前付きグループのどちらにも割り当てることが
-できる。目印を設置するときに、グループ名が指定されていない場合、または空の文字
-列が使用されている場合は、目印はグローバルグループに設置される。それ以外の場合
-は名前付きグループに設置される。目印の識別子はグループ内で一意である。グループ
-を使うと、Vimプラグインは他のプラグインを妨害することなく独自の目印を使うこと
-ができる。
+設置された各目印は、グローバルグループまたは名前付きグループのどちらにも割り当
+てることができる。目印を設置するときに、グループ名が指定されていない場合、また
+は空の文字列が使用されている場合は、目印はグローバルグループに設置される。それ
+以外の場合は名前付きグループに設置される。目印IDはグループ内で一意である。グ
+ループを使うと、Vimプラグインは他のプラグインを妨害することなく独自の目印を使
+うことができる。
 
 							*sign-priority*
 設置された各目印には、優先順位値が割り当てられる。同じ行に複数の目印が設置され
@@ -173,8 +183,9 @@ Netbeansは|netbeans|を参照。
 			:sign place 9 group=g2 priority=50 line=5
 							\ name=sign1 file=a.py
 <
-:sign place {id} line={lnum} name={name} buffer={nr}
-		上に同じ。バッファ番号を使用していることが異なる。
+:sign place {id} line={lnum} name={name} [buffer={nr}]
+		上に同じ。バッファ番号を使用していることが異なる。buffer引数が
+		与えられていない場合は、現在のバッファに目印を設置する。
 
 							*E885*
 :sign place {id} name={name} file={fname}
@@ -188,7 +199,8 @@ Netbeansは|netbeans|を参照。
 		ループの目印を選択することができる。
 
 :sign place {id} name={name} buffer={nr}
-		上に同じ。バッファ番号を使用していることが異なる。
+		上に同じ。バッファ番号を使用していることが異なる。buffer引数が
+		与えられていない場合は、現在のバッファを使用する。
 
 
 (設置した)目印を解除する				*:sign-unplace* *E159*
@@ -200,10 +212,10 @@ Netbeansは|netbeans|を参照。
 		{fname}については上述の|:sign-fname|を参照すること。
 
 :sign unplace {id} group={group} file={fname}
-		上に同じだが、目印グループ{group}の目印{id}を解除する。
+		上に同じだが、目印グループ{group}の目印ID{id}を解除する。
 
 :sign unplace {id} group=* file={fname}
-		上に同じだが、全ての目印グループから目印{id}を解除する。
+		上に同じだが、全ての目印グループから目印ID{id}を解除する。
 
 :sign unplace * file={fname}
 		ファイル{fname}に設置された目印を全て解除する。
@@ -220,12 +232,12 @@ Netbeansは|netbeans|を参照。
 		バッファ{nr}に{id}で設置された目印を解除する。
 
 :sign unplace {id} group={group} buffer={nr}
-		バッファ{nr}からグループ{group}の以前に設置された目印{id}を解
-		除する。
+		バッファ{nr}からグループ{group}の以前に設置された目印ID{id}を
+		解除する。
 
 :sign unplace {id} group=* buffer={nr}
-		バッファ{nr}から、全てのグループで以前に設置された目印{id}を解
-		除する。
+		バッファ{nr}から、全てのグループで以前に設置された目印ID{id}を
+		解除する。
 
 :sign unplace * buffer={nr}
 		バッファ{nr}に設置された目印を全て解除する。
@@ -243,11 +255,11 @@ Netbeansは|netbeans|を参照。
 
 :sign unplace {id} group={group}
 		表示されている全てのファイルから、グループ{group}の以前に設置
-		された目印{id}を解除する。
+		された目印ID{id}を解除する。
 
 :sign unplace {id} group=*
 		表示されている全てのファイルから、全てのグループの以前に設置さ
-		れた目印{id}を解除する。
+		れた目印ID{id}を解除する。
 
 :sign unplace *
 		全てのファイルからグローバルグループの設置された全ての目印を解
@@ -315,7 +327,7 @@ Netbeansは|netbeans|を参照。
 
 :sign jump {id} file={fname}
 		ファイル{fname}を開くか、{fname}を編集中のウィンドウへ移動し、
-		目印{id}の位置へカーソルを移動させる。
+		目印ID{id}の位置へカーソルを移動させる。
 		{fname}については上述の|:sign-fname|を参照すること。
 		ファイルがウィンドウに表示されておらず、現在のファイルを放棄で
 		きない時には、これは失敗する。
@@ -323,11 +335,12 @@ Netbeansは|netbeans|を参照。
 :sign jump {id} group={group} file={fname}
 		上に同じだが、グループ{group}の目印に移動する。
 
-:sign jump {id} buffer={nr}				*E934*
+:sign jump {id} [buffer={nr}]					*E934*
 		上に同じだが、バッファ{nr}を使う。バッファ{nr}が名前を持ってい
-		ない場合には失敗する。
+		ない場合には失敗する。buffer引数が与えられていない場合は、現在
+		のバッファを使用する。
 
-:sign jump {id} group={group} buffer={nr}
+:sign jump {id} group={group} [buffer={nr}]
 		上に同じだが、グループ{group}の目印に移動する。
 
  vim:tw=78:ts=8:noet:ft=help:norl:
