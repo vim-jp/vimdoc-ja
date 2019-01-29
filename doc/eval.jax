@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 Jan 06
+*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 Jan 24
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -17,7 +17,8 @@ Vim script の利用についてはユーザーマニュアルの41章|usr_41.tx
     1.2 関数への参照		|Funcref|
     1.3 リスト			|Lists|
     1.4 辞書			|Dictionaries|
-    1.5 変数について補足	|more-variables|
+    1.5 Blobs			|Blobs|
+    1.6 変数について補足	|more-variables|
 2.  式の文法		|expression-syntax|
 3.  内部変数		|internal-variables|
 4.  組み込み関数	|functions|
@@ -37,7 +38,7 @@ Vim script の利用についてはユーザーマニュアルの41章|usr_41.tx
 1. 変数							*variables*
 
 1.1 変数の型 ~
-							*E712*
+						*E712* *E896* *E897* *E899*
 変数には9種類の型がある:
 
 数値		32ビットまたは64ビットの符号有整数。|expr-number| *Number*
@@ -48,10 +49,11 @@ Vim script の利用についてはユーザーマニュアルの41章|usr_41.tx
 		{|+float| 機能つきでコンパイルされたときのみ}
 		例: 123.456  1.15e-6  -1.1e3
 
+							*E928*
 文字列		終端がNUL文字である8ビットの符号無し文字(バイト)。
 		|expr-string| 例: "ab\txx\"--"  'x-z''a,c'
 
-リスト		要素の順序つきの列 |List|。
+リスト		要素の順序つきの列。詳細は |List| を参照。
 		例: [1, 2, ['a', 'b']]
 
 辞書		順序を持たない連想配列: 各要素はキーと値を持つ。|Dictionary|
@@ -68,6 +70,11 @@ Funcref		関数への参照 |Funcref|。
 ジョブ		ジョブに使われる。|job_start()|を参照。 *Job* *Jobs*
 
 チャネル	チャネルに使われる。|ch_open()|を参照。 *Channel* *Channels*
+
+Blob		バイナリラージオブジェクト。任意のバイトシーケンスを格納する。
+		詳細は |Blob| を参照。
+		例: 0zFF00ED015DAF
+		0z は空のBlobである。
 
 数値と文字列は文脈に応じて相互に変換される。
 
@@ -95,7 +102,7 @@ Funcref		関数への参照 |Funcref|。
 先頭の0によって8進数とみなされるのを防いだり、異なる基数を使うには|str2nr()|を
 使う。
 
-							*TRUE* *FALSE*
+						*TRUE* *FALSE* *Boolean*
 ブール(真理値)演算には数値が使われる。0は偽を意味し、非0は真を表す。また、
 |v:false| と |v:true| を使うこともできる。関数から真が返されたときは数値の 1
 であり、偽が返されたときは数値の 0 である。
@@ -118,7 +125,9 @@ Note: " " と "0" も空文字列ではないので、TRUE と見なされる。
 または Float は数値または文字列ではないため、FALSE と評価される。
 
 		*E745* *E728* *E703* *E729* *E730* *E731* *E908* *E910* *E913*
-リスト、辞書、Funcref、ジョブ、チャネルは自動的に変換されない。
+		*E974* *E975* *E976*
+リスト |List|, 辞書 |Dictionary|, |Funcref|, ジョブ |Job|, チャネル |Channel|
+および |Blob| は自動的に変換されない。
 
 							*E805* *E806* *E808*
 数値と浮動小数点数をまぜると浮動小数点数になる。それ以外には浮動小数点数への自
@@ -437,7 +446,7 @@ for ループ ~
 
 
 1.4 辞書 ~
-					*dict* *Dictionaries* *Dictionary*
+				*dict* *Dict* *Dictionaries* *Dictionary*
 辞書とは連想配列である。各要素はキーと値を持つ。要素はキーによって特定できる。
 要素は特に順序を持たずに保持される。
 
@@ -591,7 +600,138 @@ Note 辞書の要素間に順序は定まっていない。そのため ":echo a
 	:call map(dict, '">> " . v:val')  " 各要素の前に ">> " をつける
 
 
-1.5 変数について補足 ~
+1.5 Blobs ~
+						*blob* *Blob* *Blobs* *E978*
+Blobは、ほとんどの場合、数値の |List| のように振る舞う。数値は、0 から 255 の
+8ビットの値を持つ。
+
+
+Blobの作成 ~
+
+BlobはBlobリテラル |blob-literal| を使って作成できる: >
+	:let b = 0zFF00ED015DAF
+読みやすくするために、ドットをバイト間(16進文字のペア)に挿入することができる。
+ドットは値を変更しない: >
+	:let b = 0zFF00.ED01.5DAF
+
+Blobは |readfile()| で引数{type}を "B" に設定してファイルから読み込むことがで
+きる。例: >
+	:let b = readfile('image.png', 'B')
+
+Blobは、|ch_readblob()| 関数を使用してチャネルから読み取ることができる。
+
+
+Blobのインデックス ~
+							*blob-index* *E979*
+Blob内のバイトは、Blobの後ろに角括弧でインデックスを入れることによってアクセス
+することができる。 インデックスは 0 から始まるため、最初のバイトのインデックス
+は 0 になる。 >
+	:let myblob = 0z00112233
+	:let byte = myblob[0]		" 1番目のバイトを取得: 0x00
+	:let byte = myblob[2]		" 3番目のバイトを取得: 0x22
+
+負のインデックスは終端から数えられる。インデックス -1 はBlobの最後のバイト、-2
+は最後の1つ前のバイトを表す。 >
+	:let last = myblob[-1]		" 最後のバイトを取得: 0x33
+
+無効なインデックスに対するエラーを回避するには、|get()| 関数を使用すること。項
+目が利用できない場合、-1 または指定したデフォルト値が返される: >
+	:echo get(myblob, idx)
+	:echo get(myblob, idx, 999)
+
+
+Blobの繰り返し ~
+
+|:for| ループは、Blobの各バイトに対してコマンドを実行する。ループ変数はBlobの
+各バイトに設定される。例: >
+	:for byte in 0z112233
+	:   call Doit(byte)
+	:endfor
+これは、0x11, 0x22 および 0x33 で Doit() を呼び出す。
+
+
+
+
+Blobの連結 ~
+
+2つのBlobは "+" 演算子で連結できる: >
+	:let longblob = myblob + 0z4455
+	:let myblob += 0z6677
+
+Blobの決まった場所を変更するには、下記の |blob-modification| を参照。
+
+
+Blobの一部 ~
+
+Blobの一部は、角括弧内のコロンで区切られた最初と最後のインデックスを指定するこ
+とによって取得できる: >
+	:let myblob = 0z00112233
+	:let shortblob = myblob[1:2]	" 0z1122 を取得
+	:let shortblob = myblob[2:-1]	" 0z2233 を取得
+
+最初のインデックスを省略することはゼロと同じである。最後のインデックスを省略す
+ることは -1 と同じである。 >
+	:let endblob = myblob[2:]	" 項目2から終端まで: 0z2233
+	:let shortblob = myblob[2:2]	" 1バイトのBlob: 0z22
+	:let otherblob = myblob[:]	" Blobのコピーを作成
+
+最初のインデックスがBlobの最後のバイトを超えている場合、または2番目のインデッ
+クスが最初のインデックスより前にある場合、結果は空のBlobになる。エラーメッセー
+ジはない。
+
+2番目のインデックスがリストの長さ以上の場合、長さから 1 を引いたものが使用され
+る: >
+	:echo myblob[2:8]		" result: 0z2233
+
+
+Blobの変更 ~
+							*blob-modification*
+Blobの特定のバイトを変更するには、 |:let| を使用する: >
+	:let blob[4] = 0x44
+
+インデックスがBlobの終端を1つ超える場合は、それが追加される。 それより上のイン
+デックスはエラーである。
+
+バイトシーケンスを変更するには、[:] 表記が使用できる: >
+	let blob[1:3] = 0z445566
+置き換えられたバイトの長さは、提供された値と丁度同じでなければならない。*E972*
+
+Blobの一部を変更するには、変更する最初と最後のバイトを指定する。値の範囲内のバ
+イト数は同じでなければならない: >
+	:let blob[3:5] = 0z334455
+
+関数 |add()|, |remove()| および |insert()| も使用できる。
+
+
+Blobの同一性 ~
+
+Blobは等しいかどうか比較することができる: >
+	if blob == 0z001122
+または、同一性の等しさのために: >
+	if blob is otherblob
+<							*blob-identity* *E977*
+変数 "aa" がBlobで、別の変数 "bb" に代入すると、両方の変数は同じBlobを参照す
+る。そして、"is" 演算子はtrueを返す。
+
+[:] または |copy()| を使用してコピーを作成する場合、値は同じだが、同一性は異な
+る: >
+	:let blob = 0z112233
+	:let blob2 = blob
+	:echo blob == blob2
+<	1 >
+	:echo blob is blob2
+<	1 >
+	:let blob3 = blob[:]
+	:echo blob == blob3
+<	1 >
+	:echo blob is blob3
+<	0
+
+Blobのコピーを作成するには、|copy()| 関数を使用する。[:] を使っても上で説明し
+たように動作する。
+
+
+1.6 変数について補足 ~
 							*more-variables*
 
 変数や式の結果の型を知りたいのならば、関数|type()|を使う。
@@ -640,11 +780,13 @@ MY_VAR_6		viminfoファイル
 	etc.			上記の各式は大小文字の区別を、?を付加すると行
 				わず、#を付加すると行う
 
-	expr5 is expr5		同一の |List| のインスタンス
-	expr5 isnot expr5	異なる |List| のインスタンス
+	expr5 is expr5		同一のリスト |List|、辞書 |Dictionary| または
+				|Blob| のインスタンス
+	expr5 isnot expr5	異なるリスト |List|、辞書 |Dictionary| または
+				|Blob| のインスタンス
 
 |expr5|	expr6
-	expr6 +	 expr6 ..	足し算またはリストの連結
+	expr6 +	 expr6 ..	足し算、リストまたはBlobの連結
 	expr6 -	 expr6 ..	引き算
 	expr6 .	 expr6 ..	文字列の連結
 
@@ -804,11 +946,12 @@ expr5 {cmp} expr5
 	if get(Part1, 'name') == get(Part2, 'name')
 	   " Part1 と Part2 は同じ関数を指している
 
-リスト (|List|) や 辞書 (|Dictionary|) に対して "is" や "isnot" を使うと、それ
-らの式が同じリストのインスタンスを参照しているか判定される。リストのコピーと元
-のリストは異なると判定される。リスト以外に対して "is" は "equal" と同じで、
-"isnot" は "not equal" と同じである。ただし "is"、"isnot" は型が異なると値が等
-しくない点が "==" とは異なる。 >
+リスト |List| 、辞書 |Dictionary| または |Blob| に対して "is" や "isnot" を使
+うと、それらの式が同じリスト、辞書 または |Blob| のインスタンスを参照している
+か判定される。リストのコピーと元のリストは異なると判定される。リスト、辞書また
+は |Blob| 以外に対して "is" は "equal" と同じで、"isnot" は "not equal" と同じ
+である。ただし "is"、"isnot" は型が異なると値が等しくない点が "==" とは異なる。
+>
 	echo 4 == '4'
 	1
 	echo 4 is '4'
@@ -853,16 +996,16 @@ expr5 {cmp} expr5
 
 expr5 and expr6						*expr5* *expr6*
 ---------------
-expr6 +	 expr6 ..	足し算、またはリストの連結	*expr-+*
-expr6 -	 expr6 ..	引き算				*expr--*
-expr6 .	 expr6 ..	文字列の連結			*expr-.*
+expr6 + expr6  足し算、リスト |List| または |Blob| の連結	*expr-+*
+expr6 - expr6  引き算						*expr--*
+expr6 . expr6  文字列の連結					*expr-.*
 
 リストに対しては "+" のみ可能で、expr6は両方ともリストでなければならない。結果
 は2つのリストを連結した新しいリスト。
 
-expr7 *	 expr7 ..	掛け算					*expr-star*
-expr7 /	 expr7 ..	割り算					*expr-/*
-expr7 %	 expr7 ..	剰余(割った余り)			*expr-%*
+expr7 *	expr7  掛け算						*expr-star*
+expr7 /	expr7  割り算						*expr-/*
+expr7 %	expr7  剰余(割った余り)					*expr-%*
 
 "." を除く全ての演算子は自動的に文字列を数値に変換する。
 ビット演算については |and()|, |or()|, |xor()| を参照。
@@ -978,12 +1121,19 @@ expr1aが省略されたときは0となる。expr1bが省略されたときは�
 	:let s = s[:-3]			" 最後の2文字を削除する
 <
 							*slice*
-expr8がリストならば、インデックスexpr1aとexpr1bの間の要素からなる新しいリスト
+expr8が |List| ならば、インデックスexpr1aとexpr1bの間の要素からなる新しい |List|
 となる。すぐ上で説明した文字列の場合と同様である。部分リスト|sublist|も参照の
 こと。例: >
 	:let l = mylist[:3]		" 最初の4個の要素
 	:let l = mylist[4:4]		" 1個の要素からなるリスト
 	:let l = mylist[:]		" リストの浅いコピー
+
+expr8が |Blob| ならば、インデックスexpr1aとexpr1bのバイト数を含む新しい |Blob|
+となる。
+例: >
+	:let b = 0zDEADBEEF
+	:let bs = b[1:2]		" 0zADBE
+	:let bs = b[:]			" 0zDEADBEEF のコピー
 
 |Funcref|に対してexpr8[expr1]やexpr8[expr1a : expr1b]を使うとエラーになる。
 
@@ -1113,6 +1263,14 @@ Note "\xff" は値255の1バイトとなる。これはエンコーディング�
 もしれない。現在の 'encoding' の値に応じた文字255を得るには "\u00ff" を使う。
 
 Note "\000" と "\x00" は強制的に文字列の終端として扱われる。
+
+
+blobリテラル				*blob-literal* *E973*
+------------
+
+0zまたは0Zで始まる任意のバイト数の16進数。
+シーケンスは偶数個の16進数文字でなければならない。例:
+	:let b = 0zFF00ED015DAF
 
 
 リテラル文字列						*literal-string* *E115*
@@ -1682,7 +1840,7 @@ v:mouse_col	|getchar()|でマウスクリックイベントが発生したとき
 		|virtcol()|と同じく画面上の桁番号。マウスがクリックされていな
 		いときは0となる。
 
-					*v:none* *none-variable*
+					*v:none* *none-variable* *None*
 v:none		空の文字列。JSONでは空の要素として使われる。
 		|json_encode()|を参照。
 		数値として使われた時、これは 0 として評価される。
@@ -1837,25 +1995,27 @@ v:swapcommand	ファイルを開いた後に実行するノーマルモードコ
 		する。":edit +cmd file" を実行させるには ":cmd\r" を代入する。
 
 				*v:t_TYPE* *v:t_bool* *t_bool-variable*
-v:t_bool	真偽値型の値。読出し専用。 参照: |type()|
+v:t_bool	真偽値 |Boolean| 型の値。読出し専用。 参照: |type()|
 					*v:t_channel* *t_channel-variable*
-v:t_channel	チャネル型の値。読出し専用。 参照: |type()|
+v:t_channel	チャネル |Channel| 型の値。読出し専用。 参照: |type()|
 					*v:t_dict* *t_dict-variable*
-v:t_dict	辞書型の値。読出し専用。 参照: |type()|
+v:t_dict	辞書 |Dictionary| 型の値。読出し専用。 参照: |type()|
 					*v:t_float* *t_float-variable*
-v:t_float	浮動小数点数型の値。読出し専用。 参照: |type()|
+v:t_float	浮動小数点数 |Float| 型の値。読出し専用。 参照: |type()|
 					*v:t_func* *t_func-variable*
-v:t_func	Funcref型の値。読出し専用。 参照: |type()|
+v:t_func	|Funcref| 型の値。読出し専用。 参照: |type()|
 					*v:t_job* *t_job-variable*
-v:t_job		ジョブ型の値。読出し専用。 参照: |type()|
+v:t_job		ジョブ |Job| 型の値。読出し専用。 参照: |type()|
 					*v:t_list* *t_list-variable*
-v:t_list	リスト型の値。読出し専用。 参照: |type()|
+v:t_list	リスト |List| 型の値。読出し専用。 参照: |type()|
 					*v:t_none* *t_none-variable*
-v:t_none	特殊値型の値。読出し専用。 参照: |type()|
+v:t_none	特殊値 |None| 型の値。読出し専用。 参照: |type()|
 					*v:t_number* *t_number-variable*
-v:t_number	数値型の値。読出し専用。 参照: |type()|
+v:t_number	数値 |Number| 型の値。読出し専用。 参照: |type()|
 					*v:t_string* *t_string-variable*
-v:t_string	文字列型の値。読出し専用。 参照: |type()|
+v:t_string	文字列 |String| 型の値。読出し専用。 参照: |type()|
+					*v:t_blob* *t_blob-variable*
+v:t_blob	|Blob| 型の値。読出し専用。 参照: |type()|
 
 				*v:termresponse* *termresponse-variable*
 v:termresponse	termcapのエントリ|t_RV|で端末から返されるエスケープシーケン
@@ -1968,6 +2128,7 @@ v:windowid	X11 ベースの GUI を使っているとき、もしくは端末の
 abs({expr})			浮動小数点数または数値	{expr}の絶対値
 acos({expr})			浮動小数点数	{expr}のアークコサイン
 add({list}, {item})		リスト	{item}をリスト{list}に追加する
+add({object}, {item})		リスト/Blob	{item}を{object}に追加する
 and({expr}, {expr})		数値	ビット論理積
 append({lnum}, {text})		数値	{lnum}行目に{text}を付け加える
 appendbufline({expr}, {lnum}, {text})
@@ -2044,12 +2205,14 @@ ch_logfile({fname} [, {mode}])	なし	チャネルの挙動ログ出力を開始
 ch_open({address} [, {options}])
 				チャネル	{address} へのチャネルを開く
 ch_read({handle} [, {options}]) 文字列	{handle} から読み込む
+ch_readblob({handle} [, {options}])
+				Blob	{handle} からBlobを読み込む
 ch_readraw({handle} [, {options}])
 				文字列	{handle} から生の文字列を読み込む
 ch_sendexpr({handle}, {expr} [, {options}])
 				任意	{expr}をJSONチャネル{handle}に送る
-ch_sendraw({handle}, {string} [, {options}])
-				任意	{string}をrawチャネル{handle}に送る
+ch_sendraw({handle}, {expr} [, {options}])
+				任意	{expr}をrawチャネル{handle}に送る
 ch_setoptions({handle}, {options})
 				なし	{handle}にオプションを設定する
 ch_status({handle} [, {options}])
@@ -2194,8 +2357,8 @@ hlID({name})			数値	highlight group {name}のID
 hostname()			文字列	vimが動作しているマシンの名前
 iconv({expr}, {from}, {to})	文字列	{expr}のエンコーディングを変換する
 indent({lnum})			文字列	行{lnum}のインデントを取得
-index({list}, {expr} [, {start} [, {ic}]])
-				数値	{list}中に{expr}が現れる位置
+index({object}, {expr} [, {start} [, {ic}]])
+				数値	{object}中に{expr}が現れる位置
 input({prompt} [, {text} [, {completion}]])
 				文字列	ユーザーからの入力を取得
 inputdialog({prompt} [, {text} [, {completion}]])
@@ -2204,7 +2367,8 @@ inputlist({textlist})		数値	ユーザーに選択肢から選ばせる
 inputrestore()			数値	先行入力を復元する
 inputsave()			数値	先行入力を保存し、クリアする
 inputsecret({prompt} [, {text}]) 文字列	input()だがテキストを隠す
-insert({list}, {item} [, {idx}]) リスト	{list}に要素{item}を挿入 [{idx}の前]
+insert({object}, {item} [, {idx}])
+				リスト	{object}に要素{item}を挿入 [{idx}の前]
 invert({expr})			数値	ビット反転
 isdirectory({directory})	数値	{directory}がディレクトリならば|TRUE|
 islocked({expr})		数値	{expr}がロックされているなら|TRUE|
@@ -2278,7 +2442,7 @@ prop_clear({lnum} [, {lnum-end} [, {props}]])
 				なし	全てのテキストプロパティを削除
 prop_find({props} [, {direction}])
 				辞書	テキストプロパティを検索する
-prop_list({lnum} [, {props})  	リスト	{lnum}行目のテキストプロパティを取得
+prop_list({lnum} [, {props})	リスト	{lnum}行目のテキストプロパティを取得
 prop_remove({props} [, {lnum} [, {lnum-end}]])
 				数値	テキストプロパティを削除
 prop_type_add({name}, {props})	なし	新しいプロパティタイプを定義
@@ -2295,7 +2459,7 @@ py3eval({expr})			任意	|python3| の式を評価する
 pyxeval({expr})			任意	|python_x| の式を評価する
 range({expr} [, {max} [, {stride}]])
 				リスト	{expr}から{max}までの要素のリスト
-readfile({fname} [, {binary} [, {max}]])
+readfile({fname} [, {type} [, {max}]])
 				リスト	ファイル{fname}から行のリストを取得
 reg_executing()			文字列	実行中のレジスタ名を取得する
 reg_recording()			文字列	記録中のレジスタ名を取得する
@@ -2371,6 +2535,8 @@ sign_define({name} [, {dict}])	数値	目印を定義または更新する
 sign_getdefined([{name}])	リスト	定義されている目印のリストを取得する
 sign_getplaced([{expr} [, {dict}]])
 				リスト	設置されている目印のリストを取得する
+sign_jump({id}, {group}, {expr})
+				数値	目印に移動する
 sign_place({id}, {group}, {name}, {expr} [, {dict}])
 				数値	目印を設置する
 sign_undefine([{name}])		数値	目印を削除する
@@ -2472,6 +2638,7 @@ test_autochdir()		なし	起動時に 'autochdir' を有効にする
 test_feedinput({string})	なし	キー入力を入力バッファに追加する
 test_garbagecollect_now()	なし	テスト用に直ちにメモリを解放する
 test_ignore_error({expr})	なし	特定のエラーを無視する
+test_null_blob()		Blob	テスト用のnull値
 test_null_channel()		チャネル	テスト用のnull値
 test_null_dict()		辞書	テスト用のnull値
 test_null_job()			ジョブ	テスト用のnull値
@@ -2522,8 +2689,9 @@ winrestview({dict})		なし	現在のウィンドウのビューを復元
 winsaveview()			辞書	現在のウィンドウのビューを保存
 winwidth({nr})			数値	ウィンドウ{nr}の幅を取得
 wordcount()			辞書	バイト/文字/単語の統計情報を取得
-writefile({list}, {fname} [, {flags}])
-				数値	行のリストをファイル{fname}に書き込む
+writefile({object}, {fname} [, {flags}])
+				数値	行の |Blob| または |list| をファイルに
+					書き込む
 xor({expr}, {expr})		数値	ビット排他的論理和
 
 
@@ -2555,13 +2723,14 @@ acos({expr})							*acos()*
 		{|+float| 機能を有効にしてコンパイルしたときのみ有効}
 
 
-add({list}, {expr})					*add()*
-		リスト|List|{list}の末尾に要素{expr}を追加する。結果のリストを
-		返す。例: >
+add({object}, {expr})					*add()*
+		|List| または |Blob| {pbject}の末尾に項目{expr}を追加する。結
+		果の |List| か |Blob| を返す。例: >
 			:let alist = add([1, 2, 3], item)
 			:call add(mylist, "woodstock")
 <		Note {expr}がリストのときは、1個の要素として追加される。リスト
 		を連結するには|extend()|を使う。
+		{object}が |Blob| の場合、{expr}は数値でなければならない。
 		他の位置に要素を追加するには|insert()|を使う。
 
 
@@ -3061,7 +3230,7 @@ ch_evalraw({handle}, {string} [, {options}])		*ch_evalraw()*
 		では改行が付与されない。NL は応答から削除される。
 		Note: Vim は Raw チャネル上で受け取るテキストがいつ完了するの
 		か分からない。最初の部分だけを返す可能性もあり、残りを取り出す
-		ために ch_readraw() を使う必要がある。
+		ために |ch_readraw()| を使う必要がある。
 		|channel-use| を参照。
 
 		{|+channel| 機能付きでコンパイルされたときのみ有効}
@@ -3153,6 +3322,12 @@ ch_read({handle} [, {options}])					*ch_read()*
 		|channel-more| を参照。
 		{|+channel| 機能付きでコンパイルされたときのみ有効}
 
+ch_readblob({handle} [, {options}])			*ch_readblob()*
+		ch_read() と同様に動作するが、バイナリデータを読み込んで
+		|Blob| を返す。
+		|channel-more| を参照。
+		{|+channel| 機能付きでコンパイルされたときのみ有効}
+
 ch_readraw({handle} [, {options}])			*ch_readraw()*
 		ch_read() と同様に動作するが JS や JSON の場合でもメッセージは
 		デコードされない。NL チャネルの場合、NL を受信するまで待つこと
@@ -3169,8 +3344,8 @@ ch_sendexpr({handle}, {expr} [, {options}])			*ch_sendexpr()*
 
 		{|+channel| 機能付きでコンパイルされたときのみ有効}
 
-ch_sendraw({handle}, {string} [, {options}])		*ch_sendraw()*
-		{handle} を {string} に送る。
+ch_sendraw({handle}, {expr} [, {options}])		*ch_sendraw()*
+		文字列 |String| または |Blob| {expr} を {handle} に送る。
 		|ch_sendexpr()| と同様に動作するが、リクエストをエンコードした
 		り応答をデコードしたりはしない。呼び出しは正しいコンテンツで
 		ある事が保証される。また NL モードでは改行が行われるが、ここ
@@ -3568,12 +3743,14 @@ empty({expr})						*empty()*
 		{expr}が空なら1を、そうでなければ0を返す。
 		- リスト|List|または辞書|Dictionary|は要素を1個も持たないとき
 		  空とみなされる。
-		- 文字列はその長さが0のとき空とみなされる。
+		- 文字列 |String| はその長さが0のとき空とみなされる。
 		- 数値と浮動小数点数は値が0のとき空とみなされる。
 		- |v:false|, |v:none|, |v:null| は空であり、|v:true| は空では
 		  ない。
-		- ジョブは開始に失敗したときは空である。
-		- チャネルは閉じられていると空である。
+		- ジョブ |Job| は開始に失敗したときは空である。
+		- チャネル |Channel| は閉じられていると空である。
+		- |Blob| はその長さが0のときは空である。
+
 		長いリストに対しては長さを0と比較するよりこちらの方がずっと高
 		速である。
 
@@ -3587,9 +3764,9 @@ escape({string}, {chars})				*escape()*
 
 							*eval()*
 eval({string})	{string}を評価し、値を返す。|string()|の戻り値を元の値に戻すの
-		に非常に便利である。数値、浮動小数点数文字列、それらの複合に対
-		して動作する。実際に存在する関数への|Funcref|に対しても動作す
-		る。
+		に非常に便利である。数値、浮動小数点数、文字列、Blob およびそ
+		れらの複合に対して動作する。実際に存在する関数への |Funcref|
+		に対しても動作する。
 
 eventhandler()						*eventhandler()*
 		イベントハンドラの中では1を返す。つまり、ユーザーの文字入力を
@@ -3894,6 +4071,9 @@ feedkeys({string} [, {mode}])				*feedkeys()*
 		't'	キーをタイプされたかのように扱う。そうでない場合は
 			マッピングから展開されたかのように扱われる。これは
 			undoや折り畳みの展開などで違いが現れる。
+		'L'	低レベル入力。UnixまたはGUIを使用している場合にのみ機
+			能する。キーは端末から来ているかのように使われる。他の
+			フラグは使用されない。  *E980*
 		'i'	追加する代わりに文字を挿入する。(上記参照)
 		'x'	先行入力が空になるまでコマンドを実行する。
 			これは ":normal!" を使うのと似ている。
@@ -4231,6 +4411,10 @@ get({list}, {idx} [, {default}])			*get()*
 		リスト|List| {list}から{idx}番目の要素を取得する。この要素を取
 		得できないときは{default}を返す。{default}が省略されたときは0
 		を返す。
+get({blob}, {idx} [, {default}])
+		|Blob| {blob}から{idx}番目のバイトを取得する。このバイトを取得
+		できないときは{default}を返す。{default}が省略されたときは -1
+		を返す。
 get({dict}, {key} [, {default}])
 		辞書|Dictionary| {dict}からキー{key}に関連づけられた値を取得す
 		る。この要素を取得できないときは{default}を返す。{default}が省
@@ -4442,7 +4626,8 @@ getcharsearch()						*getcharsearch()*
 		現在の文字検索の情報である{dict}を返し、この辞書は下記のエント
 		リを持つ:
 
-		    char	文字検索(|t|, |f|, |T|, |F|)で以前に使われた文字。
+		    char	文字検索(|t|, |f|, |T|, |F|)で以前に使われた文
+				字。
 				もし文字検索が実行されていないなら空文字列。
 		    forward	文字検索の方向。1は前方、0は後方。
 		    until	文字検索の種類。1は|t|もしくは|T|の文字検索、0は
@@ -4686,7 +4871,7 @@ getloclist({nr} [, {what}])				*getloclist()*
 		{what} が 'filewinid' を含む場合、ロケーションリスト中のファイ
 		ルを表示するのに使われているウィンドウの ID を返す。このフィー
 		ルドはロケーションリストウィンドウから呼び出されたときのみ適用
-		される。
+		される。詳細は |location-list-file-window| を参照。
 
 getmatches()						*getmatches()*
 		|matchadd()| と |:match| により定義された全てのマッチの |List|
@@ -4774,7 +4959,9 @@ getqflist([{what}])					*getqflist()*
 			id	|quickfix-ID|に対応するquickfixリストの情報を
 				取得。0 は現在のリストもしくは "nr" で指定され
 				たリストのidを意味する
-			idx	リスト内の現在のエントリのインデックス
+			idx	'id' または 'nr' で指定されたquickfixリスト内
+				の現在のエントリのインデックス。
+				|quickfix-index| を参照
 			items	quickfixリストのエントリ
 			lines	'efm' を使用して行のリストをパースし、結果のエ
 				ントリを返す。|List| 型のみを受け付ける。現在
@@ -5243,17 +5430,21 @@ indent({lnum})	カレントバッファの{lnum}行目のインデント量を�
 		{lnum}が無効なときは-1を返す。
 
 
-index({list}, {expr} [, {start} [, {ic}]])			*index()*
-		リスト|List| {list}の中で、{expr}に等しい要素の最小のインデッ
+index({object}, {expr} [, {start} [, {ic}]])			*index()*
+		{object}が |List| の場合は、{expr}に等しい要素の最小のインデッ
 		クスを返す。自動的な変換は行われないので、文字列の "4" は数値
 		の 4 とは異なると判定される。そして数値の 4 は浮動小数点数の
 		4.0 とも異なる。'ignorecase' はここでは適用されず、常に大文字・
 		小文字は区別される。
+
+		{object}が |Blob| の場合は、{expr}に等しいバイト値の最小のイン
+		デックスを返す。
+
 		{start}が指定された場合はインデックス{start}から要素の検索を始
 		める(負数を指定すると末尾からの相対位置となる)。
 		{ic}に|TRUE|が指定された場合、大文字・小文字は区別されない。
 		そうでない場合は区別される。
-		{list}の中に{expr}が見つからない場合は-1を返す。
+		{object}の中に{expr}が見つからない場合は-1を返す。
 		例: >
 			:let idx = index(words, "the")
 			:if index(numbers, 123) >= 0
@@ -5354,13 +5545,16 @@ inputsecret({prompt} [, {text}])			*inputsecret()*
 		ユーザーの入力内容を文字列として返す。
 		NOTE: コマンドライン補完には対応していない。
 
-insert({list}, {item} [, {idx}])			*insert()*
-		リスト|List| {list}の初めに{item}を挿入する。
+insert({object}, {item} [, {idx}])			*insert()*
+		{object}が |List| か |Blob| の場合、それの先頭に{item}を挿入す
+		る。
+
 		{idx}が指定されたときはインデックス{idx}の要素の前に{item}を挿
 		入する。{idx}が0のときは{idx}を省略した場合と同じ様に最初の要
 		素の前に挿入する。{idx}は負数でもよい(|list-index|参照)。-1を
 		指定すると最後の要素の前に挿入する。
-		挿入した結果のリストを返す。例: >
+
+		挿入した結果の |List| か |Blob| を返す。例: >
 			:let mylist = insert([2, 3, 5], 1)
 			:call insert(mylist, 4, -1)
 			:call insert(mylist, 6, len(mylist))
@@ -5403,7 +5597,11 @@ isnan({expr})						*isnan()*
 items({dict})						*items()*
 		{dict}の全要素のキー・値のペアからなるリストを返す。戻り値の各
 		要素はリストであり、キーと値の2個の要素を持つ。戻り値のリスト
-		の要素の順序は不定である。
+		の要素の順序は不定である。|keys()| と |values()| も参照。
+		例: >
+			for [key, value] in items(mydict)
+			   echo key . ': ' . value
+			endfor
 
 job_getchannel({job})					 *job_getchannel()*
 		{job}が使用しているチャネルハンドルを取得する。
@@ -5437,6 +5635,10 @@ job_start({command} [, {options}])			*job_start()*
 		とは異なり、これはジョブが終了するのを待つことはない。
 		端末ウィンドウ内でジョブを開始する方法については
 		|term_start()| を参照。
+
+		ジョブが起動に失敗した場合、返されたジョブオブジェクトの
+		|job_status()| は "fail" となり、どのコールバックも呼び出され
+		ない。
 
 		{command}は文字列にできる。これはMS-Windowsで最も効果的である。
 		Unixでは、それはexecvp()に渡すために空白で区切られたパーツに分
@@ -5585,9 +5787,12 @@ json_decode({string})					*json_decode()*
 		デコードは寛容である:
 		- 配列やオブジェクトの末尾コンマは無視される、例えば
 		  "[1, 2, ]" と "[1, 2]" は同じである。
+		- 整数のキーはオブジェクト内で受け入れられる。例えば、{1:2} は
+		  {"1":2} と同じである。
 		- 多くの浮動小数点数を認識する。例えば "1." は "1.0" となり、
-		  "001.2" は "1.2" となる。特別な浮動小数点の値、"Infinity" お
-		  よび "NaN" (大文字は無視される) は受け付けられる。
+		  "001.2" は "1.2" となる。特別な浮動小数点の値、"Infinity",
+		  "-Infinity" および "NaN" (大文字は無視される) は受け付けられ
+		  る。
 		- 整数値の先頭に付く 0 は無視される、例えば "012" は "12" とな
 		  り、"-012" は "-12" となる。
 		- null、true および false の大文字は無視される、例えば "NULL"
@@ -5595,6 +5800,8 @@ json_decode({string})					*json_decode()*
 		- 文字列中でエスケープされない U+0000 から U+001F の制御文字は
 		  受け付けられる、例えば "	" (文字列中のタブ文字) は "\t"
 		  となる。
+		- 空のJSON式、またはスペースのみで構成されているものは受け入れ
+		  られ、v:none になる。
 		- 無効な 2 文字のシーケンスエスケープ中のバックスラッシュは無
 		  視される、例えば "\a" は "a" と解釈される。
 		- JSON 文字列中の正しいサロゲートペアは、通常 "\uD834\uDD1E"
@@ -5613,16 +5820,18 @@ json_encode({expr})					*json_encode()*
 		このエンコード方式の詳細はここに記載されている:
 		https://tools.ietf.org/html/rfc7159.html
 		Vimの値は以下の通りに変換される:
-		   数値			10進数
-		   浮動小数点数		浮動小数点数
+		   数値 |Number|	10進数
+		   浮動小数点数 |Float|	浮動小数点数
 		   浮動小数点数 nan	"NaN"
 		   浮動小数点数 inf	"Infinity"
-		   文字列		ダブルクォートで括られた文字列(null可)
-		   Funcref		不可、エラー
-		   リスト		配列(null可)
+		   浮動小数点数 -inf	"-Infinity"
+		   文字列 |String|	ダブルクォートで括られた文字列(null可)
+		   |Funcref|		不可、エラー
+		   リスト |List|	配列(null可)
 					再帰的に使用された場合: []
-		   辞書			オブジェクト(null可)
+		   辞書 |Dict|		オブジェクト(null可)
 					再帰的に使用された場合: {}
+		   |Blob|		個々のバイト配列
 		   v:false		"false"
 		   v:true		"true"
 		   v:none		"null"
@@ -5632,13 +5841,15 @@ json_encode({expr})					*json_encode()*
 		ない場合、エラーが発生する。
 
 keys({dict})						*keys()*
-		{dict}の全キーからなるリストを返す。リストの順序は不定である。
+		{dict}の全キーからなるリスト |List| を返す。リストの順序は不定
+		である。|items()| と |values()| も参照。
 
 							*len()* *E701*
 len({expr})	結果は数値で、引数{expr}の長さ。{expr}が文字列または数値のとき
 		は|strlen()|と同じようにバイト単位での長さを返す。
-		{expr}がリストのときは要素数を返す。
-		{expr}が辞書のときは要素数を返す。
+		{expr}がリスト |List| のときは要素数を返す。
+		{expr}が |Blob| の場合、バイト数を返す。
+		{expr}が辞書 |Dictionary| のときは要素数を返す。
 		それ以外のときはエラーとなる。
 
 						*libcall()* *E364* *E368*
@@ -6586,7 +6797,7 @@ prop_find({props} [, {direction}])
 		テキストプロパティについては、|text-properties| を参照。
 
 
-prop_list({lnum} [, {props}]) 				*prop_list()*
+prop_list({lnum} [, {props}])				*prop_list()*
 		{lnum}行のすべてのテキストプロパティを持つリストを返す。
 
 		{props}に "bufnr" 項目が含まれている場合は、カレントバッファの
@@ -6749,16 +6960,18 @@ range({expr} [, {max} [, {stride}]])				*range()*
 			range(2, 0)		" エラー!
 <
 							*readfile()*
-readfile({fname} [, {binary} [, {max}]])
+readfile({fname} [, {type} [, {max}]])
 		ファイル{fname}を読み込み、各行を要素とするリスト|List|を返す。
 		行はNL文字で終わるものとする。改行文字がCRであるMacintoshのファ
 		イルは単一の長い行となる(どこかにNLが現れない限り)。
 		すべての NUL 文字は NL 文字に置換される。
-		{binary}が "b" を含む場合、次のようにバイナリモードになる:
+		{type}が "b" を含む場合、次のようにバイナリモードになる:
 		- 最後の行がNLで終わるときは、リストの末尾に余分な空文字列が追
 		  加される。
 		- CR文字を除去しない。
-		バイナリモードでない場合:
+		{type}が "B" を含む場合、ファイルのバイナリデータは変更せずに
+		|Blob| が返される。
+		その他の場合:
 		- NLの前に現れるCR文字を除去する。
 		- 最後の行がNLで終わるかどうかは関係ない。
 		- 'encoding' がUnicodeのときは UTF-8 のバイトオーダーマークは
@@ -6924,6 +7137,16 @@ remove({list}, {idx} [, {end}])				*remove()*
 		例: >
 			:echo "last item: " . remove(mylist, -1)
 			:call remove(mylist, 0, 9)
+remove({blob}, {idx} [, {end}])
+		{end}を指定しなかった場合: |Blob| {blob}から{idx}位置のバイト
+		を削除し、そのバイトを返す。
+		{end}を指定した場合: {idx}から{end}まで(両端を含む)のバイトを
+		削除し、それらのバイトを |Blob| で返す。{idx}と{end}が同じバイ
+		トを指す場合、1個のバイトからなる |Blob| が返る。
+		{end}が{idx}より前になる場合、エラーとなる。
+		例: >
+			:echo "last byte: " . remove(myblob, -1)
+			:call remove(mylist, 0, 9)
 remove({dict}, {key})
 		{dict}からキー{key}を持つ要素を削除する。例: >
 			:echo "removed " . remove(dict, "one")
@@ -6961,9 +7184,11 @@ resolve({filename})					*resolve()* *E655*
 		にする。
 
 							*reverse()*
-reverse({list})	{list}の要素の順序をその場で(in-place)反転させる。{list}そのも
-		のを返す。
-		リストを変更させないでおくには、最初にコピーを作る: >
+reverse({object})
+		{object}の要素の順序をその場で(in-place)反転させる。
+		{object}は |List| または |Blob| である。
+		{object}そのものを返す。
+		オブジェクトを変更させないでおくには、最初にコピーを作る: >
 			:let revlist = reverse(copy(mylist))
 
 round({expr})							*round()*
@@ -7467,16 +7692,22 @@ setqflist({list} [, {action} [, {what}]])		*setqflist()*
 		    efm		"lines" からテキストをパースするときに使うエ
 				ラーフォーマット。存在しない場合はオプション
 				'errorformat' の値が使用される。
+				|quickfix-parse| を参照
 		    id		quickfix リスト識別子 |quickfix-ID|
+		    idx		'id' または 'nr' で指定されたquickfixリスト内
+				の現在のエントリのインデックス。'$' に設定する
+				と、リストの最後のエントリが現在のエントリとし
+				て設定される。|quickfix-index| を参照。
 		    items	quickfix エントリのリスト。引数 {list} と同じ。
 		    lines	行のリストをパースするのに 'errorformat' を使
 				用し、結果のエントリを quickfix リスト {nr} も
 				しくは {id} に加える。|List| 値だけがサポート
-				される。
+				される。|quickfix-parse| を参照
 		    nr		quickfix スタックでのリスト番号; 0 は現在の
 				quickfix リストを意味し、"$" は最後の quickfix
-				リストを意味する
-		    title	quickfix リストのタイトルテキスト
+				リストを意味する。
+		    title	quickfix リストのタイトルテキスト。
+				|quickfix-title| を参照
 		{what} 内でのサポートされていないキーは無視される。
 		"nr" 番目のアイテムが提供されていない場合は現在の quickfix リ
 		ストが変更される。新しい quickfix リストを作成するときは、"nr"
@@ -7759,6 +7990,20 @@ sign_getplaced([{expr} [, {dict}]])			*sign_getplaced()*
 			" 設置されているすべての目印のリストを取得する
 			echo sign_getplaced()
 <
+							*sign_jump()*
+sign_jump({id}, {group}, {expr})
+		バッファ{expr}を開くか、{expr}を含むウィンドウに移動して、グ
+		ループ{group}の目印{id}にカーソルを置く。これは |:sign-jump|
+		コマンドに似ている。
+
+		{expr}の使い方については |bufname()| を参照。
+
+		目印の行番号を返す。引数が無効な場合は -1 を返す。
+
+		例: >
+			" 現在のバッファの目印ID 10 へ移動する
+			call sign_jump(10, '', '')
+<
 							*sign_place()*
 sign_place({id}, {group}, {name}, {expr} [, {dict}])
 		{name}として定義された目印をファイル{expr}の行{lnum}に設置し、
@@ -7769,8 +8014,8 @@ sign_place({id}, {group}, {name}, {expr} [, {dict}])
 		外の場合は、指定された番号が使用される。{group}は目印グループ
 		名である。グローバルサイングループを使用するには、空の文字列を
 		使用する。{group}は{id}の名前空間として機能するため、2つのグ
-		ループが同じIDを使用できる。詳細については|sign-identifier| を
-		参照。
+		ループが同じIDを使用できる。詳細については |sign-identifier|
+		と |sign-group| を参照。
 
 		{name}は定義済みの目印を参照する。
 		{expr}はバッファの名前か番号を参照する。許容値については、
@@ -8168,14 +8413,15 @@ stridx({haystack}, {needle} [, {start}])		*stridx()*
 
 							*string()*
 string({expr})	{expr}を文字列に変換して返す。{expr}が数値、浮動小数点数、文字
-		列、それらの複合の場合は、この戻り値を|eval()|でパースして復元
-		できる。
+		列、Blob またはそれらの複合の場合は、この戻り値を |eval()| で
+		パースして復元できる。
 			{expr} 型	結果 ~
 			文字列		'string' (シングルクォートは二重化され
 					る)
 			数値		123
 			浮動小数点数	123.123456 or 1.123456e8
 			Funcref		function('name')
+			Blob		0z00112233.44556677.8899
 			リスト		[item, item]
 			辞書		{key: value, key: value}
 		リストや辞書に循環参照がある場合、それらは "[...]" や "{...}"
@@ -9000,25 +9246,28 @@ test_ignore_error({expr})			 *test_ignore_error()*
 		{expr} が文字列 "RESET" の場合、無視されるエラーのリストは空に
 		なる。
 
+test_null_blob()					*test_null_blob()*
+		null の |Blob| を返す。これはテストのみに使われる。
+
 test_null_channel()					*test_null_channel()*
-		null の Channel を返す。これはテストのみに使われる。
+		null の |Channel| を返す。これはテストのみに使われる。
 		{|+channel| 機能つきでコンパイルされたときのみ有効}
 
 test_null_dict()					*test_null_dict()*
-		null の Dict を返す。これはテストのみに使われる。
+		null の |Dict| を返す。これはテストのみに使われる。
 
 test_null_job()						*test_null_job()*
-		null の Job を返す。これはテストのみに使われる。
+		null の |Job| を返す。これはテストのみに使われる。
 		{|+job| 機能つきでコンパイルされたときのみ有効}
 
 test_null_list()					*test_null_list()*
-		null の List を返す。これはテストのみに使われる。
+		null の |List| を返す。これはテストのみに使われる。
 
 test_null_partial()					*test_null_partial()*
-		null の Partial を返す。これはテストのみに使われる。
+		null の |Partial| を返す。これはテストのみに使われる。
 
 test_null_string()					*test_null_string()*
-		null の String を返す。これはテストのみに使われる。
+		null の |String| を返す。これはテストのみに使われる。
 
 test_option_not_set({name})				*test_option_not_set()*
 		オプション {name} が設定されたことを示すフラグをリセットする。
@@ -9224,6 +9473,7 @@ type({expr})	{expr}の型を示す数値を返す。
 			特殊値:	      7  |v:t_none| (v:null と v:none)
 			ジョブ:	      8  |v:t_job|
 			チャネル:     9  |v:t_channel|
+			Blob:	     10  |v:t_blob|
 		後方互換性のためには、次のような使い方ができる: >
 			:if type(myvar) == type(0)
 			:if type(myvar) == type("")
@@ -9299,7 +9549,7 @@ uniq({list} [, {func} [, {dict}]])			*uniq()* *E882*
 
 values({dict})						*values()*
 		{dict}の全ての値からなるリスト|List|を返す。このリストの順序は
-		不定である。
+		不定である。|items()| と |values()| も参照。
 
 virtcol({expr})						*virtcol()*
 		結果は数値で、{expr}で与えられるファイルの位置の、スクリーン上
@@ -9558,12 +9808,17 @@ wordcount()						*wordcount()*
 					(ビジュアルモードのみ)
 
 							*writefile()*
-writefile({list}, {fname} [, {flags}])
-		|List| {list}をファイル{fname}に書き込む。リストの各要素は改行
-		文字(NL)で区切られる。各要素は文字列か数値でなければならない。
+writefile({object}, {fname} [, {flags}])
+		{object}が |List| の場合、それをファイル{fname}に書き込む。リ
+		ストの各要素は改行文字(NL)で区切られる。各要素は文字列か数値で
+		なければならない。
 		{flags}が "b" を含むときはバイナリモードとなり、最後の要素の後
 		にNLが追加されない。最後の要素が空であると、ファイルの最後の行
 		がNLで終わるようになる。
+
+		{object}が |Blob| の場合、バイトを変更せずにファイル{fname}に
+		書き込む。
+
 		{flags}が "a" を含むときは追記モードとなり、ファイルに行が追記
 		される。 >
 			:call writefile(["foo"], "event.log", "a")
@@ -9753,7 +10008,7 @@ spell			スペルチェックをサポート |spell|
 startuptime		|--startuptime| をサポート
 statusline		'statusline', 'rulerformat' そして 'titlestring' と
 			'iconstring' の特殊フォーマットをサポート
-sun_workshop		Sun |workshop|をサポート
+sun_workshop		Sun |workshop| のサポートは削除された
 syntax			構文ハイライトをサポート
 syntax_items		現在のバッファに有効なシンタックスが設定されている
 system			fork()/exec()の代わりにsystem()が使用されている
@@ -9783,8 +10038,9 @@ vim_starting		Vimの初期化プロセス中は真となる。|startup|
 			*vim_starting*
 viminfo			viminfoをサポート
 virtualedit		オプション 'virtualedit' をサポート
-visual			ビジュアルモードをサポート
-visualextra		拡張ビジュアルモードをサポート |blockwise-operators|
+visual			ビジュアルモードをサポート (常に true)
+visualextra		拡張ビジュアルモードをサポート (常に true)
+			|blockwise-operators|
 vms			VMSバージョン
 vreplace		コマンド|gR|と|gr|をサポート
 vtp			vcon をサポート |+vtp| (現在のコンソール内で機能するか
@@ -10231,7 +10487,8 @@ Vimはこれを見つけると、まず波括弧の中の式を評価し、そ�
 			文字列の i バイト目をセットするためにも使えない。それ
 			には次のようにする: >
 				:let var = var[0:2] . 'X' . var[4:]
-<
+<			{var-name}が |Blob| の場合、{idx}はblobの長さになる。
+			この場合、1バイトが追加される。
 
 							*E711* *E719*
 :let {var-name}[{idx1}:{idx2}] = {expr1}		*E708* *E709* *E710*
@@ -10495,25 +10752,31 @@ Vimはこれを見つけると、まず波括弧の中の式を評価し、そ�
 		NOTE: ":append" や ":insert" コマンドは ":while" ループの内側
 		では正しく動かない。
 
-:for {var} in {list}					*:for* *E690* *E732*
+:for {var} in {object}					*:for* *E690* *E732*
 :endfo[r]						*:endfo* *:endfor*
-			{list}の各要素に対し、":for" と ":endfor" の間のコマン
-			ドを繰り返す。変数{var}に各要素の値がセットされる。
-			ループの内側のコマンドでエラーが検出されたときは
-			"endfor" の後から実行が継続される。
-			ループの内側で{list}を変更するとどの要素が使われるかに
-			影響を与える。それを望まない場合はコピーを作ること: >
+			{object}の各要素に対し、":for" と ":endfor" の間のコマ
+			ンドを繰り返す。{object}はリスト |List| または |Blob|
+			である。変数{var}に各要素の値がセットされる。ループの
+			内側のコマンドでエラーが検出されたときは "endfor" の後
+			から実行が継続される。ループの内側で{object}を変更する
+			とどの要素が使われるかに影響を与える。それを望まない場
+			合はコピーを作ること: >
 				:for item in copy(mylist)
-<			コピーを作らないと、Vimは現在の要素に対してコマンドを
-			実行する前に、リストの次の要素への参照を保存する。その
-			ため副作用なしに現在の要素を削除することができる。それ
-			以降の要素を変更すると、それが見つからなくなる。つまり
-			以下の例は動作する(リストを空にする非効率な方法): >
+<			{object}が |List| でコピーを作らない場合、Vimは現在の
+			要素に対してコマンドを実行する前に、|List| の次の要素
+			への参照を保存する。そのため副作用なしに現在の要素を削
+			除することができる。それ以降の要素を変更すると、それが
+			見つからなくなる。つまり以下の例は動作する(|List| を空
+			にする非効率な方法): >
 				for item in mylist
 				   call remove(mylist, 0)
 				endfor
-<			Note リストを並べ替える(例えばsort()やreverse()で)と予
-			期しない結果になることがある。
+<			Note |List| を並べ替える(例えばsort()やreverse()で)と
+			予期しない結果になることがある。
+
+			{object}が |Blob| の場合、Vimは常にコピーを作成して繰
+			り返す。|List| とは異なり、|Blob| を変更しても繰り返し
+			には影響しない。
 
 :for [{var1}, {var2}, ...] in {listlist}
 :endfo[r]
