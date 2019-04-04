@@ -15,11 +15,12 @@ Vim の Lua インターフェイス&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n
 2. vim モジュール&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-vim">lua-vim</a><br>
 3. List ユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-list">lua-list</a><br>
 4. Dict ユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-dict">lua-dict</a><br>
-5. Funcref ユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-funcref">lua-funcref</a><br>
-6. バッファユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-buffer">lua-buffer</a><br>
-7. ウィンドウユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-window">lua-window</a><br>
-8. luaeval 関数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-luaeval">lua-luaeval</a><br>
-9. 動的ローディング&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-dynamic">lua-dynamic</a><br>
+5. Blob ユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-blob">lua-blob</a><br>
+6. Funcref ユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-funcref">lua-funcref</a><br>
+7. バッファユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-buffer">lua-buffer</a><br>
+8. ウィンドウユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-window">lua-window</a><br>
+9. luaeval() Vim 関数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-luaeval">lua-luaeval</a><br>
+10. 動的ローディング&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="if_lua.html#lua-dynamic">lua-dynamic</a><br>
 <br>
 <span class="Special">{Vi にはこれらのコマンドはありません}</span><br>
 <br>
@@ -140,6 +141,14 @@ Lua からは &quot;vim&quot; モジュールを使って Vim を操作します
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&quot; {'1': 3.141593, '2': v:false,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&quot; 'say': 'hi'}</div>
 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim.blob(<span class="Special">[arg]</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 空の Blob、または &quot;arg&quot; が Lua の文字列ならば、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;バイト文字列として &quot;arg&quot; と等価な Blob b を返<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:lua s = &quot;12ab\x00\x80\xfe\xff&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:echo luaeval('vim.blob(s)')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&quot; 0z31326162.0080FEFF</div>
+<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim.funcref(<span class="Special">{name}</span>)&nbsp;&nbsp;&nbsp;&nbsp; 関数&nbsp;<span class="Special">{name}</span>&nbsp;への関数参照を返します (<a class="Identifier" href="eval.html#Funcref">Funcref</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を参照) 。その値は Vim の function() と等価で<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。<br>
@@ -256,7 +265,36 @@ list ユーザーデータと同様、dict ユーザーデータは vim の辞�
 <br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-5. Funcref ユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_lua.html#lua-funcref" name="lua-funcref">lua-funcref</a><br>
+5. Blob ユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_lua.html#lua-blob" name="lua-blob">lua-blob</a><br>
+<br>
+Blob ユーザーデータは vim の Blob を表します。Blob &quot;b&quot; は以下のプロパティを持<br>
+っています。<br>
+<br>
+プロパティ<br>
+<span class="PreProc">----------</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o &quot;#b&quot; は Blob &quot;b&quot; の要素数。Vim の&quot;len(b)&quot; と同じ。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o &quot;b[k]&quot; は &quot;b&quot; の k 個目の要素を返す。&quot;b&quot; のインデックスは Vim と同じ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;で、0 を基準とする。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;k 個目の要素を変更するには、単に &quot;b[k] = number&quot; とする。特に、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;b[#b] = number&quot; で末尾にバイトを追加できる。<br>
+<br>
+メソッド<br>
+<span class="PreProc">--------</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o &quot;b:add(bytes)&quot; は &quot;bytes&quot; を &quot;b&quot; の末尾に追加する。<br>
+<br>
+例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let b = 0z001122<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:lua b = vim.eval('b') -- same 'b'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:lua print(b, b[0], #b)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:lua b[1] = 32<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:lua b[#b] = 0x33 -- append a byte to tail<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:lua b:add(&quot;\x80\x81\xfe\xff&quot;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:echo b</div>
+<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+6. Funcref ユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_lua.html#lua-funcref" name="lua-funcref">lua-funcref</a><br>
 <br>
 Funcref ユーザーデータは Vim における関数参照変数を表します。&quot;dict&quot; 属性付きで<br>
 定義された Vim の関数参照 はその呼び出し時に &quot;self&quot; に適切に辞書が代入できるよ<br>
@@ -289,7 +327,7 @@ Funcref ユーザーデータは Vim における関数参照変数を表しま�
 <br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-6. バッファユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_lua.html#lua-buffer" name="lua-buffer">lua-buffer</a><br>
+7. バッファユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_lua.html#lua-buffer" name="lua-buffer">lua-buffer</a><br>
 <br>
 バッファユーザーデータは Vim のバッファを表します。バッファユーザーデータ &quot;b&quot;<br>
 は以下のプロパティとメソッドを持っています:<br>
@@ -346,7 +384,7 @@ Funcref ユーザーデータは Vim における関数参照変数を表しま�
 <br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-7. ウィンドウユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_lua.html#lua-window" name="lua-window">lua-window</a><br>
+8. ウィンドウユーザーデータ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_lua.html#lua-window" name="lua-window">lua-window</a><br>
 <br>
 ウィンドウオブジェクトは Vim のウィンドウを表します。ウィンドウユーザーデータ<br>
 &quot;w&quot; は以下のプロパティとメソッドを持っています:<br>
@@ -378,7 +416,7 @@ Funcref ユーザーデータは Vim における関数参照変数を表しま�
 <br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-8. luaeval 関数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_lua.html#lua-luaeval" name="lua-luaeval">lua-luaeval</a>&nbsp;<a class="Constant" href="if_lua.html#lua-eval" name="lua-eval">lua-eval</a><br>
+9. luaeval() Vim 関数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_lua.html#lua-luaeval" name="lua-luaeval">lua-luaeval</a>&nbsp;<a class="Constant" href="if_lua.html#lua-eval" name="lua-eval">lua-eval</a><br>
 <br>
 &quot;luaeval&quot; は &quot;vim.eval&quot; と対となる関数で Lua の値を Vim に渡すことができます。<br>
 &quot;luaeval&quot; は式文字列と任意の引数を受け取り、式の結果を返します。意味的には次の<br>
@@ -390,10 +428,10 @@ Lua コードと同じです:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return chunk(arg) -- return typval<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end</div>
 <br>
-<span class="Todo">Note</span>&nbsp;&quot;_A&quot; には &quot;luaeval&quot; の引数が渡されます。Lua の数値、文字列、リスト、辞書<br>
-そして Funcref ユーザーデータはそれぞれの Vim の型に変換されます。ただし、Lua<br>
-のブール値は数値に変換されます。リスト、辞書および関数参照以外のユーザーデータ<br>
-を含む、それ以外の Lua の型を変換しようとするとエラーが返されます。<br>
+<span class="Todo">Note</span>&nbsp;&quot;_A&quot; には &quot;luaeval&quot; の引数が渡されます。Lua の数値、文字列、リスト、Blob、<br>
+辞書そして Funcref ユーザーデータはそれぞれの Vim の型に変換されます。ただし、<br>
+Lua のブール値は数値に変換されます。リスト、辞書および関数参照以外のユーザーデ<br>
+ータを含む、それ以外の Lua の型を変換しようとするとエラーが返されます。<br>
 <br>
 例:<br>
 <br>
@@ -408,7 +446,7 @@ Lua コードと同じです:<br>
 <br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-9. 動的ローディング&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_lua.html#lua-dynamic" name="lua-dynamic">lua-dynamic</a><br>
+10. 動的ローディング&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="if_lua.html#lua-dynamic" name="lua-dynamic">lua-dynamic</a><br>
 <br>
 MS-Windows と Unix では Lua ライブラリを動的にロードすることができます。<br>
 <a class="Identifier" href="various.html#+lua/dyn">+lua/dyn</a>&nbsp;が&nbsp;<a class="Identifier" href="various.html#:version">:version</a>&nbsp;の出力に含まれている時に利用できます。<br>
