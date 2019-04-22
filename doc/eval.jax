@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 Apr 06
+*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 Apr 21
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1644,7 +1644,8 @@ v:count		最後に実行されたノーマルモードコマンドに渡され�
 		"3d2w" のようにカウントが2個指定された場合、その数が掛けられる。
 		よって "d6w" となる。
 		オプション 'formatexpr' を評価するためにも使われる。
-		また "count" は、以前の版のVimとの互換性の為に動作する。
+		|scriptversion| が 3以降でなければ、"count" も、以前の版のVim
+		との互換性の為に動作する。
 
 					*v:count1* *count1-variable*
 v:count1	"v:count" と同じだが、カウントが指定されなかった時の既定値が 1
@@ -1675,7 +1676,8 @@ v:errmsg	最後に表示されたエラーメッセージ。この変数は代�
 	:next
 	:if (errmsg != "")
 	:  ...
-<		また "errmsg" は、以前の版のVimとの互換性の為に動作する。
+<		|scriptversion| が 3以降でなければ、"errmsg" も、以前の版のVim
+		との互換性の為に動作する。
 
 				*v:errors* *errors-variable* *assert-return*
 v:errors	|assert_true()|のような、テスト用関数によって見つかったエラー。
@@ -1972,7 +1974,8 @@ v:shell_error	最後に実行したシェルコマンドの結果。シェルコ
 	:if v:shell_error
 	:  echo 'could not rename "foo" to "bar"!'
 	:endif
-<		また "shell_error" は、以前の版のVimとの互換性の為に動作する。
+<		|scriptversion| が 3以降でなければ、"shell_error" も、以前の版
+		のVimとの互換性の為に動作する。
 
 					*v:statusmsg* *statusmsg-variable*
 v:statusmsg	最後に表示されたステータスメッセージ。この変数は代入すること
@@ -2070,7 +2073,8 @@ v:this_session	最後にロードされたか、セーブされたセッショ�
 		ファイル名。|:mksession|を参照。この変数は代入することが許さ
 		れている。それ以前にセーブされたセッションがなければ、この変数
 		は空となる。
-		また "this_session" は、以前の版のVimとの互換性の為に動作する。
+		|scriptversion| が 3以降でなければ、"this_session" も、以前の
+		版のVimとの互換性の為に動作する。
 
 					*v:throwpoint* *throwpoint-variable*
 v:throwpoint	最も直近に捕捉されてまだ終了していない例外が発生した位置。キー
@@ -2099,8 +2103,8 @@ v:val		辞書|Dictionary|の現在の要素の値。|map()|と|filter()|で使�
 					*v:version* *version-variable*
 v:version	Vimのバージョン番号。メジャーバージョン番号は100倍され、マイ
 		ナーバージョン番号と足されている。Version 5.0は500。Version
-		5.1 (5.01)は501となる。読出し専用。また "version" は、以前の版
-		のVimとの互換性の為に動作する。
+		5.1 (5.01)は501となる。読出し専用。|scriptversion| が 3以降で
+		なければ、"version" も、以前の版のVimとの互換性の為に動作する。
 		特定のパッチが適用されているかを調べるには|has()|を使う。例: >
 			if has("patch-7.4.123")
 <		Note 5.0と5.1には両方ともパッチ123が存在しているが、バージョン
@@ -2651,7 +2655,7 @@ term_setkill({buf}, {how})	なし	端末のジョブを停止するためのシ�
 term_setrestore({buf}, {command}) なし	端末を復元するためのコマンドを設定する
 term_setsize({buf}, {rows}, {cols})
 				なし	端末のサイズを設定する
-term_start({cmd}, {options})	数値	端末ウィンドウを開きジョブを実行する
+term_start({cmd} [, {options}])	数値	端末ウィンドウを開きジョブを実行する
 term_wait({buf} [, {time}])	数値	スクリーンが更新されるのを待つ
 test_alloc_fail({id}, {countdown}, {repeat})
 				なし	メモリの確保を失敗にさせる
@@ -9181,6 +9185,7 @@ term_getcursor({buf})					*term_getcursor()*
 		   "visible"	カーソルが可視のときは 1、不可視のときは 0
 		   "blink"	カーソルが点滅のときは 1、非点滅のときは 0
 		   "shape"	ブロックカーソルは 1、下線は 2、垂直線は 3
+		   "color"	カーソルの色。例: "green"
 
 		{buf} は端末ウィンドウのバッファ番号でなければならない。バッ
 		ファが存在しない、もしくは端末ウィンドウでない場合は、空リスト
@@ -9349,7 +9354,7 @@ term_setsize({buf}, {rows}, {cols})		*term_setsize()* *E955*
 		端末ウィンドウでない場合は、空リストが返される。
 		{|+terminal| 機能付きでコンパイルされたときのみ有効}
 
-term_start({cmd}, {options})				*term_start()*
+term_start({cmd} [, {options}])			*term_start()*
 		端末ウィンドウを開き、その中で {cmd} を実行する。
 
 		{cmd} は |job_start()| と同じような文字列もしくはリストである。
@@ -10269,6 +10274,7 @@ vim_starting		Vimの初期化プロセス中は真となる。|startup|
 viminfo			viminfoをサポート
 vimscript-1		Vim scriptバージョン1 サポート
 vimscript-2		Vim scriptバージョン2 サポート
+vimscript-3		Vim scriptバージョン3 サポート
 virtualedit		オプション 'virtualedit' をサポート (常に true)
 visual			ビジュアルモードをサポート (常に true)
 visualextra		拡張ビジュアルモードをサポート (常に true)
@@ -12321,7 +12327,7 @@ matchstr()やsubstitute()を使えば実現できる。以下の例は、"foobar
 
 ==============================================================================
 10. Vim scriptバージョン	*vimscript-version* *vimscript-versions*
-
+							*scriptversion*
 時間が経つにつれて多くの機能がVim scriptに追加された。これにはExコマンド、関
 数、変数タイプなどが含まれる。それぞれの個々の機能は |has()| と |exists()|関数
 でチェックできる。
@@ -12341,9 +12347,15 @@ matchstr()やsubstitute()を使えば実現できる。以下の例は、"foobar
 <	"." による文字列連結はサポートされていない、代わりに ".." を使用するこ
 	と。これにより、Dictメンバーアクセスと浮動小数点数に "." を使用するこ
 	とによる曖昧さが回避される。".5" は数値 0.5 を意味する。
-	以下でサポートを検査する: >
-		has('vimscript-2')
+>
+ :scriptversion 3
+<	すべてのVimの定義済変数 |vim-variable| には "v:" という接頭辞を付けな
+	ければならない。例えば "version" は |v:version| とは違うので、普通の変
+	数として使うことができる。
+	"count" やその他のいくつかの分かり切った名前でも同様である。
 
+	以下でサポートを検査する: >
+		has('vimscript-3')
 
 ==============================================================================
 11. +eval機能が無効				*no-eval-feature*
