@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 Apr 21
+*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 May 09
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -32,8 +32,6 @@ Vim script の利用についてはユーザーマニュアルの41章|usr_41.tx
 12. サンドボックス		|eval-sandbox|
 13. テキストロック		|textlock|
 14. テスト			|testing|
-
-{Vi にはこれらのコマンドはない}
 
 ==============================================================================
 1. 変数							*variables*
@@ -1334,6 +1332,12 @@ Note シングルクォートが使われていることに注意。
 $VAR			環境変数
 
 環境変数の文字列。定義されていない環境変数を指定した場合、結果は空文字列。
+
+`getenv()` と `setenv()` 関数も使用でき、英数字以外の名前を持つ環境変数に対し
+て機能する。
+`environ()` 関数は、すべての環境変数を含む辞書を取得するために使用できる。
+
+
 							*expr-env-expand*
 Note $VARを直接使用した場合とexpand("$VAR")を使用した場合では、動作に違いがあ
 ることに注意。直接使用した場合には、現在のVimのセッション中で既知の値に展開さ
@@ -2179,6 +2183,7 @@ asin({expr})			浮動小数点数	{expr}のアークサイン
 atan({expr})			浮動小数点数	{expr}のアークタンジェント
 atan2({expr}, {expr})		浮動小数点数	{expr1} / {expr2} のアークタン
 						ジェント
+balloon_gettext()		文字列	バルーン内のカレントテキストを得る
 balloon_show({expr})		なし	{expr} をバルーン内に表示
 balloon_split({msg})		リスト	{msg} をバルーンで使われるように分割す
 					る
@@ -2231,6 +2236,7 @@ ch_status({handle} [, {options}])
 				文字列	チャネル{handle}の状態
 changenr()			数値	現在の変更番号
 char2nr({expr} [, {utf8}])	数値	{expr}の先頭文字のASCII/UTF8コード
+chdir({dir})			文字列	現在の作業ディレクトリを変更する
 cindent({lnum})			数値	{lnum}行目のCインデント量
 clearmatches([{win}])		なし	全マッチをクリアする
 col({expr})			数値	カーソルかマークのカラム番号
@@ -2259,6 +2265,7 @@ did_filetype()			数値	FileTypeのautocommandが実行されたか?
 diff_filler({lnum})		数値	差分モードで{lnum}に挿入された行
 diff_hlID({lnum}, {col})	数値	差分モードで{lnum}/{col}位置の強調
 empty({expr})			数値	{expr}が空なら|TRUE|
+environ()			辞書	すべての環境変数を返す
 escape({string}, {chars})	文字列	{string}内の{chars}を '\' でエスケープ
 eval({string})			任意	{string}を評価し、値を得る
 eventhandler()			数値	イベントハンドラの内側なら|TRUE|
@@ -2318,6 +2325,7 @@ getcompletion({pat}, {type} [, {filtered}])
 				リスト	コマンドライン補完にマッチするリスト
 getcurpos()			リスト	カーソルの位置
 getcwd([{winnr} [, {tabnr}]])	文字列	現在の作業ディレクトリを取得
+getenv({name})			文字列	環境変数を返す
 getfontname([{name}])		文字列	使用しているフォントの名前
 getfperm({fname})		文字列	ファイル{fname}の許可属性を取得
 getfsize({fname})		数値	ファイル{fname}のバイト数を取得
@@ -2357,8 +2365,8 @@ globpath({path}, {expr} [, {nosuf} [, {list} [, {alllinks}]]])
 has({feature})			数値	機能{feature}がサポートならば|TRUE|
 has_key({dict}, {key})		数値	{dict}が要素{key}を持つなら|TRUE|
 haslocaldir([{winnr} [, {tabnr}]])
-				数値	現在のウィンドウで|:lcd|が実行された
-					なら|TRUE|
+				数値	現在のウィンドウで |:lcd| か |:tcd| が
+					実行されたなら|TRUE|
 hasmapto({what} [, {mode} [, {abbr}]])
 				数値	{what}のマッピングが存在するなら|TRUE|
 histadd({history}, {item})	文字列	ヒストリに追加
@@ -2409,6 +2417,9 @@ line({expr})			数値	行番号の取得
 line2byte({lnum})		数値	行{lnum}のバイトカウント
 lispindent({lnum})		数値	{lnum}行目のLispインデント量を取得
 list2str({list} [, {utf8}])	文字列	{list}の数値を文字列に変換する
+listener_add({callback} [, {buf}])
+				数値	変更を監視するためのコールバックを追加
+listener_remove({id})		なし	リスナーコールバックを削除する
 localtime()			数値	現在時刻
 log({expr})			浮動小数点数	{expr}の自然対数(底e)
 log10({expr})			浮動小数点数	浮動小数点数 {expr} の 10 を底
@@ -2531,6 +2542,7 @@ setbufvar({expr}, {varname}, {val})	バッファ{expr}内の変数{varname}に{v
 					をセット
 setcharsearch({dict})		辞書	文字検索を{dict}に設定
 setcmdpos({pos})		数値	コマンドライン内のカーソル位置を設定
+setenv({name}, {val})		なし	環境変数を設定
 setfperm({fname}, {mode})	数値	ファイル {fname} のパーミッションを
 					{mode} に設定
 setline({lnum}, {line})		数値	行{lnum}に{line}(文字列)をセット
@@ -2675,6 +2687,7 @@ test_override({expr}, {val})	なし	Vimの内部処理を置き換えてテス�
 test_refcount({expr})		数値	{expr}の参照カウントを取得
 test_scrollbar({which}, {value}, {dragging})
 				なし	GUIのスクロールのテスト用
+test_setmouse({row}, {col})	なし	テスト用にマウス位置を設定する
 test_settime({expr})		なし	テスト用に現在の時刻を設定する
 timer_info([{id}])		リスト	タイマーに関する情報
 timer_pause({id}, {pause})	なし	タイマーの一時停止または一時停止解除
@@ -2983,14 +2996,19 @@ atan2({expr1}, {expr2})					*atan2()*
 <			2.356194
 		{|+float| 機能を有効にしてコンパイルしたときのみ有効}
 
+balloon_gettext()					*balloon_gettext()*
+		バルーン内の現在のテキストを返す。文字列に対してのみ使用され、
+		リストには使用されない。
+
 balloon_show({expr})					*balloon_show()*
 		{expr} をバルーン内に表示する。GUI では {expr} は文字列として
 		扱われる。端末では {expr} をバルーンの行を含むリストとしてもよ
 		い。{expr} がリストでない場合、|balloon_split()| で分割される。
+		{expr} が空文字列の場合、既存のバルーンは削除される。
 
 		例: >
 			func GetBalloonContent()
-			   " 内容の取得を開始
+			   " ... 内容の取得を開始
 			   return ''
 			endfunc
 			set balloonexpr=GetBalloonContent()
@@ -3433,6 +3451,27 @@ char2nr({expr} [, {utf8}])					*char2nr()*
 		    let list = map(split(str, '\zs'), {_, val -> char2nr(val)})
 <		結果: [65, 66, 67]
 
+chdir({dir})						*chdir()*
+		現在の作業ディレクトリを {dir} に変更する。ディレクトリの変更
+		範囲は、カレントウィンドウのディレクトリによって異なる:
+			- カレントウィンドウにウィンドウローカルディレクトリ
+			  (|:lcd|)がある場合は、ウィンドウローカルディレクトリ
+			  を変更する。
+			- それ以外の場合、カレントタブページにローカルディレク
+			  トリ(|:tcd|)がある場合は、タブページのローカルディレ
+			  クトリを変更する。
+			- それ以外の場合、グローバルディレクトリを変更する。
+		成功した場合は、前の作業ディレクトリを返す。ディレクトリを復元
+		するには、これを別の chdir() に渡すこと。
+		失敗した場合は、空の文字列を返す。
+
+		例: >
+			let save_dir = chdir(newdir)
+			if save_dir != ""
+			   " ... いくつかの作業をおこなう
+			   call chdir(save_dir)
+			endif
+<
 cindent({lnum})						*cindent()*
 		'cindent' で使われるのと同じC言語用のインデント規則に従った場
 		合の{lnum}行目のインデント量を返す。
@@ -3820,6 +3859,14 @@ diff_hlID({lnum}, {col})				*diff_hlID()*
 		先頭の桁の{col}は1となり、最初の行の{lnum}は1となる。
 		ハイライトIDは|synIDattr()|を使って構文情報を得るために使える。
 
+environ()						*environ()*
+		すべての環境変数を辞書として返す。このように環境変数が存在する
+		かどうかを確認できる: >
+			:echo has_key(environ(), 'HOME')
+<		Note 変数名はキャメルケース(CamelCase)でも構わない。 大文字と
+		小文字を区別しないためにこれを使用すること: >
+			:echo index(keys(environ()), 'HOME', 0, 1) != -1
+
 empty({expr})						*empty()*
 		{expr}が空なら1を、そうでなければ0を返す。
 		- リスト|List|または辞書|Dictionary|は要素を1個も持たないとき
@@ -4144,6 +4191,8 @@ feedkeys({string} [, {mode}])				*feedkeys()*
 		使う(|expr-quote|を参照)。例えば、feedkeys("\<CR>")は<Enter>
 		キーの押下をシミュレートする。しかしfeedkeys('\<CR>')とすると、
 		この文字の通り5文字を挿入する。
+		役に立つかもしれない特別なコードは <Ignore> だ。それは何もせず
+		に文字の待機を終了する。  *<Ignore>*
 
 		{mode}は以下の文字フラグを含む文字列:
 		'm'	キーをマップ展開する。これが既定である。{mode}が省略さ
@@ -4831,14 +4880,31 @@ getcwd([{winnr} [, {tabnr}]])
 
 		{winnr}と{tabnr}が指定された場合、{tabnr}のタブページ内の
 		{winnr}のウィンドウのローカルカレントディレクトリを返す。
+		{winnr}が -1 の場合、タブページの作業ディレクトリを返す。
+		{winnr}が 0 の場合、カレントウィンドウを使用し、{tabnr}が 0 の
+		場合はカレントタブページを使用する。
+		引数なしの場合は、カレントウィンドウの作業ディレクトリを返す。
 		もし引数が不正の場合、空文字列を返す。
 
-getfsize({fname})					*getfsize()*
-		結果は数値で、{fname}で指定されるファイルのサイズをバイト単位
-		で返す。
-		{fname}がディレクトリのときは0を返す。
-		ファイル{fname}が見つからないときは-1を返す。
-		{fname} のサイズが |Number| の範囲外の場合は -2 を返す。
+		例: >
+			" カレントウィンドウの作業ディレクトリを取得
+			:echo getcwd()
+			:echo getcwd(0)
+			:echo getcwd(0, 0)
+			" タブページ2のウィンドウ3の作業ディレクトリを取得
+			:echo getcwd(3, 2)
+			" グローバル作業ディレクトリを取得
+			:echo getcwd(-1)
+			" タブページ3の作業ディレクトリを取得
+			:echo getcwd(-1, 3)
+			" カレントタブページの作業ディレクトリを取得
+			:echo getcwd(-1, 0)
+<
+getenv({name})						*getenv()*
+		環境変数{name}の値を返す。
+		変数が存在しない場合は |v:null| が返される。これは、空の文字列
+		に設定された変数とは異なる。
+		|expr-env| も参照。
 
 getfontname([{name}])					*getfontname()*
 		引数なしで使われた場合には現在の通常のフォント名を返す。ハイラ
@@ -4868,6 +4934,13 @@ getfperm({fname})					*getfperm()*
 		ば) "rw-r--r--" あるいは "rw-------" と表示する。
 
 		許可属性を設定するには|setfperm()|を使用する。
+
+getfsize({fname})					*getfsize()*
+		結果は数値で、{fname}で指定されるファイルのサイズをバイト単位
+		で返す。
+		{fname}がディレクトリのときは0を返す。
+		ファイル{fname}が見つからないときは-1を返す。
+		{fname} のサイズが |Number| の範囲外の場合は -2 を返す。
 
 							*getftime()*
 getftime({fname})
@@ -5369,8 +5442,12 @@ has_key({dict}, {key})					*has_key()*
 		ら1、持たないなら0となる。
 
 haslocaldir([{winnr} [, {tabnr}]])			*haslocaldir()*
-		結果は数値でウィンドウが|:lcd|によってローカルなカレントディレ
-		クトリを持つようセットされているなら1、そうでないなら0となる。
+		結果は数値である:
+		    1   ウィンドウが |:lcd| によってローカルディレクトリを設定
+			している時
+		    2   タブページが |:tcd| によってローカルディレクトリを設定
+			している時
+		    0   その他
 
 		引数が指定されない場合、現在のウィンドウを対象とする。
 		{winnr}が指定された場合、現在のタブページ内の{winnr}のウィンド
@@ -5378,8 +5455,30 @@ haslocaldir([{winnr} [, {tabnr}]])			*haslocaldir()*
 		{winnr}と{tabnr}が指定された場合、{tabnr}のタブページ内の
 		{winnr}のウィンドウを対象とする。
 		{winnr} にはウィンドウ番号または|window-ID|が使える。
+		{winnr}が -1 の場合は無視され、タブページのみが使用される。
 		もし引数が不正の場合、0 を返す。
 
+		例: >
+			if haslocaldir() == 1
+			  " ウィンドウローカルディレクトリの場合
+			elseif haslocaldir() == 2
+			  " タブページローカルディレクトリの場合
+			else
+			  " グローバルディレクトリの場合
+			endif
+
+			" カレントウィンドウ
+			:echo haslocaldir()
+			:echo haslocaldir(0)
+			:echo haslocaldir(0, 0)
+			" カレントタブページのウィンドウn
+			:echo haslocaldir(n)
+			:echo haslocaldir(n, 0)
+			" タブページmのウィンドウn
+			:echo haslocaldir(n, m)
+			" タブページm
+			:echo haslocaldir(-1, m)
+<
 hasmapto({what} [, {mode} [, {abbr}]])			*hasmapto()*
 		結果は数値。右辺側(マップした先)の一部分に{what}を含むマッピン
 		グが存在し、それが{mode}で指定されたモードのいずれかで定義され
@@ -6083,6 +6182,65 @@ list2str({list} [, {utf8}])				*list2str()*
 		utf-8の合成文字は期待通りに動作する: >
 			list2str([97, 769])	returns "á"
 <
+listener_add({callback} [, {buf}])			*listener_add()*
+		バッファ {buf} に変更が加えられたときに呼び出されるコールバッ
+		ク関数を追加する。
+		{buf} はバッファ名またはバッファ番号を参照する。 許容値につい
+		ては、|bufname()| を参照。{buf}を省略すると、現在のバッファが
+		使用される。
+		|listener_remove()| に渡すことができる一意のIDを返す。
+
+		{callback} は変更を示す項目のリストで呼び出される。リストは変
+		更できない。各リスト項目は、次のエントリを持つ辞書である:
+		    lnum	変更の最初の行番号
+		    end		変更された行の下の行
+		    added	追加された行数。行が削除された場合は負値
+		    col		変更の影響を受けた "lnum" の最初の桁。不明な場
+				合、または行全体が影響を受けた場合は 1。これは
+				バイトインデックスである。最初の文字の値は 1
+				である。
+		行が挿入されたときの値は次のとおり:
+		    lnum	下に新しい行が追加される行番号
+		    end		"lnum" と同じ
+		    added	挿入された行数
+		    col		1
+		行が削除されたときの値は次のとおり:
+		    lnum	最初に削除された行番号
+		    end		削除が行われる前の、最初に削除された行の下の行
+		    added	負値。削除された行数
+		    col		1
+		行が変更されたときの値は次のとおり:
+		    lnum	最初の変更行
+		    end		最後に変更された行の下の行
+		    added	0
+		    col		変更した最初の桁または 1
+
+		エントリは変更が行われた順になっているため、最新の変更は最後に
+		なる。テキストの現在の状態で行番号を計算するには、最後から最初
+		までリストをたどる必要がある。
+
+		同じ関数を複数のバッファに使用する場合は、|Partial| を使用して
+		その関数にバッファを渡すことができる。
+		例: >
+		    func Listener(bufnr, changes)
+		      " ...
+		    endfunc
+		    let bufnr = ...
+		    call listener_add(function('Listener', [bufnr]), bufnr)
+
+<		{callback}は画面が更新される直前に呼び出される。
+		スクリプトでこれをトリガーするには、`:redraw` コマンドを使用す
+		る。
+
+		バッファが最初にロードされた時には {callback} は呼び出されな
+		い。|BufReadPost| オートコマンドイベントを使用して、バッファの
+		初期テキストを処理する。
+		{callback} はバッファがアンロードされたときにも呼び出されない。
+		そのためには |BufUnload| オートコマンドイベントを使用すること。
+
+listener_remove({id})					*listener_remove()*
+		以前に listener_add() で追加されたリスナーを削除する。
+
 							*localtime()*
 localtime()
 		現在の時刻、1970年1月1日からの経過秒数を返す。|strftime()|と
@@ -6994,6 +7152,9 @@ prop_type_add({name}, {props})		*prop_type_add()* *E969* *E970*
 		   priority	文字に複数のテキストプロパティがある場合は、優
 				先度が最も高いものが使用される。負の値を使用で
 				きる。デフォルトの優先順位は0である
+		   combine	TRUEの場合、ハイライトを任意の構文ハイライトと
+				結び付ける。省略するかFALSEの場合は構文ハイラ
+				イトは使用されない
 		   start_incl	TRUEの場合、開始位置の挿入はテキストプロパティ
 				に含まれる
 		   end_incl	TRUEの場合、終了位置の挿入はテキストプロパティ
@@ -7720,6 +7881,11 @@ setcmdpos({pos})					*setcmdpos()*
 		{pos}が大きすぎるときは行末にカーソルを移動する。{pos}が1より
 		小さいときの結果は未定義である。
 		成功なら0、コマンドラインを編集しているとき以外には1を返す。
+
+setenv({name}, {val})						*setenv()*
+		環境変数{name} に {val} を設定する。
+		{val} が |v:null| の場合は、環境変数は削除される。
+		|expr-env| も参照。
 
 setfperm({fname}, {mode})				*setfperm()* *chmod*
 		{fname} のファイル許可属性を {mode} に設定する。
@@ -9508,6 +9674,7 @@ test_override({name}, {val})				*test_override()*
 		starting     "starting" 変数を初期化する、以下を参照
 		nfa_fail     古い正規表現エンジンに戻すために、NFA regexp エン
 			     ジンを失敗させる
+		no_query_mouse  "dec" 端末のマウス位置を問い合わせない
 		ALL	     すべての置き換えをクリアする ({val} は使われない)
 
 		"starting" は、起動が完了したようにテストが振る舞うべきときに
@@ -9541,6 +9708,13 @@ test_scrollbar({which}, {value}, {dragging})		*test_scrollbar()*
 		と同じである。
 		{which} スクロールバーが実際に存在し、GUIを使用している場合に
 		のみ動作する。
+
+test_setmouse({row}, {col})				*test_setmouse()*
+		次のマウス操作に使用するマウス位置を設定する。
+		{row} と {col} は 1ベースである。
+		例: >
+			call test_setmouse(4, 20)
+			call feedkeys("\<LeftMouse>", "xt")
 
 test_settime({expr})					*test_settime()*
 		Vim が内部的に用いる時間を設定する。現在は history のタイムス
@@ -10194,6 +10368,7 @@ modify_fname		ファイル名変換子をサポート |filename-modifiers|
 mouse			マウスをサポート
 mouse_dec		DECのターミナルマウスをサポート
 mouse_gpm		gpmをサポート (Linuxのコンソールマウス)
+mouse_gpm_enabled	GPMマウスが動作している
 mouse_netterm		nettermのマウスをサポート
 mouse_pterm		qnx ptermのマウスをサポート
 mouse_sysmouse		sysmouse (*BSD コンソールマウス)をサポート
@@ -10265,7 +10440,7 @@ ttyin			入力が端末 (tty) である
 ttyout			出力が端末 (tty) である
 unix			Vim の Unix バージョン。*+unix*
 unnamedplus		'clipboard' に "unnamedplus" をサポート
-user_commands		ユーザー定義コマンドをサポート
+user_commands		ユーザー定義コマンドをサポート (常に true)
 vcon			Win32: 仮想コンソールサポートが機能していて、
 			'termguicolors' を使用することができる。|+vtp| も参照。
 vertsplit		ウィンドウの垂直分割をサポート |:vsplit| (常に true)
@@ -10505,13 +10680,54 @@ a: のスコープとこれらの変数は固定されており、変更でき�
 を変更できる。よって関数にリスト|List|を渡し、そこに要素を追加させることができ
 る。関数にリストや辞書を変更させたくない場合は|:lockvar|を使うこと。
 
-"..." が使われていない時は、関数呼び出しの時の引数の数は名前付きの引数の数と一
-致していなければならない。"..." を使った時には引数の数は大きくなるだろう。
-
 関数を引数無しで定義することも可能である。その時でも()は付けなければならない。
 
 関数の中で別の関数を定義することも可能である。
 
+
+						*optional-function-argument*
+名前付き固定引数にデフォルト値を指定できる。これにより、関数呼び出しではオプ
+ションになる。呼び出し時に固定引数が指定されていない場合は、デフォルトの式を使
+用して初期化される。これは |function| で宣言された関数に対してのみ機能し、ラム
+ダ式 |expr-lambda| には機能しない。
+
+例: >
+  function Something(key, value = 10)
+     echo a:key .. ": " .. a:value
+  endfunction
+  call Something('empty')	"empty: 10"
+  call Something('key', 20)	"key: 20"
+
+引数のデフォルト式は、定義時ではなく関数呼び出し時に評価される。したがって、関
+数が定義された瞬間に無効な式を使用することが可能である。式はまた、呼び出し中に
+引数が指定されていない場合にのみ評価される。
+
+デフォルトの式を使うために |v:none| を渡すことができる。Note これは、引数にデ
+フォルトの式がある場合、v:none を通常の値として渡すことができないことを意味す
+る。
+
+例: >
+  function Something(a = 10, b = 20, c = 30)
+  endfunction
+  call Something(1, v:none, 3)	    " b = 20
+<
+								*E989*
+デフォルト式を持つオプション引数は、必須引数の後になければならない。 オプショ
+ンの名前付き引数すべての後に "..." を使用できる。
+
+後の引数のデフォルトが前の引数を参照することは可能だが、その逆はできない。すべ
+ての引数と同様に、それらには "a:" を前に付ける必要がある。
+
+動作する例: >
+  :function Okay(mandatory, optional = a:mandatory)
+  :endfunction
+動作しない例: >
+  :function NoGood(first = a:second, second = 10)
+  :endfunction
+<
+"..." が使われていない時は、関数呼び出しの時の引数の数は必須の名前付きの引数の
+数と一致していなければならない。"..." を使った時には引数の数は大きくなるだろ
+う。
 
 							*local-variables*
 関数の中でローカル変数を使うこともできる。これらは関数から戻ると消滅する。
