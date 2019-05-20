@@ -1,4 +1,4 @@
-*quickfix.txt*  For Vim バージョン 8.1.  Last change: 2019 Jan 13
+*quickfix.txt*  For Vim バージョン 8.1.  Last change: 2019 May 05
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -16,8 +16,6 @@
 7. エラーフォーマット			|error-file-format|
 8. ディレクトリスタック			|quickfix-directory-stack|
 9. 具体的なエラーファイルフォーマット	|errorformats|
-
-{Vi にはこれらのコマンドはない}
 
 コンパイル時に|+quickfix|機能が無効にされた場合は、quickfixコマンドは使えない。
 
@@ -83,18 +81,20 @@ locationリストコマンドで処理されているにもかかわらず現在
 locationリストが |autocommand| に変更される場合、それは中断される。
 
 							*:cc*
-:cc[!] [nr]		エラー [nr]を表示する。 [nr]が省略されると同じエラーが
-			再度表示される。[!]が無く、現在のバッファに変更が有り
+:cc[!] [nr]		エラー [nr]を表示する。[nr]が省略されると同じエラーが
+:[nr]cc[!]		再度表示される。[!]が無く、現在のバッファに変更が有り
 			ウィンドウが1つしか無く、'hidden' も 'autowrite' もoff
 			である場合には、他のバッファへジャンプする事は無い。
 			[!]を使用して他のバッファに移る時、現在のバッファへの
 			変更点は、'hidden' がセットされているか別のウィンドウ
 			が開いているかしない場合、破棄されてしまう。
 			バッファ移動の際は設定 'switchbuf' が関係してくる。
+			quickfixウィンドウで使用するときは、現在行の "." や 最
+			終行の "$" を含む行番号を使用できる。
 
 							*:ll*
 :ll[!] [nr]		":cc" と同様だが、quickfixリストでなくカレントウィンド
-			ウのlocationリストが使われる。
+:[nr]ll[!]		ウのlocationリストが使われる。
 
 							*:cn* *:cnext* *E553*
 :[count]cn[ext][!]	ファイル名を含むエラーリストで[count]個後のエラーを表
@@ -113,6 +113,58 @@ locationリストが |autocommand| に変更される場合、それは中断さ
 :[count]lN[ext][!]		*:lp* *:lprevious* *:lprev* *:lN* *:lNext*
 :[count]lp[revious][!]	":cNext" と ":cprevious" と同様だが、quickfixリストで
 			なく、カレントウィンドウのlocationリストが使われる。
+
+							*:cabo* *:cabove*
+:[count]cabo[ve]	カレントバッファの現在行の [count] 上のエラーに移動す
+			る。[count] を省略すると、1が使用される。エラーがない
+			場合は、エラーメッセージが表示される。quickfixリストの
+			エントリは、バッファ番号と行番号でソートされていると仮
+			定する。同じ行に複数のエラーがある場合は、最初のエント
+			リだけが使用される。[count] が現在の行より上のエントリ
+			の数を超えると、ファイル内の最初のエラーが選択される。
+
+							*:lab* *:labove*
+:[count]lab[ove]	quickfixリストの代わりにカレントウィンドウのlocationリ
+			ストが使用されることを除けば、":cabove" と同じ。
+
+							*:cbel* *:cbelow*
+:[count]cbel[ow]	カレントバッファの現在行の [count] 下にあるエラーに移
+			動する。[count] を省略すると、1が使用される。エラーが
+			ない場合は、エラーメッセージが表示される。quickfixリス
+			トのエントリは、バッファ番号と行番号でソートされている
+			と仮定する。同じ行に複数のエラーがある場合は、最初のエ
+			ントリだけが使用される。[count] が現在の行より下のエン
+			トリの数を超えると、ファイル内の最後のエラーが選択され
+			る。
+
+							*:lbel* *:lbelow*
+:[count]lbel[ow]	quickfixリストの代わりにカレントウィンドウのlocationリ
+			ストが使用されることを除けば、":cbelow" と同じ。
+
+							*:cbe* *:cbefore*
+:[count]cbe[fore]	カレントバッファ内の現在のカーソル位置の [count] 前の
+			エラーに移動する。[count] を省略すると、1が使用される。
+			エラーがない場合は、エラーメッセージが表示される。
+			quickfixリストのエントリは、バッファ、行番号および桁番
+			号でソートされていると仮定する。[count] が現在位置より
+			前のエントリ数を超えると、ファイル内の最初のエラーが選
+			択される。
+
+							*:lbe* *:lbefore*
+:[count]lbe[fore]	quickfixリストの代わりにカレントウィンドウのlocationリ
+			ストが使用されることを除けば、":cbefore" と同じ。
+
+							*:caf* *:cafter*
+:[count]caf[ter]	カレントバッファ内の現在のカーソル位置の [count] 後の
+			エラーに移動する。[count] を省略すると、1が使用される。
+			エラーがない場合は、エラーメッセージが表示される。
+			quickfixリストのエントリは、バッファ、行番号および桁番
+			号でソートされていると仮定する。[count] が現在位置以降
+			のエントリ数を超えると、ファイル内の最後のエラーが選択
+			される。
+							*:laf* *:lafter*
+:[count]laf[ter]	quickfixリストの代わりにカレントウィンドウのlocationリ
+			ストが使用されることを除けば、":cafter" と同じ。
 
 							*:cnf* *:cnfile*
 :[count]cnf[ile][!]	ファイル名を含むエラーリストで[count]個後のファイルの
@@ -135,8 +187,8 @@ locationリストが |autocommand| に変更される場合、それは中断さ
 			く、カレントウィンドウのlocationリストが使われる。
 
 							*:crewind* *:cr*
-:cr[ewind][!] [nr]	[nr]のエラーを表示する。 [nr]が省略されると一番最初の
-			エラーが表示される。|:cc|を参照。
+:cr[ewind][!] [nr]	[nr]のエラーを表示する。[nr]が省略されると一番最初のエ
+			ラーが表示される。|:cc|を参照。
 
 							*:lrewind* *:lr*
 :lr[ewind][!] [nr]	":crewind" と同様だが、quickfixリストでなく、カレント
@@ -149,8 +201,8 @@ locationリストが |autocommand| に変更される場合、それは中断さ
 :lfir[st][!] [nr]	":lrewind" と同じ。
 
 							*:clast* *:cla*
-:cla[st][!] [nr]	[nr]のエラーを表示する。 [nr]が省略されると一番最後の
-			エラーが表示される。|:cc|を参照。
+:cla[st][!] [nr]	[nr]のエラーを表示する。[nr]が省略されると一番最後のエ
+			ラーが表示される。|:cc|を参照。
 
 							*:llast* *:lla*
 :lla[st][!] [nr]	":clast" と同様だが、quickfixリストでなく、カレント
@@ -205,7 +257,7 @@ locationリストが |autocommand| に変更される場合、それは中断さ
 			ウィンドウのlocationリストが使われる。
 
 						*:cb* *:cbuffer* *E681*
-:cb[uffer][!] [bufnr]	カレントバッファからエラーリストを読み込む。 [bufnr]を
+:cb[uffer][!] [bufnr]	カレントバッファからエラーリストを読み込む。[bufnr] を
 			指定すると、カレントバッファの代わりにそのバッファが使
 			われる。bufnrには読み込まれているバッファ番号を指定し
 			なければならない。範囲を指定すると、読み込む行を指定す
@@ -275,7 +327,7 @@ locationリストが |autocommand| に変更される場合、それは中断さ
 
 							*:cl* *:clist*
 :cl[ist] [from] [, [to]]
-			有効なエラーを全て列挙する|quickfix-valid|。 [from] 及
+			有効なエラーを全て列挙する|quickfix-valid|。[from] 及
 			び/もしくは [to] で行数を指定された場合、その範囲のエ
 			ラーが表示される。負であった場合最後のエラーから数え
 			る。-1が最後のエラーとなる。設定 'switchbuf' がバッファ
@@ -406,7 +458,6 @@ quickfixリストやlocationリスト中のバッファに対してコマンド�
 			Note: このコマンドを実行している間、Syntax 自動コマン
 			ドイベントが 'eventignore' に追加され、無効化される。
 			これは各バッファの編集を大幅にスピードアップさせる。
-			{Vi にはない}
 			|:bufdo|、|:tabdo|、|:argdo|、|:windo|、|:ldo|、
 			|:cfdo|、|:lfdo| も参照。
 
@@ -419,7 +470,6 @@ quickfixリストやlocationリスト中のバッファに対してコマンド�
 				:{cmd}
 				etc.
 <			それ以外は `:cdo` の場合と同様である。
-			{Vi にはない}
 
 							*:ldo*
 :ld[o][!] {cmd}		カレントウィンドウのlocationリスト中の有効な各項目に対
@@ -432,7 +482,6 @@ quickfixリストやlocationリスト中のバッファに対してコマンド�
 				etc.
 <			locationリスト中の有効な項目のみが使われる。
 			それ以外は `:cdo` の場合と同様である。
-			{Vi にはない}
 
 							*:lfdo*
 :lfdo[!] {cmd}		カレントウィンドウのlocationリスト中の各ファイルに対し
@@ -444,7 +493,29 @@ quickfixリストやlocationリスト中のバッファに対してコマンド�
 				:{cmd}
 				etc.
 <			それ以外は `:cdo` の場合と同様である。
-			{Vi にはない}
+
+QUICKFIX または LOCATIONリストのフィルタリング:
+				    *cfilter-plugin* *:Cfilter* *:Lfilter*
+quickfixリストのエントリ数が多すぎる場合は、cfilterプラグインを使用してエント
+リ数を減らすことができる。プラグインをロードする: >
+
+    packadd cfilter
+
+その後で、以下のコマンドを使って、quickfix/locationリストをフィルタすることが
+できる: >
+
+    :Cfilter[!] /{pat}/
+    :Lfilter[!] /{pat}/
+
+|:Cfilter| コマンドは、現在のquickfixリストの {pat} に一致するエントリから新し
+いquickfixリストを作成する。{pat} はVimの正規表現 |regular-expression| パター
+ンである。ファイル名とエントリのテキストの両方が {pat}と照合される。オプション
+の ! が指定された場合、{pat} と一致しないエントリが使用される。パターンは、次
+のいずれかの文字を使用して任意に囲むことができる: ', ", /。パターンが空の場合
+は、最後に使用された検索パターンが使用される。
+
+|:Lfilter| コマンドは |:Cfilter| と同じ動作をするが、カレントlocationリストを
+操作する。
 
 =============================================================================
 2. エラーウィンドウ					*quickfix-window*
@@ -452,12 +523,12 @@ quickfixリストやlocationリスト中のバッファに対してコマンド�
 					    *:cope* *:copen* *w:quickfix_title*
 :cope[n] [height]	現在のエラーリストを表示するウィンドウを開く。
 			[height]が与えられたとき、(余地があれば) ウィンドウの
-			高さがその値になる。 [height] を省略したときはウィンド
+			高さがその値になる。[height] を省略したときはウィンド
 			ウの高さは 10 行になる。
 
 			すでにquickfixウィンドウがある場合はそれがカレントウィ
 			ンドウになる。2 個目のquickfixウィンドウを開くことはで
-			きない。 [height] が指定されたとき、既存のウィンドウは
+			きない。[height] が指定されたとき、既存のウィンドウは
 			その高さにリサイズされる。
 
 							*quickfix-buffer*
@@ -720,14 +791,19 @@ locationリストウィンドウからファイルを選択すると、以下の
 			ウィンドウのlocationリストが使われる。
 
 						*:chistory* *:chi*
-:chi[story]		エラーリストの一覧を表示する。現在のリストは ">" でマー
+:[count]chi[story]	エラーリストの一覧を表示する。現在のリストは ">" でマー
 			クされる。出力は以下の様になる:
 				  error list 1 of 3; 43 errors ~
 				> error list 2 of 3; 0 errors ~
 				  error list 3 of 3; 15 errors ~
 
+			[count] が与えられると、count番目のquickfixリストがカ
+			レントリストになる。例: >
+				" 4番目のquickfixリストをカレントにする
+				:4chistory
+<
 						*:lhistory* *:lhi*
-:lhi[story]		locationリストの一覧を表示する。`:chistory` の様に。
+:[count]lhi[story]	locationリストの一覧を表示する。`:chistory` の様に。
 
 新しいエラーリストが追加された時には、それがカレントリストとなる。
 
@@ -1515,21 +1591,6 @@ Aztec compilerのファイルの書式は:
    :set mp=make\ \\\|&\ error_filter
 パイプ (|) の前のバックスラッシュはコマンドセパレータとして認識されないために
 必要。コマンド "set" では空白の前にバックスラッシュが必要。
-
-				    *cfilter-plugin* *:Cfilter* *:Lfilter*
-一致するメッセージが多すぎる場合は、cfilterプラグインを使用してエントリ数を減
-らすことができる。以下のようにプラグインを読み込む: >
-   packadd cfilter
-
-次に、これらのコマンドを使用することができる: >
-   :Cfilter[!] /{pat}/
-   :Lfilter[!] /{pat}/
-
-:Cfilter は現在のquickfixリストの {pat} と一致するエントリから新しいquickfixリ
-ストを作成する。エントリのファイル名とテキストの両方が{pat}と照合される。! が
-与えられると、{pat} と一致しないエントリが使われる。
-
-:Lfilter は :Cfilter と同じだが、現在のlocationリストで動作する。
 
 =============================================================================
 8. ディレクトリスタック				*quickfix-directory-stack*
