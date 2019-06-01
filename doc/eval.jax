@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 May 25
+*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 May 30
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -2034,13 +2034,14 @@ v:t_string	文字列 |String| 型の値。読出し専用。 参照: |type()|
 v:t_blob	|Blob| 型の値。読出し専用。 参照: |type()|
 
 				*v:termresponse* *termresponse-variable*
-v:termresponse	termcapのエントリ|t_RV|で端末から返されるエスケープシーケン
-		ス。ESC [またはCSIで始まり、途中数字と ';' と '.' だけから構成
-		され 'c' で終わるエスケープシーケンスを受け取ったとき代入され
-		る。このオプションがセットされるとオートコマンドイベント
-		TermResponseが発生し、端末からの応答に反応することができる。
+v:termresponse	termcapのエントリ|t_RV|で端末から返されるエスケープシーケンス。
+		ESC [ または CSI で始まり、次に '>' または '?' が来て、途中数
+		字と ';' だけから構成され 'c' で終わるエスケープシーケンスを受
+		け取ったとき代入される。このオプションがセットされるとオートコ
+		マンドイベントTermResponseが発生し、端末からの応答に反応するこ
+		とができる。
 		新しいxtermからの応答は次の形式である:
-		 "<Esc>[ Pp ; Pv ; Pc c"。ここでPpは端末のタイプ: 0ならvt100、
+		 "<Esc>[> Pp ; Pv ; Pc c"。ここでPpは端末のタイプ: 0ならvt100、
 		 1ならvt220。Pvはパッチレベル(パッチ95で導入されたため常に95以
 		 上)。Pcは常に0。
 		{Vimが|+termresponse|機能付きでコンパイルされたときのみ有効}
@@ -2713,6 +2714,8 @@ values({dict})			リスト	{dict}の値のリスト
 virtcol({expr})			数値	カーソルのスクリーンカラム位置
 visualmode([expr])		文字列	最後に使われたビジュアルモード
 wildmenumode()			数値	'wildmenu' モードが有効かどうか
+win_execute({id}, {command} [, {silent}])
+				文字列	ウィンドウ{id}で{command}を実行する
 win_findbuf({bufnr})		リスト	{bufnr}を含むウィンドウを見つける
 win_getid([{win} [, {tab}]])	数値	{tab}の{win}のウィンドウIDを取得
 win_gotoid({expr})		数値	ID {expr}のウィンドウに行く
@@ -3955,8 +3958,11 @@ execute({command} [, {silent}])					*execute()*
 >
 			split(execute('args'), "\n")
 
-<		再帰的に使用されると、再帰呼び出しの出力は、上位呼び出しの出力
-		に含まれません。
+<		現在のウィンドウとは別のウィンドウでコマンドを実行するには
+		`win_execute()` を使用すること。
+
+		再帰的に使用されると、再帰呼び出しの出力は、上位呼び出しの出力
+		に含まれない。
 
 exepath({expr})						*exepath()*
 		{expr} が実行ファイルで、それが絶対パス、相対パス、または
@@ -8164,6 +8170,8 @@ setreg({regname}, {value} [, {options}])
 settabvar({tabnr}, {varname}, {val})			*settabvar()*
 		タブページ {tabnr} のタブローカル変数 {varname} を {val} に設
 		定する。 |t:var|
+		Note オートコマンドがブロックされ、副作用が発生しない可能性が
+		ある。例えば、'filetype' を設定する時。
 		Note: 指定する変数名は "t:" を除いた名前。
 		タブの番号は 1 から始まる。
 		この関数はサンドボックス (|sandbox|) の中では使えない。
@@ -8175,6 +8183,8 @@ settabwinvar({tabnr}, {winnr}, {varname}, {val})	*settabwinvar()*
 		|setwinvar()|を使う。
 		{winnr} にはウィンドウ番号または|window-ID|が使える。
 		{winnr}が0のときはカレントウィンドウが対象となる。
+		Note オートコマンドがブロックされ、副作用が発生しない可能性が
+		ある。例えば、'filetype' または 'syntax' を設定する時。
 		グローバルオプションやバッファローカルオプションを設定すること
 		もできるが、グローバル変数やバッファローカル変数を設定すること
 		はできない。
@@ -10037,6 +10047,17 @@ wildmenumode()					*wildmenumode()*
 <
 		(Note 'wildcharm' オプションが適切に設定されている必要がある。)
 
+win_execute({id}, {command} [, {silent}])		*win_execute()*
+		`execute()` と似ているが、ウィンドウ {id} のコンテキスト内で実
+		行する。
+		オートコマンドを発生させずに、ウィンドウを一時的にカレントウィ
+		ンドウにする。{command} を実行すると、オートコマンドがトリガー
+		される。これは予期しない副作用を引き起こす可能性がある。必要で
+		あれば |:noautocmd| を使用すること。
+		例: >
+			call win_execute(winid, 'set syntax=python')
+<		`setwinvar()` で同じことをしてもオートコマンドはトリガーされ
+		ず、実際には構文ハイライトは表示されない。
 
 win_findbuf({bufnr})					*win_findbuf()*
 		バッファ {bufnr} が含まれているウィンドウについて |window-ID|
