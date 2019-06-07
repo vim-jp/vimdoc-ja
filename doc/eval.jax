@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 May 30
+*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 Jun 06
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -10063,6 +10063,9 @@ win_execute({id}, {command} [, {silent}])		*win_execute()*
 			call win_execute(winid, 'set syntax=python')
 <		`setwinvar()` で同じことをしてもオートコマンドはトリガーされ
 		ず、実際には構文ハイライトは表示されない。
+							*E994*
+		すべてのコマンドがポップアップウィンドウで許可されているわけで
+		はない。
 
 win_findbuf({bufnr})					*win_findbuf()*
 		バッファ {bufnr} が含まれているウィンドウについて |window-ID|
@@ -11250,7 +11253,7 @@ text...
 			内部変数{name}をアンロックする。|:lockvar|の逆を行う。
 
 
-:if {expr1}			*:if* *:endif* *:en* *E171* *E579* *E580*
+:if {expr1}			*:if* *:end* *:endif* *:en* *E171* *E579* *E580*
 :en[dif]		{expr1}が非ゼロと評価された場合に、対応する ":else" か
 			":endif" までの命令を実行する。
 
@@ -12673,7 +12676,7 @@ matchstr()やsubstitute()を使えば実現できる。以下の例は、"foobar
 ネスティングが可能である。しかし必ず行の先頭に書かれている必要がある。":else"
 コマンドは認識されない。
 
-|+eval|機能が存在しなかった場合、どのようにコマンドが実行を免れるかの例: >
+|+eval| 機能が存在しなかった場合、どのようにコマンドが実行を免れるかの例: >
 
 	:if 1
 	:  echo "Expression evaluation is compiled in"
@@ -12681,8 +12684,16 @@ matchstr()やsubstitute()を使えば実現できる。以下の例は、"foobar
 	:  echo "You will _never_ see this message"
 	:endif
 
-|+eval|機能が無効になっているときだけにコマンドを実行するには、この例のような
-トリックが必要である: >
+|+eval| 機能が無効になっている場合にのみコマンドを実行するには、2つの方法があ
+る。最も簡単なのは、スクリプト(またはVim)を途中で終了することである: >
+	if 1
+	   echo "commands executed with +eval"
+	   finish
+	endif
+	args  " command executed without +eval
+
+スクリプトのロードを中止したくない場合は、次の例に示すようなトリックを使用する
+ことができる: >
 
 	silent! while 0
 	  set history=111
