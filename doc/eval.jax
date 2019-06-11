@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 Jun 06
+*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 Jun 10
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -2588,12 +2588,12 @@ sin({expr})			浮動小数点数	{expr} の正弦(サイン)
 sinh({expr})			浮動小数点数	{expr}のハイパボリックサイン
 sort({list} [, {func} [, {dict}]])
 				リスト	比較に{func}を使って{list}をソートする
+sound_clear()			なし	すべてのサウンドの再生を停止する
 sound_playevent({name} [, {callback}])
 				数値	イベントサウンドを再生する
-sound_playfile({name} [, {callback}])
-				数値	サウンドファイルを再生する
+sound_playfile({path} [, {callback}])
+				数値	サウンドファイル{path}を再生する
 sound_stop({id})		なし	サウンド{id}の再生を停止する
-sound_stopall()			なし	すべてのサウンドの再生を停止する
 soundfold({word})		文字列	{word}のsound-fold
 spellbadword()			文字列	カーソル位置のスペルミスした単語
 spellsuggest({word} [, {max} [, {capital}]])
@@ -8612,6 +8612,10 @@ sort({list} [, {func} [, {dict}]])			*sort()* *E702*
 			func MyCompare(i1, i2)
 			   return a:i1 - a:i2
 			endfunc
+
+sound_clear()						*sound_clear()*
+		すべてのサウンドの再生を停止する。
+		{|+sound| 機能つきでコンパイルされたときのみ有効}
 <
 							*sound_playevent()*
 sound_playevent({name} [, {callback}])
@@ -8651,10 +8655,6 @@ sound_stop({id})					*sound_stop()*
 		サウンド {id} の再生を停止する。{id} は、事前に
 		`sound_playevent()` または `sound_playfile()` によって返された
 		ものでなければならない。
-		{|+sound| 機能つきでコンパイルされたときのみ有効}
-
-sound_stopall()						*sound_stopall()*
-		すべてのサウンドの再生を停止する。
 		{|+sound| 機能つきでコンパイルされたときのみ有効}
 
 							*soundfold()*
@@ -12705,19 +12705,22 @@ matchstr()やsubstitute()を使えば実現できる。以下の例は、"foobar
 時々、機能の古い構文がVimをより良くすることを妨げることがある。サポートが奪わ
 れると、これは古いVim scriptを壊すだろう。これを明確にするために
 |:scriptversion| コマンドを使うことができる。Vim scriptが古いバージョンのVimと
-互換性がない場合、不可解な方法で失敗するのではなく、明示的なエラーを与える。 >
+互換性がない場合、不可解な方法で失敗するのではなく、明示的なエラーを与える。
 
+							*scriptversion-1*  >
  :scriptversion 1
 <	これはオリジナルのVim scriptであり、|:scriptversion| コマンドを使用し
 	ていないのと同じである。行の範囲について古い構文に戻るために使用するこ
 	とができる。以下でサポートを検査する: >
 		has('vimscript-1')
 
+<							*scriptversion-2*  >
  :scriptversion 2
 <	"." による文字列連結はサポートされていない、代わりに ".." を使用するこ
 	と。これにより、Dictメンバーアクセスと浮動小数点数に "." を使用するこ
 	とによる曖昧さが回避される。".5" は数値 0.5 を意味する。
->
+
+							*scriptversion-3*  >
  :scriptversion 3
 <	すべてのVimの定義済変数 |vim-variable| には "v:" という接頭辞を付けな
 	ければならない。例えば "version" は |v:version| とは違うので、普通の変
