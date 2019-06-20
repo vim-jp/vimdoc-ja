@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 Jun 10
+*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 Jun 17
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1891,11 +1891,29 @@ v:option_new    オプションに設定された新しい値。自動コマン�
 		行している間のみ有効。
 						    *v:option_old*
 v:option_old    オプションの以前の値。自動コマンド |OptionSet| を実行している
-		間のみ有効。
+		間のみ有効。設定に使用されたコマンドおよびオプションの種類に
+		よって、ローカルの以前の値またはグローバルの以前の値のどちらか
+		になる。
+						    *v:option_oldlocal*
+v:option_oldlocal
+		オプションの以前のローカル値。|OptionSet| 自動コマンドの実行中
+		に有効である。
+						    *v:option_oldglobal*
+v:option_oldglobal
+		オプションの以前のグローバル値。|OptionSet| 自動コマンドの実行
+		中に有効である。
 						    *v:option_type*
 v:option_type   set コマンドのスコープ。自動コマンド |OptionSet| を実行している
 		間のみ有効。"global" もしくは "local" のどちらかとなる。
-
+						    *v:option_command*
+v:option_command
+		オプションを設定するために使われたコマンド。|OptionSet| 自動コ
+		マンドの実行中に有効である。
+			値		オプションは以下によって設定された ~
+			"setlocal"	|:setlocal| または ":let l:xxx"
+			"setglobal"	|:setglobal| または ":let g:xxx"
+			"set"		|:set| または |:let|
+			"modeline"	|modeline|
 					*v:operator* *operator-variable*
 v:operator	ノーマルモードにおいて最後に実行したオペレータコマンド。基本的
 		に1文字である。例外は <g> や <z> で始まるコマンドで、その場合
@@ -2110,18 +2128,18 @@ v:val		リスト|List|もしくは辞書|Dictionary|の現在の要素の値。|
 					*v:version* *version-variable*
 v:version	Vimのバージョン番号。メジャーバージョン番号は100倍され、マイ
 		ナーバージョン番号と足されている。Version 5.0は500。Version
-		5.1 (5.01)は501となる。読出し専用。|scriptversion| が 3以降で
-		なければ、"version" も、以前の版のVimとの互換性の為に動作する。
+		5.1は501となる。読出し専用。|scriptversion| が 3以降でなけれ
+		ば、"version" も、以前の版のVimとの互換性の為に動作する。
 		特定のパッチが適用されているかを調べるには|has()|を使う。例: >
 			if has("patch-7.4.123")
 <		Note 5.0と5.1には両方ともパッチ123が存在しているが、バージョン
 		が違えば番号は同じでもパッチの内容は全く異なっている。
 
 					*v:versionlong* *versionlong-variable*
-v:versionlong	v:versionと同じだが、パッチレベルも含む。パッチ 1234 を適用し
-		たバージョン 8.1 の値は 8011234 である。これは次のように使用で
-		きる: >
-			if v:versionlong >= 8011234
+v:versionlong	v:versionと同じだが、最後の4桁にパッチレベルも含む。パッチ 123
+		を適用したバージョン 8.1 の値は 8010123 である。これは次のよう
+		に使用できる: >
+			if v:versionlong >= 8010123
 <		ただし、含まれているパッチのリストに隙間がある場合は、うまくい
 		かない。これは、最近のパッチが古いバージョンに含まれていた場合
 		に起こる。例えば、セキュリティ修正のため。
@@ -7889,10 +7907,9 @@ setbufline({expr}, {lnum}, {text})			*setbufline()*
 
 		{lnum} は |setline()| と同様に扱われる。
 		これは特定のバッファに対し、|setline()| のように機能する。
-		成功時には 0 が返され、失敗時には 1 が返される。
 
-		{expr} が有効なバッファでない、もしくは {lnum} が有効でない場
-		合、エラーメッセージが与えられる。
+		{expr} が有効なバッファでないか、{lnum} が無効な場合は 1 が返
+		される。成功すると 0 が返される。
 
 setbufvar({expr}, {varname}, {val})			*setbufvar()*
 		バッファ{expr}のオプションまたはローカル変数{varname}に{val}を
@@ -8635,8 +8652,11 @@ sound_playevent({name} [, {callback}])
 		Ubuntuでは、それらは /usr/share/sounds/freedesktop/stereo に見
 		つかるだろう。例: >
 			call sound_playevent('bell')
+<		MS-Windows では、{name} は SystemAsterisk、SystemDefault、
+		SystemExclamation、SystemExit、SystemHand、SystemQuestion、
+		SystemStart、SystemWelcome 等になる。
 
-<		{callback} が指定されている場合は、サウンドが終了したときに呼
+		{callback} が指定されている場合は、サウンドが終了したときに呼
 		び出される。最初の引数はサウンドID、2番目の引数はステータスで
 		ある:
 			0	最後までサウンドが再生された
@@ -8648,7 +8668,9 @@ sound_playevent({name} [, {callback}])
 		   endfunc
 		   call sound_playevent('bell', 'Callback')
 
-<		`sound_stop()` に渡すことができるサウンドIDを返す。
+<		MS-Windows: {callback} はこの関数では動作しない。
+
+		`sound_stop()` に渡すことができるサウンドIDを返す。
 		サウンドを再生できなかった場合はゼロを返す。
 		{|+sound| 機能つきでコンパイルされたときのみ有効}
 
@@ -8666,6 +8688,11 @@ sound_stop({id})					*sound_stop()*
 		サウンド {id} の再生を停止する。{id} は、事前に
 		`sound_playevent()` または `sound_playfile()` によって返された
 		ものでなければならない。
+
+		MS-Windowsでは、これは `sound_playevent()` によって開始される
+		イベントサウンドに対しては機能しない。イベントのサウンドを止め
+		るには `sound_clear()` を使用する。
+
 		{|+sound| 機能つきでコンパイルされたときのみ有効}
 
 							*soundfold()*
@@ -11250,7 +11277,6 @@ text...
 				#	数値
 				*	Funcref
 
-
 :unl[et][!] {name} ...				*:unlet* *:unl* *E108* *E795*
 			内部変数{name}を削除する。複数の変数名を指定すると、そ
 			れらが全て削除される。名前はリスト|List|や辞書
@@ -11277,10 +11303,9 @@ text...
 			システムが環境変数の削除をサポートしていない場合は空に
 			する。
 
-						*:cons* *:const* *E996*
+						*:cons* *:const*
 :cons[t] {var-name} = {expr1}
 :cons[t] [{name1}, {name2}, ...] = {expr1}
-:cons[t] [{name1}, {name2}, ...] .= {expr1}
 :cons[t] [{name}, ..., ; {lastname}] = {expr1}
 :cons[t] {var-name} =<< [trim] {marker}
 text...
@@ -11297,10 +11322,13 @@ text...
 <			これは、変数が変更されないことを確実にしたいときに便利
 			である。
 							*E995*
-			|:const|は変数の変更をすることができない。 >
+			|:const|は変数の変更をすることができない: >
 				:let x = 1
 				:const x = 2  " エラー!
-<
+<							*E996*
+			Note 環境変数、オプション値およびレジスタ値はロックで
+			きないため、ここでは使用できない。
+
 :lockv[ar][!] [depth] {name} ...			*:lockvar* *:lockv*
 			内部変数{name}をロックする。ロックすると、それ以降変更
 			ができなくなる(アンロックするまで)。
