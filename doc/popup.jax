@@ -88,12 +88,17 @@ Exコマンドの出力のために画面がスクロールアップすると、
 
 TODO:
 - Why does 'nrformats' leak from the popup window buffer???
+- When the lines do not fit show a scrollbar (like in the popup menu).
+  Use the mouse wheel for scrolling.
 - Disable commands, feedkeys(), CTRL-W, etc. in a popup window.
   Use ERROR_IF_POPUP_WINDOW for more commands.
 - Add 'balloonpopup': instead of showing text, let the callback open a popup
   window and return the window ID.   The popup will then be closed when the
   mouse moves, except when it moves inside the popup.
 - For the "moved" property also include mouse movement?
+- Can the buffer be re-used, to avoid using up lots of buffer numbers?
+- Have an option to attach the popup to a text position, like text properties
+  do. (#4560)
 - Make redrawing more efficient and avoid flicker:
     - put popup menu also put in popup_mask?
 - Invoke filter with character before mapping?
@@ -102,16 +107,12 @@ TODO:
     if wrapping inserts indent
 - When drawing on top half a double-wide character, display ">" or "<" in the
   incomplete cell.
-- Can the buffer be re-used, to avoid using up lots of buffer numbers?
 - Use a popup window for the "info" item of completion instead of using a
   preview window.  Ideas in issue #4544.
   How to add highlighting?
-- When the lines do not fit show a scrollbar (like in the popup menu).
-  Use the mouse wheel for scrolling.
 - Implement:
-	tabpage option with number
 	flip option
-	transparent text property
+	transparent area, to minimize covering text.  Define rectangles?
 
 
 ==============================================================================
@@ -163,8 +164,8 @@ popup_atcursor({text}, {options})			 *popup_atcursor()*
 
 
 							*popup_clear()*
-popup_clear()	不作法にふるまうプラグインに対する緊急の解決策: すべてのポップ
-		アップウィンドウを閉じる。
+popup_clear()	不作法にふるまうプラグインに対する緊急の解決策: グローバルポッ
+		プアップとカレントタブポップアップをすべて閉じる。
 
 
 popup_close({id} [, {result}])				*popup_close()*
@@ -233,6 +234,8 @@ popup_filter_menu({id}, {key})				*popup_filter_menu()*
 		初のエントリのインデックスは 1 である。メニューをキャンセルす
 		ると、-1 でコールバックが呼び出される。
 
+		ショートカットキーを追加する場合
+		|popup_menu-shortcut-example| を参照。
 
 popup_filter_yesno({id}, {key})				*popup_filter_yesno()*
 		ポップアップに使用できるフィルタ。キー 'y'、'Y' および 'n' ま
@@ -241,6 +244,7 @@ popup_filter_yesno({id}, {key})				*popup_filter_yesno()*
 		を呼び出す。Esc と 'x' を押すと、'n' を押すのと同じように機能
 		する。CTRL-C は -1 でコールバックを呼び出す。他のキーは無視さ
 		れる。
+		|popup_dialog-example| を参照。
 
 
 popup_getoptions({id})					*popup_getoptions()*
@@ -255,6 +259,10 @@ popup_getoptions({id})					*popup_getoptions()*
 		べての値が 1 の場合、空のリストが含まれる。
 
 		すべての値が空の場合、"borderhighlight" は含まれない。
+
+		グローバルポップアップの場合 "tabpage" には -1 が設定され、カ
+		レントタブページの場合は 0 、別のタブページの場合は正の整数が
+		設定される。
 
 		ポップアップウィンドウ {id} が見つからない場合は空の辞書が返さ
 		れる。
@@ -472,8 +480,8 @@ POPUP_CREATE() の引数					*popup_create-usage*
 			0 (デフォルト)の場合: カレントタブページにポップアップ
 			を表示する。
 			それ以外の場合は、ポップアップが表示されるタブページの
-			番号。無効な場合はカレントタブページが使用される。
-			{-1と0のみ実装} {only -1 and 0 are implemented}
+			番号。無効な場合、ポップアップは生成されず、エラーに
+			なる。 *E997*
 	title		ポップアップの最初の項目の上、ボーダーの上に表示される
 			テキスト。上枠がない場合は、タイトルを付けるために1行
 			のパディングが追加される。最初と最後に1つ以上のスペー
@@ -506,8 +514,9 @@ POPUP_CREATE() の引数					*popup_create-usage*
 			リストに1文字が含まれている場合は、それがすべてに使用
 			される。リストに2文字が含まれている場合、最初の文字は
 			ボーダーに使用され、2番目の文字はコーナーに使用される。
-			'encoding' が "utf-8" のときはデフォルトで2重線が使わ
-			れる。それ以外の場合はASCII文字が使われる。
+			'encoding' が "utf-8" かつ 'ambiwidth' が "single" の
+			ときはデフォルトで2重線が使われる。それ以外の場合は
+			ASCII文字が使われる。
 	zindex		ポップアップの優先度。デフォルトは50。最小値は1、最大
 			値は32000。
 	time		ポップアップが閉じるまでの時間(msec)。省略した場合は
@@ -617,7 +626,7 @@ Note "x" はポップアップを閉じる通常の方法である。Escを使�
 3. 例							*popup-examples*
 
 TODO
-
+					*popup_dialog-example*
 ユーザーに y/Y か n/N を押すように促す: >
 
 	func MyDialogHandler(id, result)
@@ -626,10 +635,38 @@ TODO
 	   endif
 	endfunc
 
-	call popup_create(['Continue? y/n'], {
+	call popup_dialog('Continue? y/n', {
 		\ 'filter': 'popup_filter_yesno',
 		\ 'callback': 'MyDialogHandler',
 		\ })
 <
+					*popup_menu-shortcut-example*
+popup_filter_menu() をショートカットで拡張できるようにする: >
+
+	call popup_menu('Save', 'Cancel', 'Discard'], {
+		\ 'filter': 'MyMenuFilter',
+		\ 'callback': 'MyMenuHandler',
+		\ })
+
+	func MyMenuFilter(id, key)
+	  " ショートカットキーをハンドリングする
+	  if a:key == 'S'
+	     call popup_close(a:id, 1)
+	     return 1
+	  endif
+	  if a:key == 'C'
+	     call popup_close(a:id, 2)
+	     return 1
+	  endif
+	  if a:key == 'D'
+	     call popup_close(a:id, 3)
+	     return 1
+	  endif
+
+	  " ショートカットキーではない場合は通常のフィルタに渡す
+	  return popup_filter_menu(a:id, a:key)
+	endfunc
+<
+
 
  vim:tw=78:ts=8:noet:ft=help:norl:

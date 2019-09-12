@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 Jun 17
+*eval.txt*	For Vim バージョン 8.1.  Last change: 2019 Jun 22
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -2222,8 +2222,11 @@ balloon_split({msg})		リスト	{msg} をバルーンで使われるように分
 browse({save}, {title}, {initdir}, {default})
 				文字列	ファイル選択ダイアログを表示
 browsedir({title}, {initdir})	文字列	ディレクトリ選択ダイアログを表示
+bufadd({name})			数値	バッファリストにバッファを追加する
 bufexists({expr})		数値	バッファ{expr}が存在すれば|TRUE|
 buflisted({expr})		数値	バッファ{expr}がリストにあるなら|TRUE|
+bufload({expr})			数値	まだバッファ{expr}がロードされていなけ
+					ればバッファをロードする
 bufloaded({expr})		数値	バッファ{expr}がロード済みなら|TRUE|
 bufname({expr})			文字列	バッファ{expr}の名前
 bufnr({expr} [, {create}])	数値	バッファ{expr}の番号
@@ -2714,6 +2717,7 @@ test_alloc_fail({id}, {countdown}, {repeat})
 test_autochdir()		なし	起動時に 'autochdir' を有効にする
 test_feedinput({string})	なし	キー入力を入力バッファに追加する
 test_garbagecollect_now()	なし	テスト用に直ちにメモリを解放する
+test_garbagecollect_soon()	なし	テスト用にすぐにメモリを解放する
 test_getvalue({string})		任意	内部変数の値を取得する
 test_ignore_error({expr})	なし	特定のエラーを無視する
 test_null_blob()		Blob	テスト用のnull値
@@ -3101,6 +3105,14 @@ browsedir({title}, {initdir})
 		ダイアログがキャンセルされるか、何かエラーがあるか、もしくはブ
 		ラウジングが不可能ならば、空文字列が戻ってくる。
 
+bufadd({name})						*bufadd()*
+		バッファリストに {name} という名前でバッファを追加する。
+		もし、ファイル {name} 用のバッファが既に存在した場合、そのバッ
+		ファの番号を返す。そうでなければ、新しく作られたバッファの番号
+		を返す。{name} が空の文字列だったときは新しいバッファが常に作
+		成される。
+		バッファには 'buflisted' が設定されない。
+
 							*bufexists()*
 bufexists({expr})
 		結果は数値で、{expr}と呼ばれるバッファが存在すれば|TRUE|とな
@@ -3129,6 +3141,15 @@ buflisted({expr})					*buflisted()*
 		戻り値は数値で、{expr}と呼ばれるバッファが存在しリストされてい
 		る ('buflisted' オプションがオンになっている) ならば結果は
 		|TRUE|となる。引数{expr}は|bufexists()|と同じように扱われる。
+
+bufload({expr})						*bufload()*
+		バッファ{expr}がロードされていることを保証する。バッファの名前
+		が既存のファイルを参照しているときは、そのファイルが読み込まれ
+		る。そうでなければバッファは空になる。もし既にバッファが読み込
+		まれていれば、変更はない。
+		バッファのファイルに対して既存のスワップファイルがある場合、ダ
+		イアログなしで、バッファはロードされる。
+		引数{expr}は|bufexists()|と同じように扱われる。
 
 							*bufloaded()*
 bufloaded({expr})
@@ -7195,8 +7216,8 @@ prop_remove({props} [, {lnum} [, {lnum-end}]])
 		{lnum}行から一致するテキストプロパティを削除する。
 		{lnum-end}が指定された場合、{lnum}行から{lnum-end}(その行を含
 		む)までの一致するテキストプロパティを削除する。
-		{lnum}を省略した倍、一致するテキストプロパティをすべての行から
-		削除する。
+		{lnum}を省略した場合、一致するテキストプロパティをすべての行か
+		ら削除する。
 
 		{props}は次のフィールドを持つ辞書である:
 		   id		このIDを持つテキストプロパティを削除する
@@ -9753,6 +9774,10 @@ test_garbagecollect_now()			 *test_garbagecollect_now()*
 		存在しないようにするために直接呼び出す必要がある。また、この関
 		数を呼び出す前に |v:testing| を設定する必要がある。
 
+test_garbagecollect_soon()			 *test_garbagecollect_soon()*
+		あたかもメインループの中にいるように、ガーベッジコレクトを呼び
+		出すためのフラグを設定する。テストでのみ使用される。
+
 test_getvalue({name})					*test_getvalue()*
 		内部変数の値を取得する。{name} のこれらの値がサポートされてい
 		る:
@@ -9816,6 +9841,8 @@ test_override({name}, {val})				*test_override()*
 		nfa_fail     古い正規表現エンジンに戻すために、NFA regexp エン
 			     ジンを失敗させる
 		no_query_mouse  "dec" 端末のマウス位置を問い合わせない
+		no_wait_return  "no_wait_return" フラグを設定する。"ALL" では
+				復元されない
 		ALL	     すべての置き換えをクリアする ({val} は使われない)
 
 		"starting" は、起動が完了したようにテストが振る舞うべきときに
@@ -11239,11 +11266,23 @@ text...
 			{marker} が指定されていない場合は、"." がデフォルトの
 			マーカーとして使用される。
 
-			テキスト行内の空白文字はすべて保持される。{marker} の
-			前に "trim" を指定すると、`let` の前の先頭のインデント
-			と完全に一致する先頭のインデントはすべて入力行と
-			{marker} を含む行から削除される。Note スペースとタブの
-			違いが重要であることに注意すること。
+			"trim" がない場合は、テキスト行内の全ての空白文字は保
+			持される。もし {marker} の前に "trim" が指定されている
+			場合、インデントが取り除かれるため以下を実行できる: >
+				let text =<< trim END
+				  if ok
+				    echo 'done'
+				  endif
+				END
+<			結果: ["if ok", "  echo 'done'", "endif"]
+			マーカーは "let" のインデントと並ばなければならず、最
+			初の行のインデントは全てのテキスト行から取り除かれる。
+			具体例: 最初の空でないテキスト行の先頭のインデントと完
+			全に一致する全ての先頭のインデントは入力行から削除され
+			る。`let` の前の先頭のインデントと完全に一致する先頭の
+			インデントはすべて {marker} を含む行から削除される。
+			Note スペースとタブの違いが重要であることに注意するこ
+			と。
 
 			{var-name} がまだ存在しない場合は作成される。
 			他のコマンドを続けることはできないが、コメントを続ける
