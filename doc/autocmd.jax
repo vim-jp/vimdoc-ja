@@ -362,6 +362,9 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 			でテキストが変更された後
 |TextYankPost|		テキストがヤンクもしくは削除された後
 
+|SafeState|		保留中のものはなく、ユーザーの文字入力を待つとき
+|SafeStateAgain|	繰り返された SafeState
+
 |ColorSchemePre|	カラースキームを読み込む前
 |ColorScheme|		カラースキームを読み込んだ後
 
@@ -565,15 +568,13 @@ CmdlineLeave			カーソルがコマンドラインを離れる前。CTRL-C も
 							*CmdwinEnter*
 CmdwinEnter			Command-lineウィンドウに入った後。この特殊な
 				ウィンドウに対してのみオプションを設定するのに
-				便利である。このイベントは BufEnter や
-				WinEnter の「代わりに」発生する。
+				便利である。
 				<afile> は、command-lineの種類を示す1文字に設
 				定される。 |cmdwin-char|
 							*CmdwinLeave*
 CmdwinLeave			Command-lineウィンドウから出る前。イベント
 				CmdwinEnter で行ったグローバル設定を消去するの
-				に便利である。このイベントは BufLeave や
-				WinLeave の「代わりに」発生する。
+				に便利である。
 				<afile> は、command-lineの種類を示す1文字に設
 				定される。 |cmdwin-char|
 							*ColorScheme*
@@ -603,6 +604,10 @@ CompleteChanged 					*CompleteChanged*
 				    scrollbar		表示時 TRUE
 
 				テキストの |textlock| を変更することはできない。
+
+				ポップアップのサイズと位置は、|pum_getpos()|
+				を呼び出すことでも得られる。
+
 							*CompleteDone*
 CompleteDone			挿入モード補完が完了したとき。補完が実行されて
 				も中止されても発行される。 |ins-completion|
@@ -949,6 +954,32 @@ RemoteReply			サーバーとして働くVimからの応答を受け取ったと
 				を読み込むのには、読み込んだ応答を処理できるよ
 				うに関数 |remote_read()| を使うべきであること
 				に注意。
+							*SafeState*
+SafeState			何も保留されておらず、ユーザーの文字入力を待つ
+				とき。
+				次の場合はトリガーされない:
+				- オペレータ待機中
+				- レジスタが "r で入力された
+				- コマンドの実行途中
+				- マップの実行中
+				- 先行入力がある
+				- 挿入モード補完がアクティブ
+				- コマンドライン補完がアクティブ
+				`mode()` を使用して、Vimの状態を確認できる。
+				それは以下かもしれない:
+				- ビジュアルモード
+				- ノーマルモード
+				- 挿入モード
+				- コマンドラインモード
+				やりたいことによっては、`state()` でさらに
+				チェックすることもできる。例えば、画面がメッ
+				セージのためにスクロールされたかどうか。
+							*SafeStateAgain*
+SafeStateAgain			SafeState に似ているが、メッセージを処理し、
+				コールバックを呼び出した後。これは頻繁にトリ
+				ガーされる可能性があるので、時間がかかるような
+				ことはしないこと。
+
 							*SessionLoadPost*
 SessionLoadPost			|:mksession|で作られたセッションファイルを読み
 				込んだ後。
