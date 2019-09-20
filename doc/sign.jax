@@ -1,4 +1,4 @@
-*sign.txt*      For Vim バージョン 8.1.  Last change: 2019 Jun 04
+*sign.txt*      For Vim バージョン 8.1.  Last change: 2019 Sep 06
 
 
 		VIMリファレンスマニュアル    by Gordon Prieur
@@ -9,6 +9,7 @@
 
 1. 機能紹介				|sign-intro|
 2. コマンド				|sign-commands|
+3. 関数					|sign-functions-details|
 
 {|+signs| 機能付きでコンパイルした場合にのみ利用可能}
 
@@ -347,5 +348,373 @@
 
 :sign jump {id} group={group} [buffer={nr}]
 		上に同じだが、グループ{group}の目印に移動する。
+
+
+==============================================================================
+3. 関数						*sign-functions-details*
+
+sign_define({name} [, {dict}])				*sign_define()*
+sign_define({list})
+		{name}という名前の新しい目印を定義するか、既存の目印の属性を変
+		更する。これは |:sign-define| コマンドに似ている。
+
+		名前の衝突を避けるために、{name}に一意のテキストを付けること。
+		目印を設置するような{group}はない。
+
+		{name}は文字列または数値である。任意の{dict}引数は目印属性を指
+		定する。以下の値がサポートされている:
+		   icon		目印用のビットマップファイルへのフルパス。
+		   linehl	目印が設置されている行全体に使用されるハイライ
+				トグループ。
+		   text		アイコンがない場合、またはGUIが使用されていな
+				い場合に表示されるテキスト。
+		   texthl	text項目に使用されるハイライトグループ
+		{name}という名前の目印がすでに存在する場合は、その目印の属性が
+		更新される。
+
+		1つの引数{list}を使用して、目印のリストを定義できる。各リスト
+		項目は、{dict}の上記項目と目印名の 'name' 項目を持つ辞書であ
+		る。
+		成功すると 0 を返し、失敗すると -1 を返す。1つの引数{list}が使
+		用されると、定義された各目印ごとに値のリストが返される。
+
+		例: >
+			call sign_define("mySign", {
+				\ "text" : "=>",
+				\ "texthl" : "Error",
+				\ "linehl" : "Search"})
+			call sign_define([
+				\ {'name' : 'sign1',
+				\  'text' : '=>'},
+				\ {'name' : 'sign2',
+				\  'text' : '!!'}
+				\ ])
+<
+		|method| としても使用できる: >
+			GetSignList()->sign_define()
+
+sign_getdefined([{name}])				*sign_getdefined()*
+		定義済みの目印とその属性のリストを取得する。
+		これは |:sign-list| コマンドに似ている。
+
+		{name}が指定されていない場合は、定義されているすべての目印のリ
+		ストが返される。そうでなければ、指定された目印の属性が返され
+		る。
+
+		戻り値の各リスト項目は、次のエントリを持つ辞書である:
+		   icon		目印用のビットマップファイルへのフルパス。
+		   linehl	目印が設置されている行全体に使用されるハイライ
+				トグループ。
+		   text		アイコンがない場合、またはGUIが使用されていな
+				い場合に表示されるテキスト。
+		   texthl	text項目に使用されるハイライトグループ
+
+		目印がなく、{name}が見つからない場合は、空のListを返す。
+
+		例: >
+			" すべての定義済み目印のリストを取得する
+			echo sign_getdefined()
+
+			" mySignという名前の目印の属性を取得する
+			echo sign_getdefined("mySign")
+<
+		|method| としても使用できる: >
+			GetSignList()->sign_getdefined()
+
+sign_getplaced([{expr} [, {dict}]])			*sign_getplaced()*
+		バッファまたはすべてのバッファに設置されている目印のリストを返
+		す。これは |:sign-place-list| コマンドに似ている。
+
+		任意のバッファ名{expr}が指定されている場合、そのバッファに設置
+		されている目印のリストだけが返される。{expr}の使い方については
+		|bufname()| を参照。任意の{dict}には、以下のエントリを含めるこ
+		とができる。
+		   group	このグループの目印のみを選択する
+		   id		この識別子を持つ目印を選択する
+		   lnum		この行に設置されている目印を選択する。{lnum}の
+				使い方については |line()| を参照。
+		{group}が '*' の場合、グローバルグループを含むすべてのグループ
+		の目印が返される。{group}が指定されていないか、空の文字列の場
+		合は、グローバルグループ内の目印のみが返される。引数が指定され
+		ていない場合は、すべてのバッファに設置されているグローバルグ
+		ループ内の目印が返される。
+		|sign-group| を参照。
+
+		戻り値の各リスト項目は、次のエントリを持つ辞書である:
+			bufnr	目印付きバッファの番号
+			signs	{bufnr}に設置されている目印のリスト。各リスト
+				項目は、以下の項目を含む辞書である。
+
+		各目印の辞書には、次のエントリが含まれている:
+			group	目印グループ。グローバルグループの場合は '' に
+				設定する。
+			id	目印ID
+			lnum	目印が設置されている行番号
+			name	定義されている目印の名前
+			priority	目印の優先度
+
+		返されるバッファ内の目印は、行番号および優先度で並べられる。
+
+		失敗した場合、または設置された目印がない場合は、空のリストを返
+		す。
+
+		例: >
+			" eval.c に設置されているグローバルグループの目印のリ
+			" ストを取得する
+			echo sign_getplaced("eval.c")
+
+			" eval.c の 'g1' グループに設置されている目印のリスト
+			" を取得する
+			echo sign_getplaced("eval.c", {'group' : 'g1'})
+
+			" eval.c の 10行目に設置されている目印のリストを取得す
+			" る
+			echo sign_getplaced("eval.c", {'lnum' : 10})
+
+			" a.py に設置されている識別子 10 の目印を取得する
+			echo sign_getplaced("a.py", {'id' : 10'})
+
+			" a.py の 'g1' グループ 'g1' に設置されている識別子 20
+			" の目印を取得する
+			echo sign_getplaced("a.py", {'group' : 'g1',
+							\  'id' : 20'})
+
+			" 設置されているすべての目印のリストを取得する
+			echo sign_getplaced()
+<
+		|method| としても使用できる: >
+			GetBufname()->sign_getplaced()
+<
+							*sign_jump()*
+sign_jump({id}, {group}, {expr})
+		バッファ{expr}を開くか、{expr}を含むウィンドウに移動して、グ
+		ループ{group}の目印{id}にカーソルを置く。これは |:sign-jump|
+		コマンドに似ている。
+
+		{expr}の使い方については |bufname()| を参照。
+
+		目印の行番号を返す。引数が無効な場合は -1 を返す。
+
+		例: >
+			" 現在のバッファの目印ID 10 へ移動する
+			call sign_jump(10, '', '')
+<
+		|method| としても使用できる: >
+			GetSignid()->sign_jump()
+<
+							*sign_place()*
+sign_place({id}, {group}, {name}, {expr} [, {dict}])
+		{name}として定義された目印をファイルまたはバッファ{expr}の行
+		{lnum}に設置し、目印に{id}と{group}を割り当てる。これは
+		|:sign-place| コマンドに似ている。
+
+		目印ID{id}がゼロの場合は、新しい識別子が割り当てられる。それ以
+		外の場合は、指定された番号が使用される。{group}は目印グループ
+		名である。グローバルサイングループを使用するには、空の文字列を
+		使用する。{group}は{id}の名前空間として機能するため、2つのグ
+		ループが同じIDを使用できる。詳細については |sign-identifier|
+		と |sign-group| を参照。
+
+		{name}は定義済みの目印を参照する。
+		{expr}はバッファの名前か番号を参照する。許容値については、
+		|bufname()| を参照。
+
+		任意の{dict}引数は、以下のエントリをサポートする:
+			lnum		目印が設置されるファイルまたはバッファ
+					{expr}の行番号。許容値については、
+					|line()| を参照。
+			priority	目印の優先順位。詳細については
+					|sign-priority| を参照。
+
+		任意の{dict}が指定されていない場合は、定義されている目印{name}
+		を使用するようにグループ{group}内の設置された目印ID{id}を変更
+		します。
+
+		成功した場合は目印ID、失敗した場合は -1 を返す。
+
+		例: >
+			" バッファ json.c の20行目に識別子5で sign1 という名前
+			" の目印を設置する
+			call sign_place(5, '', 'sign1', 'json.c',
+							\ {'lnum' : 20})
+
+			" バッファ json.c の識別子5が目印 sign2 を使用するよう
+			" に更新する
+			call sign_place(5, '', 'sign2', 'json.c')
+
+			" バッファ json.c の30行目に sign3 という名前の目印を
+			" 新しい識別子で設置する
+			let id = sign_place(0, '', 'sign3', 'json.c',
+							\ {'lnum' : 30})
+
+			" バッファ json.c の40行目に 'g3' グループで識別子10の
+			" sign4 という名前の目印を優先順位90で設置する
+			call sign_place(10, 'g3', 'sign4', 'json.c',
+					\ {'lnum' : 40, 'priority' : 90})
+<
+		|method| としても使用できる: >
+			GetSignid()->sign_place(group, name, expr)
+<
+							*sign_placelist()*
+sign_placelist({list})
+		1つ以上の目印を設置する。これは |sign_place()| 関数に似ている。
+		引数{list}には、設置する目印のリストを指定する。各リスト項目
+		は、次の目印属性を持つ辞書である:
+		    buffer	バッファの名前または番号。受け入れられる値につ
+				いては、|bufname()| を参照。
+		    group	目印グループ。{group}は{id}のネームスペースと
+				して機能するため、2つのグループは同じIDを使用
+				できる。指定されていないか、空の文字列に設定さ
+				れている場合、グローバルグループが使用される。
+				詳細については |sign-group| を参照。
+		    id		目印ID。指定しないかゼロの場合、新しい一意の識
+				別子が割り当てられる。それ以外の場合は、指定さ
+				れた番号が使用される。詳細については
+				|sign-identifier| を参照。
+		    lnum	目印が設置されるバッファ{expr}の行番号。受け入
+				れられる値については、|line()| を参照。
+		    name	設置する目印の名前。詳細については
+				|sign_define()| を参照。
+		    priority	目印の優先順位。1行に複数の目印が設置されてい
+				る場合、最も優先度の高い目印が使用される。指定
+				しない場合、デフォルト値の10が使用される。詳細
+				については |sign-priority| を参照。
+
+		{id}が既存の目印を参照する場合、指定された{name}または
+		{priority}を使用するように既存の目印が変更される。
+
+		目印IDのリストを返す。目印の設置に失敗した場合、対応するリスト
+		項目は -1 に設定される。
+
+		例: >
+			" Place sign s1 with id 5 at line 20 and id 10 at line
+			" 30 in buffer a.c
+			let [n1, n2] = sign_placelist([
+				\ {'id' : 5,
+				\  'name' : 's1',
+				\  'buffer' : 'a.c',
+				\  'lnum' : 20},
+				\ {'id' : 10,
+				\  'name' : 's1',
+				\  'buffer' : 'a.c',
+				\  'lnum' : 30}
+				\ ])
+
+			" Place sign s1 in buffer a.c at line 40 and 50
+			" with auto-generated identifiers
+			let [n1, n2] = sign_placelist([
+				\ {'name' : 's1',
+				\  'buffer' : 'a.c',
+				\  'lnum' : 40},
+				\ {'name' : 's1',
+				\  'buffer' : 'a.c',
+				\  'lnum' : 50}
+				\ ])
+<
+		|method| としても使用できる: >
+			GetSignlist()->sign_placelist()
+
+sign_undefine([{name}])					*sign_undefine()*
+sign_undefine({list})
+		定義済みの目印{name}を削除する。これは |:sign-undefine| コマン
+		ドに似ている。{name}が指定されていない場合は、定義されているす
+		べての目印を削除する。
+
+		1つの引数{list}を使用して、目印のリストの定義を解除できる。各
+		リスト項目は目印の名前です。
+
+		成功すると 0 を返し、失敗すると -1 を返す。1つの引数{list}で呼
+		び出した場合、解除した目印のリストを返す。
+
+		例: >
+			" mySign という名前の目印を削除する
+			call sign_undefine("mySign")
+
+			" 目印 'sign1' と 'sign2' を削除する
+			call sign_undefine(["sign1", "sign2"])
+
+			" すべての目印を削除する
+			call sign_undefine()
+<
+		|method| としても使用できる: >
+			GetSignlist()->sign_undefine()
+
+sign_unplace({group} [, {dict}])			*sign_unplace()*
+		設置済みの1つ以上のバッファ内の目印を解除する。これは
+		|:sign-unplace| コマンドに似ている。
+
+		{group}は目印グループ名である。グローバルサイングループを使用
+		するには、空の文字列を使用する。{group}が '*' に設定されている
+		場合、グローバルグループを含むすべてのグループが使用される。
+		{group}内の目印は、{dict}内のエントリに基づいて選択される。
+		{dict}の以下の任意のエントリがサポートされている:
+			buffer	バッファの名前または番号。|bufname()| を参照。
+			id	目印ID
+		{dict}が指定されていない場合は、{group}内のすべての目印が解除
+		される。
+
+		成功すると 0 を返し、失敗すると -1 を返す。
+
+		例: >
+			" バッファ a.vim から識別子10の目印を解除する
+			call sign_unplace('', {'buffer' : "a.vim", 'id' : 10})
+
+			" バッファ番号3から 'g1' グループの識別子20の目印を解
+			" 除する
+			call sign_unplace('g1', {'buffer' : 3, 'id' : 20})
+
+			" バッファ番号10から 'g2' グループのすべての目印を解除
+			" する
+			call sign_unplace('g2', {'buffer' : 10})
+
+			" すべてのバッファから 'g3' グループの識別子30の目印を
+			" 解除する
+			call sign_unplace('g3', {'id' : 30})
+
+			" バッファ番号5 のすべての目印を解除する
+			call sign_unplace('*', {'buffer' : 5})
+
+			" すべてのバッファから 'g4' グループの目印を解除する
+			call sign_unplace('g4')
+
+			" すべてのバッファから識別子40の目印を解除する
+			call sign_unplace('*', {'id' : 40})
+
+			" すべてのバッファからすべての目印を解除する
+			call sign_unplace('*')
+
+<		|method| としても使用できる: >
+			GetSigngroup()->sign_unplace()
+<
+sign_unplacelist({list})				*sign_unplacelist()*
+		1つ以上のバッファから以前に設置された目印を削除する。これは
+		|sign_unplace()| 関数に似ている。
+
+		引数{list}は、削除する目印のリストを指定する。 各リスト項目は、
+		次の目印属性を持つ辞書である:
+		    buffer	バッファの名前または番号。受け入れられる値につ
+				いては、|bufname()| を参照。指定しない場合、指
+				定された目印はすべてのバッファから削除される。
+		    group	目印グループ名。指定されていないか、空の文字列
+				に設定されている場合、グローバル記号グループが
+				使用される。'*' に設定すると、グローバルグルー
+				プを含むすべてのグループが使用される。
+		    id		目印ID。指定しない場合、指定したグループ内のす
+				べての目印が削除される。
+
+		対応する目印が正常に削除された場合、エントリが 0 に設定された
+		リストを返す。失敗した場合は -1 を返す。
+
+		例: >
+			" バッファ a.vim からID 10の目印を削除し、バッファ
+			" b.vim からID 20の目印を削除する
+			call sign_unplacelist([
+				\ {'id' : 10, 'buffer' : "a.vim"},
+				\ {'id' : 20, 'buffer' : 'b.vim'},
+				\ ])
+<
+		|method| としても使用できる: >
+			GetSignlist()->sign_unplacelist()
+<
 
  vim:tw=78:ts=8:noet:ft=help:norl:

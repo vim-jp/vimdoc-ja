@@ -1,0 +1,370 @@
+*testing.txt*	For Vim バージョン 8.1.  Last change: 2019 Sep 08
+
+
+		  VIMリファレンスマニュアル	  by Bram Moolenaar
+
+
+VimおよびVim scriptのテスト			*testing-support*
+
+式の評価は |eval.txt| で説明されている。このファイルでは、Vim scriptでのテスト
+の記述について詳しく説明する。これは、Vim自体のテストとプラグインのテストに使
+用できる。
+
+1. Vimのテスト				|testing|
+2. Test関数				|test-functions-details|
+3. Assert関数				|assert-functions-details|
+
+==============================================================================
+1. Vimのテスト						*testing*
+
+Vimはビルド後にテストできる。通常は "make test" を使用する。テストはディレクト
+リ "src/testdir" にある。
+
+時間の経過とともに追加されたテストには、いくつかのタイプがある:
+	test33.in		最も古い、これらのいずれも追加しないこと
+	test_something.in	旧形式のテスト
+	test_something.vim	新形式のテスト
+
+						*new-style-testing*
+新形式のテストとして新しいテストを追加する必要がある。これらは
+|assert_equal()| などの関数を使用して、テストコマンドと期待される結果を1か所に
+保持する。
+						*old-style-testing*
+場合によっては、旧型式のテストを使用する必要がある。例えば、|+eval| 機能なしで
+Vimをテストするとき。
+
+詳細は src/testdir/README.txt ファイルを確認のこと。
+
+==============================================================================
+2. Test関数					*test-functions-details*
+
+test_alloc_fail({id}, {countdown}, {repeat})		*test_alloc_fail()*
+		この関数はテストのために使われる: {id} のメモリ割り当てが行わ
+		れた際に {countdown} はデクリメントされ、それが0になれば
+		{repeat} 回のメモリの割り当ての失敗を発生させる。{repeat} が1
+		未満の場合は、失敗を1回のみ発生させる。
+
+		|method| としても使用できる: >
+			GetAllocId()->test_alloc_fail()
+
+test_autochdir()					*test_autochdir()*
+		Vimの起動が完了する前に 'autochdir' の効果を有効にするためのフ
+		ラグをセットする。
+
+
+test_feedinput({string})				*test_feedinput()*
+		{string} の文字を、あたかもユーザーがタイプしたかのように処理
+		する。これは低レベル入力バッファを使用する。この関数は |+unix|
+		もしくは GUI で動作しているときに機能する。
+
+		|method| としても使用できる: >
+			GetText()->test_feedinput()
+
+test_garbagecollect_now()			 *test_garbagecollect_now()*
+		garbagecollect() とほぼ同じであるが、この関数はガーベッジコレ
+		クトを直ちに実行する。この関数を実行する場合は、構造体が内部に
+		存在しないようにするために直接呼び出す必要がある。また、この関
+		数を呼び出す前に |v:testing| を設定する必要がある。
+
+
+test_garbagecollect_soon()			 *test_garbagecollect_soon()*
+		あたかもメインループの中にいるように、ガーベッジコレクトを呼び
+		出すためのフラグを設定する。テストでのみ使用される。
+
+
+test_getvalue({name})					*test_getvalue()*
+		内部変数の値を取得する。{name} のこれらの値がサポートされてい
+		る:
+			need_fileinfo
+
+		|method| としても使用できる: >
+			GetName()->test_getvalue()
+
+test_ignore_error({expr})			 *test_ignore_error()*
+		{expr} を含むすべてのエラーを無視する。代わりに通常メッセージ
+		が表示される。
+		これは、テストにおいて、try/catch を用いてエラーを捕捉できない
+		(以降のコードをスキップするので)場合のみに使うことを意図してい
+		る。
+		{expr} はパターンとしてではなく、文字として用いられる。
+		{expr} が文字列 "RESET" の場合、無視されるエラーのリストは空に
+		なる。
+
+		|method| としても使用できる: >
+			GetErrorText()->test_ignore_error()
+
+test_null_blob()					*test_null_blob()*
+		null の |Blob| を返す。これはテストのみに使われる。
+
+
+test_null_channel()					*test_null_channel()*
+		null の |Channel| を返す。これはテストのみに使われる。
+		{|+channel| 機能つきでコンパイルされたときのみ有効}
+
+
+test_null_dict()					*test_null_dict()*
+		null の |Dict| を返す。これはテストのみに使われる。
+
+
+test_null_job()						*test_null_job()*
+		null の |Job| を返す。これはテストのみに使われる。
+		{|+job| 機能つきでコンパイルされたときのみ有効}
+
+
+test_null_list()					*test_null_list()*
+		null の |List| を返す。これはテストのみに使われる。
+
+
+test_null_partial()					*test_null_partial()*
+		null の |Partial| を返す。これはテストのみに使われる。
+
+
+test_null_string()					*test_null_string()*
+		null の |String| を返す。これはテストのみに使われる。
+
+
+test_option_not_set({name})				*test_option_not_set()*
+		オプション {name} が設定されたことを示すフラグをリセットする。
+		したがって、それはまだデフォルト値を持っているように見える。次
+		のように使う: >
+			set ambiwidth=double
+			call test_option_not_set('ambiwidth')
+<		値が "double" であっても、'ambiwidth' オプションは変更されてい
+		ないかのように振舞う。
+		テストにのみ使用する！
+
+		|method| としても使用できる: >
+			GetOptionName()->test_option_not_set()
+
+
+test_override({name}, {val})				*test_override()*
+		テストを実行できるようにするため、Vimの内部処理の特定の部分を
+		置き換える。Vimをテストするためだけに使用すること!
+		置き換えは、{val} が非 0 のときに有効化され、{val} が 0 のとき
+		に取り除かれる。
+		現在、name に使える値は:
+
+		name	     {val} が非 0 のときの効果 ~
+		redraw       redrawing() 関数を無効化する
+		redraw_flag  RedrawingDisabled フラグを無視する
+		char_avail   char_avail() 関数を無効化する
+		starting     "starting" 変数を初期化する、以下を参照
+		nfa_fail     古い正規表現エンジンに戻すために、NFA regexp エン
+			     ジンを失敗させる
+		no_query_mouse  "dec" 端末のマウス位置を問い合わせない
+		no_wait_return  "no_wait_return" フラグを設定する。"ALL" では
+				復元されない
+		ALL	     すべての置き換えをクリアする ({val} は使われない)
+
+		"starting" は、起動が完了したようにテストが振る舞うべきときに
+		使われる。テストはスクリプトを読み込むことによって開始されるの
+		で、"starting" 変数は非ゼロである。これは通常はいいこと (テス
+		トが早く実行される) だが、テストが適切に動作しないという点では
+		動作を変えてしまっている。
+		次のようにしたとき: >
+			call test_override('starting', 1)
+<		"starting" の値が保存される。次のようにして復元される: >
+			call test_override('starting', 0)
+
+<		|method| としても使用できる: >
+			GetOverrideVal()-> test_override('starting')
+
+test_refcount({expr})					*test_refcount()*
+		{expr} の参照カウントを返す。{expr} が参照カウントを持たない型
+		の場合は、-1 を返す。この関数はテスト用。
+
+		|method| としても使用できる: >
+			GetVarname()->test_refcount()
+
+
+test_scrollbar({which}, {value}, {dragging})		*test_scrollbar()*
+		スクロールバーを使ってそれを {value} の位置に移動させる。
+		{which} は次のようになる:
+			left	カレントウィンドウの左スクロールバー
+			right	カレントウィンドウの右スクロールバー
+			hor	水平スクロールバー
+
+		垂直スクロールバーの場合、{value} は1からバッファの行数までの
+		値を取りうる。水平スクロールバーの場合、'wrap' が設定されてい
+		ないと仮定すると、{value} は1から最大行の長さまでの値を取りう
+		る。
+
+		{dragging} がゼロ以外の場合は、スクロールバーをドラッグするの
+		と同じである。それ以外の場合は、スクロールバーをクリックするの
+		と同じである。
+		{which} スクロールバーが実際に存在し、GUIを使用している場合に
+		のみ動作する。
+
+		|method| としても使用できる: >
+			GetValue()->test_scrollbar('right', 0)
+
+test_setmouse({row}, {col})				*test_setmouse()*
+		次のマウス操作に使用するマウス位置を設定する。
+		{row} と {col} は 1ベースである。
+		例: >
+			call test_setmouse(4, 20)
+			call feedkeys("\<LeftMouse>", "xt")
+
+
+test_settime({expr})					*test_settime()*
+		Vim が内部的に用いる時間を設定する。現在は history のタイムス
+		タンプ、viminfo のタイムスタンプ、undo に使用されている。
+		1 を渡せば、Vim は、警告やエラーメッセージの後、スリープしなく
+		なる。
+		{expr} は、数値として評価されなければならない。0 を渡せば、Vim
+		の内部時間は通常動作に戻る。
+
+		|method| としても使用できる: >
+			GetTime()->test_settime()
+
+==============================================================================
+3. Assert関数					*assert-functions-details*
+
+
+assert_beeps({cmd})					*assert_beeps()*
+		{cmd} を実行し、それがビープもしくはビジュアルベルを発生させな
+		かった場合、|v:errors| にエラーメッセージを追加する。
+		|assert_fails()| および |assert-return| も参照。
+
+		|method| としても使用できる: >
+			GetCmd()->assert_beeps()
+<
+							*assert_equal()*
+assert_equal({expected}, {actual} [, {msg}])
+		{expected}と{actual}が等しくない場合、|v:errors|にエラーメッセ
+		ージを追加し、1 が返る。そうでなければ 0 が返る。
+		|assert-return|
+		暗黙的な変換は行われないため、文字列 "4" は数値 4 とは異なる。
+		同様に、数値 4 は浮動小数点数 4.0 と異なる。ここでは
+		'ignorecase' の値は使われず、大文字小文字は常に区別される。
+		{msg}が省略された場合、"Expected {expected} but got {actual}"
+		という形式のメッセージが生成される。
+		例: >
+	assert_equal('foo', 'bar')
+<		以下の結果が|v:errors|に追加される:
+	test.vim line 12: Expected 'foo' but got 'bar' ~
+
+		|method| としても使用できる: >
+			mylist->assert_equal([1, 2, 3])
+
+
+<							*assert_equalfile()*
+assert_equalfile({fname-one}, {fname-two})
+		ファイル {fname-one} および {fname-two} がまったく同じテキスト
+		でない場合、|v:errors| にエラーメッセージが追加される。
+		|assert-return| も参照。
+		{fname-one} もしくは {fname-two} が存在しない場合、それに関連
+		したエラーとなる。
+		主に |terminal-diff| で役立つ。
+
+		|method| としても使用できる: >
+			GetLog()->assert_equalfile('expected.log')
+
+
+assert_exception({error} [, {msg}])			*assert_exception()*
+		v:exception に{error}が含まれていない時、|v:errors|にエラーメッ
+		セージを追加する。|assert-return| も参照。
+		これは例外を投げるコマンドのテストを行う場合に使うことができ
+		る。コロンが続くエラー番号を使えば、翻訳の問題を回避できる: >
+			try
+			  失敗するコマンド
+			  call assert_false(1, 'command should have failed')
+			catch
+			  call assert_exception('E492:')
+			endtry
+
+assert_fails({cmd} [, {error} [, {msg}]])			*assert_fails()*
+		{cmd}を実行しエラーを生成しなかった場合、|v:errors|にエラーメッ
+		セージを追加する。|assert-return| も参照。
+		{error}が渡された場合、|v:errmsg|の一部にマッチしなければなら
+		ない。
+		Note: ビープ音の発生はエラーとは見なされず、いくつかのコマンド
+		は失敗時にビープ音を鳴らすだけである。これらについては
+		|assert_beeps()| を使用すること。
+
+		|method| としても使用できる: >
+			GetCmd()->assert_fails('E99:')
+
+assert_false({actual} [, {msg}])				*assert_false()*
+		|assert_equal()|と同様に、{actual}がfalseでない場合、|v:errors|
+		にエラーメッセージを追加する。
+		|assert-return| も参照。
+		ゼロである時、その値はfalseである。{actual}が数値でない場合、
+		テストが失敗する。
+		{msg}が省略された場合、"Expected False but got {actual}" とい
+		う形式のメッセージが生成される。
+
+		|method| としても使用できる: >
+			GetResult()->assert_false()
+
+assert_inrange({lower}, {upper}, {actual} [, {msg}])	 *assert_inrange()*
+		これは数値または |Float| の値をテストする。{actual}が{lower}よ
+		り小さいか{upper}より大きい場合、|v:errors|にエラーメッセージ
+		が追加される。|assert-return| も参照。
+		{msg}を省略すると、"Expected range {lower} - {upper}, but
+		got {actual}" という形式のエラーが生成される。
+
+								*assert_match()*
+assert_match({pattern}, {actual} [, {msg}])
+		{pattern}が{actual}と一致しない場合、|v:errors|にエラーメッセー
+		ジが追加される。|assert-return| も参照。
+
+		|=~|と同じように{pattern}が使われる: マッチングは 'magic' や
+		'cpoptions' の実際の値に関係なく、'magic' が設定され、
+		'cpoptions' が空であるように常に行われる。
+
+		{actual}は文字列として使用され、自動変換が適用される。テキスト
+		の先頭と最後に一致させるためには、"^" と "$" を使用すること。
+		両方を使用してテキスト全体を一致させる。{訳注: 使わなければ、
+		部分一致で判定が行われる。}
+
+		{msg}を省略すると、"Pattern {pattern} does not match {actual}"
+		という形式のエラーが生成される。例: >
+	assert_match('^f.*o$', 'foobar')
+<		これは |v:errors| に文字列が追加されることになる:
+	test.vim line 12: Pattern '^f.*o$' does not match 'foobar' ~
+
+		|method| としても使用できる: >
+			getFile()->assert_match('foo.*')
+<
+							*assert_notequal()*
+assert_notequal({expected}, {actual} [, {msg}])
+		`assert_equal()` の反対: {expected}と{actual}が等しいときにエ
+		ラーメッセージを |v:errors| に追加する。|assert-return| も参
+		照。
+
+		|method| としても使用できる: >
+			mylist->assert_notequal([1, 2, 3])
+
+<							*assert_notmatch()*
+assert_notmatch({pattern}, {actual} [, {msg}])
+		`assert_match()` の反対: {pattern}が{actual}にマッチするときに
+		|v:errors| にエラーメッセージを追加する。
+		|assert-return| も参照。
+
+		|method| としても使用できる: >
+			getFile()->assert_notmatch('bar.*')
+
+
+assert_report({msg})					*assert_report()*
+		テストの失敗を {msg} を使って直接報告する。
+		常に 1 を返す。
+
+		|method| としても使用できる: >
+			GetMessage()->assert_report()
+
+
+assert_true({actual} [, {msg}])				*assert_true()*
+		|assert_equal()|と同様に、{actual}がtrueでない場合、|v:errors|
+		にエラーメッセージを追加する。
+		|assert-return| も参照。
+		非ゼロである時、その値はTRUEである。{actual}が数値でない場合、
+		テストが失敗する。
+		{msg}が省略された場合、"Expected True but got {actual}" とい
+		う形式のメッセージが生成される。
+
+		|method| としても使用できる: >
+			GetResult()->assert_true()
+<
+
+ vim:tw=78:ts=8:noet:ft=help:norl:
