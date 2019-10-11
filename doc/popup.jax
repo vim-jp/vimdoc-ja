@@ -1,4 +1,4 @@
-*popup.txt*  For Vim バージョン 8.1.  Last change: 2019 Jun 15
+*popup.txt*  For Vim バージョン 8.1.  Last change: 2019 Sep 25
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -6,12 +6,22 @@
 
 フローティングウィンドウにテキストを表示する。	*popup* *popup-window*
 
-THIS IS UNDER DESIGN - ANYTHING MAY STILL CHANGE
-{これは設計中だ - まだ変更が行われる可能性がある}
 
-1. 前書き			|popup-intro|
-2. 関数				|popup-functions|
-3. 例				|popup-examples|
+1. 前書き				|popup-intro|
+   ウィンドウ位置とサイズ		|popup-position|
+   ポップアップウィンドウを閉じる	|popup-close|
+   ポップアップバッファとウィンドウ	|popup-buffer|
+2. 関数					|popup-functions|
+   詳細					|popup-function-details|
+3. 使用方法				|popup-usage|
+   popup_create() 引数			|popup_create-arguments|
+   ポップアップテキストプロパティ	|popup-props|
+   ポップアップとtextpropの位置		|popup-textprop-pos|
+   ポップアップフィルタ			|popup-filter|
+   ポップアップコールバック		|popup-callback|
+   ポップアップスクロールバー		|popup-scrollbar|
+   ポップアップマスク			|popup-mask|
+3. 例					|popup-examples|
 
 
 {|+textprop| 機能無効でコンパイルされたときは使用できない}
@@ -57,7 +67,7 @@ THIS IS UNDER DESIGN - ANYTHING MAY STILL CHANGE
 - バルーンは |balloon-eval| を参照。
 
 
-ウィンドウ位置とサイズ				*popup-position*
+ウィンドウ位置とサイズ					*popup-position*
 
 ウィンドウの高さは、通常、バッファ内の折り返しの行数と同じである。"maxheight"
 プロパティで制限することができる。高さを増やすために空の行を使うか、または、
@@ -69,11 +79,11 @@ THIS IS UNDER DESIGN - ANYTHING MAY STILL CHANGE
 
 デフォルトでは 'wrap' オプションが設定されているのでテキストは消えない。また
 は、十分なスペースがない場合、ウィンドウは左に移動してテキストをさらに表示す
-る。これは "fixed" プロパティで無効にすることができる。右寄せの場合も無効にな
-る。
+る。右揃えの場合、ウィンドウは右にシフトされ、より多くのテキストが表示される。
+シフトは、"fixed" プロパティで無効にできる。
 
 Vimは指定した場所にポップアップを表示しようとする。場合によっては、ポップアッ
-プがVimのウィンドウの外側に出ると、他の場所に表示される。例えば、
+プがVimのウィンドウの外側に出ると、近くの場所に表示される。例えば、
 `popup_atcursor()` を使用すると、ポップアップは現在のカーソル位置のすぐ上に表
 示されるが、カーソルがVimのウィンドウの最上部に近い場合は、カーソル位置の下に
 配置される。
@@ -85,46 +95,61 @@ Exコマンドの出力のために画面がスクロールアップすると、
 は、テキストが表示されていない場合でも、その場所を確認できる。
 
 
+ポップアップウィンドウを閉じる				*popup-close*
 
-TODO:
-- Why does 'nrformats' leak from the popup window buffer???
-- When the lines do not fit show a scrollbar (like in the popup menu).
-  Use the mouse wheel for scrolling.
-- Disable commands, feedkeys(), CTRL-W, etc. in a popup window.
-  Use ERROR_IF_POPUP_WINDOW for more commands.
-- Add 'balloonpopup': instead of showing text, let the callback open a popup
-  window and return the window ID.   The popup will then be closed when the
-  mouse moves, except when it moves inside the popup.
-- For the "moved" property also include mouse movement?
-- Can the buffer be re-used, to avoid using up lots of buffer numbers?
-- Have an option to attach the popup to a text position, like text properties
-  do. (#4560)
-- Make redrawing more efficient and avoid flicker:
-    - put popup menu also put in popup_mask?
-- Invoke filter with character before mapping?
-- Figure out the size and position better.
-    if wrapping splits a double-wide character
-    if wrapping inserts indent
-- When drawing on top half a double-wide character, display ">" or "<" in the
-  incomplete cell.
-- Use a popup window for the "info" item of completion instead of using a
-  preview window.  Ideas in issue #4544.
-  How to add highlighting?
-- Implement:
-	flip option
-	transparent area, to minimize covering text.  Define rectangles?
+通常、ポップアップウィンドウを作成したプラグインは、それを閉じることも担当す
+る。何らかの理由でポップアップが表示される場合は、次のコマンドですべてを閉じる
+ことができる: >
+	call popup_clear()
+通知などの一部のポップアップは、指定した時間が経過すると閉じる。これは、
+`popup_create()` の "time" プロパティで設定できる。
+それ以外の場合は、右上隅の X をクリックするか、ポップアップ内の任意の場所をク
+リックして、ポップアップを閉じることができる。これは、"close" プロパティで有効
+にする必要がある。これはデフォルトで通知用に設定される。
+
+
+ポップアップバッファとウィンドウ			*popup-buffer*
+
+テキストからポップアップを作成するためにポップアップ関数が呼び出されると、ポッ
+プアップウィンドウのテキストとテキストプロパティを保持するための新しいバッファ
+が作成される。バッファは常にポップアップウィンドウに関連付けられており、操作は
+制限されている:
+- 無名バッファ
+- 'buftype' は "popup"
+- 'swapfile' は off
+- 'bufhidden' は "hide"
+- 'buflisted' は off
+- 'undolevels' は -1: アンドゥはできない
+- 他のすべてのバッファローカルおよびウィンドウローカルオプションはVimのデフォ
+  ルト値に設定されている。
+
+具体的に言及されたオプションを変更することは可能だが、何かが壊れてしまう可能性
+があるので、そのままにしておくのが望ましい。
+
+ウィンドウにはカーソル位置があるが、カーソルは表示されない。実際、下にあるウィ
+ンドウのカーソルは、ポップアップを覗くように表示されるため、どこにあるかを確認
+できる。
+
+ポップアップウィンドウとバッファのコンテキストでコマンドを実行するには
+`win_execute()` を使用すること。例: >
+	call win_execute(winid, 'syntax enable')
+
+オプションは `setwinvar()` を使ってウィンドウ上で設定できる。例: >
+	call setwinvar(winid, '&wrap', 0)
+そしてオプションは `setbufvar()` を使ってバッファに設定することができる。例: >
+	call setbufvar(winbufnr(winid), '&filetype', 'java')
+":setlocal" コマンドを `win_execute()` で使用することもできる。
 
 
 ==============================================================================
 2. 関数							*popup-functions*
 
-THIS IS UNDER DESIGN - ANYTHING MAY STILL CHANGE
-{これは設計中だ - まだ変更が行われる可能性がある}
-
 ポップアップウィンドウを作成:
 	|popup_create()|	画面の中央に
 	|popup_atcursor()|	カーソル位置のすぐ上に。カーソルが移動すると閉
 				じる
+	|popup_beval()|		v:beval_variables で示される位置に。マウスが離
+				れると閉じる
 	|popup_notification()|	3秒間通知を表示する
 	|popup_dialog()|	パディングとボーダーありで中央に
 	|popup_menu()|		リストから項目を選択するためのプロンプト
@@ -147,22 +172,42 @@ THIS IS UNDER DESIGN - ANYTHING MAY STILL CHANGE
 その他:
 	|popup_getoptions()|	ポップアップの現在のオプションを取得する
 	|popup_getpos()|	ポップアップの実際の位置とサイズを取得する
+	|popup_locate()|	画面位置でポップアップウィンドウを見つける
 
 
-[後で eval.txt に移動する関数のヘルプ]
+詳細						*popup-function-details*
 
-popup_atcursor({text}, {options})			 *popup_atcursor()*
-		カーソルの上に {text} を表示し、カーソルが移動したら閉じる。こ
+popup_atcursor({what}, {options})			 *popup_atcursor()*
+		カーソルの上に {what} を表示し、カーソルが移動したら閉じる。こ
 		れは次のように動作する: >
-			call popup_create({text}, {
-				\ 'pos': 'botleft',
-				\ 'line': 'cursor-1',
-				\ 'col': 'cursor',
-				\ 'moved': 'WORD',
+			call popup_create({what}, #{
+				\ pos: 'botleft',
+				\ line: 'cursor-1',
+				\ col: 'cursor',
+				\ moved: 'WORD',
 				\ })
-<		プロパティを変更するには{options}を使用する。
+<		プロパティを変更するには {options} を使用する。
+
+		|method| としても使用できる: >
+			GetText()->popup_atcursor({})
 
 
+popup_beval({what}, {options})			*popup_beval()*
+		'ballooneval' の位置の上に {what} を表示し、マウスが移動したら
+		閉じる。これは次のように動作する: >
+		  let pos = screenpos(v:beval_winnr, v:beval_lnum, v:beval_col)
+		  call popup_create({what}, #{
+			\ pos: 'botleft',
+			\ line: pos.row - 1,
+			\ col: pos.col,
+			\ mousemoved: 'WORD',
+			\ })
+<		プロパティを変更するには {options} を使用する。
+		例については |popup_beval_example| を参照。
+
+		|method| としても使用できる: >
+			GetText()->popup_beval({})
+<
 							*popup_clear()*
 popup_clear()	不作法にふるまうプラグインに対する緊急の解決策: グローバルポッ
 		プアップとカレントタブポップアップをすべて閉じる。
@@ -177,15 +222,21 @@ popup_close({id} [, {result}])				*popup_close()*
 		る場合、それはコールバックの第2引数として渡される。そうでなけ
 		れば、ゼロがコールバックに渡される。
 
+		|method| としても使用できる: >
+			GetPopup()->popup_close()
 
-popup_create({text}, {options})				*popup_create()*
-		次のどれかである {text} を見せるポップアップウィンドウを開く:
+popup_create({what}, {options})				*popup_create()*
+		次のどれかである {what} を見せるポップアップウィンドウを開く:
+		- バッファ番号
 		- 文字列
 		- 文字列のリスト
 		- テキストプロパティを持つテキスト行のリスト
+		{what} がバッファ番号ではない場合、'buftype' が "popup" に設定
+		されたバッファが作成される。ポップアップを閉じると、そのバッ
+		ファは消去される。
 
 		{options} は多くのエントリがある辞書である。
-		詳細は |popup_create-usage| を参照。
+		詳細は |popup_create-arguments| を参照。
 
 		ウィンドウIDを返す。これは他のポップアップ関数で使用できる。
 		ウィンドウ内のバッファの番号を取得するには `winbufnr()` を使用
@@ -195,28 +246,33 @@ popup_create({text}, {options})				*popup_create()*
 			call setbufline(bufnr, 2, 'second line')
 <		失敗した場合はゼロが返される。
 
+		|method| としても使用できる: >
+			GetText()->popup_create({})
 
-popup_dialog({text}, {options})				*popup_dialog()*
+popup_dialog({what}, {options})				*popup_dialog()*
 		|popup_create()| と同じだが、これらのデフォルトのオプションに
 		なる: >
-			call popup_create({text}, {
-				\ 'pos': 'center',
-				\ 'zindex': 200,
-				\ 'drag': 1,
-				\ 'border': [],
-				\ 'padding': [],
+			call popup_create({what}, #{
+				\ pos: 'center',
+				\ zindex: 200,
+				\ drag: 1,
+				\ border: [],
+				\ padding: [],
+				\ mapping: 0,
 				\})
 <		プロパティを変更するには{options}を使用する。例: 値
 		'popup_filter_yesno' を持つ 'filter' オプションを追加する。
 		例: >
-			call popup_create('do you want to quit (Yes/no)?', {
-				\ 'filter': 'popup_filter_yesno',
-				\ 'callback': 'QuitCallback',
+			call popup_create('do you want to quit (Yes/no)?', #{
+				\ filter: 'popup_filter_yesno',
+				\ callback: 'QuitCallback',
 				\ })
 
 <		デフォルトではダイアログはドラッグすることができるので、必要で
 		あればその下のテキストを読むことができる。
 
+		|method| としても使用できる: >
+			GetText()->popup_dialog({})
 
 popup_filter_menu({id}, {key})				*popup_filter_menu()*
 		ポップアップに使用できるフィルタ。これらのキーが使用できる:
@@ -247,26 +303,54 @@ popup_filter_yesno({id}, {key})				*popup_filter_yesno()*
 		|popup_dialog-example| を参照。
 
 
+popup_findinfo()					*popup_findinfo()*
+		ポップアップメニューで使用されているポップアップ情報ウィンドウ
+		の |window-ID| を取得する。|complete-popup| を参照。ポップアッ
+		プ情報は、使用されていない場合は非表示になり、|popup_clear()|
+		または |popup_close()| で削除できる。
+		ない場合は 0 を返す。
+
+
+popup_findpreview()					*popup_findpreview()*
+		ポップアッププレビューウィンドウの |window-ID| を取得する。
+		ない場合は 0 を返す。
+
+
+
 popup_getoptions({id})					*popup_getoptions()*
 		popup {id} の {options} を辞書で返す。
 		ゼロ値はオプションが設定されなかったことを意味する。"zindex"
 		の場合、デフォルト値が返される。ゼロではない。
 
-		"moved" エントリは、最小桁と最大桁のリストで、未設定時は [0, 0]
-		である。
+		"moved" エントリは、行番号と最小桁と最大桁のリストで、未設定時
+		は [0, 0, 0]である。
+
+		"mousemoved" エントリは画面行と最小画面桁と最大画面桁のリスト
+		で、未設定時は [0, 0, 0]である。
+
+		"firstline" は、ポップアップウィンドウの上部にある実際のバッ
+		ファ行である |popup_getpos()| で取得される "firstline"  とは異
+		なり、ポップアップに設定されたプロパティである。
 
 		すべての値がゼロの場合、"border" と "padding" は含まれない。す
 		べての値が 1 の場合、空のリストが含まれる。
 
 		すべての値が空の場合、"borderhighlight" は含まれない。
+		"scrollbarhighlight" および "thumbhighlight" は、設定されてい
+		る場合にのみ含まれる。
 
 		グローバルポップアップの場合 "tabpage" には -1 が設定され、カ
 		レントタブページの場合は 0 、別のタブページの場合は正の整数が
 		設定される。
 
+		"textprop", "textpropid" および "textpropwin" は、"textprop"
+		が設定されている場合にのみ与えられる。
+
 		ポップアップウィンドウ {id} が見つからない場合は空の辞書が返さ
 		れる。
 
+		|method| としても使用できる: >
+			GetPopup()->popup_getoptions()
 
 popup_getpos({id})					*popup_getpos()*
 		ポップアップ {id} の位置とサイズを返す。これらのエントリを持つ
@@ -279,6 +363,9 @@ popup_getpos({id})					*popup_getpos()*
 		    core_line	テキストボックスの画面の行
 		    core_width	画面セル内のテキストボックスの幅
 		    core_height	画面セル内のテキストボックスの高さ
+		    firstline	上端のバッファの行(スクロールされていない限り1)
+				("firstline" のプロパティの値ではない)
+		    scrollbar	スクロールバーが表示されていれば非0
 		    visible	ポップアップが表示されている場合は 1、非表示の
 				場合は 0
 		Note これらは実際の画面位置である。適用されるサイズと位置のメ
@@ -289,6 +376,8 @@ popup_getpos({id})					*popup_getpos()*
 		ポップアップウィンドウ {id} が見つからない場合は空の辞書が返さ
 		れる。
 
+		|method| としても使用できる: >
+			GetPopup()->popup_getpos()
 
 popup_hide({id})						*popup_hide()*
 		{id} がポップアップ表示されている場合、それを非表示にする。ポッ
@@ -298,26 +387,45 @@ popup_hide({id})						*popup_hide()*
 		{id} が存在するがポップアップウィンドウではない場合、エラーが
 		発生する。 *E993*
 
+		|method| としても使用できる: >
+			GetPopup()->popup_hide()
 
-popup_menu({text}, {options})				 *popup_menu()*
-		カーソルの近くに {text} を表示し、カーソルキーで項目の1つを選
+popup_locate({row}, {col})				 *popup_locate()*
+		画面位置 {row} および {col} のポップアップの |window-ID| を返
+		す。複数のポップアップがある場合、最も高い zindex のポップアッ
+		プが返される。この位置にポップアップがない場合、0 が返される。
+
+popup_menu({what}, {options})				 *popup_menu()*
+		カーソルの近くに {what} を表示し、カーソルキーで項目の1つを選
 		択して処理し、それを閉じるには、SpaceまたはEnterで項目を選択す
-		る。これを有効にするには、{text} に複数の行が必要である。これ
+		る。これを有効にするには、{what} に複数の行が必要である。これ
 		は次のように機能する: >
-			call popup_create({text}, {
-				\ 'pos': 'center',
-				\ 'zindex': 200,
-				\ 'drag': 1,
-				\ 'wrap': 0,
-				\ 'border': [],
-				\ 'padding': [],
-				\ 'filter': 'popup_filter_menu',
+			call popup_create({what}, #{
+				\ pos: 'center',
+				\ zindex: 200,
+				\ drag: 1,
+				\ wrap: 0,
+				\ border: [],
+				\ cursorline: 1,
+				\ padding: [0,1,0,1],
+				\ filter: 'popup_filter_menu',
+				\ mapping: 0,
 				\ })
-<		現在行は、PopupSelected を使用してマッチでハイライトされる。
-		PopupSelected が未定義の場合は、|PmenuSel| が使われる。
+<		現在行は、"PopupSelected" を使用してマッチでハイライトされる。
+		未定義の場合は、|PmenuSel| が使われる。
 
 		プロパティを変更するには {options} を使用する。少なくとも
 		"callback" を選択された項目を扱う関数に設定するべきである。
+		例: >
+			func ColorSelected(id, result)
+			   " a:result を使う
+			endfunc
+			call popup_menu(['red', 'green', 'blue'], #{
+				\ callback: 'ColorSelected',
+				\ })
+
+<		|method| としても使用できる: >
+			GetChoices()->popup_menu({})
 
 
 popup_move({id}, {options})					*popup_move()*
@@ -335,27 +443,36 @@ popup_move({id}, {options})					*popup_move()*
 		{id} については `popup_hide()` を参照。
 		その他のオプションについては |popup_setoptions()| を参照。
 
+		|method| としても使用できる: >
+			GetPopup()->popup_move(options)
 
-popup_notification({text}, {options})			 *popup_notification()*
-		Vimのウィンドウの上部に {text} を3秒間表示する。これは次のよ
+popup_notification({what}, {options})			 *popup_notification()*
+		Vimのウィンドウの上部に {what} を3秒間表示する。これは次のよ
 		うに動作する: >
-			call popup_create({text}, {
-				\ 'line': 1,
-				\ 'col': 10,
-				\ 'minwidth': 20,
-				\ 'time': 3000,
-				\ 'tabpage': -1,
-				\ 'zindex': 300,
-				\ 'drag': 1,
-				\ 'highlight': 'WarningMsg',
-				\ 'border': [],
-				\ 'padding': [0,1,0,1],
+			call popup_create({what}, #{
+				\ line: 1,
+				\ col: 10,
+				\ minwidth: 20,
+				\ time: 3000,
+				\ tabpage: -1,
+				\ zindex: 300,
+				\ drag: 1,
+				\ highlight: 'WarningMsg',
+				\ border: [],
+				\ close: 'click',
+				\ padding: [0,1,0,1],
 				\ })
 <		PopupNotification ハイライトグループが定義されている場合は、
 		WarningMsg の代わりに使用される。
+
+		|+timers| 機能なしだと、ポップアップは自動的に消えない。ユー
+		ザーはクリックする必要がある。
+
 		他の通知と重ならないように位置が調整される。
 		プロパティを変更するには{options}を使用する。
 
+		|method| としても使用できる: >
+			GetText()->popup_notification({})
 
 popup_show({id})						*popup_show()*
 		{id} が非表示のポップアップの場合は、それを表示する。
@@ -366,67 +483,56 @@ popup_setoptions({id}, {options})			*popup_setoptions()*
 		ポップアップ {id} のオプションを {options} のエントリで上書き
 		する。
 		これらのオプションが設定できる:
-			flip
+			border
+			borderchars
+			borderhighlight
+			callback
+			close
+			cursorline
+			drag
+			filter
 			firstline
+			flip
+			highlight
+			mapping
+			mask
+			moved
+			padding
+			resize
+			scrollbar
+			scrollbarhighlight
+			thumbhighlight
+			time
 			title
 			wrap
-			drag
-			highlight
-			padding
-			border
-			borderhighlight
-			borderchars
 			zindex
-			time
-			moved
-			filter
-			callback
 		|popup_move()| からのオプションも使用できる。
 		"hidden" のために |popup_hide()| と |popup_show()| を使用する。
 		"tabpage" は変更できない。
 
+		|method| としても使用できる: >
+			GetPopup()->popup_setoptions(options)
+
 popup_settext({id}, {text})				*popup_settext()*
 		ポップアップウィンドウ {id} でバッファのテキストを設定する。
-		{text} は |popup_create()| に提供されるものと同じである。
+		{text} は |popup_create()| に提供されるものと同じである。ただ
+		し、バッファ番号は許可されない。
 		テキストの違いが生じる以外の、ウィンドウのサイズや位置は変わら
 		ない。
 
-ポップアップバッファとウィンドウ			*popup-buffer*
+		|method| としても使用できる: >
+			GetPopup()->popup_settext('hello')
 
-ポップアップウィンドウのテキストとテキストプロパティを保持するための新しいバッ
-ファが作成される。バッファは常にポップアップウィンドウに関連付けられており、操
-作は制限されている:
-- 無名バッファ
-- 'buftype' は "popup"
-- 'swapfile' は off
-- 'bufhidden' は "hide"
-- 'buflisted' は off
-- 'undolevels' は -1: アンドゥはできない
-- 他のすべてのバッファローカルおよびウィンドウローカルオプションはVimのデフォ
-  ルト値に設定されている。
-
-具体的に言及されたオプションを変更することは可能だが、何かが壊れてしまう可能性
-があるので、そのままにしておくのが望ましい。
-
-ウィンドウにはカーソル位置があるが、カーソルは表示されない。
-
-ポップアップウィンドウとバッファのコンテキストでコマンドを実行するには
-`win_execute()` を使用すること。例: >
-	call win_execute(winid, 'syntax enable')
-
-オプションは `setwinvar()` を使ってウィンドウ上で設定できる。例: >
-	call setwinvar(winid, '&wrap', 0)
-そしてオプションは `setbufvar()` を使ってバッファに設定することができる。例: >
-	call setbufvar(winbufnr(winid), '&filetype', 'java')
-Note これは自動コマンドをトリガーしない。必要ならば `win_execute()` を使用する
-こと。
+==============================================================================
+3. 使用方法						*popup-usage*
 
 
-POPUP_CREATE() の引数					*popup_create-usage*
+POPUP_CREATE() の引数				 *popup_create-arguments*
 
 |popup_create()| の最初の引数(と |popup_setttext()| の第2引数)は表示されるテキ
-ストと、オプションでテキストプロパティを指定する。それは3つの形式のうちの1つで
+ストと、オプションでテキストプロパティを指定する。それは4つの形式のうちの1つで
 ある:
+- バッファ番号
 - 文字列
 - 文字列のリスト
 - 辞書のリスト。各辞書は次のエントリを持つ:
@@ -436,23 +542,39 @@ POPUP_CREATE() の引数					*popup_create-usage*
 			辞書の "col" エントリを使って桁を指定する。以下を参照:
 			|popup-props|.
 
+自分で新しいバッファを作成したい場合は、|bufadd()| を使用して、バッファ番号を
+popup_create() に渡す。
+端末ウィンドウのバッファを使用することはできない。 *E278*
+
 |popup_create()| の第2引数は任意の辞書である:
 	line		ポップアップを配置する画面の行。数値または、カーソルの
 			行を使用して行数を加算または減算するには、"cursor"、
 			"cursor+1"、または "cursor-1" を使用できる。省略した場
 			合、ポップアップは垂直方向の中央に配置される。最初の行
 			は1である。
+			"textprop" を使用する場合、数値はテキストプロパティに
+			関連していて、負の値にすることができる。
 	col		ポップアップを配置する画面の桁。数値または、カーソルの
 			桁を使用するには "cursor" を使用し、桁を加算または減算
 			するには "cursor+9" または "cursor-9" が使用できる。省
 			略した場合、ポップアップは水平方向の中央に配置される。
 			最初の桁は1である。
+			"textprop" を使用する場合、数値はテキストプロパティに
+			関連していて、負の値にすることができる。
 	pos		"topleft"、"topright"、"botleft" または "botright":
 			ポップアップのどのコーナーに "line" と "col" が使われ
 			るかを定義する。設定されていない場合は "topleft" が使
 			用される。あるいは "center" を使ってポップアップをVim
 			のウィンドウの中央に配置することもできる。その場合は
 			"line" と "col" は無視される。
+	textprop	指定した場合、ポップアップはこの名前のテキストプロパ
+			ティの隣に配置され、テキストプロパティが移動すると移動
+			する。削除するには空の文字列を使用すること。
+			|popup-textprop-pos| を参照。
+	textpropwin	テキストプロパティを検索するウィンドウ。省略または無効
+			な場合、現在のウィンドウが使用される。
+	textpropid	"textprop" が指定された場合にテキストプロパティを識別
+			するために使用される。0 を使用してリセットする。
 	fixed		FALSE (デフォルト)の場合は:
 			 - "pos" は "botleft" または "topleft" で、
 			 - "wrap" はオフで、
@@ -466,16 +588,19 @@ POPUP_CREATE() の引数					*popup_create-usage*
 			カーソルの上/下にスペースがない場合は、ポップアップま
 			たはポップアップメニューの横にポップアップを表示する。
 			{未実装} {not implemented yet}
-	maxheight	コンテンツの最大高さ (ボーダーとパディングを除く)
-	minheight	コンテンツの最小高さ (ボーダーとパディングを除く)
-	maxwidth	コンテンツの最大幅 (ボーダーとパディングを除く)
-	minwidth	コンテンツの最小幅 (ボーダーとパディングを除く)
+	maxheight	コンテンツの最大高さ(ボーダーとパディングを除く)
+	minheight	コンテンツの最小高さ(ボーダーとパディングを除く)
+	maxwidth	コンテンツの最大幅(ボーダーとパディングとスクロールバー
+			を除く)
+	minwidth	コンテンツの最小幅(ボーダーとパディングとスクロールバー
+			を除く)
 	firstline	表示する最初のバッファ行。1より大きい場合は、テキスト
 			が上にスクロールしたように見える。範囲外の場合、最後の
 			バッファ行はウィンドウの最上部に表示される。
+			コマンドによって設定された位置のままにするには、0 に設
+			定する。"scrollbar" も参照。
 	hidden		TRUEの場合、ポップアップは存在するが表示されない。表示
 			するには `popup_show()` を使う。
-			{未実装} {not implemented yet}
 	tabpage		-1の場合: すべてのタブページにポップアップを表示する。
 			0 (デフォルト)の場合: カレントタブページにポップアップ
 			を表示する。
@@ -491,6 +616,17 @@ POPUP_CREATE() の引数					*popup_create-usage*
 			うにする場合はTRUE。ポップアップにボーダーがない場合は
 			効果がない。"pos" が "center" の場合は、ドラッグが始ま
 			るとすぐに "topleft" に変更される。
+	resize		TRUEを設定すると、マウスで右下隅をつかんでポップアップ
+			のサイズを変更できる。ポップアップにボーダーがない場合
+			は効果がない。
+	close		"button" の場合、X が右上隅、境界線、パディング、また
+			はテキストの上に表示される。X をクリックすると、ポップ
+			アップは閉じる。任意のコールバックが値 -2 で呼び出され
+			る。
+			"click" の場合、ポップアップ内の任意のマウスクリックで
+			ポップアップが閉じる。
+			"none" (デフォルト)の場合、マウスクリックはポップアッ
+			プウィンドウを閉じない。
 	highlight	'wincolor' オプションに格納されている、テキストに使用
 			するハイライトグループ名。
 	padding		ポップアップの上/右/下/左のパディングを定義する数値の
@@ -517,8 +653,17 @@ POPUP_CREATE() の引数					*popup_create-usage*
 			'encoding' が "utf-8" かつ 'ambiwidth' が "single" の
 			ときはデフォルトで2重線が使われる。それ以外の場合は
 			ASCII文字が使われる。
+	scrollbar	0 以外: テキストが収まらない場合にスクロールバーを表示
+			する。0: スクロールバーを表示しない。デフォルトは 0以
+			外である。|popup-scrollbar| も参照。
+	scrollbarhighlight  スクロールバー用のハイライトグループ名。背景色が重
+			要である。指定しない場合、PmenuSbar が使用される。
+	thumbhighlight  スクロールバーのつまみ用のハイライトグループ名。背景色
+			が重要である。指定しない場合、PmenuThumb が使用される。
 	zindex		ポップアップの優先度。デフォルトは50。最小値は1、最大
 			値は32000。
+	mask		ポップアップの透明な部分を定義する座標付きリストのリス
+			ト。
 	time		ポップアップが閉じるまでの時間(msec)。省略した場合は
 			|popup_close()| を使用する必要がある。
 	moved		カーソルが移動した場合にポップアップを閉じるように指定
@@ -526,12 +671,33 @@ POPUP_CREATE() の引数					*popup_create-usage*
 			- "any": 少しでもカーソルが移動した場合
 			- "word": カーソルが |<cword>| の外側に移動した場合
 			- "WORD": カーソルが |<cWORD>| の外側に移動した場合
+			- "expr": カーソルが |<cexpr>| の外側に移動した場合
 			- [{start}, {end}]: カーソルが桁 {start} の前、または
 			  {end} の後に移動した場合
 			カーソルが別の行または別のウィンドウに移動した場合も
 			ポップアップは閉じる。
+	cursorline	非0: カーソル行をハイライトする。また、テキストをスク
+			     ロールしてこの行を表示する( 'wrap' がオフの場合の
+			     み適切に機能する)。
+			0:   カーソル行をハイライトしない。
+			Default is zero, except for |popup_menu()|.
 	filter		入力した文字をフィルタ処理できるコールバック。
 			|popup-filter| を参照。
+	mapping		キーマッピングを許可する。FALSEで、かつポップアップが
+			表示され、フィルターコールバックがある場合、キーマッピ
+			ングは無効になっている。 デフォルト値はTRUEである。
+	filtermode	どのモードでフィルターが使用されるか(|hasmapto()| と同
+			じフラグと "a"):
+				n	ノーマルモード
+				v	ビジュアルまたは選択モード
+				x	ビジュアルモード
+				s	選択モード
+				o	オペレータ待機モード
+				i	挿入モード
+				l	言語引数 ("r", "f", "t" 等)
+				c	コマンドラインモード
+				a	すべてのモード
+			デフォルト値は "a" である。
 	callback	ポップアップが閉じたときに呼び出されるコールバック。
 			例えば、|popup_filter_menu()| を使用する場合、
 			|popup-callback| を参照。
@@ -551,7 +717,6 @@ POPUP_CREATE() の引数					*popup_create-usage*
 - "lnum" は常にリストの現在の行である
 - "bufnr" は常にポップアップのバッファである
 - "col" は別の引数ではなく辞書内にある
-- "transparent" が追加
 そういうわけで、以下が得られる:
 	col		開始桁(バイト単位)。最初の桁には1を使用する
 	length		テキストの長さ(バイト)。ゼロ指定可能
@@ -562,10 +727,72 @@ POPUP_CREATE() の引数					*popup_create-usage*
 	id		プロパティのユーザー定義ID。省略時はゼロが使用される
 	type		|prop_type_add()| で追加されたテキストプロパティタイプ
 			の名前
-	transparent	これらの文字を表示せず、その下のテキストを表示する。右
-			または下にボーダー文字がある場合は、それも透明になる
-			{未実装} {not implemented yet}
 
+
+ポップアップとtextpropの位置				*popup-textprop-pos*
+
+テキストプロパティの隣にポップアップを配置すると、テキストが挿入または削除され
+たときにポップアップが移動する。ポップアップはツールチップのように機能する。
+
+この動作をさせるには、次の手順が必要である:
+
+- テキストプロパティタイプを定義し、名前を定義する: >
+	call prop_type_add('popupMarker', {})
+
+- 目的のテキストにテキストプロパティを配置する: >
+	let lnum = {line of the text}
+	let col = {start column of the text}
+	let len = {length of the text}
+	let propId = {arbitrary but unique number}
+	call prop_add(lnum, col, #{
+		\ length: len,
+		\ type: 'popupMarker',
+		\ id: propId,
+		\ })
+
+- ポップアップを作成する: >
+	let winid = popup_create('the text', #{
+		\ pos: 'botleft',
+		\ textprop: 'popupMarker',
+		\ textpropid: propId,
+		\ border: [],
+		\ padding: [0,1,0,1],
+		\ close: 'click',
+		\ })
+
+デフォルトでは、ポップアップは、ポップアップに指定された "pos" の反対側のテキ
+ストの隅に配置される。したがって、ポップアップが "botleft" を使用する場合、ポッ
+プアップの左下隅はテキストプロパティの右上隅の隣に配置される。
+			  +----------+
+			  | the text |
+			  +----------+
+	just some PROPERTY as an example
+
+ここで、テキストプロパティは "PROPERTY" にある。負の "col" 値を popup_create()
+に渡すことにより、ポップアップを左に移動する。"col: -5" を使用すると、以下が得
+られる:
+
+		     +----------+
+		     | the text |
+		     +----------+
+	just some PROPERTY as an example
+
+テキストプロパティがビューの外に移動すると、ポップアップは非表示になる。
+ポップアップが定義されたウィンドウが閉じられた場合、ポップアップは閉じられる。
+
+ポップアップが目的の位置に収まらない場合、近くの位置に表示される場合がある。
+
+いくつかのヒント:
+- 他のプラグインとの衝突を避けるために、テキストプロパティタイプ名は一意である
+  必要がある。"bufnr" 項目を使用して、バッファに対してローカルにすることもでき
+  る。
+- テキストプロパティが1つしか表示されていない場合は、テキストプロパティIDを省
+  略できる。
+- ポップアップは、ユーザーの操作の邪魔になる場合がある。上記の例のように、ク
+  リックするだけで閉じることができるのが役立つ。
+- テキストプロパティが削除されると、ポップアップは閉じられる。このような感じで
+  使用する: >
+	call prop_remove(#{type: 'popupMarker', id: propId})
 
 ポップアップフィルタ					*popup-filter*
 
@@ -590,10 +817,20 @@ zindex を持つポップアップウィンドウのフィルタが最初に呼�
 	  endif
 	  return 0
 	endfunc
+<							*popup-filter-mode*
+"filtermode" プロパティを使用して、フィルターを呼び出すモードを指定できる。デ
+フォルトは "a": すべてのモードである。"nvi" コマンドラインモードが含まれない場
+合、コマンドラインで入力されたコマンドはフィルタリングされない。ただし、コマン
+ドラインモードに移行するには、フィルターで ":" を使用しないこと。ビジュアルモー
+ドに入るために "v" を消費してはいけないように。
 
-現在のキーは、マッピング後に得られるものである。これは変わるかもしれない...
+							*popup-mapping*
+通常、キーは、フィルターが使用しない場合にキーが通常の入力として渡されるため、
+マッピング後に結果として得られるものである。フィルターがすべてのキーを消費する
+場合、マッピングが邪魔にならないように、"mapping" プロパティを 0 に設定する。
+これは、|popup_menu()| および |popup_dialog()| のデフォルトである。
 
-いくつかの共通のキー動作:
+いくつかの推奨するキー動作:
 	x		ポップアップを閉じる(下記の note を参照)
 	cursor keys	別のエントリを選択
 	Tab		現在の提案を受け入れる
@@ -622,30 +859,65 @@ Note "x" はポップアップを閉じる通常の方法である。Escを使�
 ポップアップが強制終了された場合、例えば、カーソルが移動したかCTRL-Cが押された
 場合、-1 がコールバックに渡される。
 
-==============================================================================
-3. 例							*popup-examples*
+例: >
+	func SelectedColor(id, result)
+	   echo 'choice made: ' .. a:result
+	endfunc
 
-TODO
+
+ポップアップスクロールバー				*popup-scrollbar*
+
+テキストがポップアップに収まらない場合、ウィンドウの右側にスクロールバーが表示
+される。これを無効にするには、"scrollbar" オプションを 0 に設定する。スクロー
+ルバーが表示されると、マウスポインターがポップアップ上にあるときにマウススク
+ロールイベントが発生し、テキストが期待どおりに上下にスクロールする。スクロール
+バーの上半分をクリックすると、テキストが1行下にスクロールする。下半分をクリッ
+クすると、テキストが1行上にスクロールする。ただし、これはポップアップが小さく
+ならないように制限されている。
+
+
+ポップアップマスク					*popup-mask*
+
+ポップアップがカバーするテキストを最小化するために、その一部を透明にすることが
+できる。これは、リストのリストである "mask" によって定義される。各リストには4
+つの数値を持つ:
+    col		開始桁、左からカウントする場合は正、1 は左端、右からカウントす
+		る場合は負値、-1 は右端
+    endcol	最終桁、"col" に似ている
+    line	開始行、上からカウントする場合は正、1 は上端、下からカウントす
+		る場合は負値、-1 は下端
+    endline	最終行、"line" に似ている
+
+例えば、最後の行の最後の10桁を透明にするには:
+	[[-10, -1, -1, -1]]
+
+4隅を透明にするには:
+	[[1, 1, 1, 1], [-1, -1, 1, 1], [1, 1, -1, -1], [-1, -1, -1, -1]]
+
+==============================================================================
+4. 例							*popup-examples*
+
+TODO: もっと興味深い例
 					*popup_dialog-example*
 ユーザーに y/Y か n/N を押すように促す: >
 
 	func MyDialogHandler(id, result)
 	   if a:result
-	      " ... 'y' or 'Y' was pressed
+	      " ... 'y' か 'Y' が押された
 	   endif
 	endfunc
 
-	call popup_dialog('Continue? y/n', {
-		\ 'filter': 'popup_filter_yesno',
-		\ 'callback': 'MyDialogHandler',
+	call popup_dialog('Continue? y/n', #{
+		\ filter: 'popup_filter_yesno',
+		\ callback: 'MyDialogHandler',
 		\ })
 <
 					*popup_menu-shortcut-example*
 popup_filter_menu() をショートカットで拡張できるようにする: >
 
-	call popup_menu('Save', 'Cancel', 'Discard'], {
-		\ 'filter': 'MyMenuFilter',
-		\ 'callback': 'MyMenuHandler',
+	call popup_menu(['Save', 'Cancel', 'Discard'], #{
+		\ filter: 'MyMenuFilter',
+		\ callback: 'MyMenuHandler',
 		\ })
 
 	func MyMenuFilter(id, key)
@@ -667,6 +939,56 @@ popup_filter_menu() をショートカットで拡張できるようにする: >
 	  return popup_filter_menu(a:id, a:key)
 	endfunc
 <
+					*popup_beval_example*
+'ballooneval' のポップアップウィンドウの使用例: >
 
+	set ballooneval balloonevalterm
+	set balloonexpr=BalloonExpr()
+	let s:winid = 0
+	let s:last_text = ''
+
+	func BalloonExpr()
+	  if s:winid && popup_getpos(s:winid) != {}
+	    " 以前のポップアップウィンドウがまだ表示されている
+	    if v:beval_text == s:last_text
+	      " まだ同じテキスト、既存のポップアップを保持
+	      return ''
+	    endif
+	    call popup_close(s:winid)
+	  endif
+	  let s:winid = popup_beval(v:beval_text, #{mousemoved: 'word'})
+	  let s:last_text = v:beval_text
+	  return ''
+	endfunc
+<
+テキストを非同期で取得する必要がある場合は、評価関数から空文字列を返し、テキス
+トが利用可能になったら、popup_beval() を呼び出す。タイマーコールバックでシミュ
+レートされた例: >
+
+	set ballooneval balloonevalterm
+	set balloonexpr=BalloonExpr()
+	let s:winid = 0
+	let s:balloonText = ''
+
+	func BalloonExpr()
+	  if s:winid && popup_getpos(s:winid) != {}
+	    " 以前のポップアップウィンドウがまだ表示されている
+	    if  v:beval_text == s:balloonText
+	      " まだ同じテキスト、既存のポップアップを保持
+	      return ''
+	    endif
+	    call popup_close(s:winid)
+	    let s:winid = 0
+	  endif
+	  " 表示するテキストの非同期検索をシミュレートする
+	  let s:balloonText = v:beval_text
+	  call timer_start(100, 'ShowPopup')
+	  return ''
+	endfunc
+
+	func ShowPopup(id)
+	  let s:winid = popup_beval(s:balloonText, #{mousemoved: 'word'})
+	endfunc
+<
 
  vim:tw=78:ts=8:noet:ft=help:norl:
