@@ -24,7 +24,8 @@ helpname: 'map'
 &nbsp;&nbsp; 1.8 例&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="map.html#map-examples">map-examples</a><br>
 &nbsp;&nbsp; 1.9 マップを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="map.html#map-typing">map-typing</a><br>
 &nbsp;&nbsp; 1.10 Altキーを使ったマップ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="map.html#:map-alt-keys">:map-alt-keys</a><br>
-&nbsp;&nbsp; 1.11 オペレータの作成&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="map.html#:map-operator">:map-operator</a><br>
+&nbsp;&nbsp; 1.11 modifyOtherKeys モードのマップ&nbsp;&nbsp;<a class="Identifier" href="map.html#modifyOtherKeys">modifyOtherKeys</a><br>
+&nbsp;&nbsp; 1.12 オペレータの作成&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="map.html#:map-operator">:map-operator</a><br>
 2. 短縮入力&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="map.html#abbreviations">abbreviations</a><br>
 3. ローカルマップとローカル関数&nbsp;<a class="Identifier" href="map.html#script-local">script-local</a><br>
 4. ユーザー定義コマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="map.html#user-commands">user-commands</a><br>
@@ -772,6 +773,9 @@ GUI では、Vim は Alt キーを直接取り扱うので、ALT キーを使っ
 します。CUI 端末では、Vim は受け取ったバイト列から、ALT キーが押されているかど<br>
 うかを割り出さなければなりません。<br>
 <br>
+端末が modifyOtherKeys モードをサポートし、有効になっている場合、Vim はより多<br>
+くのキーの組み合わせを認識できます。<a class="Identifier" href="map.html#modifyOtherKeys">modifyOtherKeys</a>&nbsp;以下を参照してください。<br>
+<br>
 初期設定では、ALT キーが押されているときは、文字の 8 ビット目が設定されるもの<br>
 と仮定しています。xterm、aterm、rxvt など、ほとんどの端末はこの方法で問題あり<br>
 ません。<span class="Special">&lt;A-k&gt;</span>&nbsp;のようなマップが動作しない場合は、その端末が、文字の前に ESC を<br>
@@ -809,7 +813,32 @@ xterm のような端末では、起動しているときに、メニューの &
 いう場合にこのリソースを使うと便利です。<br>
 <br>
 <br>
-1.11 オペレータの作成&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#:map-operator" name=":map-operator">:map-operator</a><br>
+1.11 modifyOtherKeys モードのマップ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#modifyOtherKeys" name="modifyOtherKeys">modifyOtherKeys</a><br>
+<br>
+xterm と他のいくつかの端末は、修飾子付きのキーが特別なエスケープコードで送信さ<br>
+れるモードにすることができます。Vim はこれらのコードを認識し、Backspace が文字<br>
+の 8 を送信した場合でも、<span class="Special">CTRL-H</span>&nbsp;と Backspace を区別できます。さらに多くの特別<br>
+なキーがあります。<br>
+<br>
+xterm の場合、組み込みの termcap エントリで modifyOtherKeys が有効になっていま<br>
+す。これを使用しない場合は、vimrc にこれらの行を追加して modifyOtherKeys を有<br>
+効にできます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;t_TI = &quot;\&lt;Esc&gt;[&gt;4;2m&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;t_TE = &quot;\&lt;Esc&gt;[&gt;4;m&quot;</div>
+<br>
+modifyOtherKeys モードで問題が発生する場合は、無効にすることができます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;t_TI = &quot;&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;t_TE = &quot;&quot;</div>
+これはすぐには有効になりません。Vim を再起動せずにこの作業を行うには、シェルコ<br>
+マンドを実行します。例:&nbsp;<span class="Comment">!ls</span><br>
+<br>
+既知の副作用として、挿入モードでは、<span class="Special">CTRL-V</span>&nbsp;キーの後に生のエスケープシーケンス<br>
+が挿入されます。これは、modifyOtherKeys が有効になっているかどうかを確認するた<br>
+めに使用できます。挿入モードで&nbsp;<span class="Special">CTRL-V</span>&nbsp;<span class="Special">CTRL-V</span>&nbsp;と入力し、1 バイトを取得したら<br>
+modifyOtherKeys をオフにし、<span class="Special">&lt;1b&gt;</span>27;5;118~ を取得したらオンにします。<br>
+<br>
+<br>
+1.12 オペレータの作成&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#:map-operator" name=":map-operator">:map-operator</a><br>
 <br>
 オペレータは&nbsp;<span class="Special">{motion}</span>&nbsp;コマンドと合わせて使われます。独自のオペレータを定義する<br>
 には、最初に&nbsp;<a class="Type" href="options.html#'operatorfunc'">'operatorfunc'</a>&nbsp;を設定し、そして、<a class="Identifier" href="map.html#g@">g@</a>&nbsp;オペレータを呼びます。ユー<br>
