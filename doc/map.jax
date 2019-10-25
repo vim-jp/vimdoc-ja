@@ -19,7 +19,8 @@
    1.8 例				|map-examples|
    1.9 マップを使う			|map-typing|
    1.10 Altキーを使ったマップ		|:map-alt-keys|
-   1.11 オペレータの作成		|:map-operator|
+   1.11 modifyOtherKeys モードのマップ	|modifyOtherKeys|
+   1.12 オペレータの作成		|:map-operator|
 2. 短縮入力			|abbreviations|
 3. ローカルマップとローカル関数	|script-local|
 4. ユーザー定義コマンド		|user-commands|
@@ -767,6 +768,9 @@ GUI では、Vim は Alt キーを直接取り扱うので、ALT キーを使っ
 します。CUI 端末では、Vim は受け取ったバイト列から、ALT キーが押されているかど
 うかを割り出さなければなりません。
 
+端末が modifyOtherKeys モードをサポートし、有効になっている場合、Vim はより多
+くのキーの組み合わせを認識できます。|modifyOtherKeys| 以下を参照してください。
+
 初期設定では、ALT キーが押されているときは、文字の 8 ビット目が設定されるもの
 と仮定しています。xterm、aterm、rxvt など、ほとんどの端末はこの方法で問題あり
 ません。<A-k> のようなマップが動作しない場合は、その端末が、文字の前に ESC を
@@ -804,7 +808,32 @@ xterm のような端末では、起動しているときに、メニューの "
 いう場合にこのリソースを使うと便利です。
 
 
-1.11 オペレータの作成					*:map-operator*
+1.11 modifyOtherKeys モードのマップ			*modifyOtherKeys*
+
+xterm と他のいくつかの端末は、修飾子付きのキーが特別なエスケープコードで送信さ
+れるモードにすることができます。Vim はこれらのコードを認識し、Backspace が文字
+の 8 を送信した場合でも、CTRL-H と Backspace を区別できます。さらに多くの特別
+なキーがあります。
+
+xterm の場合、組み込みの termcap エントリで modifyOtherKeys が有効になっていま
+す。これを使用しない場合は、vimrc にこれらの行を追加して modifyOtherKeys を有
+効にできます: >
+      let &t_TI = "\<Esc>[>4;2m"
+      let &t_TE = "\<Esc>[>4;m"
+
+modifyOtherKeys モードで問題が発生する場合は、無効にすることができます: >
+      let &t_TI = ""
+      let &t_TE = ""
+これはすぐには有効になりません。Vim を再起動せずにこの作業を行うには、シェルコ
+マンドを実行します。例: `!ls`
+
+既知の副作用として、挿入モードでは、CTRL-V キーの後に生のエスケープシーケンス
+が挿入されます。これは、modifyOtherKeys が有効になっているかどうかを確認するた
+めに使用できます。挿入モードで CTRL-V CTRL-V と入力し、1 バイトを取得したら
+modifyOtherKeys をオフにし、<1b>27;5;118~ を取得したらオンにします。
+
+
+1.12 オペレータの作成					*:map-operator*
 
 オペレータは {motion} コマンドと合わせて使われます。独自のオペレータを定義する
 には、最初に 'operatorfunc' を設定し、そして、|g@| オペレータを呼びます。ユー
