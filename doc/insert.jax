@@ -1,4 +1,4 @@
-*insert.txt*    For Vim バージョン 8.1.  Last change: 2019 Sep 27
+*insert.txt*    For Vim バージョン 8.1.  Last change: 2019 Oct 20
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1073,6 +1073,27 @@ CTRL-P			カーソルの直前と同じキーワードで始まる単語を、
 情報ポップアップが作成された後、それを |popup_findinfo()| で見つけることがで
 き、プロパティは |popup_setoptions()| で変更できる。
 
+						*complete-popuphidden*
+ポップアップの情報が非同期で得られる場合は、'completeopt' で "popuphidden" を
+使用すること。情報ポップアップは最初は非表示になり、情報が埋まれば
+|popup_show()| を呼び出す必要がある。これは、|CompleteChanged| 自動コマンドを
+使用して次のように実行できる: >
+	set completeopt+=popuphidden
+	au CompleteChanged * call UpdateCompleteInfo()
+	func UpdateCompleteInfo()
+	  " 保留中の情報取得をキャンセルする
+	  let item = v:event.completed_item
+	  " 項目の情報取得を開始し、ShowCompleteInfo(info) を呼び出す
+	endfunc
+	func ShowCompleteInfo(info)
+	  let id = popup_findinfo()
+	  if id
+	    call popup_settext(id, 'async info: ' .. a:info)
+	    call popup_show(id)
+	  endif
+	endfunc
+
+<						*complete-item-kind*
 "kind" は候補の種類を示す1文字である。候補の表示方法(色やアイコンなど)を区別
 するために使われる。
 現在のところ、指定可能な種類は次の通りである:
