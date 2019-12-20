@@ -1,10 +1,10 @@
-*popup.txt*  For Vim バージョン 8.1.  Last change: 2019 Nov 03
+*popup.txt*  For Vim バージョン 8.2.  Last change: 2019 Nov 30
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
 
 
-フローティングウィンドウにテキストを表示する。	*popup* *popup-window*
+フローティングウィンドウにテキストを表示する。*popup* *popup-window* *popupwin*
 
 
 1. 前書き				|popup-intro|
@@ -24,7 +24,7 @@
 3. 例					|popup-examples|
 
 
-{|+textprop| 機能無効でコンパイルされたときは使用できない}
+{|+popupwin| 機能無効でコンパイルされたときは使用できない}
 
 ==============================================================================
 1. 前書き						*popup-intro*
@@ -187,6 +187,8 @@ popup_atcursor({what}, {options})			 *popup_atcursor()*
 				\ moved: 'WORD',
 				\ })
 <		プロパティを変更するには {options} を使用する。
+		"pos" が "topleft" として渡された場合、"line" のデフォルトは
+		"cursor+1" になる。
 
 		|method| としても使用できる: >
 			GetText()->popup_atcursor({})
@@ -365,7 +367,8 @@ popup_getpos({id})					*popup_getpos()*
 		    core_height	画面セル内のテキストボックスの高さ
 		    firstline	上端のバッファの行(スクロールされていない限り1)
 				("firstline" のプロパティの値ではない)
-		    lastline	下端のバッファの行
+		    lastline	下端のバッファの行(ポップアップの再描画時に更
+				新される)
 		    scrollbar	スクロールバーが表示されていれば非0
 		    visible	ポップアップが表示されている場合は 1、非表示の
 				場合は 0
@@ -570,6 +573,10 @@ popup_create() に渡す。
 			用される。あるいは "center" を使ってポップアップをVim
 			のウィンドウの中央に配置することもできる。その場合は
 			"line" と "col" は無視される。
+	posinvert	FALSE の場合、"pos" の値が常に使用される。TRUE (デフォ
+			ルト)で、ポップアップが垂直に収まらず、反対側により多
+			くのスペースがある場合、ポップアップは "line" で示され
+			る位置の反対側に配置される。
 	textprop	指定した場合、ポップアップはこの名前のテキストプロパ
 			ティの隣に配置され、テキストプロパティが移動すると移動
 			する。削除するには空の文字列を使用すること。
@@ -680,6 +687,8 @@ popup_create() に渡す。
 			- [{lnum}, {start}, {end}]: カーソルが行 {lnum} から離
 			  れた場合、または、桁が {start} の前、または {end} の
 			  後に移動した場合
+			- [0, 0, 0]: カーソルが移動するときにポップアップを閉
+			  じない
 			カーソルが別の行または別のウィンドウに移動した場合も
 			ポップアップは閉じる。
 	mousemoved	"moved" に似ているが、マウスポインタの位置を参照する。
@@ -842,9 +851,7 @@ zindex を持つポップアップウィンドウのフィルタが最初に呼�
 	cursor keys	別のエントリを選択
 	Tab		現在の提案を受け入れる
 
-マウスクリックは <LeftMouse> として届く。座標は v:mouse_popup_col および
-v:mouse_popup_row である。ポップアップの左上の画面セルは、桁 1、行 1である(ボー
-ダーはカウントしない)。
+マウスクリックは <LeftMouse> として届く。座標は |getmousepos()| で取得できる。
 
 Vimは標準のフィルタ |popup_filter_menu()| と |popup_filter_yesno()| を提供す
 る。
