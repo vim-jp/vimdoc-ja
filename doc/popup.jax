@@ -1,4 +1,4 @@
-*popup.txt*  For Vim バージョン 8.2.  Last change: 2019 Nov 30
+*popup.txt*  For Vim バージョン 8.2.  Last change: 2020 Feb 03
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -11,6 +11,7 @@
    ウィンドウ位置とサイズ		|popup-position|
    ポップアップウィンドウを閉じる	|popup-close|
    ポップアップバッファとウィンドウ	|popup-buffer|
+   ポップアップウィンドウ内の端末	|popup-terminal|
 2. 関数					|popup-functions|
    詳細					|popup-function-details|
 3. 使用方法				|popup-usage|
@@ -140,6 +141,22 @@ Exコマンドの出力のために画面がスクロールアップすると、
 	call setbufvar(winbufnr(winid), '&filetype', 'java')
 ":setlocal" コマンドを `win_execute()` で使用することもできる。
 
+
+ポップアップウィンドウ内の端末				 *popup-terminal*
+
+特別なケースとして、端末をポップアップウィンドウ内で実行することが挙げられる。
+この場合、いくつものルールが異なる:			*E863*
+- ポップアップウィンドウは常にフォーカスを持ち、別のウィンドウに切り替えること
+  はできない。
+- ジョブが終了すると、ポップアップウィンドウは閉じられる。
+- Pmenu の既定の色は、枠とパディングのみに用いられる。端末自身の色を変えるには
+  'wincolor' を設定する。
+
+端末をポップアップウィンドウ内で実行するには、まず端末を隠した状態で作成する。
+次にバッファ番号を popup_create() に渡す。例: >
+	let buf = term_start(['picker', 'Something'], #{hidden: 1, term_finish: 'close'})
+	let winid = popup_create(buf, #{minwidth: 50, minheight: 20})
+	set wincolor=Search
 
 ==============================================================================
 2. 関数							*popup-functions*
