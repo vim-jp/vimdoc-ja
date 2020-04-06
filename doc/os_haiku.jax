@@ -1,0 +1,231 @@
+*os_haiku.txt*	For Vim バージョン 8.2.  Last change: 2020 Feb 26
+
+
+		  VIMリファレンスマニュアル    by Bram Moolenaar
+
+
+							*Haiku*
+このファイルは Haiku 版の Vim 特有の事柄に関して記述されています。このファイル
+で説明されていない事項について、Vim の挙動は Unix |os_unix.txt| 版と非常に良く
+似ています。
+
+Haiku は BeOS に触発されたオープンソースのオペレーティングシステムで、明確に
+パーソナルコンピューターをターゲットとしています。
+
+ 1. 全般			|haiku-general|
+ 2. Vim のコンパイル		|haiku-compiling|
+ 3. Haiku の GUI		|haiku-gui|
+ 4. $VIM ディレクトリ		|haiku-vimdir|
+ 5. $BE_USER_SETTINGS ディレクトリ
+				|haiku-user-settings-dir|
+ 6. ドラッグ&ドロップ		|haiku-dragndrop|
+ 7. 複数同時起動不可と複数起動可能
+				|haiku-launch|
+ 8. フォント			|haiku-fonts|
+ 9. Meta キー			|haiku-meta|
+10. マウスのキーマッピング	|haiku-mouse|
+11. 色名			|haiku-colors|
+12. クレジット			|haiku-support-credits|
+13. バグと ToDo 的な事柄	|haiku-bugs|
+
+
+1. 全般							*haiku-general*
+
+デフォルトのシンタックスハイライトは異なる前景色のハイライトアイテムについて多
+くの場合動作します。もっとも良く動作させるには暗めの背景色と明るい文字をターミ
+ナルウィンドウに設定します。いくつかの中間的なグレーの背景色 (例えば
+(r,g,b)=(168,168,168)) と黒の文字でもまた良く動くでしょう。
+
+
+2. Vim のコンパイル					*haiku-compiling*
+
+Vim は標準的な configure/make 手法を用いてコンパイルすることができます。
+./configure を引数無しか --enable-gui=haiku で Haiku の GUI をサポートしてコン
+パイルできます。./configure --help を走らせることで、あなたが他に有効/無効にで
+きる機能を見付けることができるでしょう。
+
+"make" で Vim をコンパイルでき、次いで "install" でインストールすることができ
+ます。GUI 版で追加的に GUI レスの vim バイナリもインストールされ、Haiku にシー
+ムレスに統合されます。典型的なコマンドは以下: >
+
+  ./configure --prefix=`finddir B_SYSTEM_NONPACKAGED_DIRECTORY` \
+    --datarootdir=`finddir B_SYSTEM_NONPACKAGED_DATA_DIRECTORY` \
+    --mandir=`finddir B_SYSTEM_NONPACKAGED_DIRECTORY`/documentation/man \
+  make clean
+  make install
+
+  ./configure --prefix=`finddir B_SYSTEM_NONPACKAGED_DIRECTORY`  \
+    --datarootdir=`finddir B_SYSTEM_NONPACKAGED_DATA_DIRECTORY` \
+    --mandir=`finddir B_SYSTEM_NONPACKAGED_DIRECTORY`/documentation/man \
+    --disable-gui
+  make clean
+  make install
+
+
+3. Haiku の GUI						*haiku-gui*
+
+通常、起動を gvim か vim -g で行うと GUI の Vim が起動します。GUI 付き版の vim
+はターミナルからではなくトラッカーからの起動であるかどうかを判定しようとしま
+す、そしてそうだった場合 GUI を使います。しかしながら、現在の判定スキームでは
+"vim - </dev/null" を使うと失敗します。
+
+まだ動作しないもの:
+
+- ウィンドウ外でのマウスの Up イベントが生成されません。これはおそらく Haiku
+  のバグです。文字列の選択後にウィンドウ外へとカーソル移動させ、マウスボタンを
+  離すと分ります。他の方法として、スウクロールバーをドラッグして同じ操作すると
+  いうのもあります。なので Vim はあなたがスクロールバーを操作しても変化しない
+  ようにしました。この回避策はウィンドウがアクティブ/非アクティブが切り替るま
+  で提供されます (そしてマウスのフォーカスが On になるまで適切に動作します)。
+- カーソルはフラッシュされません(とても低優先; 点滅するのが好ましいとは思えな
+  いので)。
+
+
+4. $VIM ディレクトリ					*haiku-vimdir*
+
+$VIM は Vim のサポートファイルを保存している場所へのシンボル名です。
+$VIM のデフォルト値はコンパイル時にセットされ、次のコマンドで確認でき >
+
+  :version
+
+通常は /boot/common/data/vim になっています。この値が好ましくなく変更したいな
+ら、環境変数 VIM に値を設定することで上書きでき、あるいは{訳註:ヘルプファ
+イルなら}あなたの .vimrc で 'helpfile' を設定してもできます: >
+
+  :if version >= 500
+  :    set helpfile=~/vim/runtime/doc/help.txt
+  :    syntax on
+  :endif
+
+
+5. $BE_USER_SETTINGS ディレクトリ			*haiku-user-settings-dir*
+
+$USER_SETTINGS_DIR は Haiku の設定とコンフィグファイルを保存している場所へのシ
+ンボル名です。
+
+通常は /boot/home/config/settings になっています。
+
+
+6. ドラッグ&ドロップ					*haiku-dragndrop*
+
+Vim のアイコン(ドロップするファイルのアプリケーションが Vim の"複数同時起動不
+可"に設定されていなければ新しい Vim のセッションを開始します)、もしくは Vim の
+ウィンドウ(ファイルの編集を始めます)にファイル(複数)もしくはディレクトリ(複数)
+をドロップすることができます。フォルダをドロップした場合は Vim のカレントワー
+キングディレクトリに設定します。|:cd| |:pwd|
+もし SHIFT キーを押しながら、ファイルもしくはフォルダをドロップしたなら、 Vim
+は最初にドロップされたアイテムが含まれるディレクトリに{訳註:カレントワーキング
+ディレクトリを}変更します。Vim を起動するときはShiftキーを押す必要はなく: Vim
+は、(Shift キーを押したときと) 同じように動作します。
+
+ファイルのドロップは引数リストを設定します。 |argument-list|
+
+
+7. 複数同時起動不可と複数起動可能			*haiku-launch*
+
+配布されている Vim のアプリケーションフラグ(ファイルタイプの設定で確認できる)
+は複数起動可能に設定されています。もし望むなら代わりに複数同時起動不可をセット
+することもできます。2つめの Vim のコピーが起動するとき最初の Vim でファイルを
+代わりに開くよう試みます。これはトラッカーから開いたときにコマンドラインから開
+くのと同じように働きます。後者のケースでは、ノンファイルな(オプション)引数はサ
+ポートされません。別の複数同時起動不可での後退点は、Vim のインスタンスが GUI
+サポートでコンパイルされていても非 GUI アプリケーションとして動作するとき、
+"Open With ..." での要求を無言で無視してしまうことです。Vim インスタンスが GUI
+ありで動作するときはこの問題はありません。
+
+注意: GUI バージョンだけが BApplication です (そしてその為にアプリケーションフ
+ラグがある)。
+この章は GUI レスバージョンについては適用されず、そのようにコンパイルする必要
+があります。
+
+
+8. フォント						*haiku-fonts*
+
+フォントの設定は >
+
+  :set guifont=DejaVu_Sans_Mono/Book/12
+
+最初の部分はフォントファミリー、次の部分はスタイル、三番目はサイズです。(フォ
+ント)ファミリーとスタイルのスペースはアンダースコアに置き換えられます。
+
+等幅フォントで最良の結果が得られます。Vim は全てのフォントについて、
+B_FIXED_SPACING モードを適用しようとしますが、どうやらプロポーショナルフォント
+については働かないようです(BeBook と呼ばれているにもかかわらずです)。
+
+現在のフォントでどのエンコーディングをサポートしているか検証したいなら >
+
+  :digraphs
+
+コマンドを与えて、ISO Latin 1 エンコーディングでのたくさんの文字を一覧表示しま
+す。もし、例えば、その中に"ボックス"文字{訳註: 俗に言う表示できない時の豆腐文
+字}があったり、もしくは最後がドット付きyではない場合は、そのエンコーディングで
+このフォントは動きません。
+
+もし指定したフォントが無いなら、システムの固定フォントが得られます。
+
+GUI でのフォント選択ダイアログは、次のようにして >
+
+  :set guifont=*
+
+コマンドを与えることで利用できます。
+
+
+9. Meta キー						*haiku-meta*
+
+META 修飾キーは左もしくは右の OPTION キーによって得られます。これは ALT(もしく
+は COMMAND)キーがアプリケーションに通知されないことを意味します。
+
+
+10. マウスのキーマッピング				*haiku-mouse*
+
+Vim は様々なマウスのボタンを LeftMouse、MiddleMouse そして RightMouse と呼んで
+います。デフォルトのマウスの設定を使用するなら、これらの名前が実際のボタンに対
+応します。Vim は次のマッピングを使用します:
+
+    Button 1 -> LeftMouse,
+    Button 2 -> RightMouse,
+    Button 3 -> MiddleMouse.
+
+もし、あなたのマウスが3ボタンより少ないなら、修飾キーとマウスの他のボタンを組
+み合せてマウスクリックをマッピングすることができます。例として
+$VIM/macros/swapmous.vim ファイルを見てください。	|gui-mouse-mapping|
+
+
+11. 色名						*haiku-colors*
+
+Vim は多数の色名を内蔵しています。追加の名前については $VIMRUNTIME/rgb.txt が
+あれば、それから読み込みます。このファイルは基本的には X の色データベースです。
+名前を使う時に効率的にするため、このファイルはキャッシュされます。
+
+
+12. GUI ツールバーイメージ				*haiku-toolbar-images*
+
+ツールバー画像の代替セットは任意の高さのPNG画像でなくてなはなりません。画像幅
+は1行のセルに最低32個のボタンが入るように計算されます。画像は
+ $VIRUNTIME/bitmaps/builtin-tools.png という名前で保存すること。ボタンの割り当
+てについての情報は |builtin-tools| を参照のこと。
+
+
+13. クレジット						*haiku-support-credits*
+
+多数の人の手により Haiku 版は BeOS 版をベースとして移植されました
+ - BeBox GUI サポート Copyright 1998 by Olaf Seibert;
+ - R4 への移植 by Richard Offer <richard@whitequeen.com> Jul 99;
+ - 上記に含まれないが忘れられたわけではない多数の人の提供;
+ - Haiku サポート by Siarzhuk Zharski <imker@gmx.li> Apr-Mai 2009.
+
+すべての変更とパッチは vim-license 下で提供されます。
+
+みんなありがとう!
+
+
+13. バグと ToDo 的な事柄				*haiku-bugs*
+
+この移植は開発中で完全な状態から遠く離れています。バグレポート、パッチ、そして
+要望を歓迎します。
+
+
+ -Siarzhuk Zharski <imker@gmx.li>
+
+
+ vim:tw=78:ts=8:ft=help:norl:
