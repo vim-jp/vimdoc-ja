@@ -1,4 +1,4 @@
-*os_haiku.txt*	For Vim バージョン 8.2.  Last change: 2020 Feb 26
+*os_haiku.txt*	For Vim バージョン 8.2.  Last change: 2020 Mar 19
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -16,7 +16,7 @@ Haiku は BeOS に触発されたオープンソースのオペレーティン�
  2. Vim のコンパイル		|haiku-compiling|
  3. Haiku の GUI		|haiku-gui|
  4. $VIM ディレクトリ		|haiku-vimdir|
- 5. $BE_USER_SETTINGS ディレクトリ
+ 5. $USER_SETTINGS_DIR ディレクトリ
 				|haiku-user-settings-dir|
  6. ドラッグ&ドロップ		|haiku-dragndrop|
  7. 複数同時起動不可と複数起動可能
@@ -26,7 +26,7 @@ Haiku は BeOS に触発されたオープンソースのオペレーティン�
 10. マウスのキーマッピング	|haiku-mouse|
 11. 色名			|haiku-colors|
 12. クレジット			|haiku-support-credits|
-13. バグと ToDo 的な事柄	|haiku-bugs|
+13. バグと ToDo			|haiku-bugs|
 
 
 1. 全般							*haiku-general*
@@ -43,6 +43,11 @@ Vim は標準的な configure/make 手法を用いてコンパイルすること
 ./configure を引数無しか --enable-gui=haiku で Haiku の GUI をサポートしてコン
 パイルできます。./configure --help を走らせることで、あなたが他に有効/無効にで
 きる機能を見付けることができるでしょう。
+
+Haiku は端末ライブラリとして "ncurses6" を利用しており、そのため Haiku でビル
+ドにあたってのコンフィグのために "ncurses6_devel" を HaikuDepot からインストー
+ルする必要があります。そして初回ビルド前の ./configure コマンドに
+"--with-tlib=ncurses6" を追加します。
 
 "make" で Vim をコンパイルでき、次いで "install" でインストールすることができ
 ます。GUI 版で追加的に GUI レスの vim バイナリもインストールされ、Haiku にシー
@@ -77,8 +82,7 @@ Vim は標準的な configure/make 手法を用いてコンパイルすること
   いうのもあります。なので Vim はあなたがスクロールバーを操作しても変化しない
   ようにしました。この回避策はウィンドウがアクティブ/非アクティブが切り替るま
   で提供されます (そしてマウスのフォーカスが On になるまで適切に動作します)。
-- カーソルはフラッシュされません(とても低優先; 点滅するのが好ましいとは思えな
-  いので)。
+- カーソルはフラッシュされません。
 
 
 4. $VIM ディレクトリ					*haiku-vimdir*
@@ -88,9 +92,11 @@ $VIM のデフォルト値はコンパイル時にセットされ、次のコマ
 
   :version
 
-通常は /boot/common/data/vim になっています。この値が好ましくなく変更したいな
-ら、環境変数 VIM に値を設定することで上書きでき、あるいは{訳註:ヘルプファ
-イルなら}あなたの .vimrc で 'helpfile' を設定してもできます: >
+通常は /boot/common/data/vim の Haiku 移植のバージョン、
+/boot/system/non-packaged/data/vim の手動ビルドの値になっています。 この値が好
+ましくなく変更したいなら、環境変数 VIM に値を設定することで上書きでき、あるい
+は {訳註:ヘルプファイルなら} あなたの .vimrc で 'helpfile' を設定してもできま
+す: >
 
   :if version >= 500
   :    set helpfile=~/vim/runtime/doc/help.txt
@@ -98,7 +104,7 @@ $VIM のデフォルト値はコンパイル時にセットされ、次のコマ
   :endif
 
 
-5. $BE_USER_SETTINGS ディレクトリ			*haiku-user-settings-dir*
+5. $USER_SETTINGS_DIR ディレクトリ			*haiku-user-settings-dir*
 
 $USER_SETTINGS_DIR は Haiku の設定とコンフィグファイルを保存している場所へのシ
 ンボル名です。
@@ -114,9 +120,9 @@ Vim のアイコン(ドロップするファイルのアプリケーションが
 をドロップすることができます。フォルダをドロップした場合は Vim のカレントワー
 キングディレクトリに設定します。|:cd| |:pwd|
 もし SHIFT キーを押しながら、ファイルもしくはフォルダをドロップしたなら、 Vim
-は最初にドロップされたアイテムが含まれるディレクトリに{訳註:カレントワーキング
-ディレクトリを}変更します。Vim を起動するときはShiftキーを押す必要はなく: Vim
-は、(Shift キーを押したときと) 同じように動作します。
+は最初にドロップされたアイテムが含まれるディレクトリに {訳註:カレントワーキン
+グディレクトリを} 変更します。Vim を起動するときはShiftキーを押す必要はなく:
+Vim は、(Shift キーを押したときと) 同じように動作します。
 
 ファイルのドロップは引数リストを設定します。 |argument-list|
 
@@ -157,9 +163,9 @@ B_FIXED_SPACING モードを適用しようとしますが、どうやらプロ�
   :digraphs
 
 コマンドを与えて、ISO Latin 1 エンコーディングでのたくさんの文字を一覧表示しま
-す。もし、例えば、その中に"ボックス"文字{訳註: 俗に言う表示できない時の豆腐文
-字}があったり、もしくは最後がドット付きyではない場合は、そのエンコーディングで
-このフォントは動きません。
+す。もし、例えば、その中に"ボックス"文字 {訳註: 俗に言う表示できない時の豆腐文
+字} があったり、もしくは最後がドット付きyではない場合は、そのエンコーディング
+でこのフォントは動きません。
 
 もし指定したフォントが無いなら、システムの固定フォントが得られます。
 
@@ -219,13 +225,13 @@ Vim は多数の色名を内蔵しています。追加の名前については 
 みんなありがとう!
 
 
-13. バグと ToDo 的な事柄				*haiku-bugs*
+13. バグと ToDo						*haiku-bugs*
 
 この移植は開発中で完全な状態から遠く離れています。バグレポート、パッチ、そして
-要望を歓迎します。
+要望について、Vim のメーリングリストか Vim GitHub リポジトリを利用してください。
 
-
- -Siarzhuk Zharski <imker@gmx.li>
+メーリングリスト: https://www.vim.org/maillist.php
+Vim Github リポジトリ: https://github.com/vim/vim
 
 
  vim:tw=78:ts=8:ft=help:norl:
