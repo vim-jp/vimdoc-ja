@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'popup'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="popup.html" name="popup.txt">popup.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2020 Feb 03<br>
+<a class="Constant" href="popup.html" name="popup.txt">popup.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2020 Mar 21<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -154,14 +154,21 @@ Exコマンドの出力のために画面がスクロールアップすると、
 - ポップアップウィンドウは常にフォーカスを持ち、別のウィンドウに切り替えること<br>
 &nbsp;&nbsp;はできない。<br>
 - ジョブが終了すると、ポップアップウィンドウは閉じられる。<br>
-- Pmenu の既定の色は、枠とパディングのみに用いられる。端末自身の色を変えるには<br>
-&nbsp;&nbsp;<a class="Type" href="options.html#'wincolor'">'wincolor'</a>&nbsp;を設定する。<br>
+- ポップアップウィンドウは&nbsp;<a class="Comment" href="popup.html#popup_close()">popup_close()</a>&nbsp;で閉じることができ、端末バッファで<br>
+&nbsp;&nbsp;あれば隠した状態になる。<br>
+- Pmenu の既定の色は、枠とパディングのみに用いられる。 端末自身の色を変えるに<br>
+&nbsp;&nbsp;は端末のハイライトグループを端末作成前に設定する。後から&nbsp;<a class="Type" href="options.html#'wincolor'">'wincolor'</a>&nbsp;を設定し<br>
+&nbsp;&nbsp;ても動作するが、端末内のプログラムが全てを再描画する必要がある。<br>
+- 初期値の最小サイズは20文字5行; &quot;minwidth&quot; と &quot;minheight&quot; パラメータを使うこ<br>
+&nbsp;&nbsp;とで異なる値に設定できる。<br>
+- 端末のサイズはプログラムが動作して端末にテキストを書き出すことで拡大す<br>
+&nbsp;&nbsp;る。&quot;maxheight&quot; と &quot;maxwidth&quot; を設定してサイズを制限する。<br>
 <br>
 端末をポップアップウィンドウ内で実行するには、まず端末を隠した状態で作成する。<br>
 次にバッファ番号を popup_create() に渡す。例:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let buf = term_start(['picker', 'Something'], #{hidden: 1, term_finish: 'close'})<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let winid = popup_create(buf, #{minwidth: 50, minheight: 20})<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set wincolor=Search</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hi link Terminal Search<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let buf = term_start(['picker', 'Something'], #{hidden: 1, term_finish: 'close'})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let winid = popup_create(buf, #{minwidth: 50, minheight: 20})</div>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 2. 関数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="popup.html#popup-functions" name="popup-functions">popup-functions</a><br>
@@ -412,6 +419,8 @@ popup_hide(<span class="Special">{id}</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ウィンドウ&nbsp;<span class="Special">{id}</span>&nbsp;が存在しない場合は何も起こらない。ウィンドウ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{id}</span>&nbsp;が存在するがポップアップウィンドウではない場合、エラーが<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;発生する。&nbsp;<a class="Constant" href="popup.html#E993" name="E993">E993</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;もしポップアップウィンドウ&nbsp;<span class="Special">{id}</span>&nbsp;に端末が含まれる場合にこのエ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ラーになる。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#method">method</a>&nbsp;としても使用できる:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GetPopup()-&gt;popup_hide()</div>
@@ -572,7 +581,8 @@ POPUP_CREATE() の引数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n
 <br>
 自分で新しいバッファを作成したい場合は、<a class="Identifier" href="eval.html#bufadd()">bufadd()</a>&nbsp;を使用して、バッファ番号を<br>
 popup_create() に渡す。<br>
-端末ウィンドウのバッファを使用することはできない。&nbsp;<a class="Constant" href="popup.html#E278" name="E278">E278</a><br>
+端末ウィンドウのバッファを使用することはできない。&nbsp;<a class="Constant" href="popup.html#E278" name="E278">E278</a>&nbsp;隠した状態の端末バッ<br>
+ファを作ってポップアップウィンドウに使うことができる。<br>
 <br>
 <a class="Identifier" href="popup.html#popup_create()">popup_create()</a>&nbsp;の第2引数は任意の辞書である:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;line&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ポップアップを配置する画面の行。数値または、カーソルの<br>
