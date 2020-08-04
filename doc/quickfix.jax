@@ -1,4 +1,4 @@
-*quickfix.txt*  For Vim バージョン 8.2.  Last change: 2020 Jan 06
+*quickfix.txt*  For Vim バージョン 8.2.  Last change: 2020 May 31
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -16,6 +16,7 @@
 7. エラーフォーマット			|error-file-format|
 8. ディレクトリスタック			|quickfix-directory-stack|
 9. 具体的なエラーファイルフォーマット	|errorformats|
+10. Quickfix ウィンドウのカスタマイズ	|quickfix-window-function|
 
 コンパイル時に|+quickfix|機能が無効にされた場合は、quickfixコマンドは使えない。
 
@@ -1306,7 +1307,11 @@ Vimは任意の長さの行を読み取るが、最初の4095バイトのみが�
 	%c		桁番号 (エラーの桁を表す数字 (<Tab>1個は1桁と数える))
 	%v		画面上の桁番号 (エラーの画面上の桁を表す番号 (<Tab>1個
 			はスクリーン上8桁と数える))
-	%t		エラーの種類 (1文字を検索)
+	%t		エラーの種類 (1文字を検索):
+			    e - エラーメッセージ
+			    w - 警告メッセージ
+			    i - 情報メッセージ
+			    n - ノートメッセージ
 	%n		エラー番号 (数字を検索)
 	%m		エラーメッセージ (文字列を検索)
 	%r		その行の残り全部 %O/%P/%Q
@@ -1371,6 +1376,7 @@ Tipsや制限など詳細は|quickfix-directory-stack|を参照。
 	%E		複数行エラーメッセージの開始
 	%W		複数行警告メッセージの開始
 	%I		複数行情報メッセージの開始
+	%N		複数行ノートメッセージの開始
 	%A		複数行メッセージの開始 (種類指定なし)
 	%>		現在と同じパターンで始まっている次行 |efm-%>|
 	%C		複数行メッセージの継続
@@ -1837,6 +1843,64 @@ $VIMRUNTIME/tools にefm_perl.plスクリプトがある。これはPerlのエ�
 ルの先頭を参照。(このスクリプトはもう非推奨で、今は |compiler-perl| を参照のこ
 と)
 
+=============================================================================
+10. Quickfix ウィンドウのカスタマイズ		*quickfix-window-function*
 
+quickfix ウィンドウおよび location リストウィンドウ内で各行を表示するデフォル
+トのフォーマットは:
+
+    <filename>|<lnum> col <col>|<text>
+
+各行で表示されるのは |getqflist()| 関数が返す、"bufnr", "lnum", "col", "text"
+の各フィールドに相当する値。
+
+いくつかの quickfix/location リストでは、表示テキストのカスタマイズが必要。例
+えば、quickfixのエントリにファイル名のみが存在し、ファイル名の後にあるフィール
+ド区切りの2つの "|" が不要な場合。あるいはファイル名をカスタマイズしてパスを表
+示する場合。デフォルトでは、ファイルについてカレントディレクトリ以下ではなく、
+完全なパス (長すぎるかもしれない) が表示される。ファイルのパスは共通の親ディレ
+クトリについてシンプル化の必要があるかもしれない。
+
+表示するテキストは 'quickfixtextfunc' オプションに Vim の関数を設定することで
+カスタマイズできる。この関数は辞書を引数として呼ばれ、quickfix か location ウィ
+ンドウで表示される文字列のリストを返さなくてはならない。引数の辞書は以下の
+フィールドを持っている:
+
+    quickfix	quickfix リストを呼ぶときは1が設定され、location リストのとき
+		は0が設定される。
+    winid	location リストの時、そのウィンドウIDが設定される。quickfix
+		リストの時、0が設定される。getloclist() で location リストの項
+		目を取得するのに使える。
+    id		quickfix か location リストの識別子
+    start_idx	返されたテキストの最初の項目のインデックス
+    end_idx	返されたテキストの最後の項目のインデックス
+
+関数は項目の start_idx から end_idx について quickfix ウィンドウに表示する単一
+の行の表示テキストを返さなくてはならない。関数は項目の情報を |getqflist()| 関
+数から quickfix リストを識別する識別子 "id" で取れる。location リストの時は、
+'winid' 引数付きで getloclist() 関数を使う。
+
+もし quickfix か location リストで固有のカスタマイズが必要ならば、利用する
+|setqflist()| か |setloclist()| 関数で 'quickfixtextfunc' 属性をリストに設定
+できる。これは 'quickfixtextfunc' を上書きする。
+
+下の例では履歴ファイル (|v:oldfiles|) を quickfix ウィンドウに表示している。そ
+こでは各項目の行番号、カラム番号、関連するエラーのテキストはなく、
+'quickfixtextfunc' の関数はファイル名だけを返している。
+例: >
+    " quickfix リストを v:oldfiles から作る
+    call setqflist([], ' ', {'lines' : v:oldfiles, 'efm' : '%f',
+					\ 'quickfixtextfunc' : 'QfOldFiles'})
+    func QfOldFiles(info)
+	" quickfix の項目の対象範囲から情報を取得する
+	let items = getqflist({'id' : a:info.id, 'items' : 1}).items
+	let l = []
+	for idx in range(a:info.start_idx - 1, a:info.end_idx - 1)
+	    " ファイル名をシンプルにして利用する
+	  call add(l, fnamemodify(bufname(items[idx].bufnr), ':p:.'))
+	endfor
+	return l
+    endfunc
+<
 
  vim:tw=78:ts=8:noet:ft=help:norl:

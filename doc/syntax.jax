@@ -1,4 +1,4 @@
-*syntax.txt*	For Vim バージョン 8.2.  Last change: 2020 Feb 29
+*syntax.txt*	For Vim バージョン 8.2.  Last change: 2020 Jun 01
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1184,11 +1184,13 @@ DESKTOP					   *desktop.vim* *ft-desktop-syntax*
 
 この構文ファイルの本来の目的は、freedesktop.org 標準の .desktop と .directory
 を構文ハイライトすることである:
-http://standards.freedesktop.org/desktop-entry-spec/latest/
-しかし実際にはこの標準を完全に実装したものはほとんどない。なのでこれは全ての
-iniファイルをハイライトする。ただし次をvimrcファイルに書くことによって厳格に標
-準に準拠したハイライトをさせることもできる: >
-	:let enforce_freedesktop_standard = 1
+https://specifications.freedesktop.org/desktop-entry-spec/latest/
+X- で始まらない非標準の拡張子のハイライトの設定 >
+	let g:desktop_enable_nonstd = 1
+Note これは悪いハイライトの原因になる。
+KDEが予約している機能のハイライトの設定 >
+	let g:desktop_enable_kde = 1
+g:desktop_enable_kde が与えられていない場合、g:desktop_enable_nonstd に従う
 
 
 DIFF							*diff.vim*
@@ -3516,6 +3518,25 @@ ZSH						    *zsh.vim* *ft-zsh-syntax*
 	"syntax case match" または "syntax case ignore" (翻訳される)を表示す
 	る。
 
+折り畳みレベルの定義					*:syn-foldlevel*
+
+:sy[ntax] foldlevel [start | minimum]
+	foldmethod=syntax 利用時での行の折り畳みレベル算出の方法を定義する
+	(|fold-syntax| と |:syn-fold| を参照):
+
+	start:		行の先頭を含むアイテムのレベルを使う。
+	minimum:	行の項目の最小の局所レベルの最低値を使う。
+
+	デフォルトは "start"。"minimum" を使うと行内でより高いレベルに包括され
+	ている最低レベルを水平方向に探す。これにより、構文アイテムが行内で水平
+	方向に開閉する場合に、より自然な折りたたみが生成される。
+
+:sy[ntax] foldlevel
+	"syntax foldlevel start" かもしくは "syntax foldlevel minimum" を表示
+	する。
+
+	{|+folding|機能なしでコンパイルされた場合は意味を持たない}
+
 スペルチェック						*:syn-spell*
 
 :sy[ntax] spell [toplevel | notoplevel | default]
@@ -3959,6 +3980,8 @@ fold							*:syn-fold*
 折り畳みはそのアイテムの開始位置から始まり、アイテムの終了位置で終わる。開始位
 置と終了位置が同一行にある場合、折り畳みは作られない。
 オプション 'foldnestmax' によって構文折り畳みのネストを制限できる。
+|:syn-foldlevel| の構文アイテムから算出される行の折り畳みレベルを制御する方法
+を参照
 {|+folding|機能なしでコンパイルされた場合は利用できない}
 
 
@@ -4679,8 +4702,13 @@ term={attr-list}			*attr-list* *highlight-term* *E418*
 	この引数で "bold" を指定してもよいし、太文字のフォントを指定してもよ
 	い。どちらも表示は同じになる。
 	"undercurl" は波線のこと。"undercurl" が使用できないときは "underline"
-	が使われる。一般的には "undercurl" および "strikethrough" はGUIでのみ
-	使用できる。その色は |highlight-guisp| で設定できる。
+	が使われる。一般的には "undercurl" および "strikethrough" はGUIといく
+	つかの端末で使用できる。
+	その色は |highlight-guisp| か |highlight-ctermul| で設定できる。
+	端末で波下線が動くようにするにはこれらの termcap エントリを試してみる
+	とよい: >
+	    let &t_Cs = "\e[4:3m"
+	    let &t_Ce = "\e[4:0m"
 
 start={term-list}				*highlight-start* *E422*
 stop={term-list}				*term-list* *highlight-stop*
@@ -4721,6 +4749,10 @@ cterm={attr-list}					*highlight-cterm*
 
 ctermfg={color-nr}				*highlight-ctermfg* *E421*
 ctermbg={color-nr}				*highlight-ctermbg*
+ctermul={color-nr}				*highlight-ctermul*
+	これらで端末で前面 (ctermfg)、背景 (ctermbg)、下線 (ctermul) に使う色
+	を指定する。
+
 	引数{color-nr}で色番号を指定する。色番号の範囲は0からtermcapエントリ
 	"Co" の値 - 1 までである。
 	この色番号で実際に表示される色はターミナルの種類とその設定に依存する。
@@ -4794,10 +4826,10 @@ ctermbg={color-nr}				*highlight-ctermbg*
 	の色をリセットする必要がある。これはtermcapエントリ "op" |t_op|を使っ
 	てなされる。リセットがうまくいかない場合は.vimrc中で 't_op' を設定して
 	みること。
-							*E419* *E420*
-	Vimが通常の文字色と背景色を知っている場合、色名として "fg" と "bg" を
-	使用できる。これはNormalグループの色とMS-Windowsコンソールの色を設定し
-	ないと使えない。例えば反転表示をするには: >
+							*E419* *E420* *E453*
+	Vimが通常の文字色と背景色と下線色を知っている場合、色名として "fg" と
+	"bg" と "ul" を使用できる。これはNormalグループの色とMS-Windowsコンソー
+	ルの色を設定しないと使えない。例えば反転表示をするには: >
 	    :highlight Visual ctermfg=bg ctermbg=fg
 <	このコマンドを実行した時点で有効な色が使われることに注意。この後で
 	Normalグループを変更しても "fg" と "bg" は調整されない。
