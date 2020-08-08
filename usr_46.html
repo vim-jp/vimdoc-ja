@@ -1,0 +1,197 @@
+---
+layout: vimdoc
+helpname: 'usr_46'
+---
+<div id='vimCodeElement'>
+<a class="Constant" href="usr_46.html" name="usr_46.txt">usr_46.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2020 Jun 14<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; VIM USER MANUAL - by Bram Moolenaar<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Vim9 script でプラグインを作る<br>
+<br>
+<br>
+Vim9 script 言語はプラグイン、とりわけ複数のファイルからなる大きなものを書くの<br>
+に使えます。この章ではプラグインをモジュールとして分割し、アイテムをインポート<br>
+やエクスポートして局所性を維持する方法を解説します。<br>
+<br>
+<a class="Identifier" href="usr_46.html#46.1">46.1</a>&nbsp;&nbsp;導入<br>
+<a class="Identifier" href="usr_46.html#46.2">46.2</a>&nbsp;&nbsp;変数の宣言<br>
+<a class="Identifier" href="usr_46.html#46.3">46.3</a>&nbsp;&nbsp;関数と型<br>
+<a class="Identifier" href="usr_46.html#46.?">46.?</a>&nbsp;&nbsp;旧来のスクリプトから Vim9 script を使う<br>
+<br>
+次章:&nbsp;<a class="Identifier" href="usr_90.html">usr_90.txt</a>&nbsp;&nbsp;Vim のインストール<br>
+前章:&nbsp;<a class="Identifier" href="usr_45.html">usr_45.txt</a>&nbsp;&nbsp;言語を選択する (ロケール)<br>
+目次:&nbsp;<a class="Identifier" href="usr_toc.html">usr_toc.txt</a><br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_46.html#46.1" name="46.1">46.1</a>&nbsp;&nbsp;導入&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="usr_46.html#vim9-script-intro" name="vim9-script-intro">vim9-script-intro</a><br>
+<br>
+Vim9 script は大きな Vim script を容易に書けるようにデザインされています。他の<br>
+スクリプト言語、特に TypeScript のようになっています。また、処理内の関数はコン<br>
+パイルされ素早く実行できます。これにより Vim9 script はとても速く、最大100倍に<br>
+なります。<br>
+<br>
+基本的な考え方はスクリプトファイルにあるアイテムをプライベートとし、そのスクリ<br>
+プトファイル内からのみ利用し、そしてアイテムをエクスポートし、スクリプトファイ<br>
+ルの外から使うというものです。エクスポートされたアイテムはインポートしたスクリ<br>
+プトから使うことができます。これは定義された位置を非常に明確にできます。<br>
+<br>
+さあサンプルから始めてみましょう、このスクリプトが1つの関数をエクスポートし、<br>
+もう1つのプライベートな関数があります:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script&nbsp;&nbsp;&quot; Vim9 script ファイルであることを示します。</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;export def GetMessage(): string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; let result = ''<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; result = GetPart(count)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return result<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def GetPart(nr: number): string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if nr == 4<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 'yes'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 'no'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+<br>
+<span class="Comment">vim9script</span>&nbsp;コマンドはファイルのごく最初のコマンドとして置かれなくてはいけま<br>
+せん。これがないと Vim は旧来のスクリプトの文法であると見なします。<br>
+<br>
+<span class="Comment">export def GetMessage(): string</span>&nbsp;の行は&nbsp;<span class="Comment">export</span>&nbsp;から始まっており、この関数は<br>
+インポート可能で他のスクリプトから呼び出せることを意味します。<br>
+<span class="Comment">def GetPart(...</span>&nbsp;の行は&nbsp;<span class="Comment">export</span>&nbsp;から始まっておらず、これがスクリプトローカル<br>
+の関数で、このスクリプトファイル内からしか使えません。<br>
+<br>
+<span class="Comment">export def GetMessage(): string</span>&nbsp;の行のコロンと戻り値の型に気付くでしょう。<br>
+<span class="Comment">def</span>&nbsp;で定義された Vim9 関数は引数および戻り値の型を指定する必要があります。こ<br>
+れは Vim が効率的にコードをコンパイルできるようにするためです。GetPart 関数は<br>
+引数 &quot;nr&quot; の型が &quot;number&quot; であると定義されています。<br>
+<br>
+注意すべきは&nbsp;<span class="Comment">result = GetPart(count)</span>&nbsp;の代入は&nbsp;<a class="Comment" href="eval.html#:let">let</a>&nbsp;コマンドを使っていないこ<br>
+とです。これについては次の節で説明します。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_46.html#46.2" name="46.2">46.2</a>&nbsp;&nbsp;変数の宣言&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="usr_46.html#vim9-declarations" name="vim9-declarations">vim9-declarations</a><br>
+<br>
+Vim9 script の変数は一度だけ&nbsp;<a class="Comment" href="eval.html#:let">:let</a>&nbsp;もしくは&nbsp;<a class="Comment" href="eval.html#:const">:const</a>&nbsp;コマンドによって宣言され<br>
+ます。値は&nbsp;<a class="Comment" href="eval.html#:let">:let</a>&nbsp;無しで代入され変数を&nbsp;<a class="Comment" href="eval.html#:unlet">:unlet</a>&nbsp;することはできません。<br>
+<br>
+よくあるケースとして、変数の宣言と初期化を同時にしたい時:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let myText = 'some text'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;myText = 'other text'</div>
+<br>
+変数の型は式から推論されます。この場合は文字列となり、数値で初期化した場合は型<br>
+は数値となります:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let myNumber = 1234<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;myNumber = 0</div>
+<br>
+もし、この変数に文字列を代入したなら、エラーが検出されます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let myNumber = 'this fails!'</div>
+<br>
+稀なケースとして任意の型の値を取る変数が欲しい場合、&quot;any&quot; 型を指定しなければな<br>
+りません:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let myVar: any = 1234<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;myVar = 'text also works'</div>
+<br>
+値の代入なしで変数を宣言することもできます。このケースでは Vim は0もしくは空文<br>
+字列として初期化します:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let word: string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if condition<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;word = 'yes'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;word = 'no'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif</div>
+<br>
+とはいえ、これは短くできます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let word = condition ? 'yes' : 'no'</div>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_46.html#46.3" name="46.3">46.3</a>&nbsp;&nbsp;関数と型<br>
+<br>
+旧来の Vim script は型のチェックがありましたが、ランタイムつまりコード実行時に<br>
+実施していました。そしてそれは寛容で、ときどきエラー報告ではなく処理によって不<br>
+明な値となっていました。結果として関数が定義できかつ正常であると思えても、問題<br>
+が発覚するのは常に呼び出した後でした:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let s:collected = ''<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func ExtendAndReturn(add)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; let s:collected += a:add<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return s:collected<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc</div>
+<br>
+どの箇所に問題があると思いますか? 次を試してください:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo ExtendAndReturn('text')</div>
+すると0が見えるでしょう。なぜか? それは旧来の Vim script は &quot;+=&quot; が引数を数値<br>
+に変換し、そして数値のない任意の文字列では結果が0となるのです!<br>
+<br>
+<span class="Comment">:def</span>&nbsp;だと型チェックが関数のコンパイル時に行われます。それによってあなたは引<br>
+数の型と戻り値の型の指定が必要になります。また引数は &quot;a:&quot; のプリフィックス無し<br>
+で使われることに注意してください:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let s:collected = ''<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def ExtendAndReturn(add: string): string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; s:collected += add<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return s:collected<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;defcompile</div>
+<br>
+ここでは直ちにコンパイルを実行するために&nbsp;<span class="Comment">:defcompile</span>&nbsp;を使っており、それがな<br>
+いなら関数が呼ばれるときにコンパイルされるでしょう。Vim はあなたが間違っている<br>
+と警告します:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;E1013: type mismatch, expected number but got string</div>
+<br>
+Vim9 script は厳密で、&quot;+&quot; 演算子は数値か浮動小数点数でしか使えません。文字の結<br>
+合であれば &quot;..&quot; を使わなくてはなりません。これが間違いを防ぎ、上にあるような驚<br>
+きの結果をもたらす自動型変換を回避します。そして関数の最初の行をこう変化させれ<br>
+ば:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; s:collected ..= add</div>
+動くようになります。<br>
+<br>
+もし関数が何も返さないなら、戻り値の型は無くてよいです:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def ReportResult(result: string)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; echo 'The result is: ' .. result<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+<br>
+これもまたチェックされ、もし値を返そうとすると、エラーとなるでしょう。<br>
+<br>
+あなたが型をケアしない場合や関数が多型で動くなら、&quot;any&quot; 型を使うことができます:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Store(key: string, value: any)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resultDict[key] = value<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_46.html#46.?" name="46.?">46.?</a>&nbsp;&nbsp;旧来のスクリプトから Vim9 script を使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="usr_46.html#source-vim9-script" name="source-vim9-script">source-vim9-script</a><br>
+<br>
+いくつかの場合として持っている旧来の Vim script にて Vim9 script のアイテムを<br>
+使いたいことがあります。たとえばあなたの .vimrc がプラグインの初期化をする場合<br>
+などです。最良の方法は&nbsp;<span class="Comment">:import</span>&nbsp;を使うことです。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import Init as NiceInit from 'myNicePlugin.vim'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call NiceInit('today')</div>
+<br>
+これは Vim9 script からエクスポートされた &quot;Init&quot; 関数を見付けそれをスクリプト<br>
+ローカルなアイテム &quot;NiceInit&quot; として利用可能にします。&quot;s:&quot; を指定しなくても<br>
+<span class="Comment">:import</span>&nbsp;は常にスクリプトの名前空間を使います。もし &quot;myNicePlugin.vim&quot; がすで<br>
+に読み込み済みであれば再度読み込まれることはありません。<br>
+<br>
+その上アイテムがグローバルの名前空間に置かれるのを防ぎ (名前の衝突が不測の問題<br>
+になり得ます)、そしてたとえ何度もアイテムをインポートしても、スクリプトの読み<br>
+込みがただ一度であることを意味します。<br>
+<br>
+いくつかの場合、例えばテストなどで、ただ Vim9 script を読み込みたいだけのこと<br>
+があります。大丈夫ですが、グローバルのアイテムだけが利用可能となります。Vim9<br>
+script ではこうしたグローバルのアイテムで確実にユニークな名前を使うようにしな<br>
+くてはなりません。 例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;source ~/.vim/extra/myNicePlugin.vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call g:NicePluginTest()</div>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+次章:&nbsp;<a class="Identifier" href="usr_90.html">usr_90.txt</a>&nbsp;&nbsp;Vim のインストール<br>
+<br>
+Copyright: see&nbsp;<a class="Identifier" href="usr_01.html#manual-copyright">manual-copyright</a>&nbsp;&nbsp;vim:tw=78:ts=8:noet:ft=help:norl:<br>
+</div>
