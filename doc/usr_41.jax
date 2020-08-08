@@ -1,4 +1,4 @@
-*usr_41.txt*	For Vim バージョン 8.2.  Last change: 2020 Mar 15
+*usr_41.txt*	For Vim バージョン 8.2.  Last change: 2020 Jun 13
 
 		     VIM USER MANUAL - by Bram Moolenaar
 
@@ -40,6 +40,12 @@ Vim script 言語は vimrc ファイルや構文ファイルなど、さまざ�
 シンタックスファイルも Vim script です。シンタックスファイルは、ファイルタイプ
 別にオプションを設定するファイルの一種です。複雑なマクロ定義を別ファイルに分け
 て保存しておくこともできます。このように、いろいろな使用方法が考えられます。
+
+	あなたが Python に親しんでいるなら、Python と Vim script 間の比較につ
+	いて、以下で他のドキュメントへの参照を見付けることができます:
+	   https://gist.github.com/yegappan/16d964a37ead0979b05e655aa036cad0
+	そしてあなたが JavaScript に親しんでいるなら:
+	   https://w0rp.com/blog/post/vim-script-for-the-javascripter/
 
 簡単な例から始めましょう: >
 
@@ -88,6 +94,8 @@ Vim script 言語は vimrc ファイルや構文ファイルなど、さまざ�
 
 ":let i += 1" は ":let i = i + 1" と同じ意味です。変数 i に 1 を加算し、新しい
 値を同じ変数に代入します。
+Note: これは旧来の Vim script で動かす方法で、このファイルで検討します。Vim9
+script の場合はちょっと違います。|usr_46.txt| を参照。
 
 上述の例は、実際にはもっと簡潔に書くことができます: >
 
@@ -607,6 +615,7 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	deepcopy()		リストの完全なコピーを作成する
 	filter()		リストから選択された要素を取り除く
 	map()			リストの各要素を変換する
+	reduce()		リストの畳み込みの値を算出する
 	sort()			リストをソートする
 	reverse()		リストの並び順を反転させる
 	uniq()			隣接して繰り返される要素のコピーを削除する
@@ -620,6 +629,7 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	min()			リスト中の最小値
 	count()			ある要素がリスト中に出現する回数を返す
 	repeat()		リストを複数回繰り返す
+	flatten()		リストの平坦化
 
 辞書操作:						*dict-functions*
 	get()			辞書の要素を返す。存在しないキーでもエラーを出
@@ -664,6 +674,7 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	sinh()			双曲線正弦 (ハイパボリックサイン)
 	cosh()			双曲線余弦 (ハイパボリックコサイン)
 	tanh()			双曲線正接 (ハイパボリックタンジェント)
+	isinf()			無限大かのチェック
 	isnan()			数値でないかどうかのチェック
 
 その他の計算:						*bitwise-function*
@@ -672,6 +683,8 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	or()			ビットごとの論理和
 	xor()			ビットごとの排他的論理和
 	sha256()		SHA-256 ハッシュ
+	rand()			疑似乱数を得る
+	srand()			rand() を使うためのシード値の初期化
 
 変数:							*var-functions*
 	type()			変数の型
@@ -701,6 +714,7 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	getcurpos()		カーソルの位置を取得する
 	getpos()		カーソルやマークなどの位置を取得する
 	setpos()		カーソルやマークなどの位置を設定する
+	getmarklist()		グローバル/ローカルのマークのリスト
 	byte2line()		指定のバイト位置の行番号を取得する
 	line2byte()		指定の行のバイト位置を取得する
 	diff_filler()		ある行より上の詰め行の数を取得する
@@ -720,6 +734,7 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	prevnonblank()		前の非空行を探す
 	search()		パターンにマッチする場所を探す
 	searchpos()		パターンにマッチする場所を探す
+	searchcount()		カーソルの前後でマッチした数を得る
 	searchpair()		start/skip/end の対を探す
 	searchpairpos()		start/skip/end の対を探す
 	searchdecl()		名前が宣言されている場所を探す
@@ -768,6 +783,7 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	hostname()		システムの名称を得る
 	readfile()		ファイルを読み込み、行のリストを得る
 	readdir()		ディレクトリ内のファイル名のリストを得る
+	readdirex()		ディレクトリ内のファイル情報のリストを得る
 	writefile()		行のリストまたは Blob をファイルに書き込む
 
 日付と時刻:				*date-functions* *time-functions*
@@ -804,9 +820,11 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	listener_remove()	リスナーコールバックを削除する
 	win_findbuf()		バッファが含まれるウィンドウを探す
 	win_getid()		ウィンドウのウィンドウIDを得る
+	win_gettype()		ウィンドウの種別を得る
 	win_gotoid()		IDで指定されたウィンドウへ移動する
 	win_id2tabwin()		IDで指定されたタブとウィンドウの番号を得る
 	win_id2win()		IDで指定されたウィンドウの番号を得る
+	win_splitmove()		分割したもう片方へウィンドウを移動する
 	getbufinfo()		バッファの情報一覧を得る
 	gettabinfo()		タブページの情報一覧を得る
 	getwininfo()		ウィンドウの情報一覧を得る
@@ -883,6 +901,7 @@ Quickfixとlocationリスト:			*quickfix-functions*
 	getchar()		ユーザーが入力した文字を得る
 	getcharmod()		最後に入力した文字の修飾子(modifier)を得る
 	getmousepos()		最後に取得したマウスの位置を得る
+	echoraw()		文字をそのまま出力する
 	feedkeys()		先行入力キューに文字を入れる
 	input()			ユーザーが入力した行を得る
 	inputlist()		ユーザーにリストから項目を選択させる
@@ -924,6 +943,7 @@ Vimサーバー:					*server-functions*
 	hasmapto()		マップの存在をチェック
 	mapcheck()		マッチするマップの存在をチェック
 	maparg()		マップのrhs(展開結果)を得る
+	mapset()		マップを復元
 	menu_info()		メニュー項目の情報を取得
 	wildmenumode()		wildmodeが有効かどうかをチェック
 
@@ -944,11 +964,13 @@ Vimサーバー:					*server-functions*
 	test_autochdir()	起動中に 'autochdir' を有効にする
 	test_override()		Vimの内部処理を置き換えてテストする
 	test_garbagecollect_now()   直ちにメモリを解放する
+	test_garbagecollect_soon()  メモリを解放のフラグを設定する
 	test_getvalue()		内部変数の値を取得する
 	test_ignore_error()	特定のエラーメッセージを無視する
 	test_null_blob()	null の Blob を返す
 	test_null_channel()	null のチャネルを返す
 	test_null_dict()	null の辞書を返す
+	test_null_function()	null の Funcref を返す
 	test_null_job()		null の Job を返す
 	test_null_list()	null のリストを返す
 	test_null_partial()	null の部分適用を返す
@@ -959,6 +981,10 @@ Vimサーバー:					*server-functions*
 	test_option_not_set()	オプションが設定されていることを示すフラグをリ
 				セットする
 	test_scrollbar()	GUIでスクロールバーの動きをシミュレートする
+	test_refcount()		式の参照カウントを返す
+	test_srand_seed()	srand() のテスト用の種を設定する
+	test_unknown()		unknown 型の値を返す
+	test_void()		void 型の値を返す
 
 プロセス間通信:					*channel-functions*
 	ch_canread()		何か読むものがあるかチェックする
@@ -984,7 +1010,7 @@ Vimサーバー:					*server-functions*
 	js_encode()		式をJSONの文字列にエンコードする
 	js_decode()		JSONの文字列をVimの型にデコードする
 
-ジョブ:		    			        *job-functions*
+ジョブ:						*job-functions*
 	job_start()		Job を開始する
 	job_stop()		Job を停止する
 	job_status()		Job のステータスを取得する
@@ -1029,6 +1055,8 @@ Vimサーバー:					*server-functions*
 	term_setkill()		端末内のジョブを停止するシグナルを設定する
 	term_setrestore()	端末を復元させるためのコマンドを設定する
 	term_setsize()		端末のサイズを設定する
+	term_setapi()		端末の JSON API 関数名のプリフィックスを設定す
+				る
 
 ポップアップウィンドウ:				*popup-window-functions*
 	popup_create()		画面中央にポップアップを作成する
@@ -1051,6 +1079,13 @@ Vimサーバー:					*server-functions*
 	popup_filter_yesno()	'y' か 'n' が押されるまでブロックする
 	popup_getoptions()	ポップアップの現在のオプションを取得する
 	popup_getpos()		ポップアップの実際の位置とサイズを取得する
+	popup_findinfo()	ポップアップ情報ウィンドウのウィンドウIDを取得
+				する
+	popup_findpreview()	ポップアッププレビューウィンドウのウィンドウID
+				を取得する
+	popup_list()		全ポップアップのウィンドウIDのリストを取得する
+	popup_locate()		スクリーン上の指定の位置にあるポップアップの
+				ウィンドウIDを取得する
 
 タイマー:					*timer-functions*
 	timer_start()		タイマーを作る
@@ -1069,8 +1104,27 @@ Vimサーバー:					*server-functions*
 	prompt_setinterrupt()	バッファの割り込みコールバックを設定する
 	prompt_setprompt()	バッファのプロンプトテキストを設定する
 
+テキストプロパティ:				*text-property-functions*
+	prop_add()		指定位置にプロパティを付加する
+	prop_clear()		指定行からプロパティをすべて削除する
+	prop_find()		プロパティを検索する
+	prop_list()		指定行のすべてのプロパティのリストを返す
+	prop_remove()		指定行からプロパティを削除する
+	prop_type_add()		プロパティタイプの追加/定義
+	prop_type_change()	プロパティタイプの変更
+	prop_type_delete()	テキストのプロパティタイプの削除
+	prop_type_get()		プロパティタイプのプロパティを返す
+	prop_type_list()	すべてのプロパティタイプをリストで返す
+
+サウンド:					*sound-functions*
+	sound_clear()		再生している全サウンドを停止する
+	sound_playevent()	イベントサウンドを再生する
+	sound_playfile()	サウンドファイルを再生する
+	sound_stop()		サウンドの再生を停止する
+
 その他:						*various-functions*
 	mode()			現在の編集モードを得る
+	state()			現在のビジー状態を得る
 	visualmode()		最後に使われたビジュアルモードの種類
 	exists()		変数、関数の存在をチェック
 	has()			機能がサポートされているかをチェック
@@ -1079,6 +1133,10 @@ Vimサーバー:					*server-functions*
 	did_filetype()		FileType自動コマンドが使用されたかどうか
 	eventhandler()		イベントハンドラによって起動されたかどうか
 	getpid()		Vim のプロセスIDを得る
+	getimstatus()		IME のステータスがアクティブかをチェック
+	interrupt()		スクリプトの実行を中断する
+	windowsversion()	MS-Windows バージョンの取得
+	terminalprops()		端末の属性
 
 	libcall()		外部ライブラリの関数を呼ぶ
 	libcallnr()		同上、数値を返す
@@ -1087,6 +1145,7 @@ Vimサーバー:					*server-functions*
 	undotree()		アンドゥツリーの状態を返す
 
 	getreg()		レジスタの値を得る
+	getreginfo()		レジスタの情報を得る
 	getregtype()		レジスタのタイプを得る
 	setreg()		レジスタの値を設定する
 	reg_executing()		実行中のレジスタ名を返す
@@ -1102,6 +1161,8 @@ Vimサーバー:					*server-functions*
 	py3eval()		|Python|の式を評価する (|+python3|)
 	pyeval()		|Python|の式を評価する (|+python|)
 	pyxeval()		|python_x| の式を評価する
+	rubyeval()		|Ruby| の式を評価する
+
 	debugbreak()		デバッグ中のプログラムを中断する
 
 ==============================================================================
