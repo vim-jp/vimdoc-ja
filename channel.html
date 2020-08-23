@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'channel'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="channel.html" name="channel.txt">channel.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2019 Dec 07<br>
+<a class="Constant" href="channel.html" name="channel.txt">channel.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2020 Jul 10<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -1247,9 +1247,9 @@ Vimのウィンドウでジョブのための入力をタイプしたい場合�
 - 端末ウィンドウを使用します。入力した内容がジョブに直接送られ、ジョブの出力が<br>
 &nbsp;&nbsp;ウィンドウに直接表示される場合は、これはうまく機能します。<br>
 &nbsp;&nbsp;<a class="Identifier" href="terminal.html#terminal-window">terminal-window</a>&nbsp;参照。<br>
-- プロンプトウィンドウを使用します。これは、Vimでジョブからの出力 (フィルタリ<br>
-&nbsp;&nbsp;ングされている可能性もある) を表示している間に、ジョブのための行を入力してい<br>
-&nbsp;&nbsp;るときにうまく動作します。<br>
+- プロンプトバッファのウィンドウを使用します。これは、Vimでジョブからの出力<br>
+&nbsp;&nbsp;(フィルタリングされている可能性もある) を表示している間に、ジョブのための行<br>
+&nbsp;&nbsp;を入力しているときにうまく動作します。<br>
 <br>
 プロンプトバッファは、<a class="Type" href="options.html#'buftype'">'buftype'</a>&nbsp;を &quot;prompt&quot; に設定することによって作成されま<br>
 す。通常は、新規作成バッファでのみおこないます。<br>
@@ -1280,6 +1280,46 @@ Shift-<span class="Special">CTRL-W</span>&nbsp;を使用します)。ウィン�
 <br>
 &quot;a&quot;, &quot;i&quot;, &quot;A&quot; や &quot;I&quot; などの挿入モードを開始するコマンドは、最終行にカーソルを<br>
 移動します。&quot;A&quot; は行末に移動し、&quot;I&quot; は行頭に移動します。<br>
+<br>
+これはUnixでの例です。シェルをバックグラウンドで起動し、次のシェルコマンドを待<br>
+ち受けます。シェルからの出力はプロンプトの上に表示されます。<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; チャネルのログを作成し、何が起きているか確認できるようにする。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call ch_logfile('logfile', 'w')</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 入力されたテキスト行を扱う関数。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func TextEntered(text)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; Enterを付加してテキストをシェルに送信する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call ch_sendraw(g:shell_job, a:text .. &quot;\n&quot;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; シェルからの出力を扱う関数: プロンプトの上に追加する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func GotOutput(channel, msg)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call append(line(&quot;$&quot;) - 1, &quot;- &quot; . a:msg)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; シェルの終了を扱う関数: ウィンドウを閉じる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func JobExit(job, status)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;quit!<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; バックグラウンドでシェルを起動する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let shell_job = job_start([&quot;/bin/sh&quot;], #{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ out_cb: function('GotOutput'),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ err_cb: function('GotOutput'),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ exit_cb: function('JobExit'),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ })<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let shell_ch = job_getchannel(shell_job)</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set buftype=prompt<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let buf = bufnr('')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call prompt_setcallback(buf, function(&quot;TextEntered&quot;))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;eval prompt_setprompt(buf, &quot;shell command: &quot;)</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; シェルコマンドの受け付けを開始する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;startinsert</div>
+<br>
 <br>
 <br>
 &nbsp;vim:tw=78:ts=8:noet:ft=help:norl:<br>
