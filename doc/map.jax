@@ -1,4 +1,4 @@
-*map.txt*       For Vim バージョン 8.2.  Last change: 2020 Apr 23
+*map.txt*       For Vim バージョン 8.2.  Last change: 2020 Sep 06
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -188,6 +188,12 @@
 引数に <nowait> を追加します。そしてそのマップは一致する場合に使用され、Vimは
 それ以上入力される文字を待ちません。しかし、既に文字が入力されていた場合はそれ
 が使われます。
+Note: これが動作するのは <nowait> なマッピングが完全にマッチし、なんらかの部分
+マッチの前に見付かるときです。これが動作するのは:
+- バッファローカルなマッピングで唯一のマッチがあるとき。なぜなら常にグローバル
+  なマッピングより先に見付かるからです。
+- これとは別のバッファローカルなマッピングが部分マッチするが、より早く定義され
+  ているとき (最後に定義したマッピングが最初に見付かる)。
 
 						*:map-<silent>* *:map-silent*
 実行するコマンドがコマンドラインに表示されないようにするには、マップコマンドの
@@ -275,16 +281,8 @@ getchar() によって取得され、返されます。
 CTRL-L で次の番号を挿入し、CTRL-R で番号をリセットします。CTRL-R は空文字列を
 返すので、何も挿入されません。
 
-Note: 特殊キーが機能するようにしたり、テキスト中の CSI バイトをエスケープした
-りするために、特別な処理が行われています。|:map| コマンドも同様の処理を行うの
-で、それが二重に実行されるのを防ぐ必要があります。次のものは機能しません: >
-	:imap <expr> <F3> "<Char-0x611B>"
-なぜなら、<Char- で表記した文字 (あるいは本物の文字) のバイト列は |:imap| コマ
-ンドが解釈されるときにエスケープされ、<expr> で使われるときにもう一度エスケー
-プされるからです。次のものは機能します: >
-	:imap <expr> <F3> "\u611B"
-テキストの末尾以外で 0x80 をシングルバイトとして使った場合、それは機能しませ
-ん。特殊キーとして認識されます。
+Note: テキストの末尾以外で 0x80 をシングルバイトとして使った場合、それは機能し
+ません。特殊キーとして認識されます。
 
 
 1.3 マップとモード					*:map-modes*
@@ -864,34 +862,46 @@ g@{motion}		'operatorfunc' に設定された関数を実行します。
 
 例を示します。これは <F4> を使ってスペースの数を数えます: >
 
-	nmap <silent> <F4> :set opfunc=CountSpaces<CR>g@
-	vmap <silent> <F4> :<C-U>call CountSpaces(visualmode(), 1)<CR>
+	nnoremap <expr> <F4> CountSpaces()
+	xnoremap <expr> <F4> CountSpaces()
+	" <F4> 2回で行に作用
+	nnoremap <expr> <F4><F4> CountSpaces() .. '_'
 
-	function! CountSpaces(type, ...)
-	  let sel_save = &selection
-	  let &selection = "inclusive"
-	  let reg_save = @@
-
-	  if a:0  " ビジュアルモードから呼び出すのに、gv コマンドを使用します。
-	    silent exe "normal! gvy"
-	  elseif a:type == 'line'
-	    silent exe "normal! '[V']y"
-	  else
-	    silent exe "normal! `[v`]y"
+	function CountSpaces(type = '') abort
+	  if a:type == ''
+	    set opfunc=CountSpaces
+	    return 'g@'
 	  endif
 
-	  echomsg strlen(substitute(@@, '[^ ]', '', 'g'))
+	  let sel_save = &selection
+	  let reg_save = getreginfo('"')
+	  let cb_save = &clipboard
+	  let visual_marks_save = [getpos("'<"), getpos("'>")]
 
-	  let &selection = sel_save
-	  let @@ = reg_save
+	  try
+	    set clipboard= selection=inclusive
+	    let commands = #{line: "'[V']y", char: "`[v`]y", block: "`[\<c-v>`]y"}
+	    silent exe 'noautocmd keepjumps normal! ' .. get(commands, a:type, '')
+	    echom getreg('"')->count(' ')
+	  finally
+	    call setreg('"', reg_save)
+	    call setpos("'<", visual_marks_save[0])
+	    call setpos("'>", visual_marks_save[1])
+	    let &clipboard = cb_save
+	    let &selection = sel_save
+	  endtry
 	endfunction
+
+<expr> のマッピングを使うことでなんらかのカウントかレジスタの接頭詞を取ること
+が可能になります。それにより、CmdlineEnter と CmdlineLeave の自動コマンドをト
+リガーするコマンドラインの使用も回避します。
 
 Note: 一時的に 'selection' を "inclusive" に設定し、'[ から '] まで選択した範
 囲を正しくヤンクできるようにしています。
 
-Note: ビジュアルモードのために別のマップを定義しています。ビジュアルモードで
-":" を押した場合に挿入される "'<,'>" を削除し、関数に visualmode() の値と追加
-の引数を渡しています。
+Note: 'clipboard' オプションの値に `unnamed` か `unnamedplus` が含まれている場
+合、レジスタの `"*` や `"+` が上書きされることを防ぐため、一時的に空に設定され
+ます。
 
 ==============================================================================
 2. 短縮入力 (Abbreviations)		*abbreviations* *Abbreviations*
@@ -1151,6 +1161,10 @@ non-id	  マッチした場所の前がスペース、タブ、行頭、挿入�
 自動コマンドやユーザー定義コマンドもそれを定義したスクリプトのコンテキストで実
 行されます。そのコマンドからローカル関数を呼び出したり、ローカルマップを使用す
 ることができます。
+
+<SID> が正しく展開されないコンテキストで値が使われる場合は、expand() 関数を使
+います: >
+	let &includexpr = expand('<SID>') .. 'My_includeexpr()'
 
 スクリプト以外の場所で "<SID>" を使うとエラーになります。
 

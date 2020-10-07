@@ -1,4 +1,4 @@
-*testing.txt*	For Vim バージョン 8.2.  Last change: 2020 Jul 10
+*testing.txt*	For Vim バージョン 8.2.  Last change: 2020 Sep 06
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -20,18 +20,17 @@ VimおよびVim scriptのテスト			*testing-support*
 Vimはビルド後にテストできる。通常は "make test" を使用する。テストはディレクト
 リ "src/testdir" にある。
 
-時間の経過とともに追加されたテストには、いくつかのタイプがある:
-	test33.in		最も古い、これらのいずれも追加しないこと
-	test_something.in	旧形式のテスト
+時間の経過とともに追加されたテストには、2つのタイプがある:
+	test20.in		最も古い、tiny と small ビルド用のみ
 	test_something.vim	新形式のテスト
 
 						*new-style-testing*
-新形式のテストとして新しいテストを追加する必要がある。これらは
-|assert_equal()| などの関数を使用して、テストコマンドと期待される結果を1か所に
-保持する。
+新しいテストは新形式のテストとして追加する必要がある。このテストスクリプトは
+test_<feature>.vim という命名になる (<feature> はテストする対象の機能に置き換
+える)。これらは、テストコマンドと期待される結果を1か所に保持するために、
+|assert_equal()| などの関数を使用する。
 						*old-style-testing*
-場合によっては、旧型式のテストを使用する必要がある。例えば、|+eval| 機能なしで
-Vimをテストするとき。
+|+eval| 機能なしでVimをテストするときのみこのテストを使う。
 
 詳細は src/testdir/README.txt ファイルを確認のこと。
 
@@ -289,8 +288,9 @@ assert_exception({error} [, {msg}])			*assert_exception()*
 			catch
 			  call assert_exception('E492:')
 			endtry
-
-assert_fails({cmd} [, {error} [, {msg}]])			*assert_fails()*
+<
+							*assert_fails()*
+assert_fails({cmd} [, {error} [, {msg} [, {lnum} [, {context}]]]])
 		{cmd}を実行しエラーを生成しなかった場合か、エラーメッセージの
 		中に{error}が見つからない場合、|v:errors| にエラーメッセージを
 		追加する。|assert-return| も参照。
@@ -310,6 +310,16 @@ assert_fails({cmd} [, {error} [, {msg}]])			*assert_fails()*
 		列を使用する: >
 			assert_fails('cmd', ['', 'E987:'])
 <
+		もし {msg} が空の場合は利用されない。引数 {lnum} を渡す時にデ
+		フォルトメッセージを取得するにはこれを使うこと。
+
+		{lnum} が非負数で設定され、引数 {error} が設定されてマッチした
+		時、エラーが報告されるときの行番号と比較される。行番号は関数内
+		かスクリプト内での行番号になる。
+
+		{context} が存在すると、 パターンとして使われ {lnum} が位置する
+		コンテキスト (スクリプト名か関数名) に対してマッチする。
+
 		Note: ビープ音の発生はエラーとは見なされず、いくつかのコマンド
 		は失敗時にビープ音を鳴らすだけである。これらについては
 		|assert_beeps()| を使用すること。
@@ -317,7 +327,7 @@ assert_fails({cmd} [, {error} [, {msg}]])			*assert_fails()*
 		|method| としても使用できる: >
 			GetCmd()->assert_fails('E99:')
 
-assert_false({actual} [, {msg}])				*assert_false()*
+assert_false({actual} [, {msg}])			*assert_false()*
 		|assert_equal()|と同様に、{actual}がfalseでない場合、|v:errors|
 		にエラーメッセージを追加する。
 		|assert-return| も参照。
