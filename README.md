@@ -1,6 +1,6 @@
 # vimdoc-ja
 
-[![Build Status](https://travis-ci.org/vim-jp/vimdoc-ja-working.svg?branch=master)](https://travis-ci.org/vim-jp/vimdoc-ja-working)
+[![Build Status](https://travis-ci.com/vim-jp/vimdoc-ja-working.svg?branch=master)](https://travis-ci.com/github/vim-jp/vimdoc-ja-working)
 
 日本語に翻訳した Vim 付属のヘルプを配布するためのプロジェクトです。
 
