@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 8.2.  Last change: 2020 Sep 06
+*eval.txt*	For Vim バージョン 8.2.  Last change: 2020 Nov 04
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -128,7 +128,27 @@ Note 次のコマンドをみると >
 	:" 実行される
 文字列が空ではないか調べるためには empty() を使用して次のようにする。 >
 	:if !empty("foo")
-<
+
+<						*falsy* *truthy*
+式は、型を無視した値が「真の一種」か「偽の一種」のどちらであるかだけを利用し
+て、判定条件として使用できる。Falsy は:
+	値が0
+	空の文字列、Blob、リスト、辞書
+それ以外の値は truthy。例:
+	0	falsy
+	1	truthy
+	-1	truthy
+	0.0	falsy
+	0.1	truthy
+	''	falsy
+	'x'	truthy
+	[]	falsy
+	[0]	truthy
+	{}	falsy
+	#{x: 1} truthy
+	0z	falsy
+	0z00	truthy
+
 							*non-zero-arg*
 関数の引数は、|TRUE| とは少し異なる場合がある: 引数が存在し、それが非ゼロの
 Number、|v:true| または空でない String に評価される場合、値は TRUE と見なされ
@@ -853,10 +873,13 @@ MY_VAR_6		viminfoファイル
 一つのレベルにある全ての式は左から右に解釈される。
 
 
-expr1							*expr1* *E109*
+expr1				*expr1* *trinary* *falsy-operator* *??* *E109*
 -----
 
-expr2 ? expr1 : expr1
+三項演算子:   expr2 ? expr1 : expr1
+Falsy 演算子: expr2 ?? expr1
+
+三項演算子 ~
 
 '?' より前の式は数値として評価される。その結果が|TRUE|であった場合、'?' と ':'
 に挟まれた式の値がこの式全体の値となり、そうでなかった場合は ':' 以降の式の値
@@ -878,6 +901,23 @@ expr2 ? expr1 : expr1
 
 ':' の前には必ずスペースを入れること。そうでないと "a:1" のような変数の使用と
 間違えてしまう可能性がある。
+
+Falsy 演算子 ~
+
+これは "null合体演算子" としても知られている、しかし複雑すぎるため、単に Falsy
+演算子と呼ぶことにした。
+
+'??' の前の式が評価される。|truthy| と評価された場合、これが結果として使われ
+る。
+そうでないなら、'??' の後の式が評価され、結果として使われる。これがもっとも便
+利なのは、ゼロや空な結果になりうる式でデフォルト値を持つ場合: >
+	echo theList ?? 'list is empty'
+	echo GetName() ?? 'unknown'
+
+これは同等だが、同じではない: >
+	expr2 ?? expr1
+	expr2 ? expr2 : expr1
+2行目は "expr2" が2度評価される。
 
 
 expr2 and expr3						*expr2* *expr3*
@@ -2470,7 +2510,7 @@ getcmdtype()			文字列	現在のコマンドラインの種類を取得
 getcmdwintype()			文字列	現在のコマンドラインウィンドウの種類
 getcompletion({pat}, {type} [, {filtered}])
 				リスト	コマンドライン補完にマッチするリスト
-getcurpos()			リスト	カーソルの位置
+getcurpos([{winnr}])		リスト	カーソルの位置
 getcwd([{winnr} [, {tabnr}]])	文字列	現在の作業ディレクトリを取得
 getenv({name})			文字列	環境変数を返す
 getfontname([{name}])		文字列	使用しているフォントの名前
@@ -2587,8 +2627,9 @@ maparg({name} [, {mode} [, {abbr} [, {dict}]]])
 					モード{mode}でのマッピング{name}の値
 mapcheck({name} [, {mode} [, {abbr}]])
 				文字列	{name}にマッチするマッピングを確認
-mapset({mode}, {abbr}, {dict})
-				なし	|maparg()| の結果からマッピングを復元
+mapnew({expr1}, {expr2})	リスト/辞書  |map()| と同様だが新規のリストか
+					     辞書を作る
+mapset({mode}, {abbr}, {dict})	なし	|maparg()| の結果からマッピングを復元
 					する
 match({expr}, {pat} [, {start} [, {count}]])
 				数値	{expr}内で{pat}がマッチする位置
@@ -2600,7 +2641,11 @@ matcharg({nr})			リスト	|:match|の引数
 matchdelete({id} [, {win}])	数値	{id} で指定されるマッチを削除する
 matchend({expr}, {pat} [, {start} [, {count}]])
 				数値	{expr}内で{pat}が終了する位置
-matchfuzzy({list}, {str})	リスト	{list} 内について {str} でのファジー
+matchfuzzy({list}, {str} [, {dict}])
+				リスト	{list} 内について {str} でのファジー
+					マッチ
+matchfuzzypos({list}, {str} [, {dict}])
+				リスト	{list} 内について {str} でのファジー
 					マッチ
 matchlist({expr}, {pat} [, {start} [, {count}]])
 				リスト	{expr}内の{pat}のマッチと部分マッチ
@@ -2618,7 +2663,7 @@ mzeval({expr})			任意	|MzScheme| の式を評価する
 nextnonblank({lnum})		数値	{lnum}行目以降で空行でない行の行番号
 nr2char({expr} [, {utf8}])	文字列	ASCII/UTF8コード{expr}で示される文字
 or({expr}, {expr})		数値    ビット論理和
-pathshorten({expr})		文字列	path内の短縮したディレクトリ名
+pathshorten({expr} [, {len}])	文字列	path内の短縮したディレクトリ名
 perleval({expr})		任意	|Perl|の式を評価する
 popup_atcursor({what}, {options}) 数値	カーソルの近くにポップアップウィンドウ
 					を作成する
@@ -2679,7 +2724,7 @@ prop_type_change({name}, {props})
 				なし	既存のプロパティタイプを変更
 prop_type_delete({name} [, {props}])
 				なし	プロパティタイプを削除
-prop_type_get([{name} [, {props}]])
+prop_type_get({name} [, {props}])
 				辞書	プロパティタイプの値を取得
 prop_type_list([{props}])	リスト	プロパティタイプ一覧を取得
 pum_getpos()			辞書	ポップアップメニューが表示されている場
@@ -3077,8 +3122,8 @@ appendbufline({expr}, {lnum}, {text})			*appendbufline()*
 		{expr} が有効なバッファでない、もしくは {lnum} が有効でない場
 		合、エラーメッセージが与えられる。例: >
 			:let failed = appendbufline(13, 0, "# THE START")
-
-<		リストの後に |method| としても使用でき、ベースは第2引数として
+<
+		リストの後に |method| としても使用でき、ベースは第2引数として
 		渡される: >
 			mylist->appendbufline(buf, lnum)
 
@@ -3440,8 +3485,8 @@ byteidxcomp({expr}, {nr})					*byteidxcomp()*
 			echo byteidxcomp(s, 2)
 <		1 番目と 3 番目は 3 が出力される ('e' の長さと合成文字の長さを
 		足すと 3 バイト)。2 番目は 1 が出力される ('e' は 1 バイト)。
-		'encoding' に Unicode が設定されているときのみ byteidx() と違う
-		動作になる。
+		'encoding' に Unicode が設定されているときのみ byteidx() と違っ
+		た動作になる。
 
 		|method| としても使用できる: >
 			GetName()->byteidxcomp(idx)
@@ -3720,7 +3765,7 @@ confirm({msg} [, {choices} [, {default} [, {type}]]])
 		カットキーは最初の文字である必要は無い: >
 			confirm("file has been modified", "&Save\nSave &All")
 <		コンソールでは、デフォルトのショートカットキーとして、各選択肢
-		の最初の文字が使われる。
+		の最初の文字が使われる。大文字小文字は区別されない。
 
 		省略可能な引数{default}は<CR>キーを叩いた時に選択される選択肢
 		の番号を指定する。最初の選択肢をデフォルトにするならば1を使用
@@ -4256,6 +4301,8 @@ expand({expr} [, {nosuf} [, {list}]])				*expand()*
 			<cfile>		カーソルの下のファイル名
 			<afile>		autocmdのファイル名
 			<abuf>		autocmdのバッファ名
+			<amatch>	autocmdのマッチした名称
+			<cexpr>		カーソル下のC言語の式
 			<sfile>		取り込み(source)中のファイル名、関数名
 			<slnum>		取り込み(source)中の行番号または関数内
 					の行番号
@@ -4263,6 +4310,7 @@ expand({expr} [, {nosuf} [, {list}]])				*expand()*
 					同様。
 			<SID>		"<SNR>123_"  ここで "123" は現在のスク
 					リプトのID |<SID>|
+			<stack>		コールスタック
 			<cword>		カーソル下の単語(word)
 			<cWORD>		カーソル下の単語(WORD)
 			<client>	最後に受け取ったメッセージの{clientid}
@@ -5183,11 +5231,18 @@ getcompletion({pat}, {type} [, {filtered}])		*getcompletion()*
 			GetPattern()->getcompletion('color')
 <
 							*getcurpos()*
-getcurpos()	カーソルの位置を返す。これは getpos('.') に似ているが、追加の
+getcurpos([{winid}])
+		カーソルの位置を返す。これは getpos('.') に似ているが、追加の
 		"curswant" 情報を含む:
 		    [0, lnum, col, off, curswant] ~
 		"curswant" は縦方向移動の優先的列番号である。|getpos()| も参照。
 		最初の "bufnum" は常に0である。
+
+		オプションの {winid} 引数はウィンドウを指定する。これはウィン
+		ドウ番号か |window-ID| である。最後のカーソル位置を返すが、こ
+		れはバッファがカレントウィンドウでない場合、現在の値は無効にな
+		りうる。
+		{winid} が無効の場合、値がゼロのリストを返す。
 
 		次のようにしてカーソル位置の保存と復元ができる: >
 			let save_cursor = getcurpos()
@@ -5390,8 +5445,9 @@ getloclist({nr} [, {what}])				*getloclist()*
 					詳細は |location-list-file-window| を
 					参照。
 
-		ウィンドウ {nr} にlocationリストがないか、ウィンドウが存在しな
-		い場合、空の辞書を返す。
+ 		ウィンドウ {nr} にlocationリストがないなら、デフォルト値の辞書
+ 		を返す。
+		ウィンドウが存在しない場合、空の辞書を返す。
 
 		例 (|getqflist-examples| もまた参照): >
 			:echo getloclist(3, {'all': 0})
@@ -6804,8 +6860,12 @@ luaeval({expr} [, {expr}])					*luaeval()*
 <		{|+lua| 機能つきでコンパイルされたときのみ有効}
 
 map({expr1}, {expr2})					*map()*
-		{expr1}はリスト|List|または辞書|Dictionary|。
-		{expr1}の各要素を、{expr2}を評価した結果で置き換える。
+		{expr1}はリスト|List|、|Blob|または辞書|Dictionary|。
+		{expr1}の各要素を、{expr2}を評価した結果で置き換える。|Blob|
+		の場合、各バイトを置き換える。
+		要素の型を変更したい場合は、|mapnew()| を使って新しいリストか
+		辞書を作る。これは、Vim9 script を使用する場合に必要である。
+
 		{expr2}は文字列|string|または関数参照|Funcref|でなければならな
 		い。
 
@@ -6840,11 +6900,11 @@ map({expr1}, {expr2})					*map()*
 		ない場合は最初にコピーを作ること: >
 			:let tlist = map(copy(mylist), ' v:val . "\t"')
 
-<		{expr1}のリストまたは辞書に式を適用した結果を返す。{expr2}を
-		評価している最中にエラーが発生した場合は、{expr1}内のそれ以降
-		の要素の処理は行われない。{expr2}が関数参照の場合、関数が
-		"abort" フラグつきで定義されていない限り、関数内のエラーは無視
-		される。
+<		{expr1}のリスト、Blobまたは辞書に式を適用した結果を返す。
+		{expr2}を評価している最中にエラーが発生した場合は、{expr1}内の
+		それ以降の要素の処理は行われない。{expr2}が関数参照の場合、関
+		数が "abort" フラグつきで定義されていない限り、関数内のエラー
+		は無視される。
 
 		|method| としても使用できる: >
 			mylist->map(expr2)
@@ -6947,7 +7007,13 @@ mapcheck({name} [, {mode} [, {abbr}]])			*mapcheck()*
 		|method| としても使用できる: >
 			GetKey()->mapcheck('n')
 
-mapset({mode}, {abbr}, {dict})				*mapset()*
+
+mapnew({expr1}, {expr2})					*mapnew()*
+		|map()| と同様だが、{expr1} の要素を置き換える代わりに、新しい
+		リストまたは辞書が作成されて返される。{expr1} は変更されない。
+
+
+mapset({mode}, {abbr}, {dict})					*mapset()*
 		|maparg()| が返す辞書からマッピングを復元する。
 		{mode} と {abbr} は |maparg()| を呼ぶのと同じ値である必要があ
 		る。 *E460*
@@ -6961,6 +7027,7 @@ mapset({mode}, {abbr}, {dict})				*mapset()*
 <		Note いくつかのモードのマップを置き換えようとする場合の注意、
 		たとえば `:map!` とともに実施するとき、違いがある可能性がある
 		ので、全部のマッピングを保存する必要がある。
+
 
 match({expr}, {pat} [, {start} [, {count}]])			*match()*
 		{expr}がリストの場合は、{pat}にマッチする最初の要素のインデッ
@@ -7167,27 +7234,73 @@ matchend({expr}, {pat} [, {start} [, {count}]])			*matchend()*
 			GetText()->matchend('word')
 
 
-matchfuzzy({list}, {str})			*matchfuzzy()*
-		{list} について {str} でファジーマッチした全文字列のリストを返
-		す。戻り値のリストの文字列はマッチしたスコアを基準としてソート
-		される。{str} はリテラルの文字列として扱われ、マッチ用の正規表
-		現はサポートされない。
-		{str} の長さは最大256までサポートされる。
+matchfuzzy({list}, {str} [, {dict}])			*matchfuzzy()*
+		{list} が文字列のリストの場合、{list} 内のすべての文字列につい
+		て {str} でファジーマッチしたリストを返す。返したリストの文字
+		列はマッチのスコアを基準としてソートされる。
+
+		オプションの {dict} 引数では常に以下の項目がサポートされる:
+		    matchseq	この項目があり、{str} が空白で区切られた複数の
+				単語を含んでいるなら、単語をその並びで持ってい
+				るものだけを返す。
+
+		{list} が辞書のリストなら、オプションの {dict} 引数では追加で
+		以下の項目がサポートされる:
+		    key		{str} でファジーマッチする対象となる項目の
+				キー。この項目の値は文字列でなくてはならない。
+		    text_cb	{list} 内でファジーマッチしたテキストの各項目
+				ごとに |Funcref| が呼ばれる。
+				これは辞書の項目が引数となり、返すテキストがそ
+				の項目のファジーマッチの結果として受け付ける。
+
+		{str} はリテラルの文字列として扱われ、マッチ用の正規表現はサ
+		ポートされない。{str} の長さは最大256までサポートされる。
+
+		{str} が空白で区切られた複数の単語の場合、返すリストはそれらの
+		単語すべてを含む文字列になる。
 
 		マッチする文字列がないかエラーとなった場合、空のリストが返され
 		る。{str} の長さが256かそれ以上であるなら、空のリストを返す。
-
 
 		例: >
 		   :echo matchfuzzy(["clay", "crow"], "cay")
 <		["clay"]を返す。 >
 		   :echo getbufinfo()->map({_, v -> v.name})->matchfuzzy("ndl")
 <		結果は "ndl" とファジーマッチしたバッファ名のリストになる。 >
+		   :echo getbufinfo()->matchfuzzy("ndl", {'key' : 'name'})
+<		結果は "ndl" とファジーマッチしたバッファ名をもつバッファ情報
+		の辞書のリストになる。 >
+		   :echo getbufinfo()->matchfuzzy("spl",
+						\ {'text_cb' : {v -> v.name}})
+<		結果は "spl" とファジーマッチしたバッファ名をもつバッファ情報
+		の辞書のリストになる。 >
 		   :echo v:oldfiles->matchfuzzy("test")
 <		結果は "test" とファジーマッチしたファイル名のリストになる。 >
 		   :let l = readfile("buffer.c")->matchfuzzy("str")
-<		結果は "str" とファジーマッチした "buffer.c" 内の行のリストになる。
+<		結果は "str" とファジーマッチした "buffer.c" 内の行のリストになる。 >
+		   :echo ['one two', 'two one']->matchfuzzy('two one')
+<		結果は ['two one', 'one two'] になる。 >
+		   :echo ['one two', 'two one']->matchfuzzy('two one',
+						\ {'matchseq': 1})
+<		結果は ['two one'] になる。
 
+matchfuzzypos({list}, {str} [, {dict}])			*matchfuzzypos()*
+		|matchfuzzy()| と同様だが、マッチした文字列のリストと {str} と
+		マッチした文字列内の文字の位置のリストを返す。
+
+		文字列内で {str} が複数回マッチしたときは、最良のマッチとなっ
+		た位置だけを返す。
+
+		もし文字列にマッチしないもしくはエラーとなったときは、2つの空
+		のリストを項目とするリストを返す。
+
+		例: >
+			:echo matchfuzzypos(['testing'], 'tsg')
+<		結果は [['testing'], [[0, 2, 6]]] になる。 >
+			:echo matchfuzzypos(['clay', 'lacy'], 'la')
+<		結果は [['lacy', 'clay'], [[0, 1], [1, 2]]] になる。 >
+			:echo [{'text': 'hello', 'id' : 10}]->matchfuzzypos('ll', {'key' : 'text'})
+<		結果は [{'id': 10, 'text': 'hello'}] [[2, 3]] になる。
 
 matchlist({expr}, {pat} [, {start} [, {count}]])		*matchlist()*
 		|match()| と同じだがリストを返す。リストの最初の要素は、
@@ -7460,12 +7573,17 @@ or({expr}, {expr})					*or()*
 <		|method| としても使用できる: >
 			:let bits = bits->or(0x80)
 
-pathshorten({expr})					*pathshorten()*
+pathshorten({expr} [, {len}])				*pathshorten()*
 		パス{expr}におけるディレクトリ名を短縮して返す。拡張子、ファイ
-		ル名はそのまま保たれる。パスのその他の構成要素は1文字に縮めら
-		れる。1文字目の '~' と '.' はそのまま保たれる。例: >
+		ル名はそのまま保たれる。パスのその他の構成要素は要素内での長さ
+		が {len}文字 に縮められる。{len} が省略された場合もしくは1以下
+		のときは1文字が使われる。1文字目の '~' と '.' はそのまま保たれ
+		る。例: >
 			:echo pathshorten('~/.vim/autoload/myfile.vim')
 <			~/.v/a/myfile.vim ~
+>
+			:echo pathshorten('~/.vim/autoload/myfile.vim', 2)
+<			~/.vi/au/myfile.vim ~
 		パスが実際に存在するかどうかは関係ない。
 
 		|method| としても使用できる: >
@@ -7687,7 +7805,7 @@ printf({fmt}, {expr1} ...)				*printf()*
 
 prompt_getprompt({buf})					*prompt_getprompt()*
 		バッファ {buf} で使われているプロンプトテキストを返す。{buf}
-		はバッファ名もしくは番号が使える。|prompt-buffer|
+		はバッファ名もしくは番号が使える。|prompt-buffer| を参照。
 
 		バッファが存在しないもしくはプロンプトがバッファにないなら、空
 		文字列を返す。
@@ -8034,13 +8152,16 @@ reg_recording()						*reg_recording()*
 		ない場合は空文字列を返す。|q| を参照。
 
 reltime([{start} [, {end}]])				*reltime()*
-		時刻値を表す値を返す。値の形式はシステムに依存する。この値を
-		|reltimestr()|に渡すと文字列に変換でき、|reltimefloat()|に渡す
-		と浮動小数点数に変換できる。
-		引数を指定しないと現在時刻を返す。
+		時刻値を表す値を返す。この値はリストで項目の形式はシステムに依
+		存する。Vim 9 script では list<any> が使われる。
+		この値を |reltimestr()| に渡すと文字列に変換でき、
+		|reltimefloat()| に渡すと浮動小数点数に変換できる。
+
+		引数を指定しないと reltime() は現在時刻を返す。
 		1個の引数を指定すると、その引数で指定された時刻からの経過時間
 		を返す。
 		2個の引数を指定すると、{start}と{end}の間の経過時間を返す。
+
 		{start}と{end}はreltime()で返される値でなければならない。
 
 		|method| としても使用できる: >
@@ -8345,6 +8466,7 @@ screencol()							*screencol()*
 		でのカーソル位置を取得するには次のようなマップを使用する: >
 			nnoremap <expr> GG ":echom ".screencol()."\n"
 			nnoremap <silent> GG :echom screencol()<CR>
+			nnoremap GG <Cmd>echom screencol()<CR>
 <
 screenpos({winid}, {lnum}, {col})				*screenpos()*
 		結果はウィンドウ {winid} のテキスト行のバッファ位置 {lnum} 及
@@ -9349,6 +9471,23 @@ sort({list} [, {func} [, {dict}]])			*sort()* *E702*
 
 		{func} が '1' か 'i' なら大文字小文字は区別されない。
 
+		{func} が 'l' ならソート順に現在のロケールの照合順序を使用す
+		る。実装詳細: 文字列の比較に strcoll() を使用する。ロケール照
+		合順をチェックしたり設定するには |:language| を参照すること。
+		|v:collate| でも現在のロケールを確認することができる。ロケール
+		利用のソートでは通常大文字小文字を区別しない。例: >
+			" ö は英語ロケールでは o と同等にソートされる。
+			:language collate en_US.UTF8
+			:echo sort(['n', 'o', 'O', 'ö', 'p', 'z'], 'l')
+<			['n', 'o', 'O', 'ö', 'p', 'z'] ~
+>
+			" ö はスウェーデン語ロケールでは z のうしろにソートさ
+			" れる。
+			:language collate sv_SE.UTF8
+			:echo sort(['n', 'o', 'O', 'ö', 'p', 'z'], 'l')
+<			['n', 'o', 'O', 'p', 'z', 'ö'] ~
+		これはMacでは正常に動作しない。
+
 		{func} が 'n' ならすべての要素は数値順にソートされる (実装詳
 		細: 数値の読み込みには strtod() 関数が使われる。文字列、リス
 		ト、辞書、関数参照は 0 として扱われる)。
@@ -10033,7 +10172,8 @@ synIDattr({synID}, {what} [, {mode}])
 		"bg"		背景色("fg" 同様)
 		"font"		フォント名 (GUI でのみ利用可)
 				|highlight-font|
-		"sp"		特殊な色 ("fg" 同様) |highlight-guisp|
+		"sp"		GUIでの特殊な色 ("fg" 同様) |highlight-guisp|
+		"ul"		ctermで下線の色:文字列としてのカラー番号
 		"fg#"		"fg" 同様だが、"#RRGGBB" のフォーマットで
 		"bg#"		"bg" 同様だが、"#RRGGBB" のフォーマットで
 		"sp#"		"sp" 同様だが、"#RRGGBB" のフォーマットで
@@ -10968,7 +11108,8 @@ winsaveview()	カレントウィンドウの表示状態を復元するための
 			curswant	垂直移動するときの桁
 			topline		ウィンドウの最上行
 			topfill		削除行。差分モードでのみ
-			leftcol		表示されている最初の桁
+			leftcol		表示されている最初の桁。'wrap' がオフ
+					のときのみ。
 			skipcol		スキップされている桁
 		Note オプションの値は保存されない。
 
@@ -11704,8 +11845,9 @@ Vimは 'runtimepath' からファイル "autoload/foo/bar.vim" を探す。
 	:call foo#bar#func()
 
 オートロードスクリプト内で定義されるはずの関数を呼んだがスクリプト内で関数が定
-義されなかった場合、その関数を呼ぶたびにそのスクリプトがsourceされる。そして毎
-回エラーメッセージが表示される。
+義されなかった場合、その関数のエラーメッセージが表示される。修正したなら自動で
+は再度読み込まれないオートロードスクリプトを再度読み込む。手動でスクリプトを
+sourceするかVimを再スタートさせる。
 
 また、2つのスクリプト間で、互いに自分が定義される前に相手を呼ぶような関数があ
 ると、これは動作しない。
@@ -12030,7 +12172,9 @@ text...
 <			は、以下と同義である: >
 				:let x = 1
 				:lockvar! x
-<			これは、変数が変更されないことを確実にしたいときに便利
+<			NOTE: Vim9 script では `:const` とは異なった動きをする、
+			|vim9-const| を参照。
+			これは、変数が変更されないことを確実にしたいときに便利
 			である。
 			この値がリストか辞書のリテラルならその項目もまた変更で
 			きない: >
@@ -12070,6 +12214,8 @@ text...
 
 			[depth]はリスト|List|や辞書|Dictionary|をロックすると
 			きに意味がある。どれだけ深くロックするかを指定する:
+				0	変数 {name} をロックするが値はロックし
+					ない。
 				1	リストや辞書それ自身をロックする。要素
 					を追加したり削除はできないが、要素の値
 					を変えることはできる。
@@ -12080,7 +12226,14 @@ text...
 					辞書に対してもあてはまる。1レベル深い。
 			[depth]の既定値は2であり、{name}がリストまたは辞書であ
 			る場合、その値は変更できない。
-								*E743*
+
+			[depth] 0 の例: >
+				let mylist = [1, 2, 3]
+				lockvar 0 mylist
+				let mylist[0] = 77   	" OK
+				call add(mylist, 4]  	" OK
+				let mylist = [7, 8, 9]  " エラー!
+<								*E743*
 			深さを無限にするには[!]を使い、[depth]を省略する。しか
 			しループを捕捉するために深さの最大値は100に設定されて
 			いる。
