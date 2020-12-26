@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'map'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="map.html" name="map.txt">map.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2020 Sep 06<br>
+<a class="Constant" href="map.html" name="map.txt">map.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2020 Nov 21<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; by Bram Moolenaar</span><br>
@@ -251,13 +251,24 @@ InsertDot() 関数の戻り値が挿入されます。カーソルの前のテ�
 されます。これを使って&nbsp;<span class="Special">{lhs}</span>&nbsp;の展開方法を決めることもできます。自分で v:char<br>
 を挿入したり変更したりすべきではありません。<br>
 <br>
+マッピングで何も実行させない場合は、評価結果が空文字列になるようにします。も<br>
+し、なんからの{訳註:状態などの}変更で Vim がメインループを通過する必要があるも<br>
+のなら (例えば、画面の更新など)、&quot;\<span class="Special">&lt;Ignore&gt;</span>&quot; を返すようにします。<br>
+これは、&quot;何もしない&quot; と同義ですが Vim はループから入力待ちに戻ります。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func s:OpenPopup()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call popup_create(... arguments ...)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return &quot;\&lt;Ignore&gt;&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nnoremap &lt;expr&gt; &lt;F3&gt; &lt;Sid&gt;OpenPopup()</div>
+<br>
 副作用に注意してください。式は文字の取得中に評価されるため、簡単に異常動作を起<br>
 こせてしまいます。そのため、次のものは制限されます:<br>
 - バッファのテキストの変更&nbsp;<a class="Identifier" href="eval.html#textlock">textlock</a>。<br>
 - 他のバッファの編集。<br>
 -&nbsp;<a class="Identifier" href="various.html#:normal">:normal</a>&nbsp;コマンド。<br>
 - カーソルの移動は可能ですが、後で元に戻されます。<br>
-以上のことを実現したい場合は、そのためのコマンド文字列を返してください。<br>
+以上のことを実現したい場合は、そのためのコマンド文字列を返してください。もしく<br>
+は代わりに&nbsp;<a class="Identifier" href="map.html#<Cmd>">&lt;Cmd&gt;</a>&nbsp;マッピングを使用してください。<br>
 <br>
 getchar() が使用できます。先行入力があればそれが消費されます。例えば次のような<br>
 マップを定義します:<br>
@@ -288,6 +299,42 @@ getchar() によって取得され、返されます。<br>
 <br>
 <span class="Todo">Note</span>: テキストの末尾以外で 0x80 をシングルバイトとして使った場合、それは機能し<br>
 ません。特殊キーとして認識されます。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#<Cmd>" name="&lt;Cmd&gt;">&lt;Cmd&gt;</a>&nbsp;<a class="Constant" href="map.html#:map-cmd" name=":map-cmd">:map-cmd</a><br>
+特別な文字列&nbsp;<span class="Special">&lt;Cmd&gt;</span>&nbsp;は &quot;コマンドマッピング&quot; を開始し、モードを変化させずにコマ<br>
+ンドを直に実行します。マッピングの&nbsp;<span class="Special">{rhs}</span>&nbsp;で &quot;:...<span class="Special">&lt;CR&gt;</span>&quot; を使うなら、代わりに<br>
+&quot;<span class="Special">&lt;Cmd&gt;</span>...<span class="Special">&lt;CR&gt;</span>&quot; が使えます。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;noremap x &lt;Cmd&gt;echo mode(1)&lt;CR&gt;</div>
+<br>
+これはビジュアルおよびオペレータ待機モードでの&nbsp;<span class="Comment">:&lt;C-U&gt;</span>、挿入モードでの<br>
+<span class="Comment">&lt;C-O&gt;:</span>&nbsp;より柔軟で、なぜなら常にノーマルモードへ移行する代わりにコマンド実行<br>
+が現在のモードのままでだからです。ビジュアルモードでは&nbsp;<a class="Identifier" href="visual.html#gv">gv</a>&nbsp;での{訳註:選択の}<br>
+維持のトリックが不要です。コマンドをコマンドラインモードで直に動かせます (これ<br>
+でないならタイマーでのハックが必要です)。<br>
+挿入モードを跨いで&nbsp;<span class="Special">&lt;Cmd&gt;</span>&nbsp;を使う例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nnoremap &lt;F3&gt; aText &lt;Cmd&gt;echo mode(1)&lt;CR&gt; Added&lt;Esc&gt;</div>
+<br>
+不幸にも&nbsp;<span class="Special">&lt;expr&gt;</span>&nbsp;マッピングなら、<span class="Special">&lt;Cmd&gt;</span>&nbsp;のコマンドに特別な制約はありません: (制<br>
+約のない)&nbsp;<a class="Identifier" href="autocmd.html#autocommand">autocommand</a>&nbsp;が動くように実行します。<br>
+<br>
+<span class="Todo">Note</span>:<br>
+-&nbsp;<span class="Special">&lt;Cmd&gt;</span>&nbsp;はモード変更を回避するので、ユーザーの介入を必要としないため、<br>
+&nbsp;&nbsp;<a class="Identifier" href="autocmd.html#CmdlineEnter">CmdlineEnter</a>&nbsp;と&nbsp;<a class="Identifier" href="autocmd.html#CmdlineLeave">CmdlineLeave</a>&nbsp;イベントをトリガーしません。<br>
+- 同じ理由により、<span class="Special">&lt;C-R&gt;&lt;C-W&gt;</span>&nbsp;のようなキーコード&nbsp;<a class="Identifier" href="intro.html#keycodes">keycodes</a>&nbsp;は通常の、マッピン<br>
+&nbsp;&nbsp;グされていないキーとして解釈されます。<br>
+- コマンドは echo されせん、<span class="Special">&lt;silent&gt;</span>&nbsp;は不要です。<br>
+- ビジュアルモードでは、<span class="Comment">line('v')</span>&nbsp;と&nbsp;<span class="Comment">col('v')</span>&nbsp;を使って、ビジュアルエリアの<br>
+&nbsp;&nbsp;一端を取得でき、カーソルは反対の端にいます。<br>
+- 選択モードでは、<a class="Identifier" href="map.html#:map">:map</a>&nbsp;と&nbsp;<a class="Identifier" href="map.html#:vmap">:vmap</a>&nbsp;コマンドでのマッピングがビジュアルモード内<br>
+&nbsp;&nbsp;で実行されます。<a class="Identifier" href="map.html#:smap">:smap</a>&nbsp;を使う選択モードとは別の方法で処理します。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#E1135" name="E1135">E1135</a>&nbsp;<a class="Constant" href="map.html#E1136" name="E1136">E1136</a><br>
+<span class="Special">&lt;Cmd&gt;</span>&nbsp;コマンドではマッピング定義の&nbsp;<span class="Special">{rhs}</span>&nbsp;が&nbsp;<span class="Special">&lt;CR&gt;</span>&nbsp;で終わる必要があります。<br>
+<a class="Identifier" href="cmdline.html#Command-line">Command-line</a>&nbsp;に入ることはありません。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#E1137" name="E1137">E1137</a><br>
+<span class="Special">&lt;Cmd&gt;</span>&nbsp;コマンドは通常の文字を含み、ファンクションキーのような特殊文字を含みませ<br>
+ん。<br>
 <br>
 <br>
 1.3 マップとモード&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#:map-modes" name=":map-modes">:map-modes</a><br>
@@ -833,8 +880,15 @@ modifyOtherKeys モードで問題が発生する場合は、無効にするこ�
 modifyOtherKeys が有効化されているときは&nbsp;<span class="Special">&lt;C-[&gt;</span>&nbsp;と &lt;C-S-{&gt; をマップすることがで<br>
 きます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;imap &lt;C-[&gt; [[[<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;imap &lt;C-S-{&gt; {{ "{{{" }}</div>
-modifyOtherKeys 無しだと&nbsp;<span class="Special">&lt;C-[&gt;</span>&nbsp;と &lt;C-S-{&gt; は Esc と区別することができません。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;imap &lt;C-{&gt; {{ "{{{" }}</div>
+modifyOtherKeys 無しだと&nbsp;<span class="Special">&lt;C-[&gt;</span>&nbsp;と&nbsp;<span class="Special">&lt;C-{&gt;</span>&nbsp;は Esc と区別することができません。<br>
+<span class="Todo">Note</span>&nbsp;この&nbsp;<span class="Special">&lt;C-{&gt;</span>&nbsp;は使用されて &lt;C-S-[&gt; もしくは &lt;C-S-{&gt; は使用されません。多くの<br>
+キーボードで動作します。同様に、<span class="Special">&lt;C-}&gt;</span>&nbsp;は &lt;C-S-]&gt; もしくは &lt;C-S-}&gt; のそして<br>
+<span class="Special">&lt;C-|&gt;</span>&nbsp;は &lt;C-S-\&gt; もしくは &lt;C-S-|&gt; の代わりに使用されます。<span class="Todo">Note</span>&nbsp;'|' はマッピン<br>
+グにおいて特別な意味を持ちます、<a class="Identifier" href="map.html#map-bar">map-bar</a>&nbsp;を参照。<br>
+<br>
+<span class="Todo">警告:</span>&nbsp;<span class="Special">&lt;C-[&gt;</span>&nbsp;をマップした場合、非常に多くのEscから開始するキーコードを破壊する<br>
+ことがあります。他のマッピングの「後」であることを確認してください。<br>
 <br>
 既知の副作用として、挿入モードでは、<span class="Special">CTRL-V</span>&nbsp;キーの後に生のエスケープシーケンス<br>
 が挿入されます。これは、modifyOtherKeys が有効になっているかどうかを確認するた<br>
@@ -1175,9 +1229,9 @@ non-id&nbsp;&nbsp;&nbsp;&nbsp;マッチした場所の前がスペース、タ�
 <br>
 複雑な処理をするスクリプトで、スクリプト番号が必要な場合は、次の関数で番号を得<br>
 られます:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function s:SID()<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return matchstr(expand('&lt;sfile&gt;'), '&lt;SNR&gt;\zs\d\+\ze_SID$')<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfun</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func s:ScriptNumber()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return matchstr(expand('&lt;SID&gt;'), '&lt;SNR&gt;\zs\d\+\ze_')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc</div>
 <br>
 関数やマップを一覧表示するときには &quot;<span class="Special">&lt;SNR&gt;</span>&quot; も表示されます。それらがどのように<br>
 定義されているのか調べるときに便利です。<br>
@@ -1483,7 +1537,7 @@ script2.vimを実行すると &quot;None&quot; が表示されます。期待し
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#<bang>" name="&lt;bang&gt;">&lt;bang&gt;</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;bang&gt;</span>&nbsp;&nbsp;('-bang' 属性を参照) コマンドが ! 修飾子付きで実行された場合に<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;! に置換されます。指定なしの場合は空文字列になります。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#<mods>" name="&lt;mods&gt;">&lt;mods&gt;</a>&nbsp;<a class="Constant" href="map.html#:command-modifiers" name=":command-modifiers">:command-modifiers</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#<mods>" name="&lt;mods&gt;">&lt;mods&gt;</a>&nbsp;<a class="Constant" href="map.html#<q-mods>" name="&lt;q-mods&gt;">&lt;q-mods&gt;</a>&nbsp;<a class="Constant" href="map.html#:command-modifiers" name=":command-modifiers">:command-modifiers</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;mods&gt;</span>&nbsp;&nbsp;指定されている場合はコマンド修飾子。されていない場合は何も展開<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;しません。対応している修飾子は以下の通り:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="windows.html#:aboveleft">:aboveleft</a>,&nbsp;<a class="Identifier" href="windows.html#:belowright">:belowright</a>,<br>
