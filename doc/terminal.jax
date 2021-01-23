@@ -1,4 +1,4 @@
-*terminal.txt*	For Vim バージョン 8.2.  Last change: 2020 Jun 06
+*terminal.txt*	For Vim バージョン 8.2.  Last change: 2021 Jan 04
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -123,13 +123,15 @@ Esc を使うことができますが、他のキーが壊れないようにす�
 く |:tlmenu| を使用する必要があります。
 
 							*options-in-terminal*
-端末ウィンドウを開いて 'buftype' を "terminal" に設定すると、TerminalOpen 自動
-コマンドイベントが発生します。これにより、ウィンドウとバッファ専用のオプション
-を設定することが可能です。例: >
-   au TerminalOpen * if &buftype == 'terminal' | setlocal bufhidden=hide | endif
-<<abuf> は端末バッファに設定されていますが、ウィンドウが存在しない場合(隠され
-た端末)は間違ったバッファにオプションが設定されるため、この例では &buftype の
-チェックが行われます。
+端末ウィンドウを開いて 'buftype' を "terminal" に設定すると、TerminalWinOpen
+自動コマンドイベントが発生します。これにより、端末ウィンドウとバッファ専用のオ
+プションを設定することが可能です。例: >
+   au TerminalWinOpen * setlocal bufhidden=hide
+
+|TerminalOpen| イベントもまた、ただし隠し端末でも発生し、そしてカレントウィン
+ドウとバッファは新しい端末とは限りません。
+端末バッファに設定するなら、<abuf> を使う必要があります。例: >
+    au TerminalOpen * call setbufvar(+expand('<abuf>'), '&colorcolumn', 123)
 
 マウスイベント (クリックやドラッグ) は端末に渡されます。マウス移動イベントは
 Vim 自身が受け取ったときにのみ渡されます。'balloonevalterm' が有効になっている
@@ -474,9 +476,9 @@ term_dumpdiff({filename}, {filename} [, {options}])
 		   "term_name"	     (1 つ目のファイル名の代わりに使用される)
 				     バッファ名
 		   "term_rows"	     ('termwinsize' の代わりに使用される) 端末
-				     の垂直サイズ
+				     の垂直サイズ、ただし最小サイズは尊重する
 		   "term_cols"	     ('termwinsize' の代わりに使用される) 端末
-				     の水平サイズ
+				     の水平サイズ、ただし最小サイズは尊重する
 		   "vertical"	     ウィンドウを垂直に分割する
 		   "curwin"	     ウィンドウを分割せず現在のウィンドウを使
 				     用する、現在のバッファが放棄 (|abandon|)
@@ -498,6 +500,10 @@ term_dumpdiff({filename}, {filename} [, {options}])
 			a	異なる属性
 			+	1 つ目のファイル内に存在しない位置
 			-	2 つ目のファイル内に存在しない位置
+			>	2 つ目のファイルにはなく1 つ目のファイルにある
+				現在のカーソル位置
+			<	1 つ目のファイルにはなく2 つ目のファイルにある
+				現在のカーソル位置
 
 		"s" キーを押すと、先頭部分と末尾部分が入れ替わる。これにより差
 		分を簡単に確認することができる。
@@ -725,6 +731,9 @@ term_setapi({buf}, {expr})				*term_setapi()*
 <
 		デフォルトは "Tapi_" である。{expr} が空の文字列の場合、{buf}
 		の |terminal-api| 機能は使用できない。
+
+		|method| としても使用できる、ベースは {buf} に使用される: >
+			GetBufnr()->term_setapi({expr})
 
 term_setansicolors({buf}, {colors})			*term_setansicolors()*
 		端末 {buf} で使用される ANSI カラーパレットを設定する。
@@ -1308,7 +1317,10 @@ gdbは各ブレークポイントに番号を与えます。Vim内では、赤�
 							*termdebug-commands*
  *:Gdb*	     gdb ウィンドウに移動する
  *:Program*    デバッグ中のプログラムウィンドウに移動する
- *:Source*     ソースコードウィンドウにジャンプする、ウィンドウがなければ作成する
+ *:Source*     ソースコードウィンドウにジャンプする、ウィンドウがなければ作成
+	       する
+ *:Asm*	     逆アセンブルウィンドウにジャンプする、ウィンドウがなければ作成す
+	     る
 
 
 プロンプトモード ~
@@ -1331,6 +1343,13 @@ gdbは各ブレークポイントに番号を与えます。Vim内では、赤�
 						*termdebug_map_K*
 K は通常 :Evaluate にマッピングされています。もしそうしたくないなら: >
 	let g:termdebug_map_K = 0
+
+<
+						*termdebug_disasm_window*
+Asm ウィンドウをデフォルトで表示たいなら、この変数に1を設定する。1以上の任意の
+値を設定したなら、その値が Asm ウィンドウの高さとして設定される: >
+	let g:termdebug_disasm_window = 15
+<
 
 通信 ~
 						*termdebug-communication*
@@ -1399,13 +1418,13 @@ Vimのウィンドウ幅						*termdebug_wide*
 デバッグを開始した際に Vim のウィンドウ幅を変更し、垂直分割を利用するには次の
 ように設定します: >
   let g:termdebug_wide = 163
-これは `:Termdebug` を実行した際に &columns を 163 に設定します。元の値はデバッ
-ガが終了する際に復元されます。
-g:termdebug_wide が設定されていて、&columnsがすでに g:termdebug_wide より大き
-い場合、&columns を変更せずに垂直分割が使用されます。
-&columns を変更せずに垂直分割を行うには、1に設定します。(端末がVimによってサイ
-ズ変更できない場合に便利です)
+これは `:Termdebug` を実行した際に 'columns' を 163 に設定します。元の値はデ
+バッガが終了する際に復元されます。
+g:termdebug_wide が設定されていて、'columns' がすでに g:termdebug_wide より大
+きい場合、'columns' を変更せずに垂直分割が使用されます。
 
+'columns' を変更せずに垂直分割を行うには、1に設定します。(端末がVimによってサ
+イズ変更できない場合に便利です)
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:
