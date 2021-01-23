@@ -1,4 +1,4 @@
-*usr_41.txt*	For Vim バージョン 8.2.  Last change: 2020 Jun 13
+*usr_41.txt*	For Vim バージョン 8.2.  Last change: 2021 Jan 13
 
 		     VIM USER MANUAL - by Bram Moolenaar
 
@@ -117,21 +117,21 @@ script の場合はちょっと違います。|usr_46.txt| を参照。
 ださい。8進数として扱われてしまいます。
    ":echo" コマンドは常に10進数で出力します。例: >
 
-	:echo 0x7f 036
+	:echo 0x7f 0o36
 <	127 30 ~
 
 数値にマイナス記号を付けると負数になります。8進数、16進数や2進数も負数にできま
 す。マイナス記号は減算記号としても使われます。次の例を上の例と比べてみてくださ
 い: >
 
-	:echo 0x7f -036
+	:echo 0x7f -0o36
 <	97 ~
 
 式の途中にある空白は無視されますが、可読性を高めるために、適切に空白で区切るこ
 とをお勧めします。例えば上記の数値が負数であると勘違いしてしまわないように、マ
 イナス記号と数値の間に空白をいれましょう: >
 
-	:echo 0x7f - 036
+	:echo 0x7f - 0o36
 
 ==============================================================================
 *41.2*	変数
@@ -315,9 +315,9 @@ Vim の式は高機能でシンプルです。式の定義については |expre
 	:echo (10 + 5) * 2
 <	30 ~
 
-文字列は "." で連結できます: >
+文字列は ".." で連結できます(|expr6| 参照)。例: >
 
-	:echo "foo" . "bar"
+	:echo "foo" .. "bar"
 <	foobar ~
 
 ":echo" コマンドに複数の引数を指定すると、スペースで区切られて表示されます。こ
@@ -478,9 +478,9 @@ vimrc ファイルで便利に使える例を示しましょう。'term' オプ�
 ます。
 例えば、変数に格納された文字列を使ってタグジャンプするには次のようにします: >
 
-	:execute "tag " . tag_name
+	:execute "tag " .. tag_name
 
-文字列 "tag " と変数 "tag_name" の値を "." で連結しています。仮に "tag_name"
+文字列 "tag " と変数 "tag_name" の値を ".." で連結しています。仮に "tag_name"
 の値が "get_cmd" だった場合、次のコマンドが実行されることになります: >
 
 	:tag get_cmd
@@ -495,7 +495,7 @@ vimrc ファイルで便利に使える例を示しましょう。'term' オプ�
 ":normal" コマンドで式の値を使いたい場合は ":execute" と組み合わせてください。
 例: >
 
-	:execute "normal " . normal_commands
+	:execute "normal " .. normal_commands
 
 変数 "normal_commands" にはノーマルモードコマンドを入れておく必要があります。
 ":normal" には完結したコマンドを指定するようにしてください。引数が最後まで実行
@@ -511,12 +511,12 @@ vimrc ファイルで便利に使える例を示しましょう。'term' オプ�
 文字列を実行するのではなく、その式の値を得たい場合は、eval() 関数を使います: >
 
 	:let optname = "path"
-	:let optval = eval('&' . optname)
+	:let optval = eval('&' .. optname)
 
 文字 "&" と "path" を連結しているので eval() の引数は "&path" になります。戻り
 値は 'path' オプションの値です。
 次のようにすることもできます: >
-	:exe 'let optval = &' . optname
+	:exe 'let optval = &' .. optname
 
 ==============================================================================
 *41.6*	関数を使う
@@ -575,8 +575,11 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	strtrans()		文字列を印字可能な状態とする
 	tolower()		文字列を小文字にする
 	toupper()		文字列を大文字にする
+	charclass()		文字のクラス
 	match()			文字列の中でパターンにマッチした位置
 	matchend()		文字列の中でパターンにマッチした末尾の位置
+	matchfuzzy()		リスト内の文字列についてファジーマッチした文字列
+	matchfuzzypos()		リスト内の文字列についてファジーマッチした文字列
 	matchstr()		文字列の中でパターンにマッチした文字列
 	matchstrpos()		文字列の中でパターンにマッチした文字列と位置
 	matchlist()		matchstr()と同様だが、部分マッチも返す
@@ -586,21 +589,26 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	strchars()		文字列の文字単位での長さ
 	strwidth()		表示された文字列のサイズ
 	strdisplaywidth()	表示された文字列のサイズ、タブを扱う
+	setcellwidths()		文字の幅の上書き設定
 	substitute()		パターンにマッチする文字列を置換
 	submatch()		":s" と substitute() の中で部分マッチを得る
 	strpart()		文字列の一部分を得る(バイト数指定)
 	strcharpart()		文字のインデックスで指定された部分文字列を得る
+	slice()			Vim9 script での文字インデックスを用いて、文字
+				列のスライスを取る
 	strgetchar()		文字のインデックスで指定された文字コードを得る
 	expand()		特殊キーワードを展開する
 	expandcmd()		`:edit` のようにコマンドを展開する
 	iconv()			テキストのエンコーディングを変換する
 	byteidx()		文字列中の文字のバイトインデックス
 	byteidxcomp()		byteidx() と同様だが合成文字を数に入れる
+	charidx()		文字列中のバイト値の文字インデックス
 	repeat()		文字列を複数回繰り返す
 	eval()			文字列を式として評価する
 	execute()		Ex コマンドを実行し出力を得る
 	win_execute()		execute() に似ているが指定ウィンドウで実行する
 	trim()			文字列から文字を取り除く
+	gettext()		翻訳メッセージの検索
 
 リスト操作:						*list-functions*
 	get()			要素を取得。存在しないインデックスでもエラーを
@@ -610,12 +618,16 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	insert()		リストの任意の位置に要素を挿入する
 	add()			リストに要素を追加する
 	extend()		リストにリストを連結する
+	extendnew()		あるリストとリストを結合して新しいリストを作成
+				する
 	remove()		リストから1個以上の要素を取り除く
 	copy()			リストの浅いコピーを作成する
 	deepcopy()		リストの完全なコピーを作成する
 	filter()		リストから選択された要素を取り除く
 	map()			リストの各要素を変換する
+	mapnew()		変換した要素で新しいリストを作成する
 	reduce()		リストの畳み込みの値を算出する
+	slice()			リストのスライスを取る
 	sort()			リストをソートする
 	reverse()		リストの並び順を反転させる
 	uniq()			隣接して繰り返される要素のコピーを削除する
@@ -639,8 +651,11 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	empty()			辞書が空であるか判定する
 	remove()		辞書から要素を取り除く
 	extend()		ある辞書の要素をすべて別の辞書に追加する
+	extendnew()		ある辞書の要素と別の辞書を合せて新しい辞書を作
+				成する
 	filter()		辞書から選択された要素を取り除く
 	map()			辞書の各要素を変換する
+	mapnew()		変換した要素で新しい辞書を作成する
 	keys()			辞書の全キーのリストを取得する
 	values()		辞書の全値のリストを取得する
 	items()			辞書の全キー・値のペアを取得する
@@ -687,7 +702,8 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	srand()			rand() を使うためのシード値の初期化
 
 変数:							*var-functions*
-	type()			変数の型
+	type()			数値による変数の型
+	typename()		テキストによる変数の型
 	islocked()		変数がロックされているか判定する
 	funcref()		関数参照へのFuncrefを取得する
 	function()		関数名からFuncrefを取得する
@@ -722,6 +738,11 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	screenchar()		スクリーン列/行の文字コードを取得する
 	screenchars()		スクリーン列/行の文字コードのリストを取得する
 	screenstring()		スクリーン列/行の文字列を取得する
+	charcol()		カーソルもしくはマークにある文字の数値
+	getcharpos()		カーソル、マーク、その他の位置の文字の取得
+	setcharpos()		カーソル、マーク、その他の位置の文字の設定
+	getcursorcharpos()	カーソル位置の文字の取得
+	setcursorcharpos()	カーソル位置の文字の設定
 
 カレントバッファで動作するもの:				*text-functions*
 	getline()		バッファから行を得る
@@ -782,6 +803,7 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	setenv()		環境変数を設定する
 	hostname()		システムの名称を得る
 	readfile()		ファイルを読み込み、行のリストを得る
+	readblob()		ファイルを読み込み、Blobに格納する
 	readdir()		ディレクトリ内のファイル名のリストを得る
 	readdirex()		ディレクトリ内のファイル情報のリストを得る
 	writefile()		行のリストまたは Blob をファイルに書き込む
@@ -1100,6 +1122,8 @@ Vimサーバー:					*server-functions*
 	settagstack()		ウィンドウのタグスタックを変更する
 
 プロンプトバッファ:				*promptbuffer-functions*
+	prompt_getprompt()	バッファで使われているプロンプトテキストを取得
+				する
 	prompt_setcallback()	バッファのプロンプトコールバックを設定する
 	prompt_setinterrupt()	バッファの割り込みコールバックを設定する
 	prompt_setprompt()	バッファのプロンプトテキストを設定する
@@ -1264,7 +1288,7 @@ Vimサーバー:					*server-functions*
 	:    let n = n + len(split(getline(lnum)))
 	:    let lnum = lnum + 1
 	:  endwhile
-	:  echo "found " . n . " words"
+	:  echo "found " .. n .. " words"
 	:endfunction
 
 この関数は次のように呼び出すことができます: >
@@ -1276,7 +1300,7 @@ Vimサーバー:					*server-functions*
 それぞれの行に対して関数が呼ばれます (カーソルはその行の上)。例: >
 
 	:function  Number()
-	:  echo "line " . line(".") . " contains: " . getline(".")
+	:  echo "line " .. line(".") .. " contains: " .. getline(".")
 	:endfunction
 
 次のように実行すると: >
@@ -1300,11 +1324,11 @@ Vimサーバー:					*server-functions*
 
 	:function Show(start, ...)
 	:  echohl Title
-	:  echo "start is " . a:start
+	:  echo "start is " .. a:start
 	:  echohl None
 	:  let index = 1
 	:  while index <= a:0
-	:    echon "  Arg " . index . " is " . a:{index}
+	:    echo "  Arg " .. index .. " is " .. a:{index}
 	:    let index = index + 1
 	:  endwhile
 	:  echo ""
@@ -1706,10 +1730,10 @@ copy() 関数を使って "transdict" 辞書をコピーし、そのコピーに
 
 	:let tmp = tempname()
 	:try
-	:   exe ".,$write " . tmp
-	:   exe "!filter " . tmp
+	:   exe ".,$write " .. tmp
+	:   exe "!filter " .. tmp
 	:   .,$delete
-	:   exe "$read " . tmp
+	:   exe "$read " .. tmp
 	:finally
 	:   call delete(tmp)
 	:endtry
@@ -1729,7 +1753,7 @@ Vim script において注意すべきことの概要を簡単に説明します
 うな説明はありますが、手頃なチェックリストに使えるでしょう。
 
 改行記号はシステムによって異なります。Unix では <NL> 文字が使われますが、
-MS-Windows などでは <CR><LF> が使われます。末尾が <CR> になっているマップを使
+MS-Windows などでは <CR><NL> が使われます。末尾が <CR> になっているマップを使
 うときは注意してください。|:source_crnl| 参照。
 
 
@@ -2017,9 +2041,9 @@ Vim script を書いて、それを多くの人に使ってもらうことがで
 定することもできますが、そのキーは既にユーザーが使っているかもしれません。マッ
 プに使用するキーをユーザーが選択できるようにするには、<Leader> を使います: >
 
- 22	  map <unique> <Leader>a  <Plug>TypecorrAdd
+ 22	  map <unique> <Leader>a  <Plug>TypecorrAdd;
 
-"<Plug>TypecorrAdd" は目的の動作をします。詳しくは後で説明します。
+"<Plug>TypecorrAdd;" は目的の動作をします。詳しくは後で説明します。
 
 使用したいキーを "mapleader" 変数に設定することで、マップの最初のキーを設定で
 きます。例えば、次のように設定すると: >
@@ -2034,15 +2058,15 @@ Note: 上記のコマンドでは <unique> が使われています。これは�
 
 マップするキーをユーザーが自分で定義できるようにするには、次のようにします: >
 
- 21	if !hasmapto('<Plug>TypecorrAdd')
- 22	  map <unique> <Leader>a  <Plug>TypecorrAdd
+ 21	if !hasmapto('<Plug>TypecorrAdd;')
+ 22	  map <unique> <Leader>a  <Plug>TypecorrAdd;
  23	endif
 
-"<Plug>TypecorrAdd" に対するマップが既にあるかどうかを調べ、無い場合のみ
+"<Plug>TypecorrAdd;" に対するマップが既にあるかどうかを調べ、無い場合のみ
 "<Leader>a" にマップを定義します。ユーザーは自分の vimrc ファイルの中でマップ
 を定義することができます: >
 
-	map ,c  <Plug>TypecorrAdd
+	map ,c  <Plug>TypecorrAdd;
 
 すると、マップのキーとして ",c" が使われます。"_a" や "\a" は使われません。
 
@@ -2059,8 +2083,8 @@ Note: 上記のコマンドでは <unique> が使われています。これは�
 新しい修正を追加するための関数を定義します: >
 
  30	function s:Add(from, correct)
- 31	  let to = input("type the correction for " . a:from . ": ")
- 32	  exe ":iabbrev " . a:from . " " . to
+ 31	  let to = input("type the correction for " .. a:from .. ": ")
+ 32	  exe ":iabbrev " .. a:from .. " " .. to
  ..
  36	endfunction
 
@@ -2073,13 +2097,13 @@ s:Add() を定義していた場合、それはそのスクリプトにローカ
 リプト ID を生成します。私たちの入力修正プラグインでは <SID> を次のように使い
 ます: >
 
- 24	noremap <unique> <script> <Plug>TypecorrAdd  <SID>Add
+ 24	noremap <unique> <script> <Plug>TypecorrAdd;  <SID>Add
  ..
  28	noremap <SID>Add  :call <SID>Add(expand("<cword>"), 1)<CR>
 
 ユーザーが "\a" と入力すると、次の手順でキー入力が呼び出されます: >
 
-	\a  ->  <Plug>TypecorrAdd  ->  <SID>Add  ->  :call <SID>Add()
+	\a  ->  <Plug>TypecorrAdd;  ->  <SID>Add  ->  :call <SID>Add()
 
 他のスクリプトで <SID>Add をマップすると、別のスクリプト ID が使われ、別のマッ
 プが生成されます。
@@ -2121,9 +2145,10 @@ Note: 28 行目では ":noremap" を使って、他のマップでトラブル�
 	で、キーボードから入力されることはありません。
 	キー列が他のプラグインとかぶらないように、<Plug> スクリプト名 マップ
 	名、という形式で使ってください。
-	我々の例では、スクリプト名が "Typecorr"、マップ名が "Add" なので、
-	"<Plug>TypecorrAdd" というキー列になります。スクリプト名とマップ名の最
-	初の文字だけを大文字にして、どこがマップ名なのかわかるようにします。
+	セミコロンを終端として追加しています。我々の例では、スクリプト名が
+	"Typecorr"、マップ名が "Add" なので、"<Plug>TypecorrAdd;" というキー列
+	になります。スクリプト名とマップ名の最初の文字だけを大文字にして、どこ
+	がマップ名なのかわかるようにします。
 
 <SID>	これはスクリプト ID (スクリプト固有の識別子) です。
 	Vim は内部で <SID> を "<SNR>123_" に変換します ("123" の部分はいろいろ
@@ -2167,7 +2192,7 @@ Note: 28 行目では ":noremap" を使って、他のマップでトラブル�
  30	function s:Add(from, correct)
  ..
  34	  let s:count = s:count + 1
- 35	  echo s:count . " corrections now"
+ 35	  echo s:count .. " corrections now"
  36	endfunction
 
 最初に s:count はスクリプトの中で 4 で初期化されます。その後、s:Add() 関数が呼
@@ -2200,21 +2225,21 @@ Note: 28 行目では ":noremap" を使って、他のマップでトラブル�
  18		\ synchronization
  19	let s:count = 4
  20
- 21	if !hasmapto('<Plug>TypecorrAdd')
- 22	  map <unique> <Leader>a  <Plug>TypecorrAdd
+ 21	if !hasmapto('<Plug>TypecorrAdd;')
+ 22	  map <unique> <Leader>a  <Plug>TypecorrAdd;
  23	endif
- 24	noremap <unique> <script> <Plug>TypecorrAdd  <SID>Add
+ 24	noremap <unique> <script> <Plug>TypecorrAdd;  <SID>Add
  25
  26	noremenu <script> Plugin.Add\ Correction      <SID>Add
  27
  28	noremap <SID>Add  :call <SID>Add(expand("<cword>"), 1)<CR>
  29
  30	function s:Add(from, correct)
- 31	  let to = input("type the correction for " . a:from . ": ")
- 32	  exe ":iabbrev " . a:from . " " . to
+ 31	  let to = input("type the correction for " .. a:from .. ": ")
+ 32	  exe ":iabbrev " .. a:from .. " " .. to
  33	  if a:correct | exe "normal viws\<C-R>\" \b\e" | endif
  34	  let s:count = s:count + 1
- 35	  echo s:count . " corrections now"
+ 35	  echo s:count .. " corrections now"
  36	endfunction
  37
  38	if !exists(":Correct")
@@ -2254,7 +2279,7 @@ Note: 28 行目では ":noremap" を使って、他のマップでトラブル�
   6	There are currently only a few corrections.  Add your own if you like.
   7
   8	Mappings:
-  9	<Leader>a   or   <Plug>TypecorrAdd
+  9	<Leader>a   or   <Plug>TypecorrAdd;
  10		Add a correction for the word under the cursor.
  11
  12	Commands:
@@ -2397,12 +2422,12 @@ exists(":Cmd")		ユーザー定義コマンドが既にあるかどうかをチ�
 上述したように、マップは二段階に分けて作る必要があります。ファイルタイププラグ
 インで機能を定義する例を示します: >
 
-	if !hasmapto('<Plug>JavaImport')
-	  map <buffer> <unique> <LocalLeader>i <Plug>JavaImport
+	if !hasmapto('<Plug>JavaImport;')
+	  map <buffer> <unique> <LocalLeader>i <Plug>JavaImport;
 	endif
-	noremap <buffer> <unique> <Plug>JavaImport oimport ""<Left><Esc>
+	noremap <buffer> <unique> <Plug>JavaImport; oimport ""<Left><Esc>
 
-|hasmapto()| を使って、ユーザーが既に <Plug>JavaImport に対してマップを定義し
+|hasmapto()| を使って、ユーザーが既に <Plug>JavaImport; に対してマップを定義し
 ているかどうかを調べます。未定義ならファイルタイププラグインの標準のマップを定
 義します。マップは <LocalLeader> で開始します。そうすることで、ファイルタイプ
 プラグインのマップを開始するキーをユーザーが選択できます。初期設定はバックス
@@ -2419,12 +2444,12 @@ exists(":Cmd")		ユーザー定義コマンドが既にあるかどうかをチ�
 	" マップを追加する。ユーザーが望まない場合は追加しない。
 	if !exists("no_plugin_maps") && !exists("no_mail_maps")
 	  " "> " を挿入して引用する
-	  if !hasmapto('<Plug>MailQuote')
-	    vmap <buffer> <LocalLeader>q <Plug>MailQuote
-	    nmap <buffer> <LocalLeader>q <Plug>MailQuote
+	  if !hasmapto('<Plug>MailQuote;')
+	    vmap <buffer> <LocalLeader>q <Plug>MailQuote;
+	    nmap <buffer> <LocalLeader>q <Plug>MailQuote;
 	  endif
-	  vnoremap <buffer> <Plug>MailQuote :s/^/> /<CR>
-	  nnoremap <buffer> <Plug>MailQuote :.,$s/^/> /<CR>
+	  vnoremap <buffer> <Plug>MailQuote; :s/^/> /<CR>
+	  nnoremap <buffer> <Plug>MailQuote; :.,$s/^/> /<CR>
 	endif
 
 ここでは二つのグローバル変数が使われています:
@@ -2471,7 +2496,7 @@ exists(":Cmd")		ユーザー定義コマンドが既にあるかどうかをチ�
 ンの設定をアンドゥするようにしてください。例: >
 
 	let b:undo_ftplugin = "setlocal fo< com< tw< commentstring<"
-		\ . "| unlet b:match_ignorecase b:match_words b:match_skip"
+		\ .. "| unlet b:match_ignorecase b:match_words b:match_skip"
 
 ":setlocal" でオプション名の後に "<" を付けると、そのオプションをグローバルな
 値でリセットします。オプションをリセットするにはこの方法が一番です。
@@ -2598,17 +2623,17 @@ Note Vim 7 以降では代わりの方法があります。|41.15| で説明さ�
 		map <F19> :call BufNetWrite('something')<CR>
 
 		let s:did_load = 1
-		exe 'au FuncUndefined BufNet* source ' . expand('<sfile>')
+		exe 'au FuncUndefined BufNet* source ' .. expand('<sfile>')
 		finish
 	endif
 
 	function BufNetRead(...)
-		echo 'BufNetRead(' . string(a:000) . ')'
+		echo 'BufNetRead(' .. string(a:000) .. ')'
 		" read 機能をここに書く
 	endfunction
 
 	function BufNetWrite(...)
-		echo 'BufNetWrite(' . string(a:000) . ')'
+		echo 'BufNetWrite(' .. string(a:000) .. ')'
 		" write 機能をここに書く
 	endfunction
 
