@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim バージョン 8.2.  Last change: 2020 Jan 14
+*pi_netrw.txt*  For Vim バージョン 8.2.  Last change: 2020 Sep 19
 
 	    ------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell
@@ -431,8 +431,14 @@ Netrw にはたくさんの変数が用意されていて、好きなように�
   *g:netrw_silent*	=0 : 普通に転送処理をする
 			=1 : 静か (silent) に転送処理をする
 
- *g:netrw_use_errorwindow* =1 : netrw のメッセージ表示に別ウィンドウを使う。
-			      メッセージが確実に表示されます (初期設定)。
+ *g:netrw_use_errorwindow* =2: netrw のメッセージ表示にポップアップウィンドウ
+			     を使う。
+			     マウスを移動して止めるとポップアップウィンドウを
+			     削除する。
+			     (ポップアップウィンドウがある場合の初期値)
+			 =1 : netrw のメッセージ表示に別ウィンドウを使う。
+			      メッセージが確実に表示されます。
+			     (ポップアップウィンドウがない場合の初期値)
 			 =0 : netrw のメッセージ表示に echoerr を使う。表示さ
 			      れたメッセージを確認できないことがあるかもしれま
 			      せんが、ウィンドウを閉じる必要がありません。
@@ -705,6 +711,7 @@ ftp でパスワードが必要なときは Vim の組み込み関数 |inputsecr
 
 netrw のようなプラグインの使用方法は |netrw-activate| を参照してください。
 
+SCP をパスワードフリーで使うには: |netrw-ssh-hack| を参照。
 
 ==============================================================================
 7. Ex コマンド						*netrw-ex* {{{1
@@ -1036,7 +1043,7 @@ QUICK HELP						*netrw-quickhelp* {{{2
 	  逆順ソート....................................|netrw-r|
 
 
-				*netrw-quickmap* *netrw-quickmaps*
+				*netrw-quickmap*  *netrw-quickmaps*
 クイックリファレンス: マップ			*netrw-browse-maps* {{{2
 >
 	  ------		----------				------
@@ -1055,7 +1062,7 @@ QUICK HELP						*netrw-quickhelp* {{{2
 	    	通常表示
 	    	隠す (g:netrw_list_hide にマッチしたファイルを表示しない)
 	    	表示する (g:netrw_list_hide にマッチしたファイルのみ表示する)
-	   c	表示中のディレクトリをカレントディレクトリにする     |netrw-c|
+	   cd	表示中のディレクトリをカレントディレクトリにする     |netrw-cd|
 	   C	ファイルを開くウィンドウを指定する                   |netrw-C|
 	   d	ディレクトリを作成する                               |netrw-d|
 	   D	ファイル/ディレクトリ(複数可)を削除する              |netrw-D|
@@ -2049,7 +2056,7 @@ g:netrw_keepdir が 1 のときは netrwのブラウジングディレクトリ�
 (cdと入力)。このマップは Vim のカレントディレクトリを netrw のブラウジングデ
 ィレクトリに変更します。
 
-*netrw-c* : このマップ名は "c" から cd に変更されました (|netrw-cd| を参照)。
+|netrw-cd|: このマップ名は "c" から cd に変更されました (|netrw-cd| を参照)。
           この変更は |netrw-cb| および |netrw-cB| を使えるようにするためのもの
           です。
 
@@ -2682,7 +2689,7 @@ netrw ブラウザーの各種設定は変数で管理されていて、それ�
 				=0 カレントディレクトリとブラウジングディレク
 				   トリを同じにする。
 				現在のブラウジングディレクトリはb:netrw_curdir
-				に保存されます。 (|netrw-c| 参照)
+				に保存されます。 (|netrw-cd| 参照)
 
   *g:netrw_keepj*		="keepj" (デフォルト) netrw は |:jumps| の
 				         エントリを保つよう試みます。
@@ -3046,7 +3053,7 @@ NetrwSettings.vim プラグインのコマンド >
 関連項目:
  * カレントディレクトリを確認するには: |:pwd| 参照。
  * ブラウザーで表示しているディレクトリをカレントディレクトリにしたい場合は:
-   |netrw-c| 参照。
+   |netrw-cd| 参照。
  * ブラウザーで表示しているディレクトリをカレントディレクトリに自動的にしたい
    場合は: |g:netrw_keepdir| 参照。
 
@@ -3714,8 +3721,14 @@ netrw かあるいは関与している他のプラグインと衝突してい�
 	     http://vim.sourceforge.net/scripts/script.php?script_id=120
 
 	  Decho.vim は "vimball" の形で提供されています。|vimball-intro|参照。
+	  Decho.vba.gz ファイルを編集してから source するには: >
 
-	2. 次のようにして <netrw.vim> ファイルを編集してください: >
+		vim Decho.vba.gz
+		:so %
+		:q
+<
+	2. netrw デバッグでの追跡を有効にし、<netrw.vim> ファイルを編集してく
+	ださい: >
 
 		vim netrw.vim
 		:DechoOn
@@ -3736,14 +3749,35 @@ netrw かあるいは関与している他のプラグインと衝突してい�
 	   読み込んだり書き込んだりする過程が別のタブか、サーバー Vim のウィン
 	   ドウに出力されます。
 
-	   出力をファイルに保存するには次のようにします >
+	   netrw.vimrc ファイルに Decho プラグインを入れるには: >
+
+		set nocp
+		so $HOME/.vim/plugin/Decho.vim
+		so $HOME/.vim/plugin/netrwPlugin.vim
+<
+	   続けて次のように vim を動かします >
+
+		vim -u netrw.vimrc --noplugins -i NONE [some path here]
+<
+	   こうしてオプションや他のプラグインとの絡みを回避できます。
+
+	   ファイルに保存するには: linux 下では、出力がリモートサーバーのウィ
+	   ンドウに分割されるので、ファイルに保存するには次のようにします >
+
+	   	:w! DBG
+
+	   clientserver をサポートしない vim では、デバッグ出力は別のタブに出
+	   して: >
 
 		:tabnext
 		:set bt=
 		:w! DBG
 
-<	   加えて、次のコマンドも使ってもらえる助かります >
+<
+	   加えて、次のコマンドも使うと助けになります >
+
 		:Dsep <command>
+
 <	   <command> は次にあなたがタイプするコマンドです。これによって、デ
 	   バッグ出力のどの部分がどのコマンドに対応するかを関連付けるのが簡単
 	   になります。
@@ -3751,17 +3785,34 @@ netrw かあるいは関与している他のプラグインと衝突してい�
 	   その情報を <netrw.vim> のメンテナーに送ってください。あなたが使用し
 	   ている OS や Vim のバージョン情報も一緒に添えてください。
 	   (|:version| 参照) (まず埋め込まれた NOSPAM を削除してください) >
+
 		NcampObell@SdrPchip.AorgM-NOSPAM
 <
 ==============================================================================
 12. 変更履歴						*netrw-history* {{{1
 
+	v170:	Mar 11, 2020	* (reported by Reiner Herrmann) netrw+tree
+				  would not hide with the ^\..* pattern
+				  correctly.
+				* (Marcin Szamotulski) NetrwOptionRestore
+				  did not restore options correctly that
+				  had a single quote in the option string.
+		Apr 13, 2020	* implemented error handling via popup
+				  windows (see |popup_beval()|)
+		Apr 30, 2020	* (reported by Manatsu Takahashi) while
+				  using Lexplore, a modified file could
+				  be overwritten.  Sol'n: will not overwrite,
+				  but will emit an |E37| (although one cannot
+				  add an ! to override)
+		Jun 07, 2020	* (reported by Jo Totland) repeatedly invoking
+				  :Lexplore and quitting it left unused
+				  hidden buffers.  Netrw will now set netrw
+				  buffers created by :Lexplore to |bh|=wipe.
 	v169:	Dec 20, 2019	* (reported by amkarthik) that netrw's x
 				  (|netrw-x|) would throw an error when
 				  attempting to open a local directory.
 	v168:	Dec 12, 2019	* scp timeout error message not reported,
 				  hopefully now fixed (Shane Xb Qian)
-
 	v167:	Nov 29, 2019	* netrw does a save&restore on @* and @+.
 				  That causes problems with the clipboard.
 				  Now restores occurs only if @* or @+ have
@@ -4220,4 +4271,4 @@ netrw かあるいは関与している他のプラグインと衝突してい�
 
 ==============================================================================
 Modelines: {{{1
- vim:tw=78:ts=8:noet:ft=help:norl:fdm=marker
+vim:tw=78:ts=8:ft=help:noet:norl:fdm=marker
