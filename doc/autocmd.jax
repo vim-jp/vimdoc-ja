@@ -1,4 +1,4 @@
-*autocmd.txt*   For Vim バージョン 8.2.  Last change: 2020 Oct 26
+*autocmd.txt*   For Vim バージョン 8.2.  Last change: 2021 Jan 28
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -54,6 +54,7 @@
 			{pat} |autocmd-patterns| に一致するファイルで、{event}
 			のときに自動的に実行するコマンドのリストに、{cmd} を加
 			える。
+			{event} には "*" は使えない。 *E1155*
 			Note: クォートは :autocmd への引数と見なされ、コメント
 			を開始しない。
 			{cmd} は常に既存の自動コマンドの後に追加されるので、
@@ -66,6 +67,10 @@
 
 特殊なパターン<buffer>や<buffer=N>はバッファローカルな自動コマンドを定義する。
 |autocmd-buflocal| を参照。
+
+`:autocmd` が Vim9 script (スクリプトが `:vim9script` で始まるのと `:def` 関数
+内) にあると {cmd} は Vim9 script として実行される。したがってこの依存は自動コ
+マンドが定義された位置に依存し、トリガーされた位置ではない。
 
 Note: '|' が {cmd} の前にある場合、":autocmd" コマンドの後には別のコマンドを続
 けることができる。これは動作する: >
@@ -305,6 +310,9 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 |ExitPre|		Vimを終了するコマンドを使ったとき
 |VimLeavePre|		Vimを終了する前、viminfoファイルを書き出す前
 |VimLeave|		Vimを終了する前、viminfoファイルを書き出した後
+
+|VimSuspend|		Vimがサスペンドした時
+|VimResume|		Vimがサスペンド後復帰した時
 
 	端末
 |TerminalOpen|		端末バッファが生成された後
@@ -558,14 +566,18 @@ CmdlineChanged			コマンドラインのテキストに変更が加えられた
 				|cmdwin-char|
 							*CmdlineEnter*
 CmdlineEnter			ユーザーがコマンドを入力もしくは文字列を検索で
-				きるコマンドラインにカーソルが移動した後。
+				きるコマンドラインにカーソルが移動した後、非イ
+				ンタラクティブなマッピング内での ":" 利用を含
+				むが、|<Cmd>| の利用は含まない。
 				<afile> はコマンドラインの種類を示す 1 文字に
 				設定される。
 				|cmdwin-char|
 							*CmdlineLeave*
-CmdlineLeave			カーソルがコマンドラインを離れる前。CTRL-C も
-				しくは <Esc> の入力によってコマンドラインを放
-				棄する場合も同様。
+CmdlineLeave			カーソルがコマンドラインを離れる前、非インタラ
+				クティブなマッピング内での ":" 利用を含むが、
+				|<Cmd>| の利用は含まない。CTRL-C もしくは
+				<Esc> の入力によってコマンドラインを放棄する場
+				合も同様。
 				コマンドの結果がエラーとなる場合は、コマンドラ
 				インは引き続き実行中となる。
 				<afile> はコマンドラインの種類を示す 1 文字に
@@ -832,6 +844,7 @@ FuncUndefined			ユーザー定義関数が使われたが、定義されてい�
 				ある。パターンは関数名に対して照合される。
 				<amatch> と <afile> の両方とも関数名に設定され
 				る。
+				コンパイルされた |Vim9| 関数では発生しない。
 				NOTE: Vim script を書くときには autoload 関数
 				を使う方がよい。
 				|autoload-functions|を参照。
@@ -1193,6 +1206,7 @@ VimLeave			Vim を終了する前で、ファイル .viminfo を書き込
 				異常終了の検出には |v:dying| を使うこと。
 				終了時に v:dying が 2 以上のときはこのイベント
 				は発生しない。
+				終了コードは |v:exiting| から得る。
 							*VimLeavePre*
 VimLeavePre			Vim を終了する前で、ファイル .viminfo を書き込
 				む直前。これは終了時にたまたまカレントバッファ
@@ -1203,10 +1217,22 @@ VimLeavePre			Vim を終了する前で、ファイル .viminfo を書き込
 <				異常終了の検出には |v:dying| を使うこと。
 				終了時に v:dying が 2 以上のときはこのイベント
 				は発生しない。
+				終了コードは |v:exiting| から得る。
 							*VimResized*
 VimResized			Vimウィンドウのサイズが変わったとき。よって
 				'lines' と 'columns' が変更される。しかし開始
 				時には発生しない。
+							*VimResume*
+VimResume			Vimがサスペンドと |VimSuspend| がトリガーした
+				後、Vimのインスタンスが復帰したとき。
+				|:checktime| を実行してVimがサスペンド中にバッ
+				ファ内容に変化がなかったことを保証するのに便利
+				である: >
+	:autocmd VimResume * checktime
+<							*VimSuspend*
+VimSuspend			Vimのインスタンスがサスペンドしたとき。Vim内で
+				CTRL-Z がタイプされた時だけであり、SIGSTOP か
+				SIGTSTP シグナルがVimに送られた時ではない。
 							*WinEnter*
 WinEnter			別のウィンドウに入った後。Vimの開始直後、1個目
 				のウィンドウに入ったときは発生しない。ウィンド
