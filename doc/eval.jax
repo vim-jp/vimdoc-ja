@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 8.2.  Last change: 2020 Nov 04
+*eval.txt*	For Vim バージョン 8.2.  Last change: 2021 Feb 10
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -48,7 +48,7 @@ Vim script の利用についてはユーザーマニュアルの41章|usr_41.tx
 							*Number* *Integer*
 数値		32ビットまたは64ビットの符号有整数。|expr-number|
 		ビット数は |v:numbersize| で得られる。
-		例:  -123  0x10  0177  0b1011
+		例:  -123  0x10  0177  0o177 0b1011
 
 浮動小数点数	浮動小数点数。|floating-point-format| *Float*
 		{|+float| 機能つきでコンパイルされたときのみ}
@@ -92,9 +92,10 @@ Blob		バイナリラージオブジェクト。任意のバイトシーケン�
 							*octal*
 文字列から数値への変換は旧来の Vim script のみで行われ、Vim9 script では行われ
 ない。最初に出る数字を用いて数値に変換する。16進表記 "0xf9" や8進表記 "017" も
-しくは "0o17"、2進表記の "0b10" も認識される。(NOTE: |scriptversion-4| を使用
-する場合、先頭が "0" の8進数は認識されない)。文字列が数字で始まらない場合結果
-は0となる。
+しくは "0o17"、2進表記の "0b10" も認識される。
+NOTE: |scriptversion-4| を使用する場合、先頭が "0" の8進数は認識されない。
+"0o" 記法はパッチ 8.2.0886 が必要になる。
+文字列が数字で始まらない場合結果は0となる。
 例:
 	文字列 "456"	-->	数値 456 ~
 	文字列 "6bar"	-->	数値 6 ~
@@ -286,7 +287,7 @@ Note 関数の辞書へのバインドは、その関数が辞書のメンバー
 
 
 リストの連結 ~
-
+							*list-concatenation*
 2つのリストを連結するには演算子 "+" を使う: >
 	:let longlist = mylist + [5, 6]
 	:let mylist += [7, 8]
@@ -305,6 +306,9 @@ Note 関数の辞書へのバインドは、その関数が辞書のメンバー
 	:let endlist = mylist[2:]	" 2番目から最後まで: [3, "four"]
 	:let shortlist = mylist[2:2]	" 1個の要素からなるリスト: [3]
 	:let otherlist = mylist[:]	" リストのコピーを作る
+
+最後のインデックスが含まれることに注意。排他的なインデックスを利用するなら
+|slice()| メソッドを利用する。
 
 終点のインデックスが始点のインデックスよりも前になってしまった場合は空リストと
 なる。エラーメッセージは表示されない。
@@ -1123,7 +1127,7 @@ expr7							*expr7*
 
 '!' 演算子では|TRUE|は|FALSE|に、|FALSE|は|TRUE|になる。
 '-' では数値の符号が反転される。
-'+" では変化はない。
+'+" では変化はない。Note: "++" は効果がない。
 
 文字列はまず数値に変換される。
 
@@ -1163,6 +1167,8 @@ Vim9 script では:
 文字列の長さよりも大きなインデックスが指定された場合、結果は空文字列になる。負
 数のインデックスを指定すると、結果は常に空文字列になる(後方互換性のため)。
 最後のバイトもしくは文字を得るには[-1:]を使うこと。
+Vim9 script では負数のインデックスはリストと同様に使用され、終端からのカウント
+になる。
 
 expr8がリスト|List|ならばインデックスexpr1の要素が返る。取りうるインデックスの
 値については|list-index|を参照。インデックスが範囲を超えている場合はエラーとな
@@ -1184,6 +1190,9 @@ expr8が文字列ならば、バイトか文字数でexpr1aからexpr1bまでの
 
 Vim9 script ではインデックスは文字インデックスとなる。 バイトインデックスの場
 合は |strpart()| を使う。
+
+インデックスの expr1b の項目は含まれ、内包的である。排他的なインデックスは
+|slice()| 関数を使う。
 
 expr1aが省略されたときは0となる。expr1bが省略されたときは文字列の長さ-1となる。
 
@@ -1283,8 +1292,8 @@ expr8->{lambda}([args])
 数
 ------
 number			数定数				*expr-number*
-				*hex-number* *octal-number* *binary-number*
 
+			*0x* *hex-number* *0o* *octal-number* *binary-number*
 10進数、16進数(0xか0Xで始まる)、2進数(0bか0Bで始まる)、もしくは8進数(0か0oか0O
 で始まる)の数定数。
 
@@ -1527,7 +1536,7 @@ Note Exコマンドを実行するためにどのように execute() を使っ�
 ラムダ式は '<lambda>42' のような内部名を持っている。もしラムダ式でエラーが発生
 した場合には、以下のコマンドでどのラムダ式でエラーが起きたかを調べることができ
 る: >
-	:function {'<lambda>42'}
+	:function <lambda>42
 |numbered-function|も参照。
 
 ==============================================================================
@@ -1797,6 +1806,13 @@ v:dying		通常時は0。致命的なシグナルを受信したとき1が代入
 <		Note: v:dying が 1 のときに別の致命的なシグナルを受信した場合
 		は VimLeave 自動コマンドは実行されない。
 
+					*v:exiting* *exiting-variable*
+v:exiting	Vim の終了コード。通常は0、何か問題があった時は非0。
+		|VimLeavePre| と |VimLeave| の自動コマンドが実行される前は値が
+		v:null。|:q|、|:x|、|:cquit| を参照。
+		例: >
+			:au VimLeave * echo "Exit value is " .. v:exiting
+<
 					*v:echospace* *echospace-variable*
 v:echospace	|hit-enter-prompt| を引き起こす前の最後の画面行の `:echo` メッ
 		セージに使用できる画面セルの数。'showcmd', 'ruler' および
@@ -2008,6 +2024,12 @@ v:null		空の文字列。JSONでは "null" として使われる。|json_encode
 <			v:null ~
 		これは eval() がその文字列をパースしたときに、元の値に戻せるよ
 		うにするためである。読出し専用。
+
+					*v:numbermax* *numbermax-variable*
+v:numbermax	数値の最大値。
+
+					*v:numbermin* *numbermin-variable*
+v:numbermin	数値の最小値(負数)
 
 					*v:numbersize* *numbersize-variable*
 v:numbersize	数値のビット数。これは通常64で、システムによっては32になること
@@ -2419,10 +2441,15 @@ ch_status({handle} [, {options}])
 changenr()			数値	現在の変更番号
 char2nr({expr} [, {utf8}])	数値	{expr}の先頭文字のASCII/UTF8コード
 charclass({string})		数値	{string} の文字クラス
+charcol({expr})			数値	カーソルかマークのカラム番号
+charidx({string}, {idx} [, {countcc}])
+				数値	{string} のバイト {idx} の文字のイン
+					デックス
 chdir({dir})			文字列	現在の作業ディレクトリを変更する
 cindent({lnum})			数値	{lnum}行目のCインデント量
 clearmatches([{win}])		なし	全マッチをクリアする
-col({expr})			数値	カーソルかマークのカラム番号
+col({expr})			数値	カーソルかマークのカラムバイトインデッ
+					クス
 complete({startcol}, {matches})	なし	挿入モード補完を設定する
 complete_add({expr})		数値	補完候補を追加する
 complete_check()		数値	補完中に押されたキーをチェックする
@@ -2463,6 +2490,9 @@ expand({expr} [, {nosuf} [, {list}]])
 expandcmd({expr})		文字列	`:edit` のように{expr}を展開
 extend({expr1}, {expr2} [, {expr3}])
 				リスト/辞書 {expr1}に{expr2}を要素として挿入
+extendnew({expr1}, {expr2} [, {expr3}])
+				リスト/辞書 |extend()| と同じだが新しいリスト/
+				辞書を作る
 feedkeys({string} [, {mode}])	数値	先行入力バッファにキーシーケンスを追加
 filereadable({file})		数値	{file}が読み込み可能なら|TRUE|
 filewritable({file})		数値	{file}が書き込み可能なら|TRUE|
@@ -2474,6 +2504,8 @@ findfile({name} [, {path} [, {count}]])
 				文字列	{path}からファイル{name}を探す
 flatten({list} [, {maxdepth}])	リスト	リスト {list} を {maxdepth} の深さまで
 					平坦化する
+flattennew({list} [, {maxdepth}])
+				List	{list} のコピーを平坦化する
 float2nr({expr})		数値	浮動小数点数 {expr} を数値に変換する
 floor({expr})			浮動小数点数	{expr} を切り捨てる
 fmod({expr1}, {expr2})		浮動小数点数	{expr1} / {expr2} の余り
@@ -2487,6 +2519,7 @@ foldlevel({lnum})		数値	{lnum}の折り畳みレベル
 foldtext()			文字列	閉じた折り畳みに表示されている行
 foldtextresult({lnum})		文字列	{lnum}で閉じている折り畳みのテキスト
 foreground()			数値	Vimウィンドウを前面に移動する
+fullcommand({name})		文字列	{name} から完全なコマンドを取得
 funcref({name} [, {arglist}] [, {dict}])
 				Funcref	関数{name}への参照
 function({name} [, {arglist}] [, {dict}])
@@ -2503,6 +2536,7 @@ getbufvar({expr}, {varname} [, {def}])
 getchangelist([{expr}])		リスト	変更リスト要素のリスト
 getchar([expr])			数値	ユーザーから1文字を取得する
 getcharmod()			数値	修飾キーの状態を表す数値を取得
+getcharpos({expr})		リスト	カーソル、マーク、その他のカーソル位置
 getcharsearch()			辞書	最後の文字検索を取得
 getcmdline()			文字列	現在のコマンドラインを取得
 getcmdpos()			数値	コマンドラインのカーソル位置を取得
@@ -2511,6 +2545,7 @@ getcmdwintype()			文字列	現在のコマンドラインウィンドウの種�
 getcompletion({pat}, {type} [, {filtered}])
 				リスト	コマンドライン補完にマッチするリスト
 getcurpos([{winnr}])		リスト	カーソルの位置
+getcursorcharpos([{winnr}])	リスト	カーソルの位置の文字
 getcwd([{winnr} [, {tabnr}]])	文字列	現在の作業ディレクトリを取得
 getenv({name})			文字列	環境変数を返す
 getfontname([{name}])		文字列	使用しているフォントの名前
@@ -2736,6 +2771,7 @@ pyxeval({expr})			任意	|python_x| の式を評価する
 rand([{expr}])			数値	疑似乱数を取得する
 range({expr} [, {max} [, {stride}]])
 				リスト	{expr}から{max}までの要素のリスト
+readblob({fname})		Blob	{fname} から |Blob| を読む
 readdir({dir} [, {expr} [, {dict}]])
 				リスト	{expr}によって選択された{dir}内のファ
 					イル名を取得
@@ -2800,8 +2836,10 @@ setbufline({expr}, {lnum}, {text})
 setbufvar({expr}, {varname}, {val})	バッファ{expr}内の変数{varname}に{val}
 					をセット
 setcellwidths({list})		なし	文字のセル幅の上書き設定
+setcharpos({expr}, {list})	数値	{list} の {expr} 位置に設定
 setcharsearch({dict})		辞書	文字検索を{dict}に設定
 setcmdpos({pos})		数値	コマンドライン内のカーソル位置を設定
+setcursorcharpos({list})	数値	{list} の位置へカーソルを移動
 setenv({name}, {val})		なし	環境変数を設定
 setfperm({fname}, {mode})	数値	ファイル {fname} のパーミッションを
 					{mode} に設定
@@ -2850,6 +2888,8 @@ sign_unplacelist({list})	リスト	目印のリストを解除する
 simplify({filename})		文字列	ファイル名を可能なかぎり簡略化する
 sin({expr})			浮動小数点数	{expr} の正弦(サイン)
 sinh({expr})			浮動小数点数	{expr}のハイパボリックサイン
+slice({expr}, {start} [, {end}])  文字列、リスト、Blob
+					文字列、リスト、Blob のスライス
 sort({list} [, {func} [, {dict}]])
 				リスト	比較に{func}を使って{list}をソートする
 sound_clear()			なし	すべてのサウンドの再生を停止する
@@ -2993,7 +3033,8 @@ tr({src}, {fromstr}, {tostr})	文字列	{src}中に現れる文字{fromstr}を{t
 trim({text} [, {mask} [, {dir}]])
 				文字列	{text} から {mask} 内の文字を切り取る
 trunc({expr})			浮動小数点数	浮動小数点数{expr}を切り詰める
-type({name})			数値	変数{name}の型
+type({expr})			数値	変数{expr}の型
+typename({expr})		文字列	{expr}の型を表す
 undofile({name})		文字列	{name}に対するアンドゥファイルの名前
 undotree()			リスト	アンドゥファイルツリー
 uniq({list} [, {func} [, {dict}]])
@@ -3095,6 +3136,7 @@ append({lnum}, {text})					*append()*
 		行目以降にテキストとして追加する。
 		リストでないときは、{text}をテキストとしてカレントバッファの
 		{lnum}行目以降にテキストとして追加する。
+		要素としてどの型でも受け入れて文字列に変換される。
 		{lnum}は0でもよく、その場合は1行目の前に行を挿入する。
 		失敗した場合は1を返す({lnum}が不正な範囲であるか、メモリ不足)。
 		成功なら0を返す。例: >
@@ -3460,8 +3502,7 @@ byte2line({byte})					*byte2line()*
 byteidx({expr}, {nr})					*byteidx()*
 		文字列{expr}の{nr}番目の文字のバイトインデックスを返す。最初の
 		文字の{nr}は0であり、そして戻り値は0となる。
-		この関数はマルチバイト文字が存在するときのみ有用であり、そうで
-		なければこの関数が返す値は{nr}に等しい。
+		マルチバイト文字がない時は{nr}に等しい値を返す。
 		合成文字はまとめて計算される。合成文字のバイト数はそれが合成さ
 		れているベース文字のバイト数に合算される。合成文字を別々に数え
 		るには |byteidxcomp()| を参照。
@@ -3560,6 +3601,39 @@ charclass({string})					*charclass()*
 			その他	Unicode 固有のクラス
 		クラスはパターンと単語単位の移動で使われる。
 
+							*charcol()*
+charcol({expr})	|col()| と同様だが {expr} で返す桁位置がバイトインデックスでは
+		なく文字インデックスになる。
+
+		例:
+		5行目のテキスト "여보세요" の '세' にカーソルがある状態: >
+			charcol('.')		returns 3
+			col('.')		returns 7
+
+		|method| としても使用できる: >
+			GetPos()->col()
+<
+							*charidx()*
+charidx({string}, {idx} [, {countcc}])
+		{string} 内の {idx} バイト目の文字インデックスを返す。最初の文
+		字のインデックスは0。
+		マルチバイト文字がない時は {idx} に等しい値を返す。
+		{countcc} がないもしくは0の場合、合成文字は分割して文字として
+		カウントせず、先行する基底文字に合成文字のバイト長が足される。
+		{countcc} が1の場合、合成文字は分割した文字としてカウントされ
+		る。
+		引数が不正であるか {idx} が {string} の最後のバイトより大きい
+		場合-1が返る。最初の引数が文字列でない、2番目の引数が数値でな
+		い、もしくは3番目の引数ありで0でも1でもない場合はエラーとなる。
+		文字インデックスからバイトインデックスを得るには |byteidx()|
+		と |byteidxcomp()| を参照。
+		例: >
+			echo charidx('áb́ć', 3)		returns 1
+			echo charidx('áb́ć', 6, 1)	returns 4
+			echo charidx('áb́ć', 16)		returns -1
+<
+		|method| としても使用できる: >
+			GetName()->charidx(idx)
 
 chdir({dir})						*chdir()*
 		{dir}は文字列でなければならない。
@@ -3622,7 +3696,8 @@ col({expr})	戻り値は数値で、{expr}で与えられる位置の桁番号(�
 		0 を返す。
 		行番号を取得するには|line()|を使う。行番号と桁番号両方を取得す
 		るには|getpos()|を使う。
-		画面上の桁番号を取得するには|virtcol()|を使う。
+		画面上の桁番号を取得するには|virtcol()|を使う。文字の位置を取
+		得するには |charcol()| を使う。
 		Note 現在のファイルのマークしか使えないことに注意。
 		例: >
 			col(".")		カーソルの桁
@@ -3911,6 +3986,9 @@ cursor({list})
 		これは |getpos()| や |getcurpos()| の戻り値とほぼ同じである。
 		違いは最初の要素がないこと。
 
+		カーソルを文字数でカウントして位置させるには、
+		|setcursorcharpos()| を使う。
+
 		この関数を呼んでもジャンプリストは変更されない。
 		{lnum}がバッファの行数よりも大きい場合は、最後の行へ移動する。
 		{lnum}が0の場合はカレント行に留まる。
@@ -3975,9 +4053,10 @@ delete({fname} [, {flags}])					*delete()*
 		シンボリックリンクは、それが示すものではなく、リンク自身が削除
 		される。
 
-		結果は数値であり、削除に成功すれば 0、削除に失敗すれば -1 であ
-		る。
+		結果は数値であり、削除に成功すれば 0/false、削除に(部分的にで
+		も)失敗すれば -1/true である。
 
+		リスト |List| から項目を削除するには |remove()| を使う。
 		バッファから行を削除するには|:delete|もしくは|deletebufline()|
 		を使う。
 
@@ -4414,6 +4493,13 @@ extend({expr1}, {expr2} [, {expr3}])			*extend()*
 			mylist->extend(otherlist)
 
 
+extendnew({expr1}, {expr2} [, {expr3}])			*extendnew()*
+		|extend()| と同様だが、{expr1} へ要素を追加する代わりに、新し
+		いリストまたは辞書が作成されて返される。{expr1} は変更されな
+		い。要素は引き続き {expr2} で変更できるが、そうしたくないなら
+		最初に |deepcopy()| を利用すること。
+
+
 feedkeys({string} [, {mode}])				*feedkeys()*
 		{string}中の各文字を、あたかもマッピングまたはユーザーによって
 		タイプされたかのように、処理キューに入れる。
@@ -4576,8 +4662,10 @@ flatten({list} [, {maxdepth}])					*flatten()*
 		リスト {list} を {maxdepth} の深さまで平坦化する。{maxdepth}
 		が無い場合の結果は {maxdepth} が非常に巨大な数であるのように、
 		リスト |List| からネストを除去する。
-		{list} は変更が入るので、それを望まないなら最初にコピーを作る
-		こと。
+		{list} は変更が入るので、それを望まないなら |flattennew()| を
+		使うこと。
+		Vim9 script では flatten() は使用できないため、常に
+		|flattennew()| を使う必要がある。
 								*E900*
 		{maxdepth} はリストのネストをどれだけ深く変更するかを意味する。
 		{maxdepth} が0なら {list} は変更されない。
@@ -4590,6 +4678,10 @@ flatten({list} [, {maxdepth}])					*flatten()*
 <			[1, 2, 3, 4, 5] >
 			:echo flatten([1, [2, [3, 4]], 5], 1)
 <			[1, 2, [3, 4], 5]
+
+flattennew({list} [, {maxdepth}])			*flattennew()*
+		|flatten()| と同様だが最初に {list} のコピーを作る。
+
 
 float2nr({expr})					*float2nr()*
 		{expr} の小数点以下を切り捨てて |Number| に変換する。
@@ -4682,7 +4774,8 @@ fnamemodify({fname}, {mods})				*fnamemodify()*
 			:echo fnamemodify("main.c", ":p:h")
 <		結果: >
 			/home/mool/vim/vim/src/
-<		Note: {fname}の中の環境変数は展開されない。環境変数を展開させ
+<		{mods} が空なら {fname} を返す。
+		Note: {fname}の中の環境変数は展開されない。環境変数を展開させ
 		るには|expand()|を使うこと。
 
 		|method| としても使用できる: >
@@ -4754,6 +4847,21 @@ foreground()	Vimのウィンドウを前面に移動する。この関数はク�
 		{Win32, Athena, Motif, GTKいずれかのGUI版とWin32コンソール版で
 		のみ利用できる}
 
+fullcommand({name})						*fullcommand()*
+		短縮コマンド名から完全なコマンド名を取得する。コマンドの短縮名
+		については |20.2| を参照。
+
+		{name} は `:` から始まっても [range] を含んでよいが、それらは
+		スキップされ戻り値には含まない。
+		コマンドが存在しないか、曖昧になってしまう場合空文字列を返す
+		(ユーザー定義関数用)。
+
+		例えば `fullcommand('s')`、 `fullcommand('sub')`、
+		`fullcommand(':%substitute')` はすべて "substitute" を返す。
+
+		|method| としても使用できる: >
+			GetName()->fullcommand()
+<
 						*funcref()*
 funcref({name} [, {arglist}] [, {dict}])
 		|function()|と同様である。ただし、返されたFuncrefは、関数を名
@@ -4991,9 +5099,9 @@ getbufvar({expr}, {varname} [, {def}])				*getbufvar()*
 		バッファ{expr}のオプションの値やバッファローカル変数{varname}
 		の値を返す。Note "b:" をつけない変数名を指定すること。
 		{varname} が空文字列の場合、全てのバッファローカル変数からなる
-		辞書を返す。
+		辞書 |Dictionary| を返す。
 		{varname} が "&" に等しいとき、すべてのバッファローカルオプショ
-		ンを持つ辞書を返す。
+		ンを持つ辞書 |Dictionary| を返す。
 		そうでなく、{varname} が "&" で始まるとき、バッファローカルオ
 		プションの値を返す。
 		グローバルオプション、バッファローカルオプションのどちらに対し
@@ -5071,7 +5179,9 @@ getchar([expr])						*getchar()*
 
 		この関数を呼んだときプロンプトは表示されない。文字入力を待って
 		いることをなんらかの方法でユーザーがわかるようにしなければなら
-		ないだろう。
+		ないだろう。画面は再描画されない、例えばウィンドウのリサイズ。
+		ポップアップウィンドウを使っているなら |popup-filter| を使うと
+		よりよく動作する。
 		入力された文字に対してマッピングは適用されない。
 		キーコードは置換される。つまりユーザーが<Del>を押した場合、
 		「生の」文字シーケンスでなく<Del>キーに対応するコードが得られ
@@ -5115,6 +5225,19 @@ getcharmod()						*getcharmod()*
 			128	command (Macintosh のみ)
 		文字自身に含まれていない修飾キーのみ取得できる。つまり、
 		Shift-aは修飾キーなしの "A" となる。
+
+							*getcharpos()*
+getcharpos({expr})
+		{expr} の位置を得る。|getpos()| と同様だが返すリスト内の桁番号
+		はバイトインデックスの代わりに文字インデックスになっている。
+
+		例:
+		5行目のテキスト "여보세요" の '세' にカーソルがある状態: >
+			getcharpos('.')		returns [0, 5, 3, 0]
+			getpos('.')		returns [0, 5, 7, 0]
+<
+		|method| としても使用できる: >
+			GetMark()->getcharpos()
 
 getcharsearch()						*getcharsearch()*
 		現在の文字検索の情報である{dict}を返し、この辞書は下記のエント
@@ -5235,8 +5358,11 @@ getcurpos([{winid}])
 		カーソルの位置を返す。これは getpos('.') に似ているが、追加の
 		"curswant" 情報を含む:
 		    [0, lnum, col, off, curswant] ~
-		"curswant" は縦方向移動の優先的列番号である。|getpos()| も参照。
-		最初の "bufnum" は常に0である。
+		"curswant" は縦方向移動の優先的列番号である。
+		|getcursorcharpos()| と |getpos()| も参照。
+		最初の "bufnum" は常に0である。カーソルのバイトでの位置は
+		'col' に返される。文字の位置を得るには |getcursorcharpos()| を
+		使う。
 
 		オプションの {winid} 引数はウィンドウを指定する。これはウィン
 		ドウ番号か |window-ID| である。最後のカーソル位置を返すが、こ
@@ -5250,7 +5376,24 @@ getcurpos([{winid}])
 			call setpos('.', save_cursor)
 <		Note: これはウィンドウ内でのみ機能する。より多くの状態を復元す
 		る方法については |winrestview()| を参照。
-							*getcwd()*
+
+		|method| としても使用できる: >
+			GetWinid()->getcurpos()
+
+<							*getcursorcharpos()*
+getcursorcharpos([{winid}])
+		|getcurpos()| と同様だが返すリスト内の桁番号はバイトインデック
+		スの代わりに文字インデックスになっている。
+
+		Example:
+		3行目のテキスト "여보세요" の '보' にカーソルがある状態: >
+			getcursorcharpos()	returns [0, 3, 2, 0, 3]
+			getcurpos()		returns [0, 3, 4, 0, 3]
+
+<		|method| としても使用できる: >
+			GetWinid()->getcursorcharpos()
+
+<							*getcwd()*
 getcwd([{winnr} [, {tabnr}]])
 		結果は現在の作業ディレクトリ名の文字列である。
 
@@ -5446,7 +5589,7 @@ getloclist({nr} [, {what}])				*getloclist()*
 					参照。
 
  		ウィンドウ {nr} にlocationリストがないなら、デフォルト値の辞書
- 		を返す。
+ 		|Dictionary| を返す。
 		ウィンドウが存在しない場合、空の辞書を返す。
 
 		例 (|getqflist-examples| もまた参照): >
@@ -5543,19 +5686,20 @@ getpos({expr})	{expr}の位置を返す。{expr}として指定できる値に�
 		Note: ビジュアルモードの '< と '> について: ビジュアルモードが
 		"V" (行選択モード) のとき、'< の桁番号はゼロ、'> の桁番号は大
 		きな値になる。
+		桁番号は行内のバイト位置のリストとして返される。行内の文字での
+		位置を取得するなら、|getcharpos()| を使う。
 		この関数はマークの位置を保存し、復元するために使われる: >
 			let save_a_mark = getpos("'a")
 			...
 			call setpos("'a", save_a_mark)
-<		|getcurpos()| と |setpos()|も参照。
+<		|getcharpos()| と |getcurpos()| そして |setpos()| も参照。
 
 		|method| としても使用できる: >
 			GetMark()->getpos()
 
-
 getqflist([{what}])					*getqflist()*
-		現在の全quickfixエラーのリストを返す。リストの各要素は辞書で、
-		以下の要素を持つ:
+		現在の全quickfixエラーのリスト |List| を返す。リストの各要素は
+		辞書で、以下の要素を持つ:
 			bufnr	ファイル名を持つバッファの番号。その名前を取得
 				するにはbufname()を使う。
 			module	モジュール名
@@ -5667,6 +5811,7 @@ getreg([{regname} [, 1 [, {list}]]])			*getreg()*
 		指定したレジスタがセットされていないときは、空のリストが返され
 		る。
 		{regname}を指定しないときは|v:register|が使われる。
+		|Vim9-script| では {regname} は1文字でなくてはならない。
 
 		|method| としても使用できる: >
 			GetRegname()->getreg()
@@ -5693,6 +5838,7 @@ getreginfo([{regname}])					*getreginfo()*
 		される。
 		{regname} が未指定の場合、|v:register| が使われる。
 		戻り値の辞書は |setreg()| に渡すことができる。
+		|Vim9-script| では {regname} は1文字でなくてはならない。
 
 		|method| としても使用できる: >
 			GetRegname()->getreginfo()
@@ -5706,6 +5852,7 @@ getregtype([{regname}])					*getregtype()*
 		    ""			空、または未知のレジスタの場合
 		<CTRL-V>は値0x16の1文字である。
 		{regname}を指定しないときは|v:register|が使われる。
+		|Vim9-script| では {regname} は1文字でなくてはならない。
 
 		|method| としても使用できる: >
 			GetRegname()->getregtype()
@@ -6005,7 +6152,7 @@ has({feature} [, {check}])
 
 has_key({dict}, {key})					*has_key()*
 		結果は数値で、辞書|Dictionary| {dict}がキー{key}の要素を持つな
-		ら1、持たないなら0となる。
+		ら真、持たないなら偽となる。
 
 		|method| としても使用できる: >
 			mydict->has_key(key)
@@ -6054,12 +6201,12 @@ haslocaldir([{winnr} [, {tabnr}]])			*haslocaldir()*
 hasmapto({what} [, {mode} [, {abbr}]])			*hasmapto()*
 		結果は数値。右辺側(マップした先)の一部分に{what}を含むマッピン
 		グが存在し、それが{mode}で指定されたモードのいずれかで定義され
-		ているなら1を返す。
+		ているなら真を返す。
 		{abbr}が指定されていて|TRUE|のときはマッピングでなく短縮入力の
 		存在を判定する。挿入モードまたはコマンドモードを指定することを
 		忘れないように。
 		グローバルマップとバッファローカルマップの両方をチェックする。
-		マッピングが1個も見つからなかったときは0を返す。
+		マッピングが1個も見つからなかったときは偽を返す。
 		{mode}に対しては以下の文字が利用できる:
 			n	ノーマルモード
 			v	ビジュアルモードおよび選択モード
@@ -6093,7 +6240,8 @@ histadd({history}, {item})				*histadd()*
 		{history} 文字列はフルネームで指定する必要はありません。頭文字
 		だけでも構いません。
 		{item}が履歴内に既に存在する場合、それが最新の項目の位置へシフ
-		トされる。結果は数値:操作が成功した場合1、そうでなければ0
+		トされる。結果は数値:操作が成功した場合真、そうでなければ偽が
+		返る。
 
 		例: >
 			:call histadd("input", strftime("%Y %b %d"))
@@ -6116,7 +6264,7 @@ histdel({history} [, {item}])				*histdel()*
 		ンデックスについては|:history-indexing|を参照。関連するエントリ
 		{訳注: The respective entry} も、存在すれば削除される。
 
-		結果は数値: 削除に成功すれば1を、そうでなければ0が返る。
+		結果は削除に成功すれば真、そうでなければ偽が返る。
 
 		例:
 		式レジスタの履歴を削除する: >
@@ -6168,10 +6316,10 @@ histnr({history})					*histnr()*
 <
 hlexists({name})					*hlexists()*
 		結果は数値で、{name}という名のハイライトグループが存在すれば、
-		非ゼロの値が返される。これはなんらかの方法でそのグループが既に
-		定義されている時にのみ起こる。これの為に実際に何らかのハイライ
-		ティングアイテムが設定されている必要はなく、単に構文アイテムと
-		しても使われるだろう。
+		真が返される。これはなんらかの方法でそのグループが既に定義され
+		ている時にのみ起こる。これの為に実際に何らかのハイライティング
+		アイテムが設定されている必要はなく、単に構文アイテムとしても使
+		われるだろう。
 							*highlight_exists()*
 		以前の名前: highlight_exists().
 
@@ -6335,8 +6483,8 @@ inputlist({textlist})					*inputlist()*
 inputrestore()						*inputrestore()*
 		前回の|inputsave()|で保存しておいた先行入力を復元する。
 		inputsave()と同じ回数だけ呼ぶようにしなければならない。しかし
-		多く呼びすぎても害はない。復元するものがなければ1を、そうでな
-		ければ0を返す。
+		多く呼びすぎても害はない。復元するものがなければ真を、そうでな
+		ければ偽を返す。
 
 inputsave()						*inputsave()*
 		先行入力(マッピングにより入力された文字も含む)を保存し、クリア
@@ -6344,7 +6492,7 @@ inputsave()						*inputsave()*
 		ようにする。プロンプトの後で、対応するinputrestore()を呼び出さ
 		ねばならない。複数回呼ぶこともできる。ただしその場合は同じ回数
 		だけinputrestore()を呼ばなくてはならない。
-		メモリ不足のときは1を、そうでなければ0を返す。
+		メモリ不足のときは真を、そうでなければ偽を返す。
 
 inputsecret({prompt} [, {text}])			*inputsecret()*
 		|input()|とほぼ同じだが、以下の2点が異なる:
@@ -6800,7 +6948,7 @@ listener_flush([{buf}])					*listener_flush()*
 
 listener_remove({id})					*listener_remove()*
 		以前に listener_add() で追加されたリスナーを削除する。
-		{id} が見つからなかった場合は0、{id} が削除された場合は1を返
+		{id} が見つからなかった場合は偽、{id} が削除された場合は真を返
 		す。
 
 		|method| としても使用できる: >
@@ -7011,7 +7159,8 @@ mapcheck({name} [, {mode} [, {abbr}]])			*mapcheck()*
 mapnew({expr1}, {expr2})					*mapnew()*
 		|map()| と同様だが、{expr1} の要素を置き換える代わりに、新しい
 		リストまたは辞書が作成されて返される。{expr1} は変更されない。
-
+		要素は引き続き {expr2} で変更できるが、そうしたくないなら最初
+		に |deepcopy()| を利用すること。
 
 mapset({mode}, {abbr}, {dict})					*mapset()*
 		|maparg()| が返す辞書からマッピングを復元する。
@@ -7236,8 +7385,8 @@ matchend({expr}, {pat} [, {start} [, {count}]])			*matchend()*
 
 matchfuzzy({list}, {str} [, {dict}])			*matchfuzzy()*
 		{list} が文字列のリストの場合、{list} 内のすべての文字列につい
-		て {str} でファジーマッチしたリストを返す。返したリストの文字
-		列はマッチのスコアを基準としてソートされる。
+		て {str} でファジーマッチしたリスト |List| を返す。返したリス
+		トの文字列はマッチのスコアを基準としてソートされる。
 
 		オプションの {dict} 引数では常に以下の項目がサポートされる:
 		    matchseq	この項目があり、{str} が空白で区切られた複数の
@@ -7285,22 +7434,26 @@ matchfuzzy({list}, {str} [, {dict}])			*matchfuzzy()*
 <		結果は ['two one'] になる。
 
 matchfuzzypos({list}, {str} [, {dict}])			*matchfuzzypos()*
-		|matchfuzzy()| と同様だが、マッチした文字列のリストと {str} と
-		マッチした文字列内の文字の位置のリストを返す。
+		|matchfuzzy()| と同様だが、マッチした文字列のリスト、{str} と
+		マッチした文字列内の文字の位置のリストとマッチのスコアのリスト
+		を返す。|byteidx()| を使うことで文字位置からバイト位置へ変換で
+		きる。
 
 		文字列内で {str} が複数回マッチしたときは、最良のマッチとなっ
 		た位置だけを返す。
 
-		もし文字列にマッチしないもしくはエラーとなったときは、2つの空
+		もし文字列にマッチしないもしくはエラーとなったときは、3つの空
 		のリストを項目とするリストを返す。
 
 		例: >
 			:echo matchfuzzypos(['testing'], 'tsg')
-<		結果は [['testing'], [[0, 2, 6]]] になる。 >
+<		結果は [['testing'], [[0, 2, 6]], [99]] になる。 >
 			:echo matchfuzzypos(['clay', 'lacy'], 'la')
-<		結果は [['lacy', 'clay'], [[0, 1], [1, 2]]] になる。 >
+<		結果は [['lacy', 'clay'], [[0, 1], [1, 2]], [153, 133]] にな
+		る。 >
 			:echo [{'text': 'hello', 'id' : 10}]->matchfuzzypos('ll', {'key' : 'text'})
-<		結果は [{'id': 10, 'text': 'hello'}] [[2, 3]] になる。
+<		結果は [[{'id': 10, 'text': 'hello'}], [[2, 3]], [127]] にな
+		る。
 
 matchlist({expr}, {pat} [, {start} [, {count}]])		*matchlist()*
 		|match()| と同じだがリストを返す。リストの最初の要素は、
@@ -7353,8 +7506,10 @@ matchstrpos({expr}, {pat} [, {start} [, {count}]])		*matchstrpos()*
 <
 
 							*max()*
-max({expr})	{expr}の全要素の値の最大値を返す。
-		{expr}はリスト |List| か辞書 |Dictionary| である。辞書の場合、
+max({expr})	{expr}の全要素の値の最大値を返す。例: >
+			echo max([apples, pears, oranges])
+
+<		{expr}はリスト |List| か辞書 |Dictionary| である。辞書の場合、
 		辞書に含まれるすべての値の最大値を返す。
 		{expr}がリストでも辞書でもなかったり、要素のどれかが数値に変換
 		できない場合はエラーとなる。
@@ -7423,8 +7578,10 @@ menu_info({name} [, {mode}])				*menu_info()*
 
 
 <							*min()*
-min({expr})	{expr}の全要素の値の最小値を返す。
-		{expr}はリスト |List| か辞書 |Dictionary| である。辞書の場合、
+min({expr})	{expr}の全要素の値の最小値を返す。例: >
+			echo min([apples, pears, oranges])
+
+<		{expr}はリスト |List| か辞書 |Dictionary| である。辞書の場合、
 		辞書に含まれるすべての値の最小値を返す。
 		{expr}がリストでも辞書でもなかったり、要素のどれかが数値に変換
 		できない場合はエラーとなる。
@@ -7441,13 +7598,13 @@ mkdir({name} [, {path} [, {prot}]])
 		{path}が "p" のときは必要に応じて途中のディレクトリも作成され
 		る。そうでないときは "" にすること。
 
-		{prot}は作成するディレクトリの保護ビット。デフォルトは0755
+		{prot}は作成するディレクトリの保護ビット。デフォルトは0o755
 		(rwxr-xr-x: 所有者は読み書き可能、他の人は読み込み可能)。
-		他の人が読み込めないようにするには0700とすること。{prot} は
+		他の人が読み込めないようにするには0o700とすること。{prot} は
 		{name} の最後の部分にのみ適用される。なので、/tmp/foo/bar
-		を作成すると /tmp/foo は 0755 で作成される。
+		を作成すると /tmp/foo は 0o755 で作成される。
 		例: >
-			:call mkdir($HOME . "/tmp/foo/bar", "p", 0700)
+			:call mkdir($HOME . "/tmp/foo/bar", "p", 0o700)
 
 <		|sandbox|の中ではこの関数は使用できない。
 
@@ -7455,8 +7612,8 @@ mkdir({name} [, {path} [, {prot}]])
 		は発生しない (パッチ 8.0.1708 より)。ただし、"p" オプション未
 		指定だと、呼び出しは失敗する。
 
-		関数の結果は数値である。呼び出しが成功した場合は1、ディレクト
-		リの作成に失敗したか部分的に失敗した場合は0である。
+		関数の結果は数値である。呼び出しが成功した場合は真、ディレクト
+		リの作成に失敗したか部分的に失敗した場合は偽である。
 
 		システムによっては利用できない場合がある。これを確認するには次
 		のようにする: >
@@ -7966,6 +8123,14 @@ rand([{expr}])						*rand()* *random*
 			:echo rand(seed)
 			:echo rand(seed) % 16  " random number 0 - 15
 <
+
+readblob({fname})					*readblob()*
+		ファイル {fname} をバイナリモードで読み |Blob| を返す。
+		ファイルが開けない場合はエラーメッセージともに結果が空の
+		|Blob| となる。
+		|readfile()| と |writefile()| も参照。
+
+
 readdir({directory} [, {expr} [, {dict}]])			*readdir()*
 		{directory}内のファイル名とディレクトリ名のリストを返す。
 		一致数を制限するなど、複雑なことをする必要がない場合は、
@@ -8088,8 +8253,9 @@ readdirex({directory} [, {expr} [, {dict}]])			*readdirex()*
 <
 		|method| としても使用できる: >
 			GetDirName()->readdirex()
+<
 
-<							*readfile()*
+							*readfile()*
 readfile({fname} [, {type} [, {max}]])
 		ファイル{fname}を読み込み、各行を要素とするリスト|List|を返す。
 		行はNL文字で終わるものとする。改行文字がCRであるMacintoshのファ
@@ -8099,8 +8265,6 @@ readfile({fname} [, {type} [, {max}]])
 		- 最後の行がNLで終わるときは、リストの末尾に余分な空文字列が追
 		  加される。
 		- CR文字を除去しない。
-		{type}が "B" を含む場合、ファイルのバイナリデータは変更せずに
-		|Blob| が返される。
 		その他の場合:
 		- NLの前に現れるCR文字を除去する。
 		- 最後の行がNLで終わるかどうかは関係ない。
@@ -8117,6 +8281,8 @@ readfile({fname} [, {type} [, {max}]])
 		Note {max}を指定しない場合はファイル全体をメモリに読み込む。エ
 		ンコーディング判定も行わないことに注意。必要ならバッファに読み
 		込むこと。
+		非推奨 (代替として |readblob()| を使う): {type}が "B" を含む場
+		合、ファイルのバイナリデータは変更せずに |Blob| が返される。
 		ファイルを開けないときはエラーメッセージを表示し、空リストを返
 		す。
 		|writefile()|も参照。
@@ -8530,12 +8696,15 @@ search({pattern} [, {flags} [, {stopline} [, {timeout} [, {skip}]]]])
 
 		'ignorecase', 'smartcase', 'magic' が適用される。
 
-		フラグ 'z' が指定されない場合、常に0列目から開始して検索する。
-		そして、カーソルの前にあるマッチはスキップされる。
-		'cpo' 内に 'c' フラグが存在する場合、次の検索はそのマッチの後
-		から始まる。
-		'cpo' 内に 'c' フラグが存在しない場合、次の検索は現在のカーソ
-		ル位置から1桁進んで始まる。
+		フラグ 'z' が指定されない場合、常に0列目から開始して前方検索
+		し、そしてカーソルの前にあるマッチはスキップされる。'cpo' 内
+		に 'c' フラグが存在する場合、次の検索はそのマッチの後から始ま
+		る。'cpo' 内に 'c' フラグが存在しない場合、次の検索は現在のカー
+		ソル位置から1桁進んで始まる。この検索はオーバーラップしてマッ
+		チする。
+		後方検索でフラグ 'z' が指定されている場合、検索は0列目から始ま
+		るので、現在行で見付かってもマッチしない(ただしファイルの末
+		尾でラップしない場合)。
 
 		引数{stopline}が指定されたときはこの行を検索した後で検索を停止
 		する。これは検索する行を制限するために有用である。例: >
@@ -8713,7 +8882,7 @@ searchcount([{options}])					*searchcount()*
 						もし検索の総計カウントが到達し
 						たら "total" の値が maxcount +
 						1 になる
-						(デフォルト: 0)
+						(デフォルト: 99)
 		  pos		|List|		`[lnum, col, off]` 値
 						再計算の値。
 						"current" の結果の値を更新する。
@@ -8855,6 +9024,7 @@ server2client({clientid}, {string})			*server2client()*
 		{clientid}に返信文字列を送る。最後に文字列を送った{clientid}は
 		expand("<client>")で取得できる。
 		{|+clientserver|機能付きでコンパイルしたときのみ利用可能}
+		成功で0を返し、失敗で-1を返す。
 		Note:
 		このIDは次のコマンドを受け取る前に取得しなければならない。つま
 		り、受け取ったコマンドから戻る前で、入力を待つコマンドを呼ぶ前。
@@ -8940,6 +9110,19 @@ setcellwidths({list})					*setcellwidths()*
 <		既知の絵文字への効果を確認するのに
 		$VIMRUNTIME/tools/emoji_list.vim スクリプトが使える。
 
+ setcharpos({expr}, {list})				*setcharpos()*
+		|setpos()| と同様だが指定に使う桁番号はその行のバイトインデッ
+		クスの代わりに文字インデックスである。
+
+		例:
+		8行目にテキスト "여보세요" がある状態: >
+			call setcharpos('.', [0, 8, 4, 0])
+<		4番目の文字 '요' へカーソルを位置させる。 >
+			call setpos('.', [0, 8, 4, 0])
+<		2番目の文字 '보' へカーソルを位置させる。
+
+		|method| としても使用できる: >
+			GetPosition()->setcharpos('.')
 
 setcharsearch({dict})					*setcharsearch()*
 		現在の文字検索の情報を{dict}に設定する。
@@ -8972,10 +9155,25 @@ setcmdpos({pos})					*setcmdpos()*
 		を挿入する前にカーソルを移動する。
 		{pos}が大きすぎるときは行末にカーソルを移動する。{pos}が1より
 		小さいときの結果は未定義である。
-		成功なら0、コマンドラインを編集しているとき以外には1を返す。
+		成功なら偽、コマンドラインを編集しているとき以外には真を返す。
 
 		|method| としても使用できる: >
 			GetPos()->setcmdpos()
+
+setcursorcharpos({lnum}, {col} [, {off}])		*setcursorcharpos()*
+setcursorcharpos({list})
+		|cursor()| と同様だが指定に使う桁番号はその行のバイトインデッ
+		クスの代わりに文字インデックスである。
+
+		例:
+		4行目にテキスト "여보세요" がある状態: >
+			call setcursorcharpos(4, 3)
+<		3番目の文字 '세' へカーソルを位置させる。 >
+			call cursor(4, 3)
+<		1番目の文字 '여' へカーソルを位置させる。
+
+		|method| としても使用できる: >
+			GetCursorPos()->setcursorcharpos()
 
 setenv({name}, {val})						*setenv()*
 		環境変数{name} に {val} を設定する。
@@ -9014,9 +9212,11 @@ setline({lnum}, {text})					*setline()*
 		{lnum}は|getline()|のときと同じように解釈される。
 		{lnum}が最後の行の次の行の場合、最後の行の下に{text}が追加され
 		る。
+		{text}は任意の型もしくは任意の型のリストで、各要素が文字列に変
+		換される。
 
-		成功したら0を返す。失敗したら(大抵{lnum}が無効な値のとき)1を返
-		す。
+		成功したら偽を返す。失敗したら(大抵{lnum}が無効な値のとき)真を
+		返す。
 
 		例: >
 			:call setline(5, strftime("%c"))
@@ -9085,7 +9285,8 @@ setpos({expr}, {list})
 
 		"lnum" と "col" はバッファ内の位置。桁番号は1から始まる。
 		"lnum" を 0 にするとそのマークを削除する。"col" が 1 より小さ
-		いときは 1 が使われる。
+		いときは 1 が使われる。バイトでのカウントではなく文字でのカウ
+		ントを使いたいなら、|setcharpos()| を使う。
 
 		数値 "off" は 'virtualedit' がオンのときのみ使われ、その文字の
 		開始位置からの画面上の桁のオフセットとなる。例えば、<Tab>の中、
@@ -9102,7 +9303,7 @@ setpos({expr}, {list})
 		位置をセットできたときは 0 を、そうでなければ -1 を返す。
 		{expr} が無効なときはエラーメッセージが出る。
 
-		|getpos()| と |getcurpos()| も参照。
+		|setcharpos()|、|getpos()| と |getcurpos()| も参照。
 
 		縦方向移動の優先的列番号は復元されない。しかしカーソル位置を設
 		定するときにこの値を設定した場合は、|j| や |k| で移動すると以
@@ -9225,6 +9426,7 @@ setqflist({list} [, {action} [, {what}]])		*setqflist()*
 setreg({regname}, {value} [, {options}])
 		レジスタ{regname}に{value}をセットする。
 		{regname} が "" もしくは "@" のとき、無名レジスタ '"' を使う。
+		|Vim9-script| では {regname} は1文字でなくてはならない。
 
 		{value} には |getreg()| か |getreginfo()| の戻り値ならどんな値
 		でも (リスト |List| でも 辞書 |Dictionary|でも) 指定できる。
@@ -9457,6 +9659,17 @@ sinh({expr})						*sinh()*
 			Compute()->sinh()
 <
 		{|+float| 機能を有効にしてコンパイルしたときのみ有効}
+
+
+slice({expr}, {start} [, {end}])			*slice()*
+		スライス |slice| "expr[start : end]" と同様に使えるが、"end"
+		を含まない。そして文字列のインデックスは、|vim9script| と同様
+		にバイトインデックスの代わりに文字インデックスが使われる。
+		{end} がない場合スライスは最後の項目を含む。
+		{end} が-1の場合最後の項目を含まない。
+
+		|method| としても使用できる: >
+			GetList()->slice(offset)
 
 
 sort({list} [, {func} [, {dict}]])			*sort()* *E702*
@@ -10375,7 +10588,7 @@ tagfiles()	カレントバッファにおいて、タグを検索するときに
 
 
 taglist({expr} [, {filename}])				*taglist()*
-		正規表現 {expr} にマッチするタグのリストを返す。
+		正規表現 {expr} にマッチするタグのリスト |List| を返す。
 
 		{filename} が渡された場合、|:tselect| と同じ方法で結果を優先順
 		位付けするために使われる。|tag-priority| を参照。
@@ -10467,8 +10680,8 @@ term_ 関数群はここに文書化されている: |terminal-function-details|
 
 terminalprops()						*terminalprops()*
 		Vimが |t_RV| 問い合せの応答から検知した端末のプロパティを辞書
-		として返す。応答自体は |v:termresponse| を参照。もし
-		|v:termresponse| が空の時はここにある多くの値は不明を表す
+		|Dictionary| として返す。応答自体は |v:termresponse| を参照。
+		もし |v:termresponse| が空の時はここにある多くの値は不明を表す
 		'u' になる。
 		   cursor_style		|t_RS| を送って動くか **
 		   cursor_blink_mode	|t_RC| を送って動くか **
@@ -10551,6 +10764,8 @@ timer_start({time}, {callback} [, {options}])
 		{callback} は呼び出す関数。関数の名前もしくは|Funcref|であって
 		も良い。引数にはタイマーIDの引数が1つだけ渡されて呼び出され
 		る。コールバックは Vim が入力待ちの場合だけ呼び出される。
+		メッセージの表示を望むなら、|popup_notification()| を見てユー
+		ザーの入力との干渉を回避すること。
 
 		{options} は辞書。以下がサポートされている:
 		   "repeat"	コールバックを呼び出す繰り返し回数。-1 は無限
@@ -10697,6 +10912,14 @@ type({expr})	{expr}の型を示す数値を返す。
 
 <		|method| としても使用できる: >
 			mylist->type()
+
+
+typename({expr})					*typename()*
+		{expr} の型について表す文字列を返す。
+		例: >
+			echo typename([1, 2, 3])
+			list<number>
+
 
 undofile({name})					*undofile()*
 		{name} という名前のファイルの保存時に使用されるアンドゥファイ
@@ -10851,17 +11074,19 @@ win_execute({id}, {command} [, {silent}])		*win_execute()*
 			call win_execute(winid, 'set syntax=python')
 <		`setwinvar()` で同じことをしても自動コマンドはトリガーされず、
 		実際には構文ハイライトは表示されない。
+
 							*E994*
 		すべてのコマンドがポップアップウィンドウで許可されているわけで
 		はない。
-		ウィンドウ {id} が存在しない場合、エラーは発生しない。
+		ウィンドウ {id} が存在しない場合、エラーは発生せず空の文字列を
+		返す。
 
 		|method| としても使用でき、ベースは第2引数として渡される: >
 			GetCommand()->win_execute(winid)
 
 win_findbuf({bufnr})					*win_findbuf()*
 		バッファ {bufnr} が含まれているウィンドウについて |window-ID|
-		のリストを返す。存在しない場合は空のリストになる。
+		のリスト |List| を返す。存在しない場合は空のリストになる。
 
 		|method| としても使用できる: >
 			GetBufnr()->win_findbuf()
@@ -10901,7 +11126,7 @@ win_gettype([{nr}])					*win_gettype()*
 win_gotoid({expr})					*win_gotoid()*
 		{expr} の ID で示されるウィンドウへ移動する。これは現在のタブ
 		ページも移動する。
-		成功した場合は 1 を、ウィンドウが見付からない場合は 0 を返す。
+		成功した場合は真を、ウィンドウが見付からない場合は偽を返す。
 
 		|method| としても使用できる: >
 			GetWinid()->win_gotoid()
@@ -12542,7 +12767,7 @@ text...
 							*:exe* *:execute*
 :exe[cute] {expr1} ..	{expr1}の評価結果の文字列をExコマンドとして実行する。
 			複数の引数は連結され、間にスペースが挿入される。余計な
-			スペースを入れたくない場合は "." オペレータを使って文
+			スペースを入れたくない場合は ".." オペレータを使って文
 			字列を連結すること。
 			{expr1}は処理されたコマンドとして扱われ、コマンドライ
 			ン編集用のキーは認識されない。
