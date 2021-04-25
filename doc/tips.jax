@@ -1,4 +1,4 @@
-*tips.txt*      For Vim バージョン 8.2.  Last change: 2009 Nov 07
+*tips.txt*      For Vim バージョン 8.2.  Last change: 2020 Dec 29
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -29,6 +29,7 @@ xterm でのスクリーンの切り替え			|xterm-screens|
 バイナリ編集					|hex-editing|
 自動コマンドで <> 表記を使う			|autocmd-<>|
 対応する括弧を強調する				|match-parens|
+カレントウィンドウでヘルプを開く		|help-curwin|
 
 ==============================================================================
 C のプログラムを編集する				*C-editing*
@@ -536,5 +537,29 @@ NOTE: これを利用するには 'cpoptions' から '<' フラグを外して�
 	autocmd CursorMoved,CursorMovedI * call s:Highlight_Matching_Paren()
 	autocmd InsertEnter * match none
 < 
+
+==============================================================================
+カレントウィンドウでヘルプを開く				*help-curwin*
+
+デフォルトでは、ヘルプは分割したウィンドウに表示されます。カレントウィンドウで
+開くのが好みであれば、このカスタム `:HelpCurwin` コマンドを試してください:
+>
+	command -bar -nargs=? -complete=help HelpCurwin execute s:HelpCurwin(<q-args>)
+	let s:did_open_help = v:false
+	
+	function s:HelpCurwin(subject) abort
+	  let mods = 'silent noautocmd keepalt'
+	  if !s:did_open_help
+	    execute mods .. ' help'
+	    execute mods .. ' helpclose'
+	    let s:did_open_help = v:true
+	  endif
+	  if !getcompletion(a:subject, 'help')->empty()
+	    execute mods .. ' edit ' .. &helpfile
+	  endif
+	  return 'help ' .. a:subject
+	endfunction
+<
+
 
  vim:tw=78:ts=8:noet:ft=help:norl:

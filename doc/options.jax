@@ -1,4 +1,4 @@
-*options.txt*	For Vim バージョン 8.2.  Last change: 2020 Dec 21
+*options.txt*	For Vim バージョン 8.2.  Last change: 2021 Feb 13
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -474,7 +474,7 @@ Note 展開されるオプションの値の長さ制限に注意。システム
 			    CTRL-?		  CTRL-H
 			    CTRL-?以外		  CTRL-?
 
-			(CTRL-? は8進数で 0177、16進数で 0x7f)
+			(CTRL-? は8進数で 0o177、16進数で 0x7f)
 
 			ターミナルのデリートキーのキーコードが違っているが、バッ
 			クスペースのキーコードは正しいときは、次のコマンドをファ
@@ -1615,7 +1615,11 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			{VimのGUIバージョンか |+xterm_clipboard| 機能付きでコ
 			ンパイルされたもののみ有効}
 	コンマ区切りのキーワードのリストを指定する。
-	認識されるのは、以下のキーワードである。
+	Note: 要素の1つとして "exclude:" がある場合、要素を後ろに追加すること
+	はできない。従って += で後方への要素の追加ではなく ^= を使って前方への
+	追加をする。例: >
+		set clipboard^=unnamed
+<	認識されるのは、以下のキーワードである。
 
 						*clipboard-unnamed*
 	unnamed		これが含まれると、コピー、削除、変更、ペーストなどの操
@@ -2694,6 +2698,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		foldcolumn:{n}	差分モードの開始時にオプション 'foldcolumn' を
 				{n}に設定する。
 
+		followwrap	'wrap' オプションにそのまま従う。
+
 		internal	内部diffライブラリを使用する。'diffexpr' が設
 				定されている場合は無視される。 *E960*
 				バッファを書き込むときにメモリが不足すると、こ
@@ -3221,7 +3227,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 'fileignorecase' 'fic'	切替	(既定値: ファイル名の大文字と小文字の違いを無
 				視するシステムではオン)
 			グローバル
-	このオプションが設定すると、ファイル名とディレクトリ名の大文字と小文字
+	このオプションを設定すると、ファイル名とディレクトリ名の大文字と小文字
 	の違いが無視される。
 	補完で大文字と小文字の違いを無視したい場合は 'wildignorecase' を参照。
 
@@ -3252,7 +3258,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	通常のファイル名文字だけが使える。"/\*?[|<>" は不正である。
 
 						*'fillchars'* *'fcs'*
-'fillchars' 'fcs'	文字列	(既定では "vert:|,fold:-")
+'fillchars' 'fcs'	文字列	(既定では "vert:|,fold:-,eob:~")
 			グローバル
 			{|+folding| 機能付きでコンパイルされたときのみ有効}
 	ステータス行と垂直分割の区切りを埋める文字を設定する。値にはキーワード
@@ -3263,7 +3269,11 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	  stlnc:文字	' ' か '='	非カレントウィンドウのステータス行
 	  vert:文字	'|'		垂直分割の区切り |:vsplit|
 	  fold:文字	'-'		'foldtext' での空白部分
+	  foldopen:文字	'-'		折り畳みの先頭のマーク
+	  foldclose:文字'+'		閉じられた折り畳みのマーク
+	  foldsep:文字	'|'		開いた折り畳みの中間文字
 	  diff:文字	'-'		'diff' での削除された行
+	  eob:文字	'~'		バッファ終端以降の空行
 
 	指定されなかったキーワードについては、既定値が使われる。"stl" と
 	"stlnc" には、強調表示が行われているときは空白が、行われていないときは
@@ -3283,6 +3293,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	  vert:文字	VertSplit		|hl-VertSplit|
 	  fold:文字	Folded			|hl-Folded|
 	  diff:文字	DiffDelete		|hl-DiffDelete|
+	  eob:文字	EndOfBuffer		|hl-EndOfBuffer|
 
 		*'fixendofline'* *'fixeol'* *'nofixendofline'* *'nofixeol'*
 'fixendofline' 'fixeol'	切替	(既定ではオン)
@@ -3295,7 +3306,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	オプション 'endofline' を参照。
 
 					*'fkmap'* *'fk'* *'nofkmap'* *'nofk'*
-'fkmap' 'fk'		切替	(既定ではオフ)			*E198*
+'fkmap' 'fk'		切替	(既定ではオフ)
 			グローバル
 			{|+rightleft| 機能付きでコンパイルされたときのみ有効}
 	このオプションはペルシア語を使うためのもので、削除された。|farsi.txt|
@@ -4892,7 +4903,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 
 						*'listchars'* *'lcs'*
 'listchars' 'lcs'	文字列	(既定では "eol:$")
-			グローバル
+			グローバル／ウィンドウについてローカル |global-local|
 	'list' モードと |:list| コマンドでの表示に使われる文字を設定する。値は
 	指定文字列のコンマ区切りのリストである。
 							*lcs-eol*
@@ -4923,7 +4934,12 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 							*lcs-space*
 	  space:文字	スペースの表示に使われる文字。指定されないと、スペース
 			は空白のまま。
-							*lcs-trail*
+							*lcs-lead*
+	  lead:文字	先頭のスペースの表示に使われる文字。指定されないと、先
+			頭のスペースは空白のまま。行頭のスペースでは "space"
+			の設定を上書きする。"tab:" と組み合せられる、例えば: >
+				:set listchars+=tab:>-,lead:.
+<							*lcs-trail*
 	  trail:文字	行末のスペースの表示に使われる文字。指定されないと、行
 			末のスペースは空白のまま。行末のスペースでは "space"
 			の設定を上書きする。
@@ -5255,7 +5271,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	NOTE: このオプションは 'compatible' がオンになるとViの既定値に設定され、
 	'compatible' がオフになるとVimの既定値に設定されるので注意。
 
-						*'mouse'* *E538*
+						*'mouse'*
 'mouse'			文字列	(既定では "", GUI版とWin32では "a",
 				|defaults.vim| 内で "a" か "nvi" に設定される)
 			グローバル
@@ -6235,7 +6251,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 <
 				*'runtimepath'* *'rtp'* *vimfiles*
 'runtimepath' 'rtp'	文字列	(既定値:
-					Unix: "$HOME/.vim,
+					Unix:  "$HOME/.vim,
 						$VIM/vimfiles,
 						$VIMRUNTIME,
 						$VIM/vimfiles/after,
@@ -6245,7 +6261,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 						$VIMRUNTIME,
 						$VIM/vimfiles/after,
 						home:vimfiles/after"
-					PC:    "$HOME/vimfiles,
+					MS-Windows: "$HOME/vimfiles,
 						$VIM/vimfiles,
 						$VIMRUNTIME,
 						$VIM/vimfiles/after,
@@ -6257,8 +6273,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 						$VIM/vimfiles,
 						$VIMRUNTIME,
 						$VIM/vimfiles/after,
-						$BE_USER_SETTINGS/vim/after")
-					VMS: "sys$login:vimfiles,
+						$BE_USER_SETTINGS/vim/after"
+					VMS:   "sys$login:vimfiles,
 						$VIM/vimfiles,
 						$VIMRUNTIME,
 						$VIM/vimfiles/after,
@@ -6330,9 +6346,12 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 'scroll' 'scr'		数値	(既定では、ウィンドウ高の半分)
 			ウィンドウについてローカル
 	コマンド CTRL-U や CTRL-D でスクロールする行数。ウィンドウのサイズが変
-	わると、ウィンドウの行数の半分に設定される。CTRL-U や CTRL-D を、カウ
-	ントを指定して使うと、カウントはオプション 'scroll' の値として使われる。
-	":set scroll=0" とすると、値はウィンドウ高の半分に戻る。
+	わると、ウィンドウの行数の半分に設定される。'scroll' オプションを設定
+	した後で、|status-line| か 'tabline' オプションを有効にした場合におき
+	る。
+	CTRL-U や CTRL-D を、カウントを指定して使うと、カウントはオプション
+	'scroll' の値として使われる。":set scroll=0" とすると、値はウィンドウ
+	高の半分に戻る。
 
 			*'scrollbind'* *'scb'* *'noscrollbind'* *'noscb'*
 'scrollbind' 'scb'	切替	(既定ではオフ)
@@ -6761,16 +6780,15 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	値は以下のフラグのリストである。
 	フラグ	効果	~
 	  f	"(file 3 of 5)" の代わりに "(3 of 5)" を表示。
-	  i	"[最終行が不完全]" の代わりに "[noeol]" を表示。
+	  i	"[Incomplete last line]" の代わりに "[noeol]" を表示。
 	  l	"999 行, 888 バイト" の代わりに "999L, 888B" を表示。
-	  m	"[変更あり]" の代わりに "[+]" を表示。
-	  n	"[新ファイル]" の代わりに "[新]" を表示。
-	  r	"[読込専用]" の代わりに "[読専]" を表示。
+	  m	"[Modified]" の代わりに "[+]" を表示。
+	  n	"[New File]" の代わりに "[New]" を表示。
+	  r	"[readonly]" の代わりに "[RO]" を表示。
 	  w	書き込みコマンドには "書込み" の代わりに "[w]" を、コマンド
 		':w >> file' には "追加" の代わりに "[a]" を表示。
-	  x	"[dosフォーマット]" の代わりに "[dos]", "[unixフォーマット]"
-		の代わりに "[unix]", "[macフォーマット]" の代わりに "[mac]" を
-		表示。
+	  x	"[dos format]" の代わりに "[dos]", "[unix format]"
+		の代わりに "[unix]", "[mac format]" の代わりに "[mac]" を表示。
 	  a	上記の省略を全て行う。
 
 	  o	ファイルの書き込み時のメッセージを、その後のファイルの読み込み
@@ -6799,6 +6817,17 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		情報を表示しない。note これは autocommand からのメッセージにも
 		影響する
 	  S     検索時に検索件数メッセージを表示しない。例えば "[1/5]"
+	{訳注: 以下日本語メッセージの場合:
+	  "[Incomplete last line]"	"[最終行が不完全]"
+	  "[Modified]"		"[変更あり]"
+	  "[New File]"		"[新ファイル]"
+	  "[New]"		"[新]"
+	  "[readonly]"		"[読込専用]"
+	  "[RO]"		"[読専]"
+	  "[dos format]"	"[dosフォーマット]"
+	  "[unix format]"	"[unixフォーマット]"
+	  "[mac format]"	"[macフォーマット]"
+	}
 
 	このオプションはバッファを変更するとき <Enter> を打ち込むのを避ける機
 	会を提供する。が、表示の余裕がある限り有益なメッセージを表示する。
@@ -7283,14 +7312,21 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	      "[-]"
 	M F   修正フラグ。表示されるのは ",+" または ",-"。
 	r F   読み込み専用フラグ。表示されるのは "[RO]"。
+	      {訳注: 日本語メッセージの場合: "[読専]"}
 	R F   読み込み専用フラグ。表示されるのは  ",RO"。
-	h F   ヘルプバッファフラグ。表示されるのは "[ヘルプ]"。
+	h F   ヘルプバッファフラグ。表示されるのは "[help]"。
+	      {訳注: 日本語メッセージの場合: "[ヘルプ]"}
 	H F   ヘルプバッファフラグ。表示されるのは ",HLP"。
-	w F   プレビューウィンドウフラグ。表示されるのは "[プレビュー]"。
+	w F   プレビューウィンドウフラグ。表示されるのは "[Preview]"。
+	      {訳注: 日本語メッセージの場合: "[プレビュー]"}
 	W F   プレビューウィンドウフラグ。表示されるのは ",PRV"。
 	y F   バッファ内のファイルのタイプ。例えば "[vim]"。'filetype' を参照。
 	Y F   バッファ内のファイルのタイプ。例えば ",VIM"。'filetype' を参照。
 	q S   "[Quickfix List]"、"[Location List]" または空文字。
+	      {訳注: 日本語メッセージの場合:
+		"[Quickfix List]"	"[Quickfixリスト]"
+ 		"[Location List]"	"[Locationリスト]"
+	      }
 	k S   他言語用マッピング |:lmap| が使われているとき、変数
 	      "b:keymap_name" または 'keymap' を "<keymap>" と表示する。
 	n N   バッファ番号。

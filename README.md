@@ -1,6 +1,6 @@
 # vimdoc-ja
 
-[![Build Status](https://travis-ci.com/vim-jp/vimdoc-ja-working.svg?branch=master)](https://travis-ci.com/github/vim-jp/vimdoc-ja-working)
+[![Generate vim help](https://github.com/vim-jp/vimdoc-ja-working/actions/workflows/generate.yml/badge.svg)](https://github.com/vim-jp/vimdoc-ja-working/actions/workflows/generate.yml)
 
 日本語に翻訳した Vim 付属のヘルプを配布するためのプロジェクトです。
 
