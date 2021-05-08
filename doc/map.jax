@@ -1,4 +1,4 @@
-*map.txt*       For Vim バージョン 8.2.  Last change: 2020 Dec 10
+*map.txt*       For Vim バージョン 8.2.  Last change: 2021 Apr 23
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -238,9 +238,12 @@ Note: ":map <script>" と ":noremap <script>" の動作は同じです。コマ�
 マップや短縮入力を定義するときに "<expr>" 引数を指定すると、引数が式 (スクリプ
 ト) として扱われます。マップが実行されたときに、式が評価され、その値が {rhs}
 として使われます。例: >
-	:inoremap <expr> . InsertDot()
-InsertDot() 関数の戻り値が挿入されます。カーソルの前のテキストをチェックして、
-ある条件に一致するなら omni 補完を開始する、というようなことができます。
+	:inoremap <expr> . <SID>InsertDot()
+s:InsertDot() 関数の戻り値が挿入されます。カーソルの前のテキストをチェックし
+て、ある条件に一致するなら omni 補完を開始する、というようなことができます。
+グローバルな名前空間の汚染を回避するには、スクリプトローカル関数を利用すること
+が望しいです。RHS内に <SID> を使ってマッピングが定義されたスクリプトを見付けら
+れるようにします。
 
 短縮入力では、入力されて短縮入力展開のトリガーとなった文字が |v:char| にセット
 されます。これを使って {lhs} の展開方法を決めることもできます。自分で v:char
@@ -254,7 +257,20 @@ InsertDot() 関数の戻り値が挿入されます。カーソルの前のテ�
 	  call popup_create(... arguments ...)
 	  return "\<Ignore>"
 	endfunc
-	nnoremap <expr> <F3> <Sid>OpenPopup()
+	nnoremap <expr> <F3> <SID>OpenPopup()
+
+また、前のコマンドが実行される前に、先行入力を探す時に式が評価されることがある
+ことを覚えておいてください。例: >
+	func StoreColumn()
+	  let g:column = col('.')
+	  return 'x'
+	endfunc
+	nnoremap <expr> x StoreColumn()
+	nmap ! f!x
+g:column に "f!" 実行前の値がある、つまり "x" が評価されるのが "f!" の実行前で
+あることに気付くでしょう。
+これは評価のマッピングの文字の前に <Ignore> を挿入することで解決できます: >
+	nmap ! f!<Ignore>x
 
 副作用に注意してください。式は文字の取得中に評価されるため、簡単に異常動作を起
 こせてしまいます。そのため、次のものは制限されます:
