@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'map'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="map.html" name="map.txt">map.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2020 Dec 10<br>
+<a class="Constant" href="map.html" name="map.txt">map.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2021 Apr 23<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; by Bram Moolenaar</span><br>
@@ -243,9 +243,12 @@ helpname: 'map'
 マップや短縮入力を定義するときに &quot;<span class="Special">&lt;expr&gt;</span>&quot; 引数を指定すると、引数が式 (スクリプ<br>
 ト) として扱われます。マップが実行されたときに、式が評価され、その値が&nbsp;<span class="Special">{rhs}</span><br>
 として使われます。例:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:inoremap &lt;expr&gt; . InsertDot()</div>
-InsertDot() 関数の戻り値が挿入されます。カーソルの前のテキストをチェックして、<br>
-ある条件に一致するなら omni 補完を開始する、というようなことができます。<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:inoremap &lt;expr&gt; . &lt;SID&gt;InsertDot()</div>
+s:InsertDot() 関数の戻り値が挿入されます。カーソルの前のテキストをチェックし<br>
+て、ある条件に一致するなら omni 補完を開始する、というようなことができます。<br>
+グローバルな名前空間の汚染を回避するには、スクリプトローカル関数を利用すること<br>
+が望しいです。RHS内に&nbsp;<span class="Special">&lt;SID&gt;</span>&nbsp;を使ってマッピングが定義されたスクリプトを見付けら<br>
+れるようにします。<br>
 <br>
 短縮入力では、入力されて短縮入力展開のトリガーとなった文字が&nbsp;<a class="Identifier" href="eval.html#v:char">v:char</a>&nbsp;にセット<br>
 されます。これを使って&nbsp;<span class="Special">{lhs}</span>&nbsp;の展開方法を決めることもできます。自分で v:char<br>
@@ -259,7 +262,20 @@ InsertDot() 関数の戻り値が挿入されます。カーソルの前のテ�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call popup_create(... arguments ...)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return &quot;\&lt;Ignore&gt;&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nnoremap &lt;expr&gt; &lt;F3&gt; &lt;Sid&gt;OpenPopup()</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nnoremap &lt;expr&gt; &lt;F3&gt; &lt;SID&gt;OpenPopup()</div>
+<br>
+また、前のコマンドが実行される前に、先行入力を探す時に式が評価されることがある<br>
+ことを覚えておいてください。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func StoreColumn()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:column = col('.')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return 'x'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nnoremap &lt;expr&gt; x StoreColumn()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nmap ! f!x</div>
+g:column に &quot;f!&quot; 実行前の値がある、つまり &quot;x&quot; が評価されるのが &quot;f!&quot; の実行前で<br>
+あることに気付くでしょう。<br>
+これは評価のマッピングの文字の前に&nbsp;<span class="Special">&lt;Ignore&gt;</span>&nbsp;を挿入することで解決できます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nmap ! f!&lt;Ignore&gt;x</div>
 <br>
 副作用に注意してください。式は文字の取得中に評価されるため、簡単に異常動作を起<br>
 こせてしまいます。そのため、次のものは制限されます:<br>
