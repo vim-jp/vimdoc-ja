@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'terminal'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="terminal.html" name="terminal.txt">terminal.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2021 Jan 04<br>
+<a class="Constant" href="terminal.html" name="terminal.txt">terminal.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2021 Feb 13<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -132,11 +132,27 @@ Esc を使うことができますが、他のキーが壊れないようにす�
 自動コマンドイベントが発生します。これにより、端末ウィンドウとバッファ専用のオ<br>
 プションを設定することが可能です。例:<br>
 <div class="helpExample">&nbsp;&nbsp; au TerminalWinOpen * setlocal bufhidden=hide</div>
+これが適切に動作するのは端末が隠れていない場合に限ります。<br>
 <br>
-<a class="Identifier" href="autocmd.html#TerminalOpen">TerminalOpen</a>&nbsp;イベントもまた、ただし隠し端末でも発生し、そしてカレントウィン<br>
-ドウとバッファは新しい端末とは限りません。<br>
+端末が隠れている場合と隠れていない場合両方で動作するのは、バッファローカルと<br>
+ウィンドウローカルのオプションです:<br>
+<div class="helpExample">&nbsp;&nbsp; au TerminalWinOpen,BufWinEnter * if &amp;buftype == 'terminal'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ | setlocal bufhidden=hide colorcolumn=123<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ | endif</div>
+<span class="Todo">Note</span>&nbsp;この隠れている端末のオプションは端末が隠れている間は値が設定されません。<br>
+<br>
+<a class="Identifier" href="autocmd.html#TerminalOpen">TerminalOpen</a>&nbsp;イベントもあります。これは隠れた端末で発生するかもしれず、その<br>
+場合は現在のウィンドウとバッファはこの新しい端末ではないことに注意してくださ<br>
+い。<br>
 端末バッファに設定するなら、<span class="Special">&lt;abuf&gt;</span>&nbsp;を使う必要があります。例:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;au TerminalOpen * call setbufvar(+expand('&lt;abuf&gt;'), '&amp;colorcolumn', 123)</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;au TerminalOpen * call setbufvar(expand('&lt;abuf&gt;')-&gt;str2nr(),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ '&amp;termwinscroll', 1000)</div>
+ウィンドウローカルオプションは、端末ウィンドウが生成されるまで設定が遅延する必<br>
+要があります (これは隠れた端末だけで働きます):<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;au TerminalOpen * exe printf(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp;&nbsp;&nbsp;'au BufWinEnter &lt;buffer=%d&gt; ++once setlocal colorcolumn=%d',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; expand('&lt;abuf&gt;')-&gt;str2nr(), 123)</div>
+隠れていない端末では&nbsp;<a class="Identifier" href="autocmd.html#TerminalWinOpen">TerminalWinOpen</a>&nbsp;を使います。<br>
 <br>
 マウスイベント (クリックやドラッグ) は端末に渡されます。マウス移動イベントは<br>
 Vim 自身が受け取ったときにのみ渡されます。<a class="Type" href="options.html#'balloonevalterm'">'balloonevalterm'</a>&nbsp;が有効になっている<br>
@@ -712,6 +728,7 @@ term_scrape(<span class="Special">{buf}</span>,&nbsp;<span class="Special">{row}
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;attr&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;セルの属性、個々のフラグを取得するには<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="terminal.html#term_getattr()">term_getattr()</a>&nbsp;を使用する<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;width&quot;&nbsp;&nbsp;&nbsp;&nbsp; セルの幅: 1 もしくは 2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1項目が2セル幅の時、結果のリストは端末の幅より短くなりえる。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#method">method</a>&nbsp;としても使用できる:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GetBufnr()-&gt;term_scrape(row)</div>
