@@ -1,4 +1,4 @@
-*quickfix.txt*  For Vim バージョン 8.2.  Last change: 2021 Feb 05
+*quickfix.txt*  For Vim バージョン 8.2.  Last change: 2021 May 22
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -949,13 +949,11 @@ Note: 検索結果へのリンク一覧を開くには |:copen| (|:lgrep| なら
 5.1 Vimの内部grepの使い方
 
 					*:vim* *:vimgrep* *E682* *E683*
-:vim[grep][!] /{pattern}/[g][j] {file} ...
+:vim[grep][!] /{pattern}/[g][j][f] {file} ...
 			ファイル{file}から{pattern}を検索し、マッチ位置をエラー
 			リストに追加する。'wildignore' にマッチしたファイルは
 			無視される。'suffixes' にマッチしたファイルは最後に検
 			索される。
-			フラグ 'g' がない場合、各行は1度だけ追加される。
-			'g' がある場合、マッチ位置が毎回追加される。
 
 			{pattern}はVimの検索パターンである。/ で囲まない場合、
 			それが{pattern}中に現れない限り、どんな非ID文字
@@ -966,6 +964,21 @@ Note: 検索結果へのリンク一覧を開くには |:copen| (|:lgrep| なら
 			'smartcase' は適用されない。
 			{pattern} が空のときは(つまり // が指定されたときは)、
 			最後に使われた検索パターンが使用される。|last-pattern|
+
+			フラグ:
+			'g'  フラグ 'g' がない場合、各行は一度だけ追加され
+			     る。'g' がある場合は全てのマッチが追加される。
+
+			'j'  フラグ 'j' がない場合、Vim は最初のマッチへジャン
+			     プする。'j' がある場合は quickfix リストが更新さ
+			     れるだけである。[!] を付けるとカレントバッファに
+			     対する変更は全て失われる。
+
+			'f'  フラグ 'f' を指定するとファジー文字列マッチで一致
+			     する行が検索される。この場合 {pattern} は正規表現
+			     ではなくリテラル文字列として扱われる。文字列への
+			     ファジーマッチについての詳細は |fuzzy-match| を参
+			     照。
 
 			|QuickFixCmdPre| と |QuickFixCmdPost| がトリガーされ
 			る。
@@ -979,11 +992,6 @@ Note: 検索結果へのリンク一覧を開くには |:copen| (|:lgrep| なら
 			と最初のマッチだけを検索する。マッチが存在するかどうか
 			だけをチェックしたく、それが見つかったらすぐに終了して
 			ほしい場合に便利である。
-
-			フラグ 'j' がない場合、最初のマッチへジャンプする。
-			'j' がある場合はquickfixリストが更新されるだけである。
-			[!]がついた場合、カレントバッファに対する変更は全て失
-			われる。
 
 			進行状況を示すため、1秒程度ごとに検索されたファイル名
 			が表示される。
@@ -1001,19 +1009,19 @@ Note: 検索結果へのリンク一覧を開くには |:copen| (|:lgrep| なら
 				:vimgrep Error *.c
 <
 							*:lv* *:lvimgrep*
-:lv[imgrep][!] /{pattern}/[g][j] {file} ...
+:lv[imgrep][!] /{pattern}/[g][j][f] {file} ...
 :lv[imgrep][!] {pattern} {file} ...
 			":vimgrep" と同様だが、quickfixリストでなく、カレント
 			ウィンドウのlocationリストが使われる。
 
 						*:vimgrepa* *:vimgrepadd*
-:vimgrepa[dd][!] /{pattern}/[g][j] {file} ...
+:vimgrepa[dd][!] /{pattern}/[g][j][f] {file} ...
 :vimgrepa[dd][!] {pattern} {file} ...
 			":vimgrep" と同様だが、新しくエラーリストを作る代わり
 			に、現在のリストに追加する。
 
 						*:lvimgrepa* *:lvimgrepadd*
-:lvimgrepa[dd][!] /{pattern}/[g][j] {file} ...
+:lvimgrepa[dd][!] /{pattern}/[g][j][f] {file} ...
 :lvimgrepa[dd][!] {pattern} {file} ...
 			":vimgrepadd" と同様だが、quickfixリストでなく、カレン
 			トウィンドウのlocationリストが使われる。
@@ -1311,7 +1319,8 @@ Vimは任意の長さの行を読み取るが、最初の4095バイトのみが�
 	%f		ファイル名 (文字列を検索)
 	%o		モジュール名 (文字列を検索)
 	%l		行番号 (数字を検索)
-	%c		桁番号 (エラーの桁を表す数字 (<Tab>1個は1桁と数える))
+	%c		桁番号 (エラーの桁を表す数字。バイトインデックス。
+			<Tab>1個は1桁と数える)
 	%v		画面上の桁番号 (エラーの画面上の桁を表す番号 (<Tab>1個
 			はスクリーン上8桁と数える))
 	%t		エラーの種類 (1文字を検索):
