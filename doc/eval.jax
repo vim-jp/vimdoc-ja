@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 8.2.  Last change: 2021 Apr 07
+*eval.txt*	For Vim バージョン 8.2.  Last change: 2021 Jul 28
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -115,7 +115,7 @@ NOTE: |scriptversion-4| を使用する場合、先頭が "0" の8進数は認�
 使う。
 
 						*TRUE* *FALSE* *Boolean*
-ブール(真理値)演算には数値が使われる。0は偽を意味し、非0は真を表す。また、
+ブール(真偽値)演算には数値が使われる。0は偽を意味し、非0は真を表す。また、
 |v:false| と |v:true| を使うこともできる。Vim9 script では |false| と |true|
 になる。
 関数から真が返されたときは数値の 1 であり、偽が返されたときは数値の 0 である。
@@ -1542,8 +1542,18 @@ Note: これが正しく機能するためには、ラムダが定義される�
 	Handler called
 	Handler called
 
-Note Exコマンドを実行するためにどのように execute() を使っているかに注意。
-醜いが。
+Note クロージャが自身の依存するコンテキストから参照されている場合、メモリが使
+われたままになり解放されない可能性がある: >
+	function Function()
+	   let x = 0
+	   let F = {-> x}
+	 endfunction
+このクロージャが関数スコープの "x" を使用しており、そして同じスコープの "F" が
+クロージャを参照している。この循環の結果解放されることのないメモリになる。
+推奨: このようなことはしないこと。
+
+Exコマンドを実行するためにどのように execute() を使っているかに注目せよ。醜い
+が。
 Vim9 script ではコマンドブロックが使える。|inline-function| を参照。
 
 ラムダ式は '<lambda>42' のような内部名を持っている。もしラムダ式でエラーが発生
@@ -1910,6 +1920,9 @@ v:fcs_choice	|FileChangedShell|イベントが発生した後に何をすべき�
 		既定値は<empty>。これら以外の(無効な)値が代入されたときは空の
 		ときと同じ動作になり、警告メッセージは表示されない。
 
+					*v:fname* *fname-variable*
+v:fname		'includeexpr' の評価中: 検知したファイル名。それ以外のときは空。
+
 					*v:fname_in* *fname_in-variable*
 v:fname_in	入力ファイルの名前。以下のオプションを評価している最中のみ
 		有効:
@@ -2042,7 +2055,7 @@ v:null		空の文字列。JSONでは "null" として使われる。|json_encode
 v:numbermax	数値の最大値。
 
 					*v:numbermin* *numbermin-variable*
-v:numbermin	数値の最小値(負数)
+v:numbermin	数値の最小値(負数)。
 
 					*v:numbersize* *numbersize-variable*
 v:numbersize	数値のビット数。これは通常64で、システムによっては32になること
@@ -2490,6 +2503,10 @@ deletebufline({expr}, {first} [, {last}])
 did_filetype()			数値	FileTypeのautocommandが実行されたか?
 diff_filler({lnum})		数値	差分モードで{lnum}に挿入された行
 diff_hlID({lnum}, {col})	数値	差分モードで{lnum}/{col}位置の強調
+digraph_get({chars})		文字列	{chars} のダイグラフ |digraph| を取得
+digraph_getlist([{listall}])	リスト	すべてのダイグラフ |digraph| を取得
+digraph_set({chars}, {digraph})	真偽値	ダイグラフ |digraph| の登録
+digraph_setlist({digraphlist})	真偽値	複数のダイグラフ |digraph| の登録
 echoraw({expr})			なし	{expr} をそのまま出力する
 empty({expr})			数値	{expr}が空なら|TRUE|
 environ()			辞書	すべての環境変数を返す
@@ -2521,7 +2538,7 @@ findfile({name} [, {path} [, {count}]])
 flatten({list} [, {maxdepth}])	リスト	リスト {list} を {maxdepth} の深さまで
 					平坦化する
 flattennew({list} [, {maxdepth}])
-				List	{list} のコピーを平坦化する
+				リスト	{list} のコピーを平坦化する
 float2nr({expr})		数値	浮動小数点数 {expr} を数値に変換する
 floor({expr})			浮動小数点数	{expr} を切り捨てる
 fmod({expr1}, {expr2})		浮動小数点数	{expr1} / {expr2} の余り
@@ -2550,10 +2567,11 @@ getbufline({expr}, {lnum} [, {end}])
 getbufvar({expr}, {varname} [, {def}])
 				任意	バッファ{expr}の変数 {varname}
 getchangelist([{expr}])		リスト	変更リスト要素のリスト
-getchar([expr])			数値	ユーザーから1文字を取得する
+getchar([expr])			数値/文字列	ユーザーから1文字を取得する
 getcharmod()			数値	修飾キーの状態を表す数値を取得
 getcharpos({expr})		リスト	カーソル、マーク、その他のカーソル位置
 getcharsearch()			辞書	最後の文字検索を取得
+getcharstr([expr])		文字列	ユーザーから1文字を取得する
 getcmdline()			文字列	現在のコマンドラインを取得
 getcmdpos()			数値	コマンドラインのカーソル位置を取得
 getcmdtype()			文字列	現在のコマンドラインの種類を取得
@@ -3018,6 +3036,11 @@ test_feedinput({string})	なし	キー入力を入力バッファに追加する
 test_garbagecollect_now()	なし	テスト用に直ちにメモリを解放する
 test_garbagecollect_soon()	なし	テスト用にすぐにメモリを解放する
 test_getvalue({string})		任意	内部変数の値を取得する
+test_gui_drop_files({list}, {row}, {col}, {mods})
+				なし	ファイルのリストをウィンドウにドロップ
+					する
+test_gui_mouse_event({button}, {row}, {col}, {repeated}, {mods})
+				なし	マウスイベントを入力バッファへ追加する
 test_ignore_error({expr})	なし	特定のエラーを無視する
 test_null_blob()		Blob	テスト用のnull値
 test_null_channel()		チャネル	テスト用のnull値
@@ -3155,6 +3178,7 @@ append({lnum}, {text})					*append()*
 		{lnum}行目以降にテキストとして追加する。
 		要素としてどの型でも受け入れて文字列に変換される。
 		{lnum}は0でもよく、その場合は1行目の前に行を挿入する。
+		{lnum}は|getline()|と同様に扱われる。
 		失敗した場合は1を返す({lnum}が不正な範囲であるか、メモリ不足)。
 		成功なら0を返す。例: >
 			:let failed = append(line('$'), "# THE END")
@@ -3420,8 +3444,9 @@ bufloaded({expr})					*bufloaded()*
 			let loaded = 'somename'->bufloaded()
 
 bufname([{expr}])					*bufname()*
-		戻り値はバッファの名前。バッファ名はコマンド ":ls" で表示され
-		るものと同様。
+		戻り値はバッファの名前。バッファ名はコマンド `:ls` で表示され
+		るものとほとんど同じだが、例えば "[No Name]" などの特殊名は使
+		用しない。
 		{expr}が省略された場合は、カレントバッファが使われる。
 		{expr}が数値ならば、その番号のバッファ名が返される。0は現在の
 		ウィンドウの代替バッファを意味する。{expr}が文字列ならば、バッ
@@ -3455,7 +3480,7 @@ bufname([{expr}])					*bufname()*
 
 							*bufnr()*
 bufnr([{expr} [, {create}]])
-		結果はバッファの番号。バッファ番号はコマンド ":ls" で表示され
+		結果はバッファの番号。バッファ番号はコマンド `:ls` で表示され
 		るものと同様。{expr}の使い方は前述の |bufname()| を参照。
 
 		バッファが存在しない場合-1が返される。ただし、{create}が与えら
@@ -3635,10 +3660,11 @@ charidx({string}, {idx} [, {countcc}])
 		{string} 内の {idx} バイト目の文字インデックスを返す。最初の文
 		字のインデックスは0。
 		マルチバイト文字がない時は {idx} に等しい値を返す。
-		{countcc} がないもしくは0の場合、合成文字は分割して文字として
-		カウントせず、先行する基底文字に合成文字のバイト長が足される。
-		{countcc} が1の場合、合成文字は分割した文字としてカウントされ
-		る。
+		{countcc} がないもしくは |FALSE| の場合、合成文字は分割して文
+		字としてカウントせず、先行する基底文字に合成文字のバイト長が足
+		される。
+		{countcc} が |TRUE| の場合、合成文字は分割した文字としてカウン
+		トされる。
 		引数が不正であるか {idx} が {string} の最後のバイトより大きい
 		場合-1が返る。最初の引数が文字列でない、2番目の引数が数値でな
 		い、もしくは3番目の引数ありで0でも1でもない場合はエラーとなる。
@@ -3793,9 +3819,11 @@ complete_info([{what}])
 		   items 	補完マッチのリスト。各要素は "word", "abbr",
 				"menu", "kind", "info", "user_data" を含む辞書。
 				|complete-items| を参照。
-		   selected	選択された補完候補のインデックス。最初のインデッ
-				クスが 0。どの補完候補も選択されていなければ -1
-				(入力したテキストのみを表示)。
+		   selected	選択された補完候補のインデックス。最初のイン
+				デックスが 0。どの補完候補も選択されていなけれ
+				ば -1 (入力したテキストのみ表示、もしくは <Up>
+				や <Down> キーを利用した最後の補完後に選択しな
+				かった場合)。
 		   inserted	入力された文字列。[現時点では未実装]
 
 							*complete_info_mode*
@@ -4007,6 +4035,7 @@ cursor({list})
 		|setcursorcharpos()| を使う。
 
 		この関数を呼んでもジャンプリストは変更されない。
+		{lnum}は|getline()|と同様に扱われる。
 		{lnum}がバッファの行数よりも大きい場合は、最後の行へ移動する。
 		{lnum}が0の場合はカレント行に留まる。
 		{col}がその行のバイト数より大きい場合は、その行の最後の文字へ
@@ -4130,6 +4159,99 @@ diff_hlID({lnum}, {col})				*diff_hlID()*
 
 		|method| としても使用できる: >
 			GetLnum()->diff_hlID(col)
+<
+
+digraph_get({chars})					*digraph_get()* *E1214*
+		{chars} のダイグラフを返す。これは正確に2文字の文字列である必
+		要がある。もし {chars} が2文字ちょうどでない、もしくは {chars}
+		のダイグラフがないなら、エラーとなり空文字列を返す。
+
+		必要であれば文字はUnicodeから 'encoding' に変換される。変換が
+		利用可能である必要があり、失敗することがある。
+
+		|digraph_getlist()| も参照。
+
+		例: >
+		" 組み込みのダイグラフの取得
+		:echo digraph_get('00')		" '∞' が返る
+
+		" ユーザー定義のダイグラフの取得
+		:call digraph_set('aa', 'あ')
+		:echo digraph_get('aa')		" 'あ' が返る
+<
+		|method| としても使用できる: >
+			GetChars()->digraph_get()
+<
+		この関数は |+digraphs| 機能付きでコンパイルされたときのみ動作
+		する。機能が無効の場合、この関数はエラーメッセージを表示する。
+
+
+digraph_getlist([{listall}])				*digraph_getlist()*
+		ダイグラフのリストを返す。引数 {listall} が真で与えられたとき、
+		デフォルトのダイグラフを含む全ダイグラフを返す。それ以外はユー
+		ザー定義のダイグラフのみを返す。
+
+		必要であれば文字はUnicodeから 'encoding' に変換される。変換が
+		利用可能である必要があり、失敗することがある。
+
+		|digraph_get()| も参照。
+
+		例: >
+		" ユーザー定義のダイグラフの取得
+		:echo digraph_getlist()
+
+		" デフォルトを含む全ダイグラフの取得
+		:echo digraph_getlist(1)
+<
+		|method| としても使用できる: >
+			GetNumber()->digraph_getlist()
+<
+		この関数は |+digraphs| 機能付きでコンパイルされたときのみ動作
+		する。機能が無効の場合、この関数はエラーメッセージを表示する。
+
+
+digraph_set({chars}, {digraph})				*digraph_set()* *E1205*
+		ダイグラフ {chars} をリストに追加する。{chars} は2文字の文字列
+		の必要がある。{digraph} はUTF-8でエンコードされた1文字の文字
+		列。合成文字は無視されないことに注意。この関数は |:digraphs|
+		と同様だがスペース始まりのダイグラフを登録するのに便利である。
+
+		この関数はダイグラフ |digraph| は登録されたなら v:true を返す。
+		もし失敗したなら、エラーメッセージとともに v:false を返す。
+
+		一度に複数のダイグラフを登録したいなら、|digraph_setlist()| が
+		使える。
+
+		例: >
+			call digraph_set('  ', 'あ')
+<
+		|method| としても使用できる: >
+			GetString()->digraph_set('あ')
+<
+		この関数は |+digraphs| 機能付きでコンパイルされたときのみ動作
+		する。機能が無効の場合、この関数はエラーメッセージを表示する。
+
+
+digraph_setlist({digraphlist})				*digraph_setlist()*
+		|digraph_set()| と同じだが複数のダイグラフを一度に追加できる。
+		{digraphlist} はリストのリストで、各リストは |digraph_set()|
+		と同じ {chars} と {digraph} の2つの文字列を持つ。
+		例: >
+		    call digraph_setlist([['aa', 'あ'], ['ii', 'い']])
+<
+		これは以下と似ている: >
+		    for [chars, digraph] in [['aa', 'あ'], ['ii', 'い']]
+			  call digraph_set(chars, digraph)
+		    endfor
+<		しかし、この関数は最初のエラーでリターンし、それ以降のダイグラ
+		フは追加されない点が異なる。
+
+		|method| としても使用できる: >
+		    GetList()->digraph_setlist()
+<
+		この関数は |+digraphs| 機能付きでコンパイルされたときのみ動作
+		する。機能が無効の場合、この関数はエラーメッセージを表示する。
+
 
 echoraw({expr})						*echoraw()*
 		{expr}を表示不可能な文字を含み、そのまま出力する。これは端末
@@ -4270,6 +4392,8 @@ exepath({expr})						*exepath()*
 							*exists()*
 exists({expr})	結果は数値で、変数{expr}が存在すれば|TRUE|となり、そうでなけれ
 		ば0となる。
+		Note: コンパイルされる |:def| 関数内のローカル変数と引数は
+		`exists()` からは見えない。
 
 		ある機能がサポートされているか判定するには|has()|を使う。
 		ファイルが存在するかを判定するには|filereadable()|を使う。
@@ -4290,6 +4414,8 @@ exists({expr})	結果は数値で、変数{expr}が存在すれば|TRUE|とな�
 			varname		内部変数(|internal-variables|)
 					|curly-braces-names|, |Dictionary|の要
 					素、|List|の要素などに対しても動作する。
+					コンパイルされる |:def| 関数内のローカ
+					ル変数には動作しない。
 					インデックスの評価で無効な式であるとエ
 					ラーメッセージが出る可能性があることに
 					注意。例: >
@@ -4597,16 +4723,20 @@ filewritable({file})					*filewritable()*
 
 
 filter({expr1}, {expr2})					*filter()*
-		{expr1}はリスト|List|または辞書|Dictionary|でなければならない。
+		{expr1}はリスト|List|、|Blob|、辞書|Dictionary|でなければなら
+		ない。
 		{expr1}の各要素に対して{expr2}を評価し、その結果が0ならばリス
-		トまたは辞書からその要素を削除する。
+		トまたは辞書からその要素を削除する。|Blob| であればそのバイト
+		を削除する。
+
 		{expr2}は文字列|string|または関数参照|Funcref|でなければならな
 		い。
 
 		{expr2}が文字列の場合、{expr2}の内部では|v:val|が現在の要素の
 		値を保持している。辞書の場合は|v:key|が現在の要素のキーを保持
 		しており、リストの場合は|v:key|が現在の要素のインデックスを保
-		持している。
+		持している。|Blob| の場合は |v:key| が現在のバイトのインデック
+		スになる。
 		例: >
 			call filter(mylist, 'v:val !~ "OLD"')
 <		は要素 "OLD" を削除する。 >
@@ -4637,11 +4767,11 @@ filter({expr1}, {expr2})					*filter()*
 		ない場合は最初にコピーを作ること: >
 			:let l = filter(copy(mylist), 'v:val =~ "KEEP"')
 
-<		{expr1}のリストまたは辞書をフィルターした結果を返す。{expr2}を
-		評価している最中にエラーが発生した場合は、{expr1}内のそれ以降
-		の要素の処理は行われない。{expr2}が関数参照の場合、関数が
-		"abort" フラグつきで定義されていない限り、関数内のエラーは無視
-		される。
+<		{expr1}のリスト |List|、|Blob|、 または辞書 |Dictionary| をフ
+		ィルターした結果を返す。{expr2}を評価している最中にエラーが発
+		生した場合は、{expr1}内のそれ以降の要素の処理は行われない。
+		{expr2}が関数参照の場合、関数が "abort" フラグつきで定義されて
+		いない限り、関数内のエラーは無視される。
 
 		|method| としても使用できる: >
 			mylist->filter(expr2)
@@ -4802,6 +4932,8 @@ foldclosed({lnum})					*foldclosed()*
 		結果は数値。{lnum}行目が閉じた折り畳みの中にあるなら、その折り
 		畳みを構成する最初の行の行番号を返す。{lnum}行目が閉じた折り畳
 		みに入っていないなら-1を返す。
+		{lnum} は |getline()| と同様に扱われる。例えば "." は現在の行、
+		"'m" は m でマークした行、など。
 
 		|method| としても使用できる: >
 			GetLnum()->foldclosed()
@@ -4810,6 +4942,8 @@ foldclosedend({lnum})					*foldclosedend()*
 		結果は数値。{lnum}行目が閉じた折り畳みの中にあるなら、その折り
 		畳みを構成する最後の行の行番号を返す。{lnum}行目が閉じた折り畳
 		みに入っていないなら-1を返す。
+		{lnum} は |getline()| と同様に扱われる。例えば "." は現在の行、
+		"'m" は m でマークした行、など。
 
 		|method| としても使用できる: >
 			GetLnum()->foldclosedend()
@@ -4822,6 +4956,8 @@ foldlevel({lnum})					*foldlevel()*
 		いる最中に呼ぶと、まだ折り畳みを更新していなく、折り畳みレベル
 		が未知の行に対しては-1を返す。特別な場合として、普通は1行前の
 		レベルは取得できる。
+		{lnum} は |getline()| と同様に扱われる。例えば "." は現在の行、
+		"'m" は m でマークした行、など。
 
 		|method| としても使用できる: >
 			GetLnum()->foldlevel()
@@ -4892,7 +5028,7 @@ funcref({name} [, {arglist}] [, {dict}])
 		|method| としても使用できる: >
 			GetFuncname()->funcref([arg])
 <
-					*function()* *E700* *E922* *E923*
+				*function()* *partial* *E700* *E922* *E923*
 function({name} [, {arglist}] [, {dict}])
 		関数{name}を参照する|Funcref|の変数を返す。{name}はユーザー定義
 		関数でも組み込み関数でもよい。
@@ -5159,11 +5295,13 @@ getchangelist([{expr}])					*getchangelist()*
 
 getchar([expr])						*getchar()*
 		ユーザーまたは入力ストリームから1文字を取得する。
-		[expr] が省略されたときは1文字を取得できるまで待つ。
-		[expr] が0のときは1文字を取得できる場合のみ取得する。取得でき
-		なければ0を返す。
-		[expr] が1のときは1文字を取得できるか判定し、実際には取得しな
-		い。取得できないときは0を返す。
+		[expr] が省略された場合、1文字を取得できるまで待つ。
+		[expr] が0の場合、1文字を取得できる時だけ取得する。取得できな
+			い時は0を返す。
+		[expr] が1の場合は、1文字を取得できるかを判定するだけである。
+			入力は消費されない。取得できないと判定された時は0を返
+			す。
+ 		常に文字列として取得したい場合は |getcharstr()| を使用する。
 
 		[expr] が省略されたときや [expr] が0のときは、文字全体または特
 		殊キーを返す。それが1文字なら戻り値は数値である。これを文字列
@@ -5280,6 +5418,17 @@ getcharsearch()						*getcharsearch()*
 			:nnoremap <expr> ; getcharsearch().forward ? ';' : ','
 			:nnoremap <expr> , getcharsearch().forward ? ',' : ';'
 <		|setcharsearch()|も参照。
+
+getcharstr([expr])					*getcharstr()*
+		ユーザーまたは入力ストリームから1文字を文字列として取得する。
+ 		[expr] が省略された場合、1文字を取得できるまで待つ。
+		[expr] が0もしくは偽の場合、1文字を取得できる時だけ取得する。
+			取得できない時は空文字列を返す。
+		[expr] が1もしくは真の場合は、1文字を取得できるかを判定するだ
+			けである。入力は消費されない。取得できないと判定された
+			時は空文字列を返す。
+		結果の数値が文字列に変換される以外は |getchar()| と同様に動作
+		する。
 
 getcmdline()						*getcmdline()*
 		現在のコマンドラインの内容を取得する。コマンドラインを編集して
@@ -5404,8 +5553,8 @@ getcurpos([{winid}])
 
 		|method| としても使用できる: >
 			GetWinid()->getcurpos()
-
-<							*getcursorcharpos()*
+<
+							*getcursorcharpos()*
 getcursorcharpos([{winid}])
 		|getcurpos()| と同様だが返すリスト内の桁番号はバイトインデック
 		スの代わりに文字インデックスになっている。
@@ -5414,8 +5563,8 @@ getcursorcharpos([{winid}])
 		3行目のテキスト "여보세요" の '보' にカーソルがある状態: >
 			getcursorcharpos()	returns [0, 3, 2, 0, 3]
 			getcurpos()		returns [0, 3, 4, 0, 3]
-
-<		|method| としても使用できる: >
+<
+		|method| としても使用できる: >
 			GetWinid()->getcursorcharpos()
 
 <							*getcwd()*
@@ -5452,7 +5601,7 @@ getcwd([{winnr} [, {tabnr}]])
 
 <		|method| としても使用できる: >
 			GetWinnr()->getcwd()
-<
+
 getenv({name})						*getenv()*
 		環境変数{name}の値を返す。
 		変数が存在しない場合は |v:null| が返される。これは、空の文字列
@@ -5631,15 +5780,15 @@ getmarklist([{expr}])					*getmarklist()*
 		|bufname()| を参照。
 
 		戻り値のリストの各要素は以下の内容の辞書|Dict|になっている:
-		    name - 接頭辞 "'" が付いたマークの名前
-		    pos - マークの位置のリスト|List|:
+		    mark   接頭辞 "'" が付いたマークの名前
+		    pos    マークの位置のリスト|List|:
 				[bufnum, lnum, col, off]
-			  詳細は |getpos()| を参照。
-		    file - ファイル名
+		       詳細は |getpos()| を参照。
+		    file   ファイル名
 
 		特定のマークについて取得した情報の詳細は |getpos()| を参照。
 
-<		|method| としても使用できる: >
+		|method| としても使用できる: >
 			GetBufnr()->getmarklist()
 
 getmatches([{win}])					*getmatches()*
@@ -5647,6 +5796,8 @@ getmatches([{win}])					*getmatches()*
 		全てのマッチの |List| を返す。|setmatches()| は |getmatches()|
 		で保存されたマッチのリストを復元できるので、|getmatches()| と
 		|setmatches()| は組み合わせて使うと便利である。
+		{win} が指定されたなら、カレントウィンドウの代わりに指定された
+		番号かウィンドウIDのウィンドウを使う。
 		例: >
 			:echo getmatches()
 <			[{'group': 'MyGroup1', 'pattern': 'TODO',
@@ -5682,12 +5833,11 @@ getmousepos()						*getmousepos()*
 		ウィンドウの下のステータスラインやウィンドウの右の垂直セパレー
 		ターの場合、"line" と "column" は 0 になる。
 
-		位置がテキストより後の場合、"column" はテキストのバイト長にな
-		る。
+		位置がテキストより後の場合、"column" はテキストのバイト長+1に
+		なる。
 
 		マウスがポップアップウィンドウの上の場合、そのウィンドウが使わ
 		れる。
-
 
 		|getchar()| を使ったとき、Vim 変数 |v:mouse_lnum|,
 		|v:mouse_col| と |v:mouse_winid| もこれらの値を提供する。
@@ -5731,7 +5881,10 @@ getqflist([{what}])					*getqflist()*
 				するにはbufname()を使う。
 			module	モジュール名
 			lnum	バッファ中の行番号(最初の行は1)
+			end_lnum
+				項目が複数行のときの最後の行番号
 			col	桁番号(最初の桁は1)
+			end_col	項目が範囲を持つときの最後の桁番号
 			vcol	|TRUE|: "col" は画面上の桁
 				|FALSE|: "col" はバイトインデックス
 			nr	エラー番号
@@ -5741,8 +5894,10 @@ getqflist([{what}])					*getqflist()*
 			valid	|TRUE|: エラーメッセージが認識されている
 
 		エラーリストがまったくないか、空であるときは空リストを返す。
-		存在しないバッファ番号を持つquickfixリストの項目は "bufnr" を0
-		にして返される。
+		quickfixリストの項目が存在しないバッファ番号とともに返る場合は
+		"bufnr" を0にして返される。(Note: いくつかの関数はバッファ番号
+		0を代替バッファとして受け付けるので、明確に0チェックを行う必要
+		がある)。
 
 		役に立つ応用例: 複数のファイルから正規表現検索を行い、見つかっ
 		たものに対してなんらかの操作をする: >
@@ -5884,11 +6039,11 @@ getregtype([{regname}])					*getregtype()*
 		|method| としても使用できる: >
 			GetRegname()->getregtype()
 
-gettabinfo([{arg}])					*gettabinfo()*
-		{arg}を指定しないと、すべてのタブページに関する情報がリスト
+gettabinfo([{tabnr}])					*gettabinfo()*
+		{tabnr}を指定しないと、すべてのタブページに関する情報がリスト
 		|List| として返される。各リスト項目は辞書 |Dictionary| である。
-		それ以外の場合、{arg} はタブページ番号を指定し、それに関する情
-		報が返される。タブページが存在しない場合、空のリストが返され
+		それ以外の場合、{tabnr} はタブページ番号を指定し、それに関する
+		情報が返される。タブページが存在しない場合、空のリストが返され
 		る。
 
 		各リストアイテムは、次のエントリを持つ辞書 |Dictionary| である:
@@ -5940,11 +6095,11 @@ gettabwinvar({tabnr}, {winnr}, {varname} [, {def}])		*gettabwinvar()*
 <		|method| としても使用できる: >
 			GetTabnr()->gettabwinvar(winnr, varname)
 
-gettagstack([{nr}])					*gettagstack()*
-		結果は辞書で、それはウィンドウ{nr}のタグスタックである。
-		{nr}にはウィンドウ番号または |window-ID| を指定できる。
-		{nr}を指定しない時は、カレントウィンドウが使用される。
-		ウィンドウ{nr}が存在しない場合、空の辞書が返される。
+gettagstack([{winnr}])					*gettagstack()*
+		結果は辞書で、それはウィンドウ{winnr}のタグスタックである。
+		{winnr}にはウィンドウ番号または |window-ID| を指定できる。
+		{winnr}を指定しない時は、カレントウィンドウが使用される。
+		ウィンドウ{winnr}が存在しない場合、空の辞書が返される。
 
 		返される辞書には、次のエントリが含まれる:
 			curidx		スタック内の現在のインデックス。スタッ
@@ -6607,6 +6762,7 @@ islocked({expr})					*islocked()* *E786*
 
 <		{expr}が存在しない変数のときはエラーメッセージが表示される。変
 		数の存在を確認するには|exists()|を使う。
+		Vim9 script ではローカル変数に対しては動作しない。
 
 		|method| としても使用できる: >
 			GetName()->islocked()
@@ -6859,9 +7015,10 @@ line2byte({lnum})					*line2byte()*
 		きる: >
 			line2byte(line("$") + 1)
 <		これはバッファの大きさプラス1になる。もし 'fileencoding' が空
-		ならその値はファイルの大きさプラス1に等しい。
-		{lnum}が無効であるか、|+byte_offset|機能がコンパイル時に無効に
-		されている場合、-1が返される。
+		ならその値はファイルの大きさプラス1に等しい。{lnum} は
+		|getline()| と同様に扱われる。{lnum} が無効であるか、
+		|+byte_offset| 機能がコンパイル時に無効にされている場合、-1が
+		返される。
 		|byte2line()|、|go|及び|:goto|も参照。
 
 		|method| としても使用できる: >
@@ -7028,6 +7185,7 @@ luaeval({expr} [, {expr}])					*luaeval()*
 		vim.eval() で取得される辞書とリストはそのまま返される。
 		それ以外のオブジェクトは 0 が返され、エラーにはならない。
 		詳細は |lua-luaeval| を参照。
+		Note `:def` 関数にあるローカル変数は {expr} からは見えない。
 
 		|method| としても使用できる: >
 			GetExpr()->luaeval()
@@ -7047,7 +7205,8 @@ map({expr1}, {expr2})					*map()*
 		{expr2}が文字列の場合、{expr2}の内部では|v:val|が現在の要素の
 		値を保持している。辞書の場合は|v:key|が現在の要素のキーを保持
 		している。リストの場合は|v:key|が現在の要素のインデックスを保
-		持している。
+		持している。|Blob| の場合は |v:key| が現在のバイトのインデック
+		スを保持している。
 		例: >
 			:call map(mylist, '"> " . v:val . " <"')
 <		これは "mylist" の各要素の前に "> " をつけ、後に " <" をつける。
@@ -7437,6 +7596,8 @@ matchfuzzy({list}, {str} [, {dict}])			*matchfuzzy()*
 		マッチする文字列がないかエラーとなった場合、空のリストが返され
 		る。{str} の長さが256かそれ以上であるなら、空のリストを返す。
 
+		文字列へのファジーマッチについての詳細は |fuzzy-match| を参照。
+
 		例: >
 		   :echo matchfuzzy(["clay", "crow"], "cay")
 <		["clay"]を返す。 >
@@ -7671,6 +7832,12 @@ mode([expr])	現在のモードを示す文字列を返す。
 		   s	    文字単位選択
 		   S	    行単位選択
 		   CTRL-S   矩形選択
+		   vs	    選択モードで |v_CTRL-O| を利用した時の文字単位ビ
+			    ジュアル
+		   Vs	    選択モードで |v_CTRL-O| を利用した時の行単位ビジュ
+			    アル
+		   CTRL-Vs  選択モードで |v_CTRL-O| を利用した時の矩形ビジュア
+			    ル
 		   i	    挿入
 		   ic	    挿入モード補完 |compl-generic|
 		   ix	    挿入モード |i_CTRL-X| 補完
@@ -7712,6 +7879,8 @@ mzeval({expr})							*mzeval()*
 		    :echo mzeval("l")
 		    :echo mzeval("h")
 <
+		Note `:def` 関数にあるローカル変数は {expr} からは見えない。
+
 		|method| としても使用できる: >
 			GetExpr()->mzeval()
 <
@@ -7722,6 +7891,7 @@ nextnonblank({lnum})					*nextnonblank()*
 		例: >
 			if getline(nextnonblank(1)) =~ "Java"
 <		{lnum}が無効なときや、それ以降に非空行がないときは0を返す。
+		{lnum}は|getline()|と同様に扱われる。
 		|prevnonblank()|も参照。
 
 		|method| としても使用できる: >
@@ -7782,6 +7952,8 @@ perleval({expr})					*perleval()*
 			:echo perleval('[1 .. 4]')
 <			[1, 2, 3, 4]
 
+		Note `:def` 関数にあるローカル変数は {expr} からは見えない。
+
 		|method| としても使用できる: >
 			GetExpr()->perleval()
 
@@ -7810,6 +7982,7 @@ prevnonblank({lnum})					*prevnonblank()*
 		例: >
 			let ind = indent(prevnonblank(v:lnum - 1))
 <		{lnum}が無効なときや、それ以前に非空行がないときは0を返す。
+		{lnum}は|getline()|と同様に扱われる。
 		|nextnonblank()|も参照。
 
 		|method| としても使用できる: >
@@ -7996,6 +8169,8 @@ prompt_getprompt({buf})					*prompt_getprompt()*
 		|method| としても使用できる: >
 			GetBuffer()->prompt_getprompt()
 
+<		{|+channel| 機能つきでコンパイルされたときのみ存在する}
+
 
 prompt_setcallback({buf}, {expr})			*prompt_setcallback()*
 		バッファ {buf} のプロンプトコールバックを {expr} に設定する。
@@ -8029,6 +8204,7 @@ prompt_setcallback({buf}, {expr})			*prompt_setcallback()*
 <		|method| としても使用できる: >
 			GetBuffer()->prompt_setcallback(callback)
 
+<		{|+channel| 機能つきでコンパイルされたときのみ存在する}
 
 prompt_setinterrupt({buf}, {expr})			*prompt_setinterrupt()*
 		バッファ {buf} のコールバックを {expr} に設定する。{expr} が空
@@ -8042,6 +8218,8 @@ prompt_setinterrupt({buf}, {expr})			*prompt_setinterrupt()*
 		|method| としても使用できる: >
 			GetBuffer()->prompt_setinterrupt(callback)
 
+<		{|+channel| 機能つきでコンパイルされたときのみ存在する}
+
 prompt_setprompt({buf}, {text})				*prompt_setprompt()*
 		バッファ {buf} のプロンプトを {text} に設定する。大抵の場合、
 		{text} が空白で終わるようにしたいと考えるだろう。
@@ -8051,6 +8229,8 @@ prompt_setprompt({buf}, {text})				*prompt_setprompt()*
 <
 		|method| としても使用できる: >
 			GetBuffer()->prompt_setprompt('command: ')
+
+<		{|+channel| 機能つきでコンパイルされたときのみ存在する}
 
 prop_ 関数群はここに文書化されている: |text-prop-functions|
 
@@ -8081,6 +8261,7 @@ py3eval({expr})						*py3eval()*
 		リストは Vim の |List| 型に変換される。
 		辞書は Vim の |Dictionary| 型に変換される。辞書のキーは文字列
 		に変換される。
+		Note `:def` 関数にあるローカル変数は {expr} からは見えない。
 
 		|method| としても使用できる: >
 			GetExpr()->py3eval()
@@ -8095,6 +8276,7 @@ pyeval({expr})						*pyeval()*
 		リストは Vim の |List| 型に変換される。
 		辞書は Vim の |Dictionary| 型に変換される。文字列ではない辞書
 		のキーはエラーになる。
+		Note `:def` 関数にあるローカル変数は {expr} からは見えない。
 
 		|method| としても使用できる: >
 			GetExpr()->pyeval()
@@ -8354,7 +8536,9 @@ reltime([{start} [, {end}]])				*reltime()*
 		を返す。
 		2個の引数を指定すると、{start}と{end}の間の経過時間を返す。
 
-		{start}と{end}はreltime()で返される値でなければならない。
+		{start}と{end}はreltime()で返される値でなければならない。旧来
+		の Vim script ではエラーがあると0を返すが、Vim9 script ではエ
+		ラーとなる。
 
 		|method| としても使用できる: >
 			GetStart()->reltime()
@@ -8369,6 +8553,8 @@ reltimefloat({time})				*reltimefloat()*
 			let seconds = reltimefloat(reltime(start))
 <		オーバーヘッドについては reltimestr() の note を参照。
 		|profiling|も参照。
+		旧来の Vim script ではエラーがあると0.0を返すが、Vim9 script
+		ではエラーとなる。
 
 		|method| としても使用できる: >
 			reltime(start)->reltimefloat()
@@ -8387,6 +8573,8 @@ reltimestr({time})				*reltimestr()*
 		スペースを取り除くにはsplit()を使えばよい。 >
 			echo split(reltimestr(reltime(start)))[0]
 <		|profiling|も参照。
+		旧来の Vim script ではエラーがあると空文字列を返すが、Vim9
+		script ではエラーとなる。
 
 		|method| としても使用できる: >
 			reltime(start)->reltimestr()
@@ -8614,6 +8802,7 @@ rubyeval({expr})					*rubyeval()*
 		ハッシュは Vim の |Dictionary| 型に変換される。
 		それ以外のオブジェクトは "Object#to_s" メソッドの結果の文字列
 		として表現される。
+		Note `:def` 関数にあるローカル変数は {expr} からは見えない。
 
 		|method| としても使用できる: >
 			GetRubyExpr()->rubyeval()
@@ -8674,6 +8863,9 @@ screenpos({winid}, {lnum}, {col})				*screenpos()*
 		る。例えば、タブの "col" は1で "endcol" は8。
 		"curscol" は、カーソルが置かれる場所。タブの場合は "endcol" と
 		同じになるが、倍幅文字の場合は "col" と同じになる。
+		|conceal| 機能はここでは無視され、列の数字は 'conceallevel' が
+		0のときと同じになる。カーソルを正しい位置に設定して
+		|screencol()| を使うことで |conceal| を考慮した値を取得できる。
 
 		|method| としても使用できる: >
 			GetWinid()->screenpos(lnum, col)
@@ -8974,6 +9166,8 @@ searchpair({start}, {middle}, {end} [, {flags} [, {skip}
 		-1を返す。
 		{skip} は、文字列、ラムダ、関数参照もしくは部分適用のいずれか
 		である。それ以外の場合、関数は失敗する。
+		`:def` 関数内では引数 {skip} が文字列定数の場合、命令の中にコ
+		ンパイルされる。
 
 		{stopline} と {timeout} については|search()|を参照。
 
@@ -9200,6 +9394,7 @@ setcursorcharpos({list})
 
 		|method| としても使用できる: >
 			GetCursorPos()->setcursorcharpos()
+
 
 setenv({name}, {val})						*setenv()*
 		環境変数{name} に {val} を設定する。
@@ -9592,6 +9787,9 @@ sha256({string})						*sha256()*
 shellescape({string} [, {special}])			*shellescape()*
 		シェルコマンドの引数として利用できるように{string}をエスケープ
 		する。
+		'shell' がpowershell (MS-Windows) か pwsh (MS-Windows、Linux、
+		MacOS) が設定されている時、{string} をシングルクォートで囲み、
+		{string}の中のシングルクォートを全て二重にする。
 		MS-Windowsでは、'shellslash' が設定されていない場合、{string}
 		をダブルクォートで囲み、{string}の中のダブルクォートを全て二重
 		にする。そうでなければ、{string}をシングルクォートで囲み、"'"
@@ -10397,7 +10595,7 @@ synID({lnum}, {col}, {trans})				*synID()*
 		{line}に1を指定する。'synmaxcol' が適用され、長すぎる行では0が
 		返ってくる。
 		Note 挿入モードでカーソル位置を最後の文字より後ろにした場合、
-		synID()は0を返す。
+		synID()は0を返す。{lnum}は|getline()|と同様に扱われる。
 
 		{trans}が|TRUE|ならば、透過属性のアイテムは省略され、実際に表
 		示されているアイテムが評価対象になる。これは実際に有効になって
@@ -10462,7 +10660,7 @@ synconcealed({lnum}, {col})				*synconcealed()*
 		結果は現状 3 つのアイテムを含むリスト |List| である。
 		1. リストの 1 番目のアイテムは、{lnum} と {col} が指す位置の文
 		   字が Conceal 可能リージョンの中にあるなら 1、そうでないなら
-		   0。
+		   0。{lnum}は|getline()|と同様に扱われる。
 		2. リストの 2 番目のアイテムは文字列で、最初のアイテムが 1 な
 		   ら、Conceal されたテキストの代わりに表示されるテキストが入
 		   る (実行時の'conceallevel' および 'listchars' の設定に依
@@ -10485,8 +10683,8 @@ synconcealed({lnum}, {col})				*synconcealed()*
 
 synstack({lnum}, {col})					*synstack()*
 		カレントウィンドウの {lnum}, {col} の位置の構文アイテムのスタッ
-		クを |List| にして返す。このリストの要素は |synID()|が返すのと
-		同じ種類の ID である。
+		クを |List| にして返す。{lnum}は|getline()|と同様に扱われる。
+		このリストの要素は |synID()|が返すのと同じ種類の ID である。
 		リストの最初の要素が一番外側の領域で、続く要素がその中に内包さ
 		れている。アイテム全体がハイライトされている、または最後の要素
 		が transparent なアイテムである場合を除き、最後の要素が
@@ -10715,8 +10913,9 @@ tempname()
 			:exe "redir > " . tmpfile
 <		Unix では、ファイルはプライベートなディレクトリに置かれる。
 		|tempfile|
-		MS-Windowsでは、'shellslash' がオンのときか 'shellcmdflag' が
-		'-' で始まるときはスラッシュが使われる。
+		MS-Windowsでは、'shellslash' がオンのときか、'shellcmdflag' が
+		'-' で始まり 'shell' が powershell か pwsh を含まない時はスラッ
+		シュが使われる。
 
 term_ 関数群はここに文書化されている: |terminal-function-details|
 
@@ -11151,10 +11350,12 @@ win_gettype([{nr}])					*win_gettype()*
 		ウィンドウの種別を返す:
 			"autocmd"	自動コマンドのウィンドウ。自動コマンド
 					を実行するに使う一時的なウィンドウ。
-			"popup"		ポップアップウィンドウ |popup|
-			"preview"	プレビューウィンドウ |preview-window|
 			"command"	コマンドラインウィンドウ |cmdwin|
 			(empty)		通常のウィンドウ
+			"loclist"	|location-list-window|
+			"popup"		ポップアップウィンドウ |popup|
+			"preview"	プレビューウィンドウ |preview-window|
+			"quickfix"	|quickfix-window|
 			"unknown"	ウィンドウ{nr}が見付からない
 
 		{nr} を省略した場合は現在のウィンドウの種別を返す。
@@ -11529,6 +11730,7 @@ diff			|vimdiff| と 'diff' のサポート
 digraphs		ダイグラフをサポート
 directx			DirectX と 'renderoptions' をサポート
 dnd			レジスタ "~ をサポート |quote_~|
+drop_file		ファイルのドロップ |drop_file| をサポート
 ebcdic			EBCDIC文字集合のマシン用
 emacs_tags		Emacs式のタグファイルをサポート
 eval			式評価をサポート。もちろん常に真。
@@ -11634,6 +11836,7 @@ scrollbind		'scrollbind' をサポート (常に true)
 showcmd			'showcmd' をサポート
 signs			|:sign|をサポート
 smartindent		'smartindent' をサポート
+sodium			libsodium ライブラリによるより良い暗号のサポート
 sound			サウンド再生をサポート。例えば、`sound_playevent()`
 spell			スペルチェックをサポート |spell|
 startuptime		|--startuptime| をサポート
