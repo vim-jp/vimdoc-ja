@@ -1,4 +1,4 @@
-*insert.txt*    For Vim バージョン 8.2.  Last change: 2020 Oct 16
+*insert.txt*    For Vim バージョン 8.2.  Last change: 2021 Aug 31
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -614,6 +614,8 @@ Note: カーソルより後ろの文字が移動して見えることがある�
 12. スペリング補完					|i_CTRL-X_s|
 13. 'complete' のキーワード				|i_CTRL-N| |i_CTRL-P|
 
+追加として、|i_CTRL-X_CTRL-Z| でテキストを変更せずに補完を停止する。
+
 CTRL-N と CTRL-P を除くこれらの全ては、CTRL-X モードで動作する。CTRL-X モード
 とは挿入・置換モードのサブモードである。CTRL-X と CTRL-X コマンドのどれか 1
 つをタイプすることで CTRL-X モードに移行する。CTRL-X モードから抜けるには、
@@ -784,21 +786,14 @@ CTRL-X CTRL-K		カーソルの直前のキーワードで始まる単語をオ�
 	CTRL-P		マッチするキーワードの後方検索。直前にマッチしたキー
 			ワードは新しいもので置き換えられる。
 
+'thesaurus' で単語を補完する				*compl-thesaurus*
+
 							*i_CTRL-X_CTRL-T*
 CTRL-X CTRL-T		CTRL-X CTRL-Kと同じだが、'dictionary' ではなく
 			'thesaurus' オプションを使う。たとえ単語が完全でなくて
 			も、類語ファイルの中に単語が見つかると、その行の他の単
 			語も一致とみなされる。したがって単語は完全に置き換えら
 			れる。
-
-			例えば、'thesaurus' ファイルにこのような行があるとし
-			て: >
-				angry furious mad enraged
-<			カーソルが "ang" の後にあり、CTRL-X CTRL-Tを押すと
-			"angry" が補完される。続けて補完すると
-			"furious"、"mad"、...、と置き換えられる。
-			他にも2つの言語間の単語の置き換えや、API関数をキーワー
-			ドによってグループ分けするのに使える。
 
 	CTRL-T	or
 	CTRL-N		次のキーワードを前方に探す。見つかったキーワードはそ
@@ -807,6 +802,58 @@ CTRL-X CTRL-T		CTRL-X CTRL-Kと同じだが、'dictionary' ではなく
 	CTRL-P		次のキーワードを後方に探す。見つかったキーワードはそ
 			の前のキーワードを置き換える。
 
+'thesaurus' オプションで使用されるファイル内では、ファイルの各行は似た意味の単
+語が含まれ、非キーワード文字(空白が好ましい)で区分けされている。行の最大長は
+510 バイト。
+
+例えば、'thesaurus' ファイルにこのような行があるとして: >
+	angry furious mad enraged
+<カーソルが "ang" の後にあり、CTRL-X CTRL-Tを押すと "angry" が補完される。続け
+て補完すると "furious"、"mad"、...、と置き換えられる。
+
+他にも2つの言語間の単語の置き換えや、API関数をキーワードによってグループ分けす
+るのに使える。
+
+英単語リストはこのGitHub Issueに追加されている:
+https://github.com/vim/vim/issues/629#issuecomment-443293282
+thesaurus_pkg.zip を展開し、thesaurus.txt をどこかに配置する、例えば
+~/.vim/thesaurus/english.txt、そして 'thesaurus' オプションをこのファイル名{訳
+注: ファイルパス}にする。
+
+
+'thesaurusfunc' でキーワードを補完する		*compl-thesaurusfunc*
+
+'thesaurusfunc' オプションが設定されているなら、ユーザーが指定した関数が呼び出
+され補完としてマッチしたリストを取得し 'thesaurus' オプションは使用されない。
+関数の呼び出し方法と何を返すべきかについては |complete-functions| を参照。
+
+この例では "aiksaurus" コマンドを使用(Magnus Groß提供): >
+
+	func Thesaur(findstart, base)
+	    if a:findstart
+		let line = getline('.')
+		let start = col('.') - 1
+		while start > 0 && line[start - 1] =~ '\a'
+		   let start -= 1
+		endwhile
+		return start
+	    else
+		let res = []
+		let h = ''
+		for l in split(system('aiksaurus '.shellescape(a:base)), '\n')
+		    if l[:3] == '=== '
+		    	let h = substitute(l[4:], ' =*$', '', '')
+		    elseif l[0] =~ '\a'
+			call extend(res, map(split(l, ', '), {_, val -> {'word': val, 'menu': '('.h.')'}}))
+		    endif
+		endfor
+		return res
+	    endif
+	endfunc
+
+	if has('patch-8.2.3520')
+	    set thesaurusfunc=Thesaur
+	endif
 
 編集中と外部参照しているファイルのキーワードで補完する	*compl-keyword*
 
@@ -983,9 +1030,15 @@ CTRL-P			カーソルの直前と同じキーワードで始まる単語を、
 			で続く。
 
 
+補完の停止						*compl-stop*
+
+							*i_CTRL-X_CTRL-Z*
+CTRL-X CTRL-Z		テキストを変更せずに補完を停止する。
+
+
 補完候補を検索する関数					*complete-functions*
 
-ここでは 'completefunc' と 'omnifunc' について説明する。
+ここでは 'completefunc', 'thesaurusfunc', 'omnifunc' について説明する。
 
 これらの関数は次の2通りの形で呼ばれる:
 - 最初に、補完するテキストの始点を見つけるために呼ばれる。
@@ -1013,6 +1066,8 @@ CTRL-P			カーソルの直前と同じキーワードで始まる単語を、
 
 これらの関数は見つかった候補のリストを返す責任を負う。通常、候補の中には
 "a:base" そのものも含まれている。候補が存在しない場合は空リストを返すこと。
+Note 最初の呼び出し以降にカーソルが移動した可能性があり、テキストが変更されて
+いるかもしれない。
 
 補完候補以外の情報を返したいときはそのリストを持った辞書を返す。辞書には以下の
 アイテムを含めることができる:
@@ -1129,7 +1184,7 @@ CTRL-P			カーソルの直前と同じキーワードで始まる単語を、
 ときどき |complete_check()| を呼んで、候補の検索中にユーザーがキーを押して検索
 を中断できるようにすること。complete_check() が非 0 を返すと中断する。
 
-							*E839* *E840*
+							*E840*
 関数の中でカーソルを移動させてもよい。カーソルは実行後に復元される。
 関数の中で他のウィンドウに移動したりテキストを削除することはできない。
 
