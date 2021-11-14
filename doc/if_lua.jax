@@ -1,4 +1,4 @@
-*if_lua.txt*    For Vim バージョン 8.2.  Last change: 2021 Apr 07
+*if_lua.txt*    For Vim バージョン 8.2.  Last change: 2021 Aug 06
 
 
 		  VIMリファレンスマニュアル    by Luis Carvalho
@@ -174,10 +174,17 @@ Lua からは "vim" モジュールを使って Vim を操作します。範囲�
 					:lua print(type(l), vim.type(l))
 					:" list
 <
-	vim.command({cmd})	Vim の Ex コマンド {cmd} を実行する。
+	vim.command({cmds})	Vim の 1行もしくは複数行の Ex コマンド {cmds}
+				を実行する。
 				例: >
 					:lua vim.command"set tw=60"
 					:lua vim.command"normal ddp"
+					lua << trim END
+					  vim.command([[
+					      new Myfile.js
+					      call search('start')
+					  ]])
+					END
 <
 	vim.eval({expr})	式 {expr} (|expression| 参照) を評価してその結
 				果を Lua の値に変換して返す。
@@ -209,6 +216,44 @@ Lua からは "vim" モジュールを使って Vim を操作します。範囲�
 	vim.lua_version		Vim と共にコンパイルされた Lua のバージョン。
 				{major}.{minor}.{patch} という形式で表される。
 				例えば "5.1.4"。
+
+	vim.version()		Vim のバージョンの Lua のテーブルを返す。
+				このテーブルには以下のキーが含まれる:
+					major - Vim のメジャーバージョン。
+					minor - Vim のマイナーバージョン。
+					patch - 含まれる最新のパッチ。
+
+                                                        *lua-vim-variables*
+Vim エディタのグローバルな辞書 |g:| |w:| |b:| |t:| |v:| は以下で説明する
+`vim.*` という Lua テーブルを参照することで Lua から便利かつ慣用的にアクセスす
+ることができます。これにより Lua からグローバルな Vim script 変数を容易に読ん
+だり変更することができます。
+
+例: >
+
+    vim.g.foo = 5     -- Vim script変数の g:foo を設定する。
+    print(vim.g.foo)  -- Vim script変数の g:foo を取得し印刷する。
+    vim.g.foo = nil   -- Vim script変数を削除(:unlet)する。
+
+vim.g                                                   *vim.g*
+        エディタのグローバル変数(|g:|)。
+        キーがない場合は`nil`を返す。
+
+vim.b                                                   *vim.b*
+        カレントバッファのバッファローカル変数(|b:|)。
+        無効もしくはセットされてないキーは `nil` を返す。
+
+vim.w                                                   *vim.w*
+        カレントウィンドウのウィンドウローカル変数(|w:|)。
+        無効もしくはセットされてないキーは `nil` を返す。
+
+vim.t                                                   *vim.t*
+        カレントタブのタブローカル変数(|t:|)。
+        無効もしくはセットされてないキーは `nil` を返す。
+
+vim.v                                                   *vim.v*
+        |v:| 変数。
+        無効もしくはセットされてないキーは `nil` を返す。
 
 ==============================================================================
 3. List ユーザーデータ					*lua-list*
