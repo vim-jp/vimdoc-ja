@@ -1,4 +1,4 @@
-*autocmd.txt*   For Vim バージョン 8.2.  Last change: 2021 Mar 13
+*autocmd.txt*   For Vim バージョン 8.2.  Last change: 2021 Jul 27
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -682,8 +682,10 @@ CursorHoldI			CursorHoldと同様だが、挿入モードのとき発生す
 CursorMoved			ノーマルモードかビジュアルモードでカーソルが移
 				動した後。カーソル行のテキストが変更されたとき
 				にも発生する(例: "x", "rx", "p"などで)。
-				先行入力があったりオペレータが実行待ちになって
-				いる場合は発生しない。
+				先行入力があるとき、スクリプトファイルのコマン
+				ドの実行中、オペレータが待機しているとき、また
+				は同じカーソル位置のまま別のウィンドウへ移動し
+				たときには発生しない。
 				|match-parens|の例を参照。
 				Note: この自動イベントは `:noautocmd` を付けて
 				もスキップできない。
@@ -971,11 +973,12 @@ QuickFixCmdPost			QuickFixCmdPreと同様だが、QuickFixコマンドが実
 				初のエラーに移動する前に実行される。
 				|QuickFixCmdPost-example| を参照。
 							*QuitPre*
-QuitPre				`:quit`, `:wq`, `:qall` を使ったとき、カレント
-				ウィンドウを閉じるのか、Vim を終了するのかを決
-				定する前に発行される。例えば、普通のウィンドウ
-				がカレントウィンドウだけだったときに、他の余分
-				なウィンドウを閉じることができる。
+QuitPre				`:quit`、`:wq` または `:qall` を使ったときで、
+				カレントウィンドウを閉じるか Vim を終了するか
+				を決定する前。`:wq` では QuitPre が発生する前
+				にバッファが書き込まれる。カレントウィンドウが
+				最後の通常のウィンドウで、余分なウィンドウを閉
+				じたいときに使える。
 				|ExitPre| も参照。
 							*RemoteReply*
 RemoteReply			サーバーとして働くVimからの応答を受け取ったとき
@@ -1502,8 +1505,14 @@ NOTE オプション 'eventignore' はここにも適用されることに注意
 			理される。
 
 			Note [fname] は自動コマンドを選択するのに使われる。コ
-			マンドを適用するバッファではない {訳注: |:autocmd| の
-			|{pat}| に使われる}。
+			マンドを適用するバッファではない。例: >
+				augroup mine
+				  autocmd!
+				  autocmd FileType * echo expand('<amatch>')
+				augroup END
+				doautoall mine FileType Loaded-Buffer
+<			このスクリプトを読み込むと、読み込まれたバッファの数だ
+			け "Loaded-Buffer" が表示される。
 
 			Note: このコマンドで、バッファを削除したり、バッファを
 			変えたり、バッファの内容を変えるような自動コマンドを実
