@@ -1,4 +1,4 @@
-*terminal.txt*	For Vim バージョン 8.2.  Last change: 2021 Feb 13
+*terminal.txt*	For Vim バージョン 8.2.  Last change: 2021 Nov 13
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -40,6 +40,7 @@
       コードをステップ実行する		|termdebug-stepping|
       変数を検査する			|termdebug-variables|
       その他のコマンド			|termdebug-commands|
+      イベント				|termdebug-events|
       プロンプトモード			|termdebug-prompt|
       通信				|termdebug-communication|
       カスタマイズ			|termdebug-customizing|
@@ -169,9 +170,6 @@ Normal ハイライトグループにより決定されます。
 
 異なる色を使う場合には Terminal ハイライトグループを利用できます。例: >
     hi Terminal ctermbg=lightgrey ctermfg=blue guibg=lightgrey guifg=blue
-端末生成前にハイライトを定義する必要があります。後に定義した場合、もしくは
-'wincolor' を設定した場合、効果が発揮されるのは端末内で実行中のプログラムのテ
-キスト出力がされるか、端末のクリアがされる時です。
 もしくは Terminal の代わりとして`term_start()` のオプション "term_highlight"
 で別グループを設定できます。
 
@@ -244,7 +242,7 @@ Normal ハイライトグループにより決定されます。
 			++shell		{command} を直接実行するのではなく、
 					`:!command` と同様にシェルを使用する。
 								*E279*
-					{Vim: 現状、Unixでのみ動作する}
+					{Vim: UnixとMS-Windowsでのみ動作する}
 			++kill={how}	端末ウィンドウを閉じるときに {how} で
 					ジョブを終了させる。値については
 					|term_setkill()| を参照。
@@ -740,18 +738,6 @@ term_sendkeys({buf}, {keys})				*term_sendkeys()*
 			GetBufnr()->term_sendkeys(keys)
 
 
-term_setapi({buf}, {expr})				*term_setapi()*
-		端末 {buf} 内で |terminal-api| 機能に使用する関数名のプリフィッ
-		クスを設定する。例: >
-		    :call term_setapi(buf, "Myapi_")
-		    :call term_setapi(buf, "")
-<
-		デフォルトは "Tapi_" である。{expr} が空の文字列の場合、{buf}
-		の |terminal-api| 機能は使用できない。
-
-		|method| としても使用できる、ベースは {buf} に使用される: >
-			GetBufnr()->term_setapi({expr})
-
 term_setansicolors({buf}, {colors})			*term_setansicolors()*
 		端末 {buf} で使用される ANSI カラーパレットを設定する。
 		{colors} は、|highlight-guifg| で受け付けられるような、有効な
@@ -787,6 +773,20 @@ term_setansicolors({buf}, {colors})			*term_setansicolors()*
 
 <		{GUI が有効もしくは |+termguicolors| 機能付きでコンパイルされ
 		たときのみ有効}
+
+
+term_setapi({buf}, {expr})				*term_setapi()*
+		端末 {buf} 内で |terminal-api| 機能に使用する関数名のプリフィッ
+		クスを設定する。例: >
+		    :call term_setapi(buf, "Myapi_")
+		    :call term_setapi(buf, "")
+<
+		デフォルトは "Tapi_" である。{expr} が空の文字列の場合、{buf}
+		の |terminal-api| 機能は使用できない。
+
+		|method| としても使用できる、ベースは {buf} に使用される: >
+			GetBufnr()->term_setapi({expr})
+
 
 term_setkill({buf}, {how})				*term_setkill()*
 		Vim が終了するもしくは何らかの方法で端末ウィンドウを閉じようと
@@ -860,7 +860,7 @@ term_start({cmd} [, {options}])			*term_start()*
 		   "term_name"	     (コマンド名の代わりに使用される)バッファ
 				     名に使用する名前。
 		   "term_rows"	     ('termwinsize' の代わりに使用される) 端末
-				     の垂直サイズ
+				     の垂直サイズ。有効範囲は0から1000。
 		   "term_cols"	     ('termwinsize' の代わりに使用される) 端末
 				     の水平サイズ
 		   "vertical"	     ウィンドウを垂直に分割する。Note: 他のウィ
@@ -1339,6 +1339,33 @@ gdbは各ブレークポイントに番号を与えます。Vim内では、赤�
  *:Asm*	     逆アセンブルウィンドウにジャンプする、ウィンドウがなければ作成す
 	     る
 
+イベント ~
+							*termdebug-events*
+4 つのautocmdが使えます: >
+	au User TermdebugStartPre  echomsg 'debugging starting'
+	au User TermdebugStartPost echomsg 'debugging started'
+	au User TermdebugStopPre   echomsg 'debugging stopping'
+	au User TermdebugStopPost  echomsg 'debugging stopped'
+<
+						*TermdebugStartPre*
+TermdebugStartPre		デバッグ開始前。
+				すでにデバッガが開始しているもしくは
+				|g:termdebugger| が実行できない場合は発行され
+				ない。
+						*TermdebugStartPost*
+TermdebugStartPost		デバッグの初期化後。
+				`:Termdebug` あるいは `:TermdebugCommand` 経由
+				で ! 修飾子付きで実行された場合は gdb 内で提供
+				コマンドが動き出す前に発行される。
+						*TermdebugStopPre*
+TermdebugStopPre		デバッグの終了前で、gdb が終了する時、多くの場
+				合は gdb window で "quit" コマンドを発行した
+				後。
+						*TermdebugStopPost*
+TermdebugStopPost		デバッグの終了後、gdb 関連ウィンドウが閉じ、
+				デバッグのバッファが消去されデバッグ前の状態が
+				復帰した時。
+
 
 プロンプトモード ~
 						*termdebug-prompt*
@@ -1384,11 +1411,11 @@ gdb は奇妙な動作をしていますが、プラグインはその問題を�
 
 カスタマイズ ~
 
-GDBコマンド						 *termdebug-customizing*
-
+GDBコマンド						*termdebug-customizing*
+							*g:termdebugger*
 gdb コマンド以外のデバッガを使うには、 `:Termdebug` を実行する前に
-"termdebugger" 変数を変更してください: >
-	let termdebugger = "mygdb"
+"g:termdebugger" 変数を変更してください: >
+	let g:termdebugger = "mygdb"
 <							*gdb-version*
 gdb と完全互換のあるデバッガのみが使えます。Vim は gdb の操作に GDB/MI インター
 フェイスを利用しています。 "new-ui" コマンドには、gdbバージョン7.12以降が必要
