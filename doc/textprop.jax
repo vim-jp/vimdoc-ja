@@ -1,4 +1,4 @@
-*textprop.txt*  For Vim バージョン 8.2.  Last change: 2021 May 26
+*textprop.txt*  For Vim バージョン 8.2.  Last change: 2021 Aug 16
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -108,6 +108,8 @@ prop_type_list([{props}])		プロパティタイプ一覧を取得
 テキストプロパティの操作:
 
 prop_add({lnum}, {col}, {props})  	テキストプロパティを追加
+prop_add_list({props}, [[{lnum}, {col}, {end-lnum}, {end-col}], ...])
+					複数位置にテキストプロパティを追加
 prop_clear({lnum} [, {lnum-end} [, {bufnr}]])
 					全てのテキストプロパティを削除
 prop_find({props} [, {direction}])	テキストプロパティを検索
@@ -157,6 +159,33 @@ prop_add({lnum}, {col}, {props})
 
 		|method| としても使用できる: >
 			GetLnum()->prop_add(col, props)
+<
+						*prop_add_list()*
+prop_add_list({props}, [[{lnum}, {col}, {end-lnum}, {end-col}], ...])
+		prop_add() に似ているが、バッファ内の複数位置にテキストプロパ
+		ティが付加される。
+
+		{props}は次のフィールドを持つ辞書である:
+		   bufnr	プロパティを追加するバッファ。省略された場合、
+				カレントバッファが使用される
+		   id		プロパティのユーザー定義ID。数字でなければなら
+				ない。省略時は0が使われる
+		   type		テキストプロパティ名
+		"type" を除くすべてのフィールドは任意である。
+
+		第2引数はリストのリストで、各リストはテキストの開始と終了の位
+		置を示す。最初の2つの項目{lnum}と{col}はプロパティを付加する開
+		始位置を、最後の2つの項目{end-lnum}と{end-col}は付加される位置
+		の直後を示す。
+
+		例:
+			call prop_add_list(#{type: 'MyProp', id: 2},
+					\ [[1, 4, 1, 7],
+					\  [1, 15, 1, 20],
+					\  [2, 30, 3, 30]]
+
+		|method| としても使用できる: >
+			GetProp()->prop_add_list([[1, 1, 1, 2], [1, 4, 1, 8]])
 
 
 prop_clear({lnum} [, {lnum-end} [, {props}]])		*prop_clear()*
@@ -207,6 +236,8 @@ prop_list({lnum} [, {props}])				*prop_list()*
 		   id		プロパティID
 		   type		プロパティタイプ名。タイプが削除された場合は省
 				略される
+		   type_bufnr	プロパティタイプが定義されたバッファ番号。
+				タイプがグローバルの場合は0を指定する
 		   start	TRUEの時はプロパティはこの行から始まる
 		   end		TRUEの時はプロパティはこの行で終わる
 
