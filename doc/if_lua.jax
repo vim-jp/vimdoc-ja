@@ -291,11 +291,11 @@ NOTE: パッチ 8.2.1066 にて、配列のインデックスが 0 基準から 
 例:
 >
 	:let l = [1, 'item']
-	:lua l = vim.eval('l') -- same 'l'
+	:lua l = vim.eval('l') -- 'l' と同じ
 	:lua l:add(vim.list())
 	:lua l[1] = math.pi
 	:echo l[0] " 3.141593
-	:lua l[1] = nil -- remove first item
+	:lua l[1] = nil -- 最初の項目の削除
 	:lua l:insert(true, 1)
 	:lua print(l, #l, l[1], l[2])
 	:lua l[#l + 1] = 'value'
@@ -322,12 +322,12 @@ list ユーザーデータと同様、dict ユーザーデータは vim の辞�
 例:
 >
 	:let d = {'n':10}
-	:lua d = vim.eval('d') -- same 'd'
+	:lua d = vim.eval('d') -- 'd' と同じ
 	:lua print(d, d.n, #d)
 	:let d.self = d
 	:lua for k, v in d() do print(d, k, v) end
 	:lua d.x = math.pi
-	:lua d.self = nil -- remove entry
+	:lua d.self = nil -- エントリの削除
 	:echo d
 <
 
@@ -352,10 +352,10 @@ Blob ユーザーデータは vim の Blob を表します。Blob "b" は以下�
 例:
 >
 	:let b = 0z001122
-	:lua b = vim.eval('b') -- same 'b'
+	:lua b = vim.eval('b') -- 'b' と同じ
 	:lua print(b, b[0], #b)
 	:lua b[1] = 32
-	:lua b[#b] = 0x33 -- append a byte to tail
+	:lua b[#b] = 0x33 -- 末尾へ1バイト追加
 	:lua b:add("\x80\x81\xfe\xff")
 	:echo b
 <
@@ -381,7 +381,7 @@ Funcref ユーザーデータは Vim における関数参照変数を表しま�
 	:let R = function('I')
 	:lua i1 = vim.funcref('I')
 	:lua i2 = vim.eval('R')
-	:lua print(#i1, #i2) -- both 'I'
+	:lua print(#i1, #i2) -- どちらも 'I'
 	:lua print(i1, i2, #i2(i1) == #i1(i2))
 	:function Mylen() dict
 	:  return len(self.data)
@@ -389,7 +389,7 @@ Funcref ユーザーデータは Vim における関数参照変数を表しま�
 	:let mydict = {'data': [0, 1, 2, 3]}
 	:lua d = vim.eval('mydict'); d.len = vim.funcref('Mylen')
 	:echo mydict.len()
-	:lua l = d.len -- assign d as 'self'
+	:lua l = d.len -- d を 'self' として割り当て
 	:lua print(l())
 <
 Lua の関数とクロージャは自動的に Vim の |Funcref| に変換されて Vim script から
@@ -431,18 +431,18 @@ Lua の関数とクロージャは自動的に Vim の |Funcref| に変換され
 
 例:
 >
-	:lua b = vim.buffer() -- current buffer
+	:lua b = vim.buffer() -- カレントバッファ
 	:lua print(b.name, b.number)
 	:lua b[1] = "first line"
 	:lua b:insert("FIRST!", 0)
-	:lua b[1] = nil -- delete top line
+	:lua b[1] = nil -- 先頭行の削除
 	:lua for i=1,3 do b:insert(math.random()) end
 	:3,4lua for i=vim.lastline,vim.firstline,-1 do b[i] = nil end
-	:lua vim.open"myfile"() -- open buffer and set it as current
+	:lua vim.open"myfile"() -- バッファを開きカレントに設定
 
 	function! ListBuffers()
 	lua << EOF
-	local b = vim.buffer(true) -- first buffer in list
+	local b = vim.buffer(true) -- リストの最初のバッファ
 	while b ~= nil do
 		print(b.number, b.name, #b)
 		b = b:next()
@@ -476,7 +476,7 @@ Lua の関数とクロージャは自動的に Vim の |Funcref| に変換され
 
 例:
 >
-	:lua w = vim.window() -- current window
+	:lua w = vim.window() -- カレントウィンドウ
 	:lua print(w.buffer.name, w.line, w.col)
 	:lua w.width = w.width + math.random(10)
 	:lua w.height = 2 * math.random() * w.height
@@ -494,7 +494,8 @@ Lua コードと同じです:
 	local chunkheader = "local _A = select(1, ...) return "
 	function luaeval (expstr, arg)
 	    local chunk = assert(loadstring(chunkheader .. expstr, "luaeval"))
-	    return chunk(arg) -- return typval
+	    -- {訳注: 本来の luaeval では Vim の内部値である } typval を返す
+	    return chunk(arg)
 	end
 <
 Note "_A" には "luaeval" の引数が渡されます。Lua の数値、文字列、リスト、Blob、
@@ -508,7 +509,7 @@ Lua のブール値は数値に変換されます。リスト、辞書および�
 	:lua a = vim.list():add('newlist')
 	:let a = luaeval('a')
 	:echo a[0] " 'newlist'
-	:function Rand(x,y) " random uniform between x and y
+	:function Rand(x,y) " x から y までの均一な乱数
 	:  return luaeval('(_A.y-_A.x)*math.random()+_A.x', {'x':a:x,'y':a:y})
 	:  endfunction
 	:echo Rand(1,10)
