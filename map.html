@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'map'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="map.html" name="map.txt">map.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2021 Dec 20<br>
+<a class="Constant" href="map.html" name="map.txt">map.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2022 Jan 15<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; by Bram Moolenaar</span><br>
@@ -11,7 +11,7 @@ helpname: 'map'
 <br>
 キーマップ、短縮入力、ユーザー定義コマンドについて。<br>
 <br>
-ユーザーマニュアルの<a class="Identifier" href="usr_05.html#05.3">05.3</a>、<a class="Identifier" href="usr_24.html#24.7">24.7</a>、<a class="Identifier" href="usr_40.html#40.1">40.1</a>でこの機能について紹介しています。<br>
+ユーザーマニュアルの<a class="Identifier" href="usr_05.html#05.4">05.4</a>、<a class="Identifier" href="usr_24.html#24.7">24.7</a>、<a class="Identifier" href="usr_40.html#40.1">40.1</a>でこの機能について紹介しています。<br>
 <br>
 1. マップ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="map.html#key-mapping">key-mapping</a><br>
 &nbsp;&nbsp; 1.1 マップコマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="map.html#:map-commands">:map-commands</a><br>
@@ -268,8 +268,8 @@ s:InsertDot() 関数の戻り値が挿入されます。カーソルの前のテ
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nnoremap &lt;expr&gt; &lt;F3&gt; &lt;SID&gt;OpenPopup()</div>
 <br>
-また、前のコマンドが実行される前に、先行入力を探す時に式が評価されることがある<br>
-ことを覚えておいてください。例:<br>
+前のコマンドが実行される前に、先行入力を探す時に式が評価されることがあることを<br>
+覚えておいてください。例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func StoreColumn()<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:column = col('.')<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return 'x'<br>
@@ -280,6 +280,10 @@ g:column に &quot;f!&quot; 実行前の値がある、つまり &quot;x&quot; �
 あることに気付くでしょう。<br>
 これは評価のマッピングの文字の前に&nbsp;<span class="Special">&lt;Ignore&gt;</span>&nbsp;を挿入することで解決できます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nmap ! f!&lt;Ignore&gt;x</div>
+<br>
+<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script 内でのマッピング定義時は、式がそのスクリプトのコンテキストで評価<br>
+されます。これは式内でスクリプトローカルの要素についてアクセスできることを意味<br>
+します。<br>
 <br>
 副作用に注意してください。式は文字の取得中に評価されるため、簡単に異常動作を起<br>
 こせてしまいます。そのため、次のものは制限されます:<br>
@@ -337,9 +341,23 @@ getchar() によって取得され、返されます。<br>
 <span class="Special">&lt;expr&gt;</span>&nbsp;マッピングとは異なり、<span class="Special">&lt;Cmd&gt;</span>&nbsp;コマンドに特別な制約はありません: あたかも<br>
 (制約のない)&nbsp;<a class="Identifier" href="autocmd.html#autocommand">autocommand</a>&nbsp;が呼び出されたかのように実行されます。<br>
 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#<ScriptCmd>" name="&lt;ScriptCmd&gt;">&lt;ScriptCmd&gt;</a><br>
+<span class="Special">&lt;ScriptCmd&gt;</span>&nbsp;は&nbsp;<span class="Special">&lt;Cmd&gt;</span>&nbsp;に似ていますが、コマンド実行時のコンテキストはマッピング<br>
+が定義された箇所のスクリプトのものが設定されます。これは&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script で特に<br>
+便利です。また、インポートでの参照でも動作するので、autoload スクリプトを使用<br>
+するプラグインで便利です:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import autoload 'implementation.vim' as impl<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nnoremap &lt;F4&gt; &lt;ScriptCmd&gt;impl.DoTheWork()&lt;CR&gt;</div>
+<br>
+F4&gt; がどこで入力されたとしても、&quot;impl&quot; のインポートはマッピングが定義された<br>
+場所のスクリプトのコンテキストで検出されます。また、これは autoload のインポー<br>
+トなので、マッピングが定義された時ではなく、一度&nbsp;<span class="Special">&lt;F4&gt;</span>&nbsp;が入力された時にのみ<br>
+&quot;implementation.vim&quot; スクリプトがロードされます。<br>
+<br>
 <span class="Todo">Note</span>:<br>
--&nbsp;<span class="Special">&lt;Cmd&gt;</span>&nbsp;はモード変更を回避するので、ユーザーの介入を必要としないため、<br>
-&nbsp;&nbsp;<a class="Identifier" href="autocmd.html#CmdlineEnter">CmdlineEnter</a>&nbsp;と&nbsp;<a class="Identifier" href="autocmd.html#CmdlineLeave">CmdlineLeave</a>&nbsp;イベントをトリガーしません。<br>
+-&nbsp;<span class="Special">&lt;Cmd&gt;</span>&nbsp;と&nbsp;<span class="Special">&lt;ScriptCmd&gt;</span>&nbsp;はモード変更を回避するので、ユーザーの介入を必要としな<br>
+&nbsp;&nbsp;いため、<a class="Identifier" href="autocmd.html#CmdlineEnter">CmdlineEnter</a>&nbsp;と&nbsp;<a class="Identifier" href="autocmd.html#CmdlineLeave">CmdlineLeave</a>&nbsp;イベントをトリガーしません。<br>
 - 同じ理由により、<span class="Special">&lt;C-R&gt;&lt;C-W&gt;</span>&nbsp;のようなキーコード&nbsp;<a class="Identifier" href="intro.html#keycodes">keycodes</a>&nbsp;は通常の、マッピン<br>
 &nbsp;&nbsp;グされていないキーとして解釈されます。<br>
 - コマンドは echo されせん、<span class="Special">&lt;silent&gt;</span>&nbsp;は不要です。<br>
@@ -1403,7 +1421,7 @@ non-id&nbsp;&nbsp;&nbsp;&nbsp;マッチした場所の前がスペース、タ�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ユーザー定義コマンド&nbsp;<span class="Special">{cmd}</span>&nbsp;を削除します。<br>
 <br>
 :delc[ommand] -buffer&nbsp;<span class="Special">{cmd}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#E1237" name="E1237">E1237</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;現在のバッファで定義されたユーザー定義コマンド&nbsp;<span class="Special">{cmd}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カレントバッファで定義されたユーザー定義コマンド&nbsp;<span class="Special">{cmd}</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を削除します。<br>
 <br>
 :comc[lear]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="map.html#:comc" name=":comc">:comc</a>&nbsp;<a class="Constant" href="map.html#:comclear" name=":comclear">:comclear</a><br>
@@ -1699,7 +1717,7 @@ script2.vimを実行すると &quot;None&quot; が表示されます。期待し
 <div class="helpExample">&nbsp;&nbsp; &quot; 現在行から最後行までを削除します<br>
 &nbsp;&nbsp; :com Ddel +,$d</div>
 <br>
-<div class="helpExample">&nbsp;&nbsp; &quot; 現在のバッファ名を変更します<br>
+<div class="helpExample">&nbsp;&nbsp; &quot; カレントバッファ名を変更します<br>
 &nbsp;&nbsp; :com -nargs=1 -bang -complete=file Ren f &lt;args&gt;|w&lt;bang&gt;</div>
 <br>
 <div class="helpExample">&nbsp;&nbsp; &quot; 指定された範囲をあるファイルの内容に置き換えます<br>
