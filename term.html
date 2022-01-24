@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'term'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="term.html" name="term.txt">term.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2021 Aug 29<br>
+<a class="Constant" href="term.html" name="term.txt">term.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2021 Dec 21<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -150,9 +150,11 @@ tmux 内で Vim を実行する際に問題が発生する場合、ここにい�
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; フォーカスイベントの追跡有効、:help xterm-focus-event を参照<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;t_fe = &quot;\&lt;Esc&gt;[?1004h&quot;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;t_fd = &quot;\&lt;Esc&gt;[?1004l&quot;</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;t_fd = &quot;\&lt;Esc&gt;[?1004l&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;execute &quot;set &lt;FocusGained&gt;=\&lt;Esc&gt;[I&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;execute &quot;set &lt;FocusLost&gt;=\&lt;Esc&gt;[O&quot;</div>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 修飾ありカーソルキー有効、:help xterm-modifier-keys を参照<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 修飾ありカーソルキー有効、:help arrow_modifiers を参照<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;execute &quot;silent! set &lt;xUp&gt;=\&lt;Esc&gt;[@;*A&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;execute &quot;silent! set &lt;xDown&gt;=\&lt;Esc&gt;[@;*B&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;execute &quot;silent! set &lt;xRight&gt;=\&lt;Esc&gt;[@;*C&quot;<br>
@@ -254,6 +256,17 @@ xterm から直接得られたコードが&nbsp;<a class="Identifier" href="term
 もう1つの特殊な値は、&quot;@;*X&quot; で終わるtermcapエントリです。これは、&quot;CSI X&quot; また<br>
 は &quot;CSI 1 ; modifier X&quot; のいずれかを使用するカーソルキー用です。したがって、<br>
 &quot;@&quot; は修飾子が続く場合は &quot;1&quot; を表すか、何も表しません。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#arrow_modifiers" name="arrow_modifiers">arrow_modifiers</a><br>
+いくつかの端末エミュレータ(alacritty, gnome, konsole 等)は修飾子付きのキーで特<br>
+殊なコードを送信しますが、これらは termcap/terminfo データベースにエントリがあ<br>
+りません。vimrc に数行追加することでこれらを機能させることができます。例えば、<br>
+Control 修飾子を gnome 端末の矢印キーで機能させるには:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if &amp;term =~ 'gnome'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; execute &quot;set &lt;xUp&gt;=\&lt;Esc&gt;[@;*A&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; execute &quot;set &lt;xDown&gt;=\&lt;Esc&gt;[@;*B&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; execute &quot;set &lt;xRight&gt;=\&lt;Esc&gt;[@;*C&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; execute &quot;set &lt;xLeft&gt;=\&lt;Esc&gt;[@;*D&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#xterm-scroll-region" name="xterm-scroll-region">xterm-scroll-region</a><br>
 Sun などのプラットフォームのデフォルトの xterm 用の termcap エントリには領域の<br>
 スクロール用のエントリが入っていません。/etc/termcap の xterm エントリに<br>
@@ -544,9 +557,14 @@ Terminal.app が認識され得る場合、Mac OS 上では使われません。
 よって xterm がモード (8-bit, VT102, VT220 など) によって異なるコードを出力す<br>
 るという問題に対応することができます。そのため、<span class="Special">&lt;xF1&gt;</span>&nbsp;のようなコードは必要なく<br>
 なります。<br>
-<span class="Todo">Note</span>: これは起動時にのみ行われます。Vim が起動した後で xterm のオプションが変<br>
-更された場合は、これらのエスケープシーケンスはそれ以降、認識されなくなる可能性<br>
-があります。<br>
+<br>
+変更可能なコードの1つは、色数である&nbsp;<a class="Type" href="term.html#'t_Co'">'t_Co'</a>&nbsp;です。これは再描画をトリガーします。<br>
+これが問題になる場合は、可能な限り早い段階で&nbsp;<a class="Type" href="options.html#'xtermcodes'">'xtermcodes'</a>&nbsp;オプションをリセット<br>
+してください:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set noxtermcodes</div>
+<br>
+<span class="Todo">Note</span>: キーコードの要求は起動時にのみ行われます。Vim の起動後に xterm のオプショ<br>
+ンが変更されると、エスケープシーケンスが認識されなくなる場合があります。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#xterm-true-color" name="xterm-true-color">xterm-true-color</a><br>
 Vimは端末がサポートするならば、トゥルーカラーを使うこと (<a class="Identifier" href="syntax.html#highlight-guifg">highlight-guifg</a>&nbsp;及<br>
@@ -596,7 +614,9 @@ Vim はそれらを適切に処理することでフォーカスイベント(<a 
 あなたの端末でこれがサポートされているが Vim が端末を識別できていないとき、<br>
 あなた自身でオプションを設定する必要がある場合があります:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;t_fe = &quot;\&lt;Esc&gt;[?1004h&quot;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;t_fd = &quot;\&lt;Esc&gt;[?1004l&quot;</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;t_fd = &quot;\&lt;Esc&gt;[?1004l&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;execute &quot;set &lt;FocusGained&gt;=\&lt;Esc&gt;[I&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;execute &quot;set &lt;FocusLost&gt;=\&lt;Esc&gt;[O&quot;</div>
 Vim 起動時にこれが原因のゴミ表示がある場合はこれは機能しません。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="term.html#termcap-colors" name="termcap-colors">termcap-colors</a><br>
