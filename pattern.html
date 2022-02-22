@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'pattern'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="pattern.html" name="pattern.txt">pattern.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2021 Feb 16<br>
+<a class="Constant" href="pattern.html" name="pattern.txt">pattern.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2021 Jul 16<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; by Bram Moolenaar</span><br>
@@ -24,6 +24,7 @@ helpname: 'pattern'
 8. 合成文字&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#patterns-composing">patterns-composing</a><br>
 9. Perl のパターンとの比較&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#perl-patterns">perl-patterns</a><br>
 10. マッチしたテキストを強調する<a class="Identifier" href="pattern.html#match-highlight">match-highlight</a><br>
+11. ファジーマッチ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#fuzzy-match">fuzzy-match</a><br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 1. 検索コマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#search-commands" name="search-commands">search-commands</a><br>
@@ -907,12 +908,13 @@ $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; パターンの末尾、または &quot;\|
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\%'m" name="/\%'m">/\%'m</a>&nbsp;<a class="Constant" href="pattern.html#/\%<'m" name="/\%&lt;'m">/\%&lt;'m</a>&nbsp;<a class="Constant" href="pattern.html#/\%>'m" name="/\%&gt;'m">/\%&gt;'m</a><br>
 \%'m&nbsp;&nbsp;&nbsp;&nbsp;マーク m の位置にマッチします。<br>
 \%&lt;'m&nbsp;&nbsp; マーク m より前の位置にマッチします。<br>
-\%&gt;'m&nbsp;&nbsp; マーク m より後の位置にマッチします。<br>
+\%&gt;'m&nbsp;&nbsp; マーク m より後ろの位置にマッチします。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例えば、マーク 's から 'e までを強調するには次のようにします:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/.\%&gt;'s.*\%&lt;'e..</div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: マーク 'e の位置をマッチに含めるには 'e の後に二つのドットが必要<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;です。なぜなら、&quot;\%&lt;'e&quot; はマーク 'e の前の文字にマッチし、そしてそれは<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ゼロ幅マッチ<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a>&nbsp;なので、その文字は結果に含まれないからです。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: マーク 'e の位置をマッチに含めるには 'e の後ろに 2 つのドットが<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;必要です。なぜなら、&quot;\%&lt;'e&quot; はマーク 'e の前の文字にマッチし、そしてそ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れはゼロ幅マッチ<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a>&nbsp;なので、その文字は結果に含まれないからで<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">警告:</span>&nbsp;マークを検索した後にマークを移動した場合、その結果は正しくなくな<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ります。Vim は自動的にマッチの強調表示を更新したりしません。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#/\%#">/\%#</a>&nbsp;で検索した後にカーソルを動かした場合と似ています。<br>
@@ -921,29 +923,44 @@ $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; パターンの末尾、または &quot;\|
 \%23l&nbsp;&nbsp; 指定した行にマッチします。<br>
 \%&lt;23l&nbsp;&nbsp;指定した行より上にマッチします。<br>
 \%&gt;23l&nbsp;&nbsp;指定した行より下にマッチします。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この 3 つを使って、バッファの特定の行にマッチできます。&quot;23&quot; の所に行番<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;号を指定してください。先頭の番号は 1 です。<br>
+\%.l&nbsp;&nbsp;&nbsp;&nbsp;カーソル行にマッチします。<br>
+\%&lt;.l&nbsp;&nbsp; カーソル行より上にマッチします。<br>
+\%&gt;.l&nbsp;&nbsp; カーソル行より下にマッチします。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この 6 つを使って、バッファの特定の行にマッチできます。&quot;23&quot; の所には任<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;意の行番号が指定可能です。先頭の番号は 1 です。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">警告:</span>&nbsp;行を挿入したり削除したりしても、マッチの結果は自動的に更新されま<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;せん。そのため、このアトムを使った構文強調は、すぐに誤った表示になって<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;しまいます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;しまいます。また、カーソル位置 (&quot;.&quot;) を参照しているとき、カーソルが移<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;動しても変化に合わせて表示が更新されることはありません。更新されるのは<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンド&nbsp;<a class="Identifier" href="various.html#CTRL-L">CTRL-L</a>&nbsp;を使ったときです (画面全体が更新されます)。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;現在行を強調表示するには次のようにします:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:exe '/\%' . line(&quot;.&quot;) . 'l.*'</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:exe '/\%' . line(&quot;.&quot;) . 'l'</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; あるいは次を使います:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/\%.l</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'hlsearch'">'hlsearch'</a>&nbsp;をオンにして、カーソルを移動し、テキストを変更してみて、表<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;示が更新されるかどうか確認してください。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\%c" name="/\%c">/\%c</a>&nbsp;<a class="Constant" href="pattern.html#/\%>c" name="/\%&gt;c">/\%&gt;c</a>&nbsp;<a class="Constant" href="pattern.html#/\%<c" name="/\%&lt;c">/\%&lt;c</a><br>
 \%23c&nbsp;&nbsp; 指定した列にマッチします。<br>
 \%&lt;23c&nbsp;&nbsp;指定した列より前にマッチします。<br>
-\%&gt;23c&nbsp;&nbsp;指定した列より後にマッチします。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この 3 つを使って、バッファの特定の列にマッチできます。&quot;23&quot; の所に列番<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;号を指定してください。先頭の番号は 1 です。実際には、何バイト目かを指<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;定するので、マルチバイト文字を扱うときには、&quot;列番号&quot; という表現は正確<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ではありません。<br>
+\%&gt;23c&nbsp;&nbsp;指定した列より後ろにマッチします。<br>
+\%.c&nbsp;&nbsp;&nbsp;&nbsp;カーソル列にマッチします。<br>
+\%&lt;.c&nbsp;&nbsp; カーソル列より前にマッチします。<br>
+\%&gt;.c&nbsp;&nbsp; カーソル列より後ろにマッチします。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この 6 つを使って、バッファの特定の列にマッチできます。&quot;23&quot; の所には任<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;意の列番号が指定可能です。先頭の番号は 1 です。実際には、何バイト目か<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を指定するので、マルチバイト文字を扱うときには、&quot;列番号&quot; という表現は<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;正確ではありません。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">警告:</span>&nbsp;行を挿入したり削除したりしても、マッチの結果は自動的に更新されま<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;せん。そのため、このアトムを使った構文強調は、すぐに誤った表示になって<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;しまいます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;しまいます。また、カーソル位置 (&quot;.&quot;) を参照しているとき、カーソルが移<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;動しても変化に合わせて表示が更新されることはありません。更新されるのは<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンド&nbsp;<a class="Identifier" href="various.html#CTRL-L">CTRL-L</a>&nbsp;を使ったときです (画面全体が更新されます)。<br>
+<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル位置の列を強調表示するには次のようにします:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:exe '/\%' . col(&quot;.&quot;) . 'c'</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; あるいは次を使います:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/\%.c</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'hlsearch'">'hlsearch'</a>&nbsp;をオンにして、カーソルを移動し、テキストを変更してみて、表<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;示が更新されるかどうか確認してください。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;44 バイト目を強調表示するには次のようにします:<br>
@@ -953,22 +970,30 @@ $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; パターンの末尾、または &quot;\|
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\%v" name="/\%v">/\%v</a>&nbsp;<a class="Constant" href="pattern.html#/\%>v" name="/\%&gt;v">/\%&gt;v</a>&nbsp;<a class="Constant" href="pattern.html#/\%<v" name="/\%&lt;v">/\%&lt;v</a><br>
 \%23v&nbsp;&nbsp; 指定した表示列にマッチします。<br>
 \%&lt;23v&nbsp;&nbsp;指定した表示列より前にマッチします。<br>
-\%&gt;23v&nbsp;&nbsp;指定した表示列より後にマッチします。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この 3 つを使って、バッファの特定の表示列にマッチできます。文字列<br>
+\%&gt;23v&nbsp;&nbsp;指定した表示列より後ろにマッチします。<br>
+\%.v&nbsp;&nbsp;&nbsp;&nbsp;現在の表示列にマッチします。<br>
+\%&lt;.v&nbsp;&nbsp; 現在の表示列より前にマッチします。<br>
+\%&gt;.v&nbsp;&nbsp; 現在の表示列より後ろにマッチします。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この 6 つを使って、バッファの特定の表示列にマッチできます。文字列<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<a class="Identifier" href="eval.html#expr-string">expr-string</a>) とマッチングするときは、カレントウィンドウの、<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'tabstop'">'tabstop'</a>&nbsp;などの設定が使われます。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;23&quot; の所に表示列番号を指定してください。先頭の番号は 1 です。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;23&quot; の所には任意の表示列番号が指定可能です。先頭の番号は 1 です。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: Tab 文字や全角文字などの、複数列で表示される文字の途中の列を指定<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;した場合は、マッチしません。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">警告:</span>&nbsp;行を挿入したり削除したりしても、マッチの強調表示は自動的に更新さ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れません。そのため、このアトムを使った構文強調は、すぐに誤った表示に<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;なってしまいます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;なってしまいます。また、カーソル位置 (&quot;.&quot;) を参照しているとき、カーソ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ルが移動しても変化に合わせて表示が更新されることはありません。更新され<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;るのはコマンド&nbsp;<a class="Identifier" href="various.html#CTRL-L">CTRL-L</a>&nbsp;を使ったときです (画面全体が更新されます)。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;表示列の72桁目以降のすべての文字を強調表示するには次のようにします:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/\%&gt;72v.*</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'hlsearch'">'hlsearch'</a>&nbsp;をオンにして、カーソルを移動し、テキストを変更してみて、表<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;示が更新されるかどうか確認してください。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;17 列までのテキストにマッチさせるには次のようにします:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/^.*\%17v</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 現在の表示列 (カーソルがある場所) より後ろの全ての文字にマッチさせるに<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;は:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/\%&gt;.v.*</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 17 列目は含まれません。なぜならこれはゼロ幅マッチ (<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a>) であ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る為です。列を含むには次を使用します:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/^.*\%17v.</div>
@@ -1205,7 +1230,7 @@ x&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 特別な意味のない文字は、その
 <br>
 \%d123&nbsp;&nbsp;10進数で指定した文字にマッチします。このアトムの後ろには数字以外の文字<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を置いてください。<br>
-\%o40&nbsp;&nbsp; 8 進数で指定した文字にマッチします (最大値 0377)。0o40 より小さい値を<br>
+\%o40&nbsp;&nbsp; 8進数で指定した文字にマッチします (最大値 0o377)。0o40 より小さい値を<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;指定するとき、このアトムの後ろには8進数字以外の文字か、数字以外の文字<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を置いてください。<br>
 \%x2a&nbsp;&nbsp; 16進数で指定した文字にマッチします。2桁まで。<br>
@@ -1403,6 +1428,38 @@ Vim では、'^' と '$' は常に中間の改行にもマッチします。最�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;:3match&quot; コマンドは&nbsp;<a class="Identifier" href="pi_paren.html#matchparen">matchparen</a>&nbsp;プラグインで使用されていま<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。あなたが手動でマッチを設定するときは &quot;:match&quot; を使ってくだ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;さい。他のプラグインでは &quot;:2match&quot; を使ってください。<br>
+&nbsp;<br>
+<span class="PreProc">==============================================================================</span><br>
+11. ファジーマッチ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#fuzzy-match" name="fuzzy-match">fuzzy-match</a><br>
+<br>
+ファジーマッチとは、不正確な検索文字列を使って文字列を検索することを言います。<br>
+ファジーマッチで、ある文字列がマッチするのは、検索文字列の全ての文字がその文字<br>
+列のどこかに同じ順序で存在する場合です。大文字小文字は無視されます。マッチした<br>
+文字列では、検索文字列内で隣り合う2文字の間に他の文字が存在するかもしれません。<br>
+検索文字列が複数の単語を持つ場合、各単語は別々にマッチします。そのため検索文字<br>
+列内の複数の単語は<span class="Special">{訳注: マッチした}</span>文字列内でどのような順序でも存在し得ます。<br>
+<br>
+ファジーマッチではマッチした文字列ごとに以下の基準に基づいてスコアが割り当てら<br>
+れます:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- 連続してマッチした文字の個数。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- 検索文字列内で隣り合う2文字の間の文字の個数 (距離)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- 単語の先頭でのマッチ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- キャメルケース文字でのマッチ (例えば CamelCase の Case)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- パスの区切り文字またはハイフンの後ろでのマッチ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<span class="Special">{訳注: マッチした}</span>文字列内のマッチしなかった文字の個数。<br>
+マッチした文字列でスコアが最も高かったものが最初に返されます。<br>
+<br>
+例えば &quot;get pat&quot; という文字列をファジーマッチで検索すると、&quot;GetPattern&quot;、<br>
+&quot;PatternGet&quot;、&quot;getPattern&quot;、&quot;patGetter&quot;、&quot;getSomePattern&quot;、&quot;MatchpatternGet&quot;<br>
+などの文字列がマッチします。<br>
+<br>
+関数&nbsp;<a class="Identifier" href="builtin.html#matchfuzzy()">matchfuzzy()</a>&nbsp;や&nbsp;<a class="Identifier" href="builtin.html#matchfuzzypos()">matchfuzzypos()</a>&nbsp;で文字列のリストに含まれる文字列をファ<br>
+ジー検索できます。関数 matchfuzzy() はマッチした文字列のリストを返します。関数<br>
+matchfuzzypos() はマッチのリスト、マッチの位置およびファジーマッチのスコアを返<br>
+します。<br>
+<br>
+<a class="Comment" href="quickfix.html#:vimgrep">:vimgrep</a>&nbsp;の フラグ &quot;f&quot; はファジーマッチを有効にします。<br>
+<br>
 <br>
 <span class="Special">{訳注: 訳語:</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">concat 連接</span><br>
