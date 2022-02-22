@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'cmdline'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="cmdline.html" name="cmdline.txt">cmdline.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2021 Aug 06<br>
+<a class="Constant" href="cmdline.html" name="cmdline.txt">cmdline.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2022 Feb 04<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -680,6 +680,14 @@ Exコマンドには、その前に行単位の範囲を指定できるものが
 <br>
 基本事項はユーザーマニュアルの&nbsp;<a class="Identifier" href="usr_10.html#10.3">10.3</a>&nbsp;章で説明されている。<br>
 <br>
+<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では継続行の曖昧さを避けるため、範囲にはコロンが接頭辞として必要<br>
+となる。例として、&quot;+&quot; は範囲として使えるが式の継続でもある:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var result = start<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ print</div>
+&quot;+&quot; が範囲の場合はコロンが接頭辞として必要になる:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var result = start<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:+ print</div>
+<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:," name=":,">:,</a>&nbsp;<a class="Constant" href="cmdline.html#:;" name=":;">:;</a><br>
 区切りに ';' を使うと、次の行指定子を解釈する前にカーソル位置がその行に移動<br>
 する。',' ではこうならない。例:<br>
@@ -695,7 +703,7 @@ Exコマンドには、その前に行単位の範囲を指定できるものが
 に除外される。<br>
 <br>
 行番号は以下の方法で指定できる:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:range" name=":range">:range</a>&nbsp;<a class="Constant" href="cmdline.html#{address}" name="{address}">{address}</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{number}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;絶対的な行番号<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{number}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;絶対的な行番号&nbsp;&nbsp;<a class="Constant" href="cmdline.html#E1247" name="E1247">E1247</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 現在の行&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:." name=":.">:.</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ファイルの最終行&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:$" name=":$">:$</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1,$と同じ (ファイル全体)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:%" name=":%">:%</a><br>
@@ -710,6 +718,7 @@ Exコマンドには、その前に行単位の範囲を指定できるものが
 <br>
 これらの後に '+' または '-' と数値を付けてもよい (複数も可)。この数は直前の行<br>
 番号に加算または減算される。数が省略された場合は 1 が指定されたと見なされる。<br>
+もし '+' や '-' の前に何も無い場合は現在行が使われる。<br>
 <br>
 <span class="Special">{pattern}</span>&nbsp;の後の &quot;/&quot; と &quot;?&quot; は、パターンとその後の項目とを区別するために必要と<br>
 なる。<br>
@@ -736,7 +745,8 @@ Exコマンドには、その前に行単位の範囲を指定できるものが
 いくつかのコマンドには、後にカウントを指定できる。そのコマンドは、最後の行指定<br>
 子で指定された行 (既定値はカーソルの行) から始まる、そのカウントの行数の範囲に<br>
 使われる。カウントを取ることができるのは、範囲指定は取るがファイル名の引数を取<br>
-らないコマンドである (ファイル名は数字でもよいから)。<br>
+らないコマンドである (ファイル名は数字でもよいから)。カウントは負数にはならな<br>
+い。<br>
 <br>
 例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:s/x/X/g 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;現在行から始まる5行で 'x' を 'X' に置換<br>
@@ -882,14 +892,16 @@ Exコマンドの、ファイル名が使えるところでは、以下の文字
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:<amatch>" name=":&lt;amatch&gt;">:&lt;amatch&gt;</a>&nbsp;<a class="Constant" href="cmdline.html#<amatch>" name="&lt;amatch&gt;">&lt;amatch&gt;</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;amatch&gt;</span>&nbsp;&nbsp; 自動コマンドの実行時、この自動コマンドが実行されたときのマッ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; チに置き換えられる。&nbsp;<a class="Constant" href="cmdline.html#E497" name="E497">E497</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; そのファイル名がマッチの検索に使われていないときのみ、<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;afile&gt;</span>&nbsp;と違う値になる (イベント FileType, Syntax,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SpellFileMissing 用)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ファイル名がマッチに使われていないとき&nbsp;<span class="Special">&lt;afile&gt;</span>&nbsp;と違う値にな<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; る (イベント FileType, Syntax, SpellFileMissing 用)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ファイル名としてマッチした時、フルパスに展開される。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:<sfile>" name=":&lt;sfile&gt;">:&lt;sfile&gt;</a>&nbsp;<a class="Constant" href="cmdline.html#<sfile>" name="&lt;sfile&gt;">&lt;sfile&gt;</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;sfile&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;コマンド &quot;:source&quot; の実行時、取り込まれたファイルのファイル<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 名に置き換えられる。&nbsp;&nbsp;<a class="Constant" href="cmdline.html#E498" name="E498">E498</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 関数の実行時は、<span class="Special">&lt;stack&gt;</span>&nbsp;と同様にコールスタックに置き換えら<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; れる(これは後方互換性のためであり、<span class="Special">&lt;stack&gt;</span>&nbsp;を使うのが望しい)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 旧来の関数の実行時は、<span class="Special">&lt;stack&gt;</span>&nbsp;と同様にコールスタックに置き<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 換えられる(これは後方互換性のためであり、<span class="Special">&lt;stack&gt;</span>&nbsp;を使うのが<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 望しい)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Vim9 script では関数で&nbsp;<span class="Special">&lt;sfile&gt;</span>&nbsp;を使うとエラーとなる。<span class="MissingTag">E1245</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: スクリプト内で&nbsp;<span class="Special">&lt;sfile&gt;</span>&nbsp;が使われていない場合、ファイル<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 名修飾子は無効になることに注意。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:<stack>" name=":&lt;stack&gt;">:&lt;stack&gt;</a>&nbsp;<a class="Constant" href="cmdline.html#<stack>" name="&lt;stack&gt;">&lt;stack&gt;</a><br>
@@ -897,6 +909,7 @@ Exコマンドの、ファイル名が使えるところでは、以下の文字
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; が関数行としてまた &quot;script {ファイル名}[{行番号}]&quot; がスクリ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; プト行として、そして要素間は &quot;..&quot; が使われる。例:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;function {関数名1}[{行番号}]..{関数名2}[{行番号}]&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; コールスタックがない場合は、<span class="MissingTag">E489</span>&nbsp;エラーになる。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#:<slnum>" name=":&lt;slnum&gt;">:&lt;slnum&gt;</a>&nbsp;<a class="Constant" href="cmdline.html#<slnum>" name="&lt;slnum&gt;">&lt;slnum&gt;</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;slnum&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;コマンド &quot;:source&quot; の実行時、行番号に置き換えられる。&nbsp;<a class="Constant" href="cmdline.html#E842" name="E842">E842</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 関数の中では、関数の先頭からの相対的な行番号になる。<br>
