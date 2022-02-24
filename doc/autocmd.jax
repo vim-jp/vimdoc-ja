@@ -1,4 +1,4 @@
-*autocmd.txt*   For Vim バージョン 8.2.  Last change: 2021 Nov 20
+*autocmd.txt*   For Vim バージョン 8.2.  Last change: 2022 Feb 09
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -50,10 +50,10 @@
 2. 自動コマンドの定義					*autocmd-define*
 
 							*:au* *:autocmd*
-:au[tocmd] [group] {event} {pat} [++once] [++nested] {cmd}
-			{pat} |autocmd-patterns| に一致するファイルで、{event}
-			のときに自動的に実行するコマンドのリストに、{cmd} を加
-			える。
+:au[tocmd] [group] {event} {aupat} [++once] [++nested] {cmd}
+			{aupat} |autocmd-patterns| に一致するファイルで、
+			{event} のときに自動的に実行するコマンドのリストに、
+			{cmd} を加える。
 			{event} には "*" は使えない。 *E1155*
 			Note: クォートは :autocmd への引数と見なされ、コメント
 			を開始しない。
@@ -142,19 +142,19 @@ Note [group] はあらかじめ定義されていなければならないこと�
 ==============================================================================
 3. 自動コマンドの除去					*autocmd-remove*
 
-:au[tocmd]! [group] {event} {pat} [++once] [++nested] {cmd}
-			{event} と {pat} に関連づけられた全ての自動コマンドを
-			除去し、コマンド {cmd} を加える。
+:au[tocmd]! [group] {event} {aupat} [++once] [++nested] {cmd}
+			{event} と {aupat} に関連づけられた全ての自動コマンド
+			を除去し、コマンド {cmd} を加える。
 			[++once] については |autocmd-once| を参照。
 			[++nested] については |autocmd-nested| を参照。
 
-:au[tocmd]! [group] {event} {pat}
-			{event} と {pat} に関連づけられた全ての自動コマンドを
-			除去する。
+:au[tocmd]! [group] {event} {aupat}
+			{event} と {aupat} に関連づけられた全ての自動コマンド
+			を除去する。
 
-:au[tocmd]! [group] * {pat}
-			{pat} に関連づけられた、全てのイベントに関する自動コマ
-			ンドを全て除去する。
+:au[tocmd]! [group] * {aupat}
+			{aupat} に関連づけられた、全てのイベントに関する自動コ
+			マンドを全て除去する。
 
 :au[tocmd]! [group] {event}
 			{event} に関連づけられた「全ての」自動コマンドを除去す
@@ -175,13 +175,13 @@ Note [group] はあらかじめ定義されていなければならないこと�
 ==============================================================================
 4. 自動コマンドの列挙					*autocmd-list*
 
-:au[tocmd] [group] {event} {pat}
-			{event} と {pat} に関連づけられた全ての自動コマンドを
-			表示する。
+:au[tocmd] [group] {event} {aupat}
+			{event} と {aupat} に関連づけられた全ての自動コマンド
+			を表示する。
 
-:au[tocmd] [group] * {pat}
-			{pat} に関連づけられた、全てのイベントに関する自動コマ
-			ンドを表示する。
+:au[tocmd] [group] * {aupat}
+			{aupat} に関連づけられた、全てのイベントに関する自動コ
+			マンドを表示する。
 
 :au[tocmd] [group] {event}
 			{event} に関連づけられた全ての自動コマンドを表示する。
@@ -330,6 +330,7 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 |FileChangedRO|		読み込み専用ファイルに対して最初に変更を加える前
 
 |DiffUpdated|		差分が更新された後
+|DirChangedPre|		作業ディレクトリが変更される前
 |DirChanged|		作業ディレクトリが変更された後
 
 |ShellCmdPost|		シェルコマンドを実行した後
@@ -737,6 +738,10 @@ FileChangedRO			読み込み専用ファイルに最初の変更を加える前�
 DiffUpdated			差分が更新された後。使用されているdiffコマンド
 				の種類(内部または外部)に応じて、変更毎か
 				|:diffupdate| 実行時に発生する。
+							*DirChangedPre*
+DirChangedPre			|DirChanged| と同じように、作業ディレクトリが変更
+				されようとしているとき。パターンは |DirChanged| と同様。新し
+				いディレクトリ名は v:event.directory にある。
 							*DirChanged*
 DirChanged			|:cd|, |:tcd| もしくは |:lcd| コマンドによって、
 				もしくは 'autochdir' オプションの結果として作業
@@ -1194,7 +1199,7 @@ TextYankPost			カレントバッファでテキストがヤンクもしくは�
 				|quote_| が使用された場合、もしくは再帰的に呼
 				び出された場合には発生しない。
 				バッファのテキストを変更することは許されていな
-				い、|textlock| を参照。
+				い、|textlock| を参照。 *E1064*
 				{+eval 機能付きでコンパイルされた場合のみ有効}
 
 							*User*
@@ -1261,8 +1266,8 @@ VimResume			Vimがサスペンドと |VimSuspend| がトリガーした
 	:autocmd VimResume * checktime
 <							*VimSuspend*
 VimSuspend			Vimのインスタンスがサスペンドしたとき。Vim内で
-				CTRL-Z がタイプされた時だけであり、SIGSTOP か
-				SIGTSTP シグナルがVimに送られた時ではない。
+				CTRL-Z がタイプされた時、もしくは SIGTSTP シグ
+				ナルがVimに送られた時で、SIGSTOP ではない。
 							*WinClosed*
 WinClosed			ウィンドウが閉じた後。パターンは |window-ID|
 				に対して照合される。<amatch> と <afile> は共に
@@ -1290,17 +1295,17 @@ WinNew				新しいウィンドウが作成されたとき。Vim がちょう
 				れない。WinEnter イベントの前。
 
 ==============================================================================
-6. パターン					*autocmd-patterns* *{pat}*
+6. パターン					*autocmd-patterns* *{aupat}*
 
-引数 {pat} にはコンマ区切りのリストを指定することができる。これによりコマンド
-は指定されたそれぞれのパターンについて実行される。例えばこのコマンド: >
+引数 {aupat} にはコンマ区切りのリストを指定することができる。これによりコマン
+ドは指定されたそれぞれのパターンについて実行される。例えばこのコマンド: >
 	:autocmd BufRead *.txt,*.info set et
 は下記と等しくなる:
 	:autocmd BufRead *.txt set et
 	:autocmd BufRead *.info set et
 
-ファイルパターン {pat} がファイル名とマッチするかどうかは、2通りの方法で調べら
-れる。
+ファイルパターン {aupat} がファイル名とマッチするかどうかは、2通りの方法で調べ
+られる:
 1. パターンに '/' が含まれないとき: Vimはファイル名の後ろの部分からのみマッチ
    を調べる (ファイル名の前につくディレクトリパスは除く)。
 2. パターンに '/' が含まれるとき: Vimは短いファイル名 (ユーザーが打ち込んだも
