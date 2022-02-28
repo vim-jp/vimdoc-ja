@@ -1,4 +1,4 @@
-*insert.txt*    For Vim バージョン 8.2.  Last change: 2021 Oct 24
+*insert.txt*    For Vim バージョン 8.2.  Last change: 2021 Dec 29
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -81,6 +81,8 @@ CTRL-W		カーソルの前にある単語を削除する(行同士の連結に�
 CTRL-U		現在の行のカーソルの前に入力された文字を全部削除する。新しく入
 		力した文字が無く 'backspace' が空ではない時は、カーソル前の全
 		ての文字を削除する。
+		Cソースコードのインデントが有効な場合で行が空白になるとき、イ
+		ンデントは調整される。
 		行同士の連結については |i_backspacing| を参照。
 						*i_CTRL-I* *i_<Tab>* *i_Tab*
 <Tab> or CTRL-I タブを挿入する。'expandtab' オプションが設定されていれば、同じ
@@ -808,7 +810,7 @@ CTRL-X CTRL-T		CTRL-X CTRL-Kと同じだが、'dictionary' ではなく
 
 例えば、'thesaurus' ファイルにこのような行があるとして: >
 	angry furious mad enraged
-<カーソルが "ang" の後にあり、CTRL-X CTRL-Tを押すと "angry" が補完される。続け
+カーソルが "ang" の後にあり、CTRL-X CTRL-Tを押すと "angry" が補完される。続け
 て補完すると "furious"、"mad"、...、と置き換えられる。
 
 他にも2つの言語間の単語の置き換えや、API関数をキーワードによってグループ分けす
@@ -835,9 +837,9 @@ thesaurus_pkg.zip を展開し、thesaurus.txt をどこかに配置する、例
       endif
       let res = []
       let h = ''
-      for l in systemlist('aiksaurus '.shellescape(a:base))
+      for l in systemlist('aiksaurus ' .. shellescape(a:base))
 	if l[:3] == '=== '
-	  let h = '('.substitute(l[4:], ' =*$', ')', '')
+	  let h = '(' .. substitute(l[4:], ' =*$', ')', '')
 	elseif l ==# 'Alphabetically similar known words are: '
 	  let h = "\U0001f52e"
 	elseif l[0] =~ '\a' || (h ==# "\U0001f52e" && l[0] ==# "\t")
@@ -1198,7 +1200,7 @@ Note 最初の呼び出し以降にカーソルが移動した可能性があり
 	    " "a:base" にマッチする月を探す
 	    let res = []
 	    for m in split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec")
-	      if m =~ '^' . a:base
+	      if m =~ '^' .. a:base
 		call add(res, m)
 	      endif
 	    endfor
@@ -1220,7 +1222,7 @@ Note 最初の呼び出し以降にカーソルが移動した可能性があり
 	  else
 	    " "a:base" にマッチする月を探す
 	    for m in split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec")
-	      if m =~ '^' . a:base
+	      if m =~ '^' .. a:base
 		call complete_add(m)
 	      endif
 	      sleep 300m	" 次の候補の検索をシミュレートする
@@ -1859,6 +1861,9 @@ O			カーソルのある行の上に新しい行を作り、そこにテキス�
 が使用される。'smartindent' か 'cindent' が設定されている時には、行のインデン
 トはCプログラム(ソースコード)のスタイルに、自動的に調整される。
 
+'formatoptions' オプションで新しい行を始める時にコメント開始文字列をコピーする
+設定ができる。
+
 'textwidth' は、行の最大幅(文字数)を設定することができる。文字を追加している時
 に行が長くなりすぎると、自動的に改行が挿入される。
 
@@ -1871,12 +1876,16 @@ O			カーソルのある行の上に新しい行を作り、そこにテキス�
 			{range}が省略された場合、テキストは現在行の後から挿入
 			される。
 			[!] をつけるとその実行中のみ 'autoindent' をトグルする。
+			このコマンドは変数名ととても混同しやすいため、|Vim9|
+			script ではサポートされない。
 
 							*:i* *:in* *:insert*
 :{range}i[nsert][!]	指定された行の上に何行分かのテキストを挿入する。
 			{range}が省略された場合、テキストは現在行の前から挿入
 			される。
 			[!] をつけるとその実行中のみ 'autoindent' をトグルする。
+			このコマンドは変数名ととても混同しやすいため、|Vim9|
+			script ではサポートされない。
 
 これら2つのコマンドは、"." だけを含んだ行を入力するまで、挿入すべきテキストを
 待ちつづける。バックスラッシュで始まる行には警戒すべし。|line-continuation|参
