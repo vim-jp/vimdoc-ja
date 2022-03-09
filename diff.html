@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'diff'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="diff.html" name="diff.txt">diff.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2021 May 24<br>
+<a class="Constant" href="diff.html" name="diff.txt">diff.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2022 Jan 22<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -339,8 +339,8 @@ g:diff_translations を 0 に設定する:<br>
 <br>
 差分を発見する&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="diff.html#diff-diffexpr" name="diff-diffexpr">diff-diffexpr</a><br>
 <br>
-<a class="Type" href="options.html#'diffexpr'">'diffexpr'</a>&nbsp;オプションは、2つのファイルを比較し差分を取得する標準的な &quot;diff&quot; プ<br>
-ログラム以外の何かを利用する場合に設定する。&nbsp;<a class="Constant" href="diff.html#E959" name="E959">E959</a><br>
+<a class="Type" href="options.html#'diffexpr'">'diffexpr'</a>&nbsp;オプションは、2つのファイルを比較し差分を取得する内部diffサポートも<br>
+しくは標準的な &quot;diff&quot; プログラム以外の何かを利用する場合に設定する。&nbsp;<a class="Constant" href="diff.html#E959" name="E959">E959</a><br>
 <br>
 <a class="Type" href="options.html#'diffexpr'">'diffexpr'</a>&nbsp;が空ならば、Vimはfile1とfile2間の差分を得るために次のコマンドを使用<br>
 する:<br>
@@ -373,7 +373,7 @@ g:diff_translations を 0 に設定する:<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v:fname_in&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;基準となるファイル<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v:fname_new&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 同ファイルの新バージョン<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v:fname_out&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 結果を出力する差分ファイル<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v:fname_out&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 結果の差分ファイルを書き込む場所<br>
 <br>
 その上、<a class="Type" href="options.html#'diffexpr'">'diffexpr'</a>&nbsp;は&nbsp;<a class="Type" href="options.html#'diffopt'">'diffopt'</a>&nbsp;オプションの &quot;icase&quot; と &quot;iwhite&quot; についても考<br>
 慮するべきだろう。<a class="Type" href="options.html#'diffexpr'">'diffexpr'</a>&nbsp;は&nbsp;<a class="Type" href="options.html#'lines'">'lines'</a>&nbsp;と&nbsp;<a class="Type" href="options.html#'columns'">'columns'</a>&nbsp;の値を変更できない。<br>
@@ -384,13 +384,13 @@ g:diff_translations を 0 に設定する:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function MyDiff()<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; let opt = &quot;&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if &amp;diffopt =~ &quot;icase&quot;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; let opt = opt . &quot;-i &quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; let opt = opt .. &quot;-i &quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; endif<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if &amp;diffopt =~ &quot;iwhite&quot;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; let opt = opt . &quot;-b &quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; let opt = opt .. &quot;-b &quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; endif<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; silent execute &quot;!diff -a --binary &quot; . opt . v:fname_in . &quot; &quot; . v:fname_new .<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp;&quot; &gt; &quot; . v:fname_out<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; silent execute &quot;!diff -a --binary &quot; .. opt .. v:fname_in .. &quot; &quot; .. v:fname_new ..<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp;&quot; &gt; &quot; .. v:fname_out<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; redraw!<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction</div>
 <br>
@@ -400,6 +400,13 @@ g:diff_translations を 0 に設定する:<br>
 <br>
 シェルコマンドを実行し、ディスプレイに何かが表示されるかどうかによっては、<br>
 <span class="Comment">redraw!</span>&nbsp;コマンドは必要ないかもしれない。<br>
+<br>
+<a class="Type" href="options.html#'diffexpr'">'diffexpr'</a>&nbsp;の式が s: か&nbsp;<a class="Identifier" href="map.html#<SID>">&lt;SID&gt;</a>&nbsp;で始まる場合、スクリプトID(<a class="Identifier" href="eval.html#local-function">local-function</a>)<br>
+に置き換えられる。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set diffexpr=s:MyDiffExpr()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set diffexpr=&lt;SID&gt;SomeDiffExpr()</div>
+そうでない場合、式はオプションが設定されたスクリプトのコンテキストで評価され、<br>
+その結果スクリプトローカルな要素を使用できる。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="diff.html#E810" name="E810">E810</a>&nbsp;<a class="Constant" href="diff.html#E97" name="E97">E97</a><br>
 Vimは差分の出力結果が妥当であるか検証する。妥当でない場合、エラーメッセージを<br>
@@ -441,8 +448,8 @@ MS-Windows 用の Vim インストーラには diff プログラムが含まれ�
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set patchexpr=MyPatch()<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function MyPatch()<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :call system(&quot;patch -o &quot; . v:fname_out . &quot; &quot; . v:fname_in .<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \&nbsp;&nbsp;&quot; &lt; &quot; . v:fname_diff)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :call system(&quot;patch -o &quot; .. v:fname_out .. &quot; &quot; .. v:fname_in ..<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \&nbsp;&nbsp;&quot; &lt; &quot; .. v:fname_diff)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction</div>
 <br>
 利用する &quot;patch&quot; プログラムが望んでいない副作用をしていないことを確認する必要<br>
@@ -452,6 +459,14 @@ MS-Windows 用の Vim インストーラには diff プログラムが含まれ�
 レクトリを移動する。これにはカレントディレクトリの別のファイルへ偶然にパッチが<br>
 あたってしまうのを避ける狙いがある。Vimはv:fname_inで始まり &quot;.rej&quot; や &quot;.orig&quot;<br>
 で終わる名前のファイルを消すこともする。<br>
+<br>
+<a class="Type" href="options.html#'patchexpr'">'patchexpr'</a>&nbsp;の式が s: か&nbsp;<a class="Identifier" href="map.html#<SID>">&lt;SID&gt;</a>&nbsp;で始まる場合、スクリプトID(<a class="Identifier" href="eval.html#local-function">local-function</a>)<br>
+に置き換えられる。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set patchexpr=s:MyPatchExpr()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set patchexpr=&lt;SID&gt;SomePatchExpr()</div>
+そうでない場合、式はオプションが設定されたスクリプトのコンテキストで評価され、<br>
+その結果スクリプトローカルな要素を使用できる。<br>
+<br>
 <br>
 &nbsp;vim:tw=78:ts=8:noet:ft=help:norl:<br>
 </div>
