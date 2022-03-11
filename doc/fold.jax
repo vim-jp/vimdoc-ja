@@ -1,4 +1,4 @@
-*fold.txt*      For Vim バージョン 8.2.  Last change: 2021 Jul 13
+*fold.txt*      For Vim バージョン 8.2.  Last change: 2022 Jan 22
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -118,6 +118,11 @@ NOTE: 各行について式評価が実行されるので、この折り畳み�
 折り畳みレベルが定義された行が見つかるまで戻って、幾度も検索を行わなければなら
 ないからだ。これは動作が遅くなることがある。
 
+'foldexpr' の式が s: か |<SID>| で始まる場合、スクリプトID(|local-function|)
+に置き換えられる。例: >
+		set foldexpr=s:MyFoldExpr()
+		set foldexpr=<SID>SomeFoldExpr()
+<
 "a1" と "s1" の使用例: C 言語の複数行コメントを折りたたむ場合、"/*" を含む行で
 は "a1" を返してその開始位置を、"*/" を含む行では "s1" を返してその終了位置を
 示す: >
@@ -501,11 +506,15 @@ zk		カーソルより上方の折り畳みへ移動する。閉じられた折�
     :function MyFoldText()
     :  let line = getline(v:foldstart)
     :  let sub = substitute(line, '/\*\|\*/\|{{{\d\=', '', 'g')
-    :  return v:folddashes . sub
+    :  return v:folddashes .. sub
     :endfunction
 
 'foldtext' は|sandbox|環境下で実行評価される。現在のウィンドウはそのラインの属
-するウィンドウへ設定される。エラーは無視される。
+するウィンドウへ設定される。コンテキストはオプションを最後に設定したスクリプト
+のものが設定される。
+
+エラーは無視される。デバッグする際は、オプション 'debug' に "throw" を設定す
+る。
 
 省略値は|foldtext()|である。これはほとんどのタイプの折り畳みに対して妥当なテキ
 ストを返す。それが気に入らないのならば、独自の式を 'foldtext' に設定することが
@@ -521,6 +530,11 @@ zk		カーソルより上方の折り畳みへ移動する。閉じられた折�
 結果の文字列はウィンドウに合うように切り捨てられ、折り返されることはない。
 テキストの後ろに余白があれば、'fillchars' で指定された文字で充たされる。
 
+'foldtext' の式が s: か |<SID>| で始まる場合、スクリプトID(|local-function|)
+に置き換えられる。例: >
+		set foldtext=s:MyFoldText()
+		set foldtext=<SID>SomeFoldText()
+<
 ":set" コマンドが解釈してしまう文字: 空白、バックスラッシュ (\ 記号) そしてダ
 ブルクォートを使う場合にはバックスラッシュが必要である。 |option-backslash|
 
