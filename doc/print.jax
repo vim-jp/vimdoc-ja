@@ -1,4 +1,4 @@
-*print.txt*     For Vim バージョン 8.2.  Last change: 2021 Oct 04
+*print.txt*     For Vim バージョン 8.2.  Last change: 2022 Jan 23
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -135,28 +135,28 @@ Mac、VMS、HPUX、EBCDIC環境の標準エンコーディングのための、�
 MS-Windows と VMS 以外の環境の初期設定では、単純に "lpr" を使ってファイルを印
 刷します: >
 
-    system('lpr' . (&printdevice == '' ? '' : ' -P' . &printdevice)
-	. ' ' . v:fname_in) . delete(v:fname_in) + v:shell_error
+    system('lpr' .. (&printdevice == '' ? '' : ' -P' .. &printdevice)
+	.. ' ' .. v:fname_in) .. delete(v:fname_in) + v:shell_error
 
 MS-Windows での初期設定は、現在指定されている印刷デバイスにファイルをコピーし
 ます: >
 
-    system('copy' . ' ' . v:fname_in . (&printdevice == ''
-		? ' LPT1:' : (' \"' . &printdevice . '\"')))
-		. delete(v:fname_in)
+    system('copy' .. ' ' .. v:fname_in .. (&printdevice == ''
+		? ' LPT1:' : (' \"' .. &printdevice .. '\"')))
+		.. delete(v:fname_in)
 
 VMS での初期設定は、標準の印刷デバイスか、指定されている印刷デバイスにファイル
 を送ります: >
 
-    system('print' . (&printdevice == '' ? '' : ' /queue=' .
-		&printdevice) . ' ' . v:fname_in) . delete(v:fname_in)
+    system('print' .. (&printdevice == '' ? '' : ' /queue=' ..
+		&printdevice) .. ' ' .. v:fname_in) .. delete(v:fname_in)
 
 このオプションを設定するときは、関数を使うと、スペースをエスケープしなくてもい
 いので簡単です。例: >
 
 	:set printexpr=PrintFile(v:fname_in)
 	:function PrintFile(fname)
-	:  call system("ghostview " . a:fname)
+	:  call system("ghostview " .. a:fname)
 	:  call delete(a:fname)
 	:  return v:shell_error
 	:endfunc
@@ -172,8 +172,15 @@ MS-Windows 以外のシステムの初期設定では、"v:shell_error" を足�
 クを使っています。"v:shell_error" には system() の呼び出しでエラーが起きたとき
 に 0 以外の値が入ります。
 
-セキュリティ上の理由により、このオプションは、|modeline| や |sandbox| の中では
-設定できません。
+式が s: か |<SID>| で始まる場合は、スクリプトID(|local-function|) に置き換えら
+れます。例: >
+		set printexpr=s:MyPrintFile()
+		set printexpr=<SID>SomePrintFile()
+そうでない場合、式はオプションが設定されたスクリプトのコンテキストで評価され、
+その結果スクリプトローカルな要素を使用できます。
+
+セキュリティ上の理由から、このオプションを |modeline| または |sandbox| 内で設
+定することはできません。
 
 							*pfn-option* *E613*
 'printfont' 'pfn'	文字列	(初期設定は "courier")
