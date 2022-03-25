@@ -1,4 +1,4 @@
-*channel.txt*      For Vim バージョン 8.2.  Last change: 2021 Nov 28
+*channel.txt*      For Vim バージョン 8.2.  Last change: 2022 Feb 27
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1314,7 +1314,6 @@ Shift-CTRL-W を使用します)。ウィンドウを離れるとき挿入モー
 		\ err_cb: function('GotOutput'),
 		\ exit_cb: function('JobExit'),
 		\ })
-	let shell_ch = job_getchannel(shell_job)
 
 	new
 	set buftype=prompt
@@ -1325,6 +1324,46 @@ Shift-CTRL-W を使用します)。ウィンドウを離れるとき挿入モー
 	" シェルコマンドの受け付けを開始する。
 	startinsert
 <
+|Vim9| script で同様に: >
+
+	vim9script
+
+	# チャネルのログを作成し、何が起きているか確認できるようにする。
+	ch_logfile('logfile', 'w')
+
+	var shell_job: job
+
+	# 入力されたテキスト行を扱う関数。
+	def TextEntered(text: string)
+	  # Enterを付加してテキストをシェルに送信する。
+	  ch_sendraw(shell_job, text .. "\n")
+	enddef
+
+	# シェルからの出力を扱う関数: プロンプトの上に追加する。
+	def GotOutput(channel: channel, msg: string)
+	  append(line("$") - 1, "- " .. msg)
+	enddef
+
+	# シェルの終了を扱う関数: ウィンドウを閉じる。
+	def JobExit(job: job, status: number)
+	  quit!
+	enddef
+
+	# バックグラウンドでシェルを起動する。
+	shell_job = job_start(["/bin/sh"], {
+				 out_cb: GotOutput,
+				 err_cb: GotOutput,
+				 exit_cb: JobExit,
+				 })
+
+	new
+	set buftype=prompt
+	var buf = bufnr('')
+	prompt_setcallback(buf, TextEntered)
+	prompt_setprompt(buf, "shell command: ")
+
+	# シェルコマンドの受け付けを開始する。
+	startinsert
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:
