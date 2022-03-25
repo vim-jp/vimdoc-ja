@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'print'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="print.html" name="print.txt">print.txt</a>&nbsp;&nbsp;&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2021 Oct 04<br>
+<a class="Constant" href="print.html" name="print.txt">print.txt</a>&nbsp;&nbsp;&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2022 Jan 23<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -140,28 +140,28 @@ Mac、VMS、HPUX、EBCDIC環境の標準エンコーディングのための、�
 MS-Windows と VMS 以外の環境の初期設定では、単純に &quot;lpr&quot; を使ってファイルを印<br>
 刷します:<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;system('lpr' . (&amp;printdevice == '' ? '' : ' -P' . &amp;printdevice)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;. ' ' . v:fname_in) . delete(v:fname_in) + v:shell_error</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;system('lpr' .. (&amp;printdevice == '' ? '' : ' -P' .. &amp;printdevice)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.. ' ' .. v:fname_in) .. delete(v:fname_in) + v:shell_error</div>
 <br>
 MS-Windows での初期設定は、現在指定されている印刷デバイスにファイルをコピーし<br>
 ます:<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;system('copy' . ' ' . v:fname_in . (&amp;printdevice == ''<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? ' LPT1:' : (' \&quot;' . &amp;printdevice . '\&quot;')))<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;. delete(v:fname_in)</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;system('copy' .. ' ' .. v:fname_in .. (&amp;printdevice == ''<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? ' LPT1:' : (' \&quot;' .. &amp;printdevice .. '\&quot;')))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.. delete(v:fname_in)</div>
 <br>
 VMS での初期設定は、標準の印刷デバイスか、指定されている印刷デバイスにファイル<br>
 を送ります:<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;system('print' . (&amp;printdevice == '' ? '' : ' /queue=' .<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;printdevice) . ' ' . v:fname_in) . delete(v:fname_in)</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;system('print' .. (&amp;printdevice == '' ? '' : ' /queue=' ..<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;printdevice) .. ' ' .. v:fname_in) .. delete(v:fname_in)</div>
 <br>
 このオプションを設定するときは、関数を使うと、スペースをエスケープしなくてもい<br>
 いので簡単です。例:<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set printexpr=PrintFile(v:fname_in)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:function PrintFile(fname)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;call system(&quot;ghostview &quot; . a:fname)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;call system(&quot;ghostview &quot; .. a:fname)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;call delete(a:fname)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;return v:shell_error<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:endfunc</div>
@@ -177,8 +177,15 @@ MS-Windows 以外のシステムの初期設定では、&quot;v:shell_error&quot
 クを使っています。&quot;v:shell_error&quot; には system() の呼び出しでエラーが起きたとき<br>
 に 0 以外の値が入ります。<br>
 <br>
-セキュリティ上の理由により、このオプションは、<a class="Identifier" href="options.html#modeline">modeline</a>&nbsp;や&nbsp;<a class="Identifier" href="eval.html#sandbox">sandbox</a>&nbsp;の中では<br>
-設定できません。<br>
+式が s: か&nbsp;<a class="Identifier" href="map.html#<SID>">&lt;SID&gt;</a>&nbsp;で始まる場合は、スクリプトID(<a class="Identifier" href="eval.html#local-function">local-function</a>) に置き換えら<br>
+れます。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set printexpr=s:MyPrintFile()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set printexpr=&lt;SID&gt;SomePrintFile()</div>
+そうでない場合、式はオプションが設定されたスクリプトのコンテキストで評価され、<br>
+その結果スクリプトローカルな要素を使用できます。<br>
+<br>
+セキュリティ上の理由から、このオプションを&nbsp;<a class="Identifier" href="options.html#modeline">modeline</a>&nbsp;または&nbsp;<a class="Identifier" href="eval.html#sandbox">sandbox</a>&nbsp;内で設<br>
+定することはできません。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="print.html#pfn-option" name="pfn-option">pfn-option</a>&nbsp;<a class="Constant" href="print.html#E613" name="E613">E613</a><br>
 <a class="Type" href="options.html#'printfont'">'printfont'</a>&nbsp;<a class="Type" href="options.html#'pfn'">'pfn'</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 文字列&nbsp;&nbsp;(初期設定は &quot;courier&quot;)<br>
