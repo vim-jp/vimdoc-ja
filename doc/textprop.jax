@@ -1,4 +1,4 @@
-*textprop.txt*  For Vim バージョン 8.2.  Last change: 2021 Aug 16
+*textprop.txt*  For Vim バージョン 8.2.  Last change: 2021 Nov 23
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -226,11 +226,22 @@ prop_find({props} [, {direction}])
 prop_list({lnum} [, {props}])				*prop_list()*
 		{lnum}行のすべてのテキストプロパティを持つリストを返す。
 
-		{props}に "bufnr" 項目が含まれている場合は、カレントバッファの
-		代わりにこのバッファを使用する。
+		{props} では以下の省略可能な項目をサポートする:
+		   bufnr	カレントバッファのかわりに指定したバッファを使
+				う
+		   end_lnum	{lnum} と {end_lnum} の間の行すべてのテキスト
+				プロパティを返す(包括的)。値が負数だとバッファ
+				の最終行からのオフセットとして使用される。-1は
+				バッファの最終行を参照する。
+		   types	プロパティのタイプ名のリスト。タイプ名のいずれ
+				かにマッチしたテキストプロパティだけを返す。
+		   ids		プロパティのIDのリスト。これらのIDのテキストプ
+				ロパティだけを返す。
 
 		プロパティは、開始桁と優先順位によって順序付けられる。
 		各プロパティは、次のエントリを持つ辞書である:
+		   lnum		開始行。 {lnum} と {end_lnum} の間のテキストプ
+				ロパティを返す場合にのみ存在する。
 		   col		開始桁
 		   length	バイト長。改行が含まれる場合は1以上。
 		   id		プロパティID
@@ -245,6 +256,33 @@ prop_list({lnum} [, {props}])				*prop_list()*
 		きである。
 		"end" が0の場合、プロパティは次の行に続く。この行の後に改行が
 		含まれる。
+
+		エラーの時は空のリストを返す。
+
+		例:
+		   " 5行目に置かれている全テキストプロパティを取得する
+		   echo prop_list(5)
+		   " バッファ4の20行目に置かれている全テキストプロパティを取得
+		   " する
+		   echo prop_list(20, {'bufnr': 4})
+		   " 1行目から20行目に置かれている全テキストプロパティを取得す
+		   " る
+		   echo prop_list(1, {'end_lnum': 20})
+		   " タイプが 'myprop' の全テキストプロパティを取得する
+		   echo prop_list(1, {'types': ['myprop'],
+						\ 'end_lnum': -1})
+		   " タイプが 'prop1' か 'prop2' の全テキストプロパティを取得
+		   " する
+		   echo prop_list(1, {'types': ['prop1', 'prop2'],
+						\ 'end_lnum': -1})
+		   " IDが8の全テキストプロパティを取得する
+		   echo prop_list(1, {'ids': [8], 'end_lnum': line('$')})
+		   " IDが10と20の全テキストプロパティを取得する
+		   echo prop_list(1, {'ids': [10, 20], 'end_lnum': -1})
+		   " バッファ4からタイプが 'myprop' かつIDが100のテキストプロ
+		   " パティを取得する。
+		   echo prop_list(1, {'bufnr': 4, 'types': ['myprop'],
+					\ 'ids': [100], 'end_lnum': -1})
 
 		|method| としても使用できる: >
 			GetLnum()->prop_list()
