@@ -1,4 +1,4 @@
-*syntax.txt*	For Vim バージョン 8.2.  Last change: 2022 Feb 04
+*syntax.txt*	For Vim バージョン 8.2.  Last change: 2022 Mar 02
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -635,7 +635,7 @@ ID が必要である。例えば生成された HTML を他のドキュメン�
 ID に付加する。その完全な ID であれば、他のドキュメントにコピーされた場合でも
 一意に定めることができる。例えば、 _ とバッファ番号を ID に付加するには: >
 
-	:let g:html_id_expr = '"_".bufnr("%")'
+	:let g:html_id_expr = '"_" .. bufnr("%")'
 <
 ID の末尾に "_mystring" を付加するには: >
 
@@ -3485,8 +3485,8 @@ xpm.vimは編集中のXPMファイルの内容から、動的に構文要素を�
    :function! GetPixel()
    :   let c = getline(".")[col(".") - 1]
    :   echo c
-   :   exe "noremap <LeftMouse> <LeftMouse>r".c
-   :   exe "noremap <LeftDrag>	<LeftMouse>r".c
+   :   exe "noremap <LeftMouse> <LeftMouse>r" .. c
+   :   exe "noremap <LeftDrag>	<LeftMouse>r" .. c
    :endfunction
    :noremap <RightMouse> <LeftMouse>:call GetPixel()<CR>
    :set guicursor=n:hor20	   " to see the color beneath the cursor
@@ -3587,12 +3587,12 @@ ZSH						    *zsh.vim* *ft-zsh-syntax*
 	影響する。
 
 :sy[ntax] case
-	"syntax case match" または "syntax case ignore" (翻訳される)を表示す
-	る。
+	"syntax case match" または "syntax case ignore" を表示する。
 
 折り畳みレベルの定義					*:syn-foldlevel*
 
-:sy[ntax] foldlevel [start | minimum]
+:sy[ntax] foldlevel start
+:sy[ntax] foldlevel minimum
 	foldmethod=syntax 利用時での行の折り畳みレベル算出の方法を定義する
 	(|fold-syntax| と |:syn-fold| を参照):
 
@@ -3604,14 +3604,16 @@ ZSH						    *zsh.vim* *ft-zsh-syntax*
 	方向に開閉する場合に、より自然な折りたたみが生成される。
 
 :sy[ntax] foldlevel
-	"syntax foldlevel start" かもしくは "syntax foldlevel minimum" を表示
-	する。
+	現在の折り畳みレベルを表示する方法、"syntax foldlevel start" もしくは
+	"syntax foldlevel minimum" を表示する。
 
 	{|+folding|機能なしでコンパイルされた場合は意味を持たない}
 
 スペルチェック						*:syn-spell*
 
-:sy[ntax] spell [toplevel | notoplevel | default]
+:sy[ntax] spell toplevel
+:sy[ntax] spell notoplevel
+:sy[ntax] spell default
 	構文アイテムに入っていないテキストに対して、どこでスペルチェック
 	を行うかを定義する:
 
@@ -3627,8 +3629,8 @@ ZSH						    *zsh.vim* *ft-zsh-syntax*
 	らない。
 
 :sy[ntax] spell
-	"syntax spell toplevel", "syntax spell notoplevel" または
-	"syntax spell default" (翻訳される)を表示する。
+	現在の構文でのスペルチェックの方法、"syntax spell toplevel", "syntax
+	spell notoplevel" または "syntax spell default" を表示する。
 
 
 SYNTAX ISKEYWORD SETTING				*:syn-iskeyword*
@@ -4198,8 +4200,7 @@ Note この例はネストした "if" には機能しないことに注意。ネ
 	ればならない状態に戻る。
 
 :sy[ntax] conceal
-	"syntax conceal on" または "syntax conceal off" (翻訳される)を表示す
-	る。
+	"syntax conceal on" または "syntax conceal off" を表示する。
 
 ==============================================================================
 8. syntaxのパターン				*:syn-pattern* *E401* *E402*
@@ -4293,7 +4294,8 @@ Notes:
 Leading context			*:syn-lc* *:syn-leading* *:syn-context*
 
 Note: これは古い機能であり、以前のバージョンとの後方互換性のためだけに残されて
-いる。現在はパターン中の|/\@<=|コンストラクトを使うことが推奨されている。
+いる。現在はパターン中の |/\@<=| コンストラクトを使うことが推奨されている。
+|/\zs| も多くの場合使うことができる。
 
 "lc" オフセットはリーディングコンテキストを指定する。これはパターンの一部にな
 ければならないが、マッチ部分の一部とは見なされないものである。"lc=n" のオフセッ
@@ -5340,12 +5342,13 @@ syntax/syncolor.vimファイルが読み込まれると、変数 "syntax_cmd" �
 警告: tagsファイルが大きくなるほどこの操作は遅くなり、消費するメモリ量も多くな
 る。
 
-typedef、union、structだけをハイライトすることもできる。そのためにはExuberant
-ctags (http://ctags.sf.netで入手可能)が必要である。
+typedef、union、structだけをハイライトすることもできる。そのためには Universal
+Ctags (https://ctags.io で入手可能) あるいは Exuberant ctags
+(http://ctags.sf.net で入手可能)が必要である。
 
 以下をあなたのMakefileに加える:
 
-# 型用のハイライトファイルを作成する。Exuberant ctagsとawkが必要
+# 型用のハイライトファイルを作成する。Universal/Exuberant ctagsとawkが必要
 types: types.vim
 types.vim: *.[ch]
 	ctags --c-kinds=gstu -o- *.[ch] |\
@@ -5354,10 +5357,10 @@ types.vim: *.[ch]
 
 そして以下を.vimrcに加える: >
 
-   " load the types.vim highlighting file, if it exists
-   autocmd BufRead,BufNewFile *.[ch] let fname = expand('<afile>:p:h') . '/types.vim'
+   " 存在する場合、ハイライトファイル types.vim をロードする
+   autocmd BufRead,BufNewFile *.[ch] let fname = expand('<afile>:p:h') .. '/types.vim'
    autocmd BufRead,BufNewFile *.[ch] if filereadable(fname)
-   autocmd BufRead,BufNewFile *.[ch]   exe 'so ' . fname
+   autocmd BufRead,BufNewFile *.[ch]   exe 'so ' .. fname
    autocmd BufRead,BufNewFile *.[ch] endif
 
 ==============================================================================
