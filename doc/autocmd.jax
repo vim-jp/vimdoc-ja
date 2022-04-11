@@ -1,4 +1,4 @@
-*autocmd.txt*   For Vim バージョン 8.2.  Last change: 2022 Feb 09
+*autocmd.txt*   For Vim バージョン 8.2.  Last change: 2022 Apr 08
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -60,7 +60,8 @@
 			{cmd} は常に既存の自動コマンドの後に追加されるので、
 			自動コマンドは指定された順に実行される。
 			[nested] については |autocmd-nested| を参照。後方互換
-			性のために、"nested" (++ なし)も使用できる。
+			性のために、"nested" (++ なし)も使用できるが、|Vim9|
+			script では使用できない。 *E1078*
 							*autocmd-once*
 			[++once] が指定されている場合、コマンドは1回実行される
 			と削除される("one shot")。
@@ -371,6 +372,7 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 |InsertEnter|		挿入モードを開始したとき
 |InsertChange|		挿入や置換モードで<Insert>をタイプしたとき
 |InsertLeave|		挿入モードを抜けるとき
+|InsertLeavePre| 	挿入モードを抜ける直前
 |InsertCharPre|		挿入モードで文字が入力されたとき、その文字が挿入される
 			前
 
@@ -403,6 +405,8 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 
 |User|			":doautocmd" との組合せで使われる
 |SigUSR1|		SIGUSER1シグナルを受けとった後
+
+|WinScrolled|		ウィンドウがスクロールもしくはサイズ変更した後
 
 自動コマンドイベントのアルファベット順リスト:		*autocmd-events-abc*
 
@@ -695,7 +699,7 @@ CursorMoved			ノーマルモードかビジュアルモードでカーソルが
 				先行入力があるとき、スクリプトファイルのコマン
 				ドの実行中、オペレータが待機しているとき、また
 				は同じカーソル位置のまま別のウィンドウへ移動し
-				たときには発生しない。
+				たときには常に発生しない。
 				|match-parens|の例を参照。
 				Note: この自動イベントは `:noautocmd` を付けて
 				もスキップできない。
@@ -739,9 +743,10 @@ DiffUpdated			差分が更新された後。使用されているdiffコマン�
 				の種類(内部または外部)に応じて、変更毎か
 				|:diffupdate| 実行時に発生する。
 							*DirChangedPre*
-DirChangedPre			|DirChanged| と同じように、作業ディレクトリが変更
-				されようとしているとき。パターンは |DirChanged| と同様。新し
-				いディレクトリ名は v:event.directory にある。
+DirChangedPre			|DirChanged| と同じように、作業ディレクトリが
+				変更されようとしているとき。パターンは
+				|DirChanged| と同様。新しいディレクトリ名は
+				v:event.directory にある。
 							*DirChanged*
 DirChanged			|:cd|, |:tcd| もしくは |:lcd| コマンドによって、
 				もしくは 'autochdir' オプションの結果として作業
@@ -1208,8 +1213,15 @@ User				自動的に実行されることはない。コマンド
 				ドのために使用される。
 				Note: 該当する自動コマンドが存在しないときに
 				`:doautocmd User MyEvent` が使用された場合、エ
-				ラーが発生する。これを回避したい場合、ダミーの
-				自動コマンドを自身で定義すること。
+				ラーが発生する。これを回避したい場合、
+				`exists('#User#MyEvent')` を使って定義されてい
+				るかチェックするか、ダミーの自動コマンドを自身
+				で定義すること。
+				例: >
+				    if exists('#User#MyEvent')
+					doautocmd User MyEvent
+				    endif
+
 
 							*SigUSR1*
 SigUSR1				SIGUSR1シグナルを受けとった後。Vimに通知する他
@@ -1293,6 +1305,19 @@ WinLeave			ウィンドウを離れる前。次に入るウィンドウで他の
 WinNew				新しいウィンドウが作成されたとき。Vim がちょう
 				ど開始したとき、最初のウィンドウのためには行わ
 				れない。WinEnter イベントの前。
+
+							*WinScrolled*
+WinScrolled			ウィンドウのコンテンツがスクロールした後、もし
+				くはウィンドウのサイズ変更後。
+				パターンは |window-ID| に対してマッチする。
+				<amatch> と <afile> はどちらも |window-ID| が
+				設定される。
+				再帰的に発生しない(このイベントで自分自身を発
+				行しない)。しかしながら、コマンド由来でウィン
+				ドウのスクロールあるいはサイズの変化があると別
+				の WinScrolled イベントが後で発行される。
+				コマンドの追加時には発行されず、その後の最初の
+				スクロールかサイズ変更でのみ発行される。
 
 ==============================================================================
 6. パターン					*autocmd-patterns* *{aupat}*
