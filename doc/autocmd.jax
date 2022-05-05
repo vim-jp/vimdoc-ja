@@ -1,4 +1,4 @@
-*autocmd.txt*   For Vim バージョン 8.2.  Last change: 2022 Apr 08
+*autocmd.txt*   For Vim バージョン 8.2.  Last change: 2022 Apr 17
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -92,6 +92,7 @@ Note: ":autocmd" コマンドの後には、パターンが期待される位置
 	:augroup mine | exe "au! BufRead *" | augroup END
 	:augroup mine | exe "au BufRead * set tw=70" | augroup END
 
+<							*autocmd-expand*
 Note ":autocmd" の引数の中の特別な文字 (例えば "%" や "<cword>" 等) は、自動コ
 マンドが定義されたときに展開されるのではなく、イベントの発生が認識され、{cmd}
 が実行されるときに展開されることに注意せよ。唯一の例外は、"<sfile>" が自動コマ
@@ -476,14 +477,16 @@ BufNewFile			存在しないファイルの編集を始めたとき。スケル�
 BufRead or BufReadPost		新しいバッファの編集を始めたときの、ファイルを
 				バッファに読み込んだ後で、モードラインを実行す
 				る前。モードラインを実行した後に何かするには
-				|BufWinEnter|を参照すること。これは ":r file"
-				には「動作しない」。ファイルが存在しないときも
-				使えない。またファイルの復旧に成功したときにも
-				使われる。
-				また、":filetype detect" を実行したとき、ある
-				いは無名バッファを保存してバッファに名前がつい
-				たとき、filetypedetect グループを対象として発
-				行される。
+				|BufWinEnter|を参照すること。
+				発行される場合:
+				- 無名バッファを保存してバッファに名前がついた
+				  とき
+				- ファイルのリカバリーが成功した後
+				- filetypedetect グループを対象として
+				  ":filetype detect" を実行したとき
+				発行されない場合:
+				- `:read file` コマンド
+				- ファイルが存在しないとき
 							*BufReadCmd*
 BufReadCmd			新しいバッファの編集を始める前。ファイルをバッ
 				ファ内に読み込む役目を負う。 |Cmd-event|
@@ -710,9 +713,37 @@ CursorMoved			ノーマルモードかビジュアルモードでカーソルが
 CursorMovedI			挿入モードでカーソルが移動した後。ポップアップ
 				メニューが表示されているときは発行されない。
 				それ以外はCursorMovedと同じ。
+                                                       *DiffUpdated*
+DiffUpdated			差分が更新された後。使用されているdiffコマンド
+				の種類(内部または外部)に応じて、変更毎か
+				|:diffupdate| 実行時に発生する。
+							*DirChangedPre*
+DirChangedPre			|DirChanged| と同じように、作業ディレクトリが
+				変更されようとしているとき。パターンは
+				|DirChanged| と同様。新しいディレクトリ名は
+				v:event.directory にある。
+							*DirChanged*
+DirChanged			|:cd|, |:tcd| もしくは |:lcd| コマンドによって、
+				もしくは 'autochdir' オプションの結果として作業
+				ディレクトリが変更された後。
+				パターンは以下のようになる:
+					"window"  `:lcd` により発生する
+					"tabpage" `:tcd` により発生する
+					"global"  `:cd` により発生する
+					"auto"    'autochdir' により発生する
+					"drop"    ファイルの編集により発生する
+				<afile> は新ディレクトリ名に設定される。
 							*EncodingChanged*
 EncodingChanged			オプション 'encoding' が変更されたとき。例えば、
 				フォント等の設定に便利である。
+							*ExitPre*
+ExitPre				Vim を終了させる `:quit`, `:wq` もしくは
+				`:qall` を使用したときで、|QuitPre| の直後。不
+				必要なウィンドウを閉じるのに使うことができる。
+				自動的に保存されない変更済みのバッファがある場
+				合には、終了はまだキャンセルされる可能性があ
+				る。本当に終了するときのためには |VimLeavePre|
+				を使用すること。
 							*FileAppendCmd*
 FileAppendCmd			ファイルに追加する前。ファイルへの追加の役目を
 				負う。|Cmd-event|
@@ -738,34 +769,6 @@ FileChangedRO			読み込み専用ファイルに最初の変更を加える前�
 							*E881*
 				行数が変化した場合 undo のための保存は失敗し、
 				その変更は中止されるだろう。
-                                                       *DiffUpdated*
-DiffUpdated			差分が更新された後。使用されているdiffコマンド
-				の種類(内部または外部)に応じて、変更毎か
-				|:diffupdate| 実行時に発生する。
-							*DirChangedPre*
-DirChangedPre			|DirChanged| と同じように、作業ディレクトリが
-				変更されようとしているとき。パターンは
-				|DirChanged| と同様。新しいディレクトリ名は
-				v:event.directory にある。
-							*DirChanged*
-DirChanged			|:cd|, |:tcd| もしくは |:lcd| コマンドによって、
-				もしくは 'autochdir' オプションの結果として作業
-				ディレクトリが変更された後。
-				パターンは以下のようになる:
-					"window"  `:lcd` により発生する
-					"tabpage" `:tcd` により発生する
-					"global"  `:cd` により発生する
-					"auto"    'autochdir' により発生する
-					"drop"    ファイルの編集により発生する
-				<afile> は新ディレクトリ名に設定される。
-							*ExitPre*
-ExitPre				Vim を終了させる `:quit`, `:wq` もしくは
-				`:qall` を使用したときで、|QuitPre| の直後。不
-				必要なウィンドウを閉じるのに使うことができる。
-				自動的に保存されない変更済みのバッファがある場
-				合には、終了はまだキャンセルされる可能性があ
-				る。本当に終了するときのためには |VimLeavePre|
-				を使用すること。
 							*FileChangedShell*
 FileChangedShell		ファイルのタイムスタンプが、ファイルの編集が始
 				まってから変更されたことを発見したとき。
@@ -1190,6 +1193,9 @@ TextChangedP			挿入モードでカレントバッファのテキストが変�
 TextYankPost			カレントバッファでテキストがヤンクもしくは削除
 				された後。|v:event| の以下の値は、この autocmd
 				を発生させた操作を特定するのに使用できる:
+				   inclusive	移動が |inclusive| の時に真と
+						なり、|exclusive| のときはそう
+						ではない。
 				   operator	実行されたオペレータ。
 				   regcontents	レジスタに格納された行区切りの
 						テキストのリスト。以下と同様: >
