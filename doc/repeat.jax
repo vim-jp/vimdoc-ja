@@ -1,4 +1,4 @@
-*repeat.txt*    For Vim バージョン 8.2.  Last change: 2022 Jan 21
+*repeat.txt*    For Vim バージョン 8.2.  Last change: 2022 Apr 08
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -205,19 +205,24 @@ Vim script の書き方はユーザーマニュアルの41章|usr_41.txt|を参�
 
 			Vim9 script の文脈で行の範囲読み込みが |:vim9script|
 			コマンドで始まらない時は、|:vim9cmd| 修飾が使われる。
+			ビジュアル選択で ":" を入力すると、"'<,'>" 形式の範囲
+			がその前にくることがある: >
+				:'<,'>vim9cmd source
+<			それ以外の場合、範囲は修飾子の後に続き、すべての Vim9
+			の範囲と同様に、プリフィックスとしてコロンを付ける必要
+			がある: >
+				:vim9cmd :5,9source
 
-			Vim9 script の文脈でバッファ内の行の範囲読み込みがされ
+<			Vim9 script の文脈でバッファ内の行の範囲読み込みがされ
 			た時、以前に定義したスクリプトローカルの変数と関数はク
 			リアされない。範囲が ":vim9script noclear" コマンドで
 			始まればその動作になる。引数 "++clear" を使えばスクリ
 			プトローカルの変数と関数をスクリプトの読み込み前にクリ
-			アされる。範囲が |:vimscript| コマンドで引数 "noclear"
-			なしで始まればその動作になる。
+			アされる。範囲が `:vim9script` コマンドで引数
+			"noclear" なしで始まればその動作になる。
 			詳細な情報は |vim9-reload| を参照。
 			例: >
-
 				:4,5source
-				:vim9cmd :'<,'>source
 				:10,18source ++clear
 
 							*:source!*
@@ -1022,18 +1027,25 @@ Note 関数はまず読み込まれ、後で実行される。読み込まれた
 
 
 :prof[ile] start {fname}			*:prof* *:profile* *E750*
-		プロファイリングを開始し、終了時に出力を {fname} に出力する。
+		プロファイリングを開始し、終了時もしくは `:profile stop` また
+		は `:profile dump` コマンドを実行した時に出力を {fname} に書き
+		出す。
 		{fname} 中の "~/" や環境変数は展開される。
 		{fname} がすでに存在するときは、警告なしに上書きされる。
 		変数 |v:profiling| に 1 が代入される。
 
+:prof[ile] stop
+		収集したプロファイリング情報をログファイルに書き込み、プロファ
+		イリングを停止する。`:profile start` コマンドを使用して、プ
+		ロファイリング統計をクリアし、プロファイリングを再開できる。
+
 :prof[ile] pause
-		次の ":profile continue" が実行されるまでプロファイリングをし
+		次の `:profile continue` が実行されるまでプロファイリングをし
 		ない。カウントされるべきでない何かを行う時に使うことができる
 		(例えば外部コマンドなど)。ネストすることはできない。
 
 :prof[ile] continue
-		":profile pause" の後にこれを実行すると、プロファイリングを再
+		`:profile pause` の後にこれを実行すると、プロファイリングを再
 		開する。
 
 :prof[ile] func {pattern}
@@ -1052,10 +1064,17 @@ Note 関数はまず読み込まれ、後で実行される。読み込まれた
 		プロファイリングは始まる。スクリプト自身にある :profile コマン
 		ドは働かない。
 
+:prof[ile] dump
+		現在のプロファイリングの状態を即座にログファイルに書き込む。こ
+		のコマンドの実行後、Vim はプロファイリング統計の収集を継続す
+		る。
 
 :profd[el] ...						*:profd* *:profdel*
 		指定された引数に対するプロファイリングを停止する。引数について
-		は |:breakdel| を参照。
+		は |:breakdel| を参照。例: >
+			profdel func MyFunc
+			profdel file MyScript.vim
+			profdel here
 
 最初は常に ":profile start fname" コマンドで始めなければならない。結果のファイ
 ルは Vim が終了するときに書き出される。例えば、特定の1つの関数のプロファイルな
