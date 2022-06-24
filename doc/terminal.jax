@@ -1,4 +1,4 @@
-*terminal.txt*	For Vim バージョン 8.2.  Last change: 2022 Apr 06
+*terminal.txt*	For Vim バージョン 8.2.  Last change: 2022 Jun 09
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -101,7 +101,7 @@ CTRL-W の代わりに別のキーを使うにはオプション 'termwinkey' �
 他のモードと同じように、ノーマルモードへ移行するための特別なキーの組み合わせで
 ある CTRL-\ CTRL-N が利用できます。
 							*t_CTRL-W_CTRL-C*
-ジョブを強制停止するのに CTRL-W CTRL-C を使えます。MS-Windowsでは CTRL-BREAK
+ジョブを強制停止するのに CTRL-W CTRL-C を使えます。MS-Windowsでは CTRL-Break
 でも同様にジョブを停止できます。
 
 CTRL-C を入力した場合、その効果は pty がどのように構成されているかに従います。
@@ -1272,6 +1272,8 @@ gdb ウィンドウにフォーカスを移しコマンドを入力します。�
 - CTRL-C	プログラムを中断する
 - next		現在の行を実行し、次の行(の手前)で停止する
 - step		現在の行を実行し、次の文(の手前)で停止する。関数の内側に入る
+- until		現在の行を通過する、または指定位置を通過する、または現在のス
+		タックフレームに戻るまで実行する
 - finish	現在の関数を抜けるまで実行する
 - where		スタックを表示する
 - frame N	N 番目のスタックフレームに移動する
@@ -1288,6 +1290,7 @@ gdb ウィンドウにフォーカスを移しコマンドを入力します。�
  *:Step*	gdb の "step" コマンドを実行する
  *:Over*	gdb の "next" コマンドを実行する
 		(`:Next` だと Vim のコマンドとかぶるので)
+ *:Until*	gdb の "until" コマンドを実行する
  *:Finish*	gdb の "finish" コマンドを実行する
  *:Continue*	gdb の "continue" コマンドを実行する
  *:Stop*	プログラムを中断する
@@ -1349,9 +1352,8 @@ gdbは各ブレークポイントに番号を与えます。Vim内では、赤�
 <
 						*TermdebugStartPre*
 TermdebugStartPre		デバッグ開始前。
-				すでにデバッガが開始しているもしくは
-				|g:termdebugger| が実行できない場合は発行され
-				ない。
+				すでにデバッガが開始しているもしくはデバッガコ
+				マンドが実行できない場合は発行されない。
 						*TermdebugStartPost*
 TermdebugStartPost		デバッグの初期化後。
 				`:Termdebug` あるいは `:TermdebugCommand` 経由
@@ -1382,18 +1384,25 @@ TermdebugStopPost		デバッグの終了後、gdb 関連ウィンドウが閉じ
 
 						*termdebug_use_prompt*
 プロンプトモードは、|+terminal| 機能が有効な場合でも使用できます: >
+	let g:termdebug_config['use_prompt'] = 1
+または、g:termdebug_config がない場合: >
 	let g:termdebug_use_prompt = 1
 <
 						*termdebug_map_K*
-K は通常 :Evaluate にマッピングされています。もしそうしたくないなら: >
+K は通常 :Evaluate にマッピングされています。これが不要な場合は: >
+	let g:termdebug_config['map_K'] = 0
+または、g:termdebug_config がない場合: >
 	let g:termdebug_map_K = 0
 
 <
 						*termdebug_disasm_window*
-Asm ウィンドウをデフォルトで表示たいなら、この変数に1を設定する。1以上の任意の
-値を設定したなら、その値が Asm ウィンドウの高さとして設定される: >
+Asm ウィンドウをデフォルトで表示させたい場合、このフラグに1を設定します。
+"disasm_window_height" エントリを使用してウィンドウの高さを設定できます: >
+	let g:termdebug_config['disasm_window'] = 1
+	let g:termdebug_config['disasm_window_height'] = 15
+または、g:termdebug_config がない場合: >
 	let g:termdebug_disasm_window = 15
-<
+1以上の任意の値を設定でき、その値が Asm ウィンドウの高さになります。
 
 通信 ~
 						*termdebug-communication*
@@ -1410,23 +1419,44 @@ gdb は奇妙な動作をしていますが、プラグインはその問題を�
 
 
 カスタマイズ ~
+				*termdebug-customizing* *g:termdebug_config*
+以前はいくつかのグローバル変数を設定に使用していました。これらは非推奨になり、
+辞書 g:termdebug_config の使用が推奨されます。g:termdebug_config が存在する時
+は他のグローバル変数は使用されません。
 
-GDBコマンド						*termdebug-customizing*
+
+GDBコマンド ~
 							*g:termdebugger*
-gdb コマンド以外のデバッガを使うには、 `:Termdebug` を実行する前に
-"g:termdebugger" 変数を変更してください: >
+gdb コマンド以外のデバッガを使うには、`:Termdebug` を実行する前に
+g:termdebug_config の "debugger" エントリか "g:termdebugger" 変数を変更してく
+ださい: >
+	let g:termdebug_config['command'] = "mygdb"
+または、g:termdebug_config がない場合: >
 	let g:termdebugger = "mygdb"
+
 コマンドに引数が必要な場合はリストを使用してください: >
+	let g:termdebug_config['command'] = ['rr', 'replay', '--']
+または、g:termdebug_config がない場合: >
 	let g:termdebugger = ['rr', 'replay', '--']
-<							*gdb-version*
+
+gdb がデバッガで適切に動作するように、いくつかの引数が追加されます。それらを変
+更したい場合は、引数リストをフィルタリングする関数を追加します: >
+	let g:termdebug_config['command_filter'] = MyDebugFilter
+
+引数を追加したくないが、"pty" を設定する必要がある場合は、関数を使用して必要な
+引数を追加します: >
+	let g:termdebug_config['command_add_args'] = MyAddArguments
+この関数はいままでの引数のリストと、ptyの名前である2番目の引数とともに呼ばれま
+す。
+							*gdb-version*
 gdb と完全互換のあるデバッガのみが使えます。Vim は gdb の操作に GDB/MI インター
 フェイスを利用しています。 "new-ui" コマンドには、gdbバージョン7.12以降が必要
 です。このエラーが発生した場合: >
 	Undefined command: "new-ui". Try "help".~
 あなたの gdb が古すぎます。
 
-カラー						*hl-debugPC* *hl-debugBreakpoint*
-
+カラー ~
+						*hl-debugPC* *hl-debugBreakpoint*
 サインの色は以下のハイライトグループで調整できます:
 - debugPC		現在の位置
 - debugBreakpoint	ブレークポイント
@@ -1456,6 +1486,8 @@ TermDebugSendCommand() 関数を使用して、任意のウィンドウで動作
 	Clear breakpoint	`:Clear`
 	Evaluate		`:Evaluate`
 あなたがこれを望まないならば、それを無効にしてください: >
+	let g:termdebug_config['popup'] = 0
+または、g:termdebug_config がない場合: >
 	let g:termdebug_popup = 0
 
 
@@ -1463,14 +1495,18 @@ Vimのウィンドウ幅						*termdebug_wide*
 
 デバッグを開始した際に Vim のウィンドウ幅を変更し、垂直分割を利用するには次の
 ように設定します: >
+	let g:termdebug_config['wide'] = 163
+または、g:termdebug_config がない場合: >
   let g:termdebug_wide = 163
+
 これは `:Termdebug` を実行した際に 'columns' を 163 に設定します。元の値はデ
 バッガが終了する際に復元されます。
-g:termdebug_wide が設定されていて、'columns' がすでに g:termdebug_wide より大
-きい場合、'columns' を変更せずに垂直分割が使用されます。
 
-'columns' を変更せずに垂直分割を行うには、1に設定します。(端末がVimによってサ
-イズ変更できない場合に便利です)
+幅の値が設定されていて、'columns' がすでに幅の値より大きい場合、'columns' を変
+更せずに垂直分割が使用されます。
+
+幅の値を1に設定することで 'columns' の変更なしに垂直分割が使えます。これは端末
+がVimによってサイズ変更できない場合に便利です。
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:
