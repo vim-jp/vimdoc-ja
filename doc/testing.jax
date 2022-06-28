@@ -1,4 +1,4 @@
-*testing.txt*	For Vim バージョン 8.2.  Last change: 2021 Dec 11
+*testing.txt*	For Vim バージョン 8.2.  Last change: 2022 May 16
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -65,9 +65,9 @@ test_garbagecollect_now()			 *test_garbagecollect_now()*
 		garbagecollect() とほぼ同じであるが、この関数はガーベッジコレ
 		クトを直ちに実行する。この関数を実行する場合は、構造体が内部に
 		存在しないようにするために直接呼び出す必要がある。また、この関
-		数を呼び出す前に |v:testing| を設定する必要がある。これは、ス
-		タック上の変数が解放されるため、:def 関数から呼び出された場合
-		には動作しない。
+		数を呼び出す前に |v:testing| を設定する必要がある。   *E1142*
+		これは、スタック上の変数が解放されるため、:def 関数から呼び出
+		された場合には動作しない。
 
 test_garbagecollect_soon()			 *test_garbagecollect_soon()*
 		あたかもメインループの中にいるように、ガーベッジコレクトを呼び
@@ -82,46 +82,120 @@ test_getvalue({name})					*test_getvalue()*
 		|method| としても使用できる: >
 			GetName()->test_getvalue()
 <
-						*test_gui_drop_files()*
-test_gui_drop_files({list}, {row}, {col}, {mods})
-		{list} の1つ以上のファイルをウィンドウの {row} 行 {col} 列にド
-		ロップする。この関数は |drop_file| 機能が存在するGUI版の Vim
-		でのみ動作する。
+						*test_gui_event()*
+test_gui_event({event}, {args})
+		機能テストしているVimで GUI のイベント {event} を引数 {args}
+		で生成する。この関数は GUI で動作している場合のみ動作する。
 
-		{mods} としてサポートされる値:
-			0x4	Shift
-			0x8	Alt
-			0x10	Ctrl
-		ファイルは引数リスト |argument-list| に追加され、{list} の最初
-		のファイルの編集がウィンドウで開始される。詳細は |drag-n-drop|
-		を参照。
+		{event} は文字列でサポートする値は:
+		    "dropfiles"	1つ以上のファイルをウィンドウへドロップ。
+		    "findrepl"	テキストの検索と置換。
+		    "mouse"	マウスのボタンクリックイベント。
+		    "scrollbar"	スクロールバーの移動もしくはドラッグ。
+		    "tabline"	マウスクリックによるタブページ行の選択。
+		    "tabmenu"	タブページ行のメニューエントリの選択。
 
-						*test_gui_mouse_event()*
-test_gui_mouse_event({button}, {row}, {col}, {multiclick}, {modifiers})
-		マウスボタンのクリックイベントを注入する。この関数はGUIで実行
-		している時のみ動作する。
-		{button} としてサポートされる値:
-			0	右マウスボタン
-			1	中央マウスボタン
-			2	左マウスボタン
-			3	マウスボタンリリース
-			4	スクロールホイール下
-			5	スクロールホイール上
-			6	スクロールホイール左
-			7	スクロールホイール右
-		{row} と {col} はマウスクリックの位置を指定する。Vimウィンドウ
-		で最初の行は1で最後の行は 'lines' である。{col} の最大値は
-		'columns' である。
-		マルチクリックイベントを注入するには、{multiclick} に1を設定す
-		る。
-		{modifiers} としてサポートされる値:
-			4	shiftキーが押されている
-			8	altキーが押されている
-			16	ctrlキーが押されている
-		マウスイベントの注入後、処理のためにおそらく |feedkeys()| を呼
-		ぶ必要があるだろう。例: >
+		引数 {args} はイベントの引数を持つ辞書。
+
+		"dropfiles":
+		  指定したウィンドウへ1つ以上のファイルのドロップ。{args} でサ
+		  ポートする項目は:
+		    files:	ファイル名のリスト
+		    row:	ウィンドウの行番号
+		    col:	ウィンドウの桁番号
+		    modifiers:	修飾キー。サポートする値は:
+				    0x4	Shift
+				    0x8	Alt
+				   0x10	Ctrl
+		  この(複数)ファイルは引数リスト |argument-list| に追加され、
+		  {files} の最初のファイルがウィンドウで編集状態になる。詳細な
+		  情報は |drag-n-drop| を参照。このイベントは |drop_file| 機能
+		  が有効な場合のみ動作する。
+
+		"findrepl":
+		  {検索/置換ダイアログを持つ GUI のときのみ有効}
+		  テキストの検索と置換を行う。{args} でサポートする項目は:
+		    find_text:	検索する文字列。
+		    repl_text:	置換する文字列。
+		    flags:	検索/置換を制御するフラグ。サポートする値は:
+				    1	次の文字列を検索(検索ダイアログ)
+				    2	次の文字列を検索(置換ダイアログ)
+				    3	1度だけ文字列を置換
+				    4	全マッチの置換
+				    8	完全一致した単語のみマッチ
+				   16	マッチする大文字小文字状態
+		    forward:	1を設定すると前方への検索。
+
+		"mouse":
+		  マウスのクリック、あるいはマウスの移動のイベントを注入する。
+		  {args} でサポートする項目は:
+		    button:	マウスボタン。サポートする値は:
+				    0	右マウスボタン
+				    1	中央マウスボタン
+				    2	左マウスボタン
+				    3	マウスボタンリリース
+				    4	スクロールホイール下
+				    5	スクロールホイール上
+				    6	スクロールホイール左
+				    7	スクロールホイール右
+		    row:	マウスクリックの行番号。Vimのウィンドウの最初
+				の行は1で最後の行は 'lines' になる。
+		    col:	マウスクリックの桁番号。{col} の最大値は
+				'columns' になる。
+		    multiclick:	1を設定すると複数のマウスクリックを注入する。
+		    modifiers:	修飾キー。サポートする値は:
+				    4	shiftキーが押されている
+				    8	altキーが押されている
+				   16	ctrlキーが押されている
+		    move:	オプション; 真の場合、マウス移動イベントを生成
+				させることができる。
+				{args} の row: と col: だけが使われ、必須であ
+				る。これらは、"cell" に応じて、ピクセルまたは
+				スクリーンセルとして解釈される。
+				'mousemoveevent' が設定されているか、ポップアッ
+				プがマウス移動イベントを使用している場合にのみ
+				イベントを発生させる。
+		    cell:	オプション: 存在し真の場合 "move" はピクセル位
+				置の代わりにスクリーンのセル位置を使う
+
+		"scrollbar":
+		  左、右あるいは水平スクロールバーの設定もしくはドラッグ。スク
+		  ロールバーが実際に存在する時のみ動作する。{args} でサポート
+		  する項目は:
+		    which:	スクロールバー。サポートする値は:
+				    left  現在のウィンドウの左スクロールバー
+				    right 現在のウィンドウの右スクロールバー
+				    hor   水平スクロールバー
+		    value:	スクロール量。垂直なスクロールバーの場合、値は
+				1からバッファの行数になる。水平スクロールバー
+				の場合、'wrap' が設定されていないと仮定すると、
+				値は1から最大行長までの間になる。
+		    dragging:	1はスクロールバーをドラッグし、0はスクロール
+				バーをクリックする。
+
+		"tabline":
+		  タブページ行のマウスクリックイベントの注入によるタブページの
+		  選択。{args} でサポートする項目は:
+		    tabnr:	タブページ番号
+
+		"tabmenu":
+		  タブページ行のメニュー項目の選択イベントの注入。{args} でサ
+		  ポートする項目は:
+		    tabnr:	タブページの番号
+		    item: 	タブページメニュー項目の番号。1で最初のメニュー
+				項目、2で2番目の項目になる。
+
+		GUI イベントを注入した後、おそらく |feedkeys()| を呼び出してそ
+		れらを処理する必要がある。例: >
 			call feedkeys("y", 'Lx!')
+<
+		イベントが正常に追加された場合は TRUE を返し、失敗した場合は
+		FALSE を返す。
 
+		|method| としても使用できる: >
+			GetEvent()->test_gui_event({args})
+
+<
 test_ignore_error({expr})			 *test_ignore_error()*
 		{expr} を含むすべてのエラーを無視する。代わりに通常メッセージ
 		が表示される。
@@ -189,23 +263,27 @@ test_override({name}, {val})				*test_override()*
 		置き換える。Vimをテストするためだけに使用すること!
 		置き換えは、{val} が非 0 のときに有効化され、{val} が 0 のとき
 		に取り除かれる。
-		現在、name に使える値は:
+		現在、{name} に使える値は:
 
-		name	     {val} が非 0 のときの効果 ~
-		redraw       redrawing() 関数を無効化する
-		redraw_flag  RedrawingDisabled フラグを無視する
+		{name}	     {val} が非 0 のときの効果 ~
+		autoload    `import autoload` でスクリプトを正しい手順でロード
+			     し、項目が使用されるまで延期はしない
 		char_avail   char_avail() 関数を無効化する
-		starting     "starting" 変数を初期化する、以下を参照
 		nfa_fail     古い正規表現エンジンに戻すために、NFA regexp エン
 			     ジンを失敗させる
 		no_query_mouse  "dec" 端末のマウス位置を問い合わせない
 		no_wait_return  "no_wait_return" フラグを設定する。"ALL" では
 				復元されない
-		ui_delay	ui_delay() で使用するミリ秒単位の時間; メッ
-				セージの最大3秒の待ち時間を上書きする。
+		redraw       redrawing() 関数を無効化する
+		redraw_flag  RedrawingDisabled フラグを無視する
+		starting     "starting" 変数を初期化する、下記参照
 		term_props	バージョン文字列が検出された場合、すべてのター
 				ミナルプロパティをリセットする。
+		ui_delay	ui_delay() で使用するミリ秒単位の時間; メッ
+				セージの最大3秒の待ち時間を上書きする。
 		uptime 	     sysinfo.uptime を上書きする
+		vterm_title  端末ウィンドウ内でジョブが走っている場合にウィン
+			     ドウタイトルを設定する
 		ALL	     すべての置き換えをクリアする ({val} は使われない)
 
 		"starting" は、起動が完了したようにテストが振る舞うべきときに
@@ -228,28 +306,6 @@ test_refcount({expr})					*test_refcount()*
 
 		|method| としても使用できる: >
 			GetVarname()->test_refcount()
-
-
-test_scrollbar({which}, {value}, {dragging})		*test_scrollbar()*
-		スクロールバーを使ってそれを {value} の位置に移動させる。
-		{which} は次のようになる:
-			left	カレントウィンドウの左スクロールバー
-			right	カレントウィンドウの右スクロールバー
-			hor	水平スクロールバー
-
-		垂直スクロールバーの場合、{value} は1からバッファの行数までの
-		値を取りうる。水平スクロールバーの場合、'wrap' が設定されてい
-		ないと仮定すると、{value} は1から最大行の長さまでの値を取りう
-		る。
-
-		{dragging} がゼロ以外の場合は、スクロールバーをドラッグするの
-		と同じである。それ以外の場合は、スクロールバーをクリックするの
-		と同じである。
-		{which} スクロールバーが実際に存在し、GUIを使用している場合に
-		のみ動作する。
-
-		|method| としても使用できる: >
-			GetValue()->test_scrollbar('right', 0)
 
 
 test_setmouse({row}, {col})				*test_setmouse()*
@@ -343,7 +399,7 @@ assert_fails({cmd} [, {error} [, {msg} [, {lnum} [, {context}]]]])
 		{cmd}を実行しエラーを生成しなかった場合か、エラーメッセージの
 		中に{error}が見つからない場合、|v:errors| にエラーメッセージを
 		追加する。|assert-return| も参照。
-
+							*E856*
 		{error}が文字列である場合、最初に報告されたエラーの中から文字
 		通り見つからなければならない。例えば、"E123:" の場合、多くの場
 		合、これはコロンを含むエラーコードになる: >
@@ -364,11 +420,11 @@ assert_fails({cmd} [, {error} [, {msg} [, {lnum} [, {context}]]]])
 <
 		{msg} が空の場合は利用されない。引数 {lnum} を渡す時にデフォル
 		トメッセージを取得するにはこれを使うこと。
-
+							*E1115*
 		{lnum} が非負数で設定され、引数 {error} が設定されてマッチした
 		時、エラーが報告されるときの行番号と比較される。行番号は関数内
 		かスクリプト内での行番号になる。
-
+							*E1116*
 		{context} が存在すると、 パターンとして使われ {lnum} が位置する
 		コンテキスト (スクリプト名か関数名) に対してマッチする。
 
