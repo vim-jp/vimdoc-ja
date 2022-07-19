@@ -1,4 +1,4 @@
-*map.txt*       For Vim バージョン 9.0.  Last change: 2022 May 09
+*map.txt*       For Vim バージョン 9.0.  Last change: 2022 Jun 18
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -61,6 +61,7 @@
 			す。マップを入れ子にしたり再帰的にすることができます。
 			Note: 空白は有効なノーマルモードのコマンドであるため、
 			末尾の空白は {rhs} に含まれます。
+			|map-trailing-white| を参照。
 
 						*:nore* *:norem*
 :no[remap]  {lhs} {rhs}		|mapmode-nvo|	*:no*  *:noremap* *:nor*
@@ -99,10 +100,8 @@
 			削除します。他のモードのマップは残ります。
 			{lhs} がマッピングの {rhs} にマッチするときも機能しま
 			す。これは略語が適用された場合に使用します。
-			Note: 末尾の空白は {lhs} に含まれます。次の unmap コマ
-			ンドは機能しません: >
-				:map @@ foo
-				:unmap @@ | print
+			Note: 末尾の空白は {lhs} に含まれます。
+			|map-trailing-white| を参照。
 
 :mapc[lear]			|mapmode-nvo|		*:mapc*   *:mapclear*
 :nmapc[lear]			|mapmode-n|		*:nmapc*  *:nmapclear*
@@ -167,6 +166,27 @@
 れず、次の入力まで待機状態になります。例えば空白文字を入力すれば "foo" と空白
 文字が挿入されます。"a" を入力すれば "bar" が挿入されます。
 
+末尾空白 ~
+							*map-trailing-white*
+このunmapコマンドは動作しません: >
+	:map @@ foo
+	:unmap @@ | print
+
+なぜなら unmap "@@ " を試行するとき、コマンド区切りの "|" の前の空白を含んでい
+るためです。他の末尾空白の例として: >
+	unmap @@ 
+	unmap @@     # Vim9 script コメント
+	unmap @@     " 旧来のスクリプトのコメント
+
+`unmap @@ ` の末尾が空白文字のためエラーになりますが、これは見えないので特定す
+るのが非常に困難です。
+
+一般的な解決策はマップしたキーの後の右にコマンド区切りの "|" を置くことです。
+その後に空白とコメントを続けます: >
+
+	unmap @@|    # Vim9 script コメント
+	unmap @@|    " 旧来のスクリプトのコメント
+
 
 1.2 特別な引数						*:map-arguments*
 
@@ -174,7 +194,8 @@
 "<unique>" を指定できます。マップコマンドの直後 (他の引数の前) に置いてくださ
 い。
 
-			*:map-local* *:map-<buffer>* *:map-buffer* *E224* *E225*
+				    *:map-local* *:map-<buffer>* *:map-buffer*
+				    *E224* *E225*
 カレントバッファだけで使用できるマップを作成するには、マップコマンドの引数に
 "<buffer>" を指定します。例: >
 	:map <buffer>  ,w  /[.,;]<CR>
@@ -365,8 +386,6 @@ Note:
   りません。
 - ビジュアルモードでは、`line('v')` と `col('v')` を使って、ビジュアルエリアの
   一端を取得でき、カーソルは反対の端にいます。
-- 選択モードでは、|:map| と |:vmap| コマンドでのマッピングがビジュアルモード内
-  で実行されます。|:smap| を使う選択モードとは別の方法で処理します。
 
 							*E1255* *E1136*
 <Cmd> と <ScriptCmd> コマンドではマッピング定義の {rhs} が <CR> で終わる必要が
@@ -698,6 +717,7 @@ Note: 変数 "mapleader" はマップを定義するときに使用されます�
 							*<MouseMove>*
 特別な文字列 "<MouseMove>" を使ってマウスの移動を取り扱えます。そのためには
 'mousemoveevent' が有効になっている必要があります。現在、GUI でのみ動作します。
+|getmousepos()| 関数がマウスの位置を取得するのに使えます。
 
 							*<Char>* *<Char->*
 <Char> を使って、文字を10進数、8進数、16進数の数値指定でマップできます:
