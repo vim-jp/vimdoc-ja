@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'autocmd'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="autocmd.html" name="autocmd.txt">autocmd.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 Apr 17<br>
+<a class="Constant" href="autocmd.html" name="autocmd.txt">autocmd.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 May 24<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -51,6 +51,28 @@ helpname: 'autocmd'
 &nbsp;&nbsp;る場合がたまにある)。可能であれば、イベント File* や Buf* には同じ自動コマン<br>
 &nbsp;&nbsp;ドを使うのはよい考えだ。<br>
 <br>
+推奨される使用法:<br>
+- 常にグループを使用することで、自動コマンドの削除が容易になる。<br>
+- コマンド自体を短く維持し、より多くの仕事をする関数を呼ぶようにする。<br>
+- 定義されているスクリプトを、自動コマンドを繰り返さずに数回ソースできるように<br>
+&nbsp;&nbsp;する。<br>
+<br>
+Vim9 script での例:<br>
+<div class="helpExample">&nbsp;&nbsp; autocmd_add({replace: true,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;group:&nbsp;&nbsp; 'DemoGroup',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;event:&nbsp;&nbsp; 'BufEnter',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pattern: '*.txt',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd:&nbsp;&nbsp;&nbsp;&nbsp; 'call DemoBufEnter()'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</div>
+<br>
+旧来のスクリプトの例:<br>
+<div class="helpExample">&nbsp;&nbsp; call autocmd_add(#{replace: v:true,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ group: 'DemoGroup',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ event: 'BufEnter',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ pattern: '*.txt',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ cmd: 'call DemoBufEnter()'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ })</div>
+<br>
 <span class="PreProc">==============================================================================</span><br>
 2. 自動コマンドの定義&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="autocmd.html#autocmd-define" name="autocmd-define">autocmd-define</a><br>
 <br>
@@ -83,6 +105,10 @@ helpname: 'autocmd'
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setlocal matchpairs+=&lt;:&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&lt;start<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+<span class="MissingTag">autocmd_add()</span>&nbsp;関数は、Vim script から自動コマンドやグループのリストを追加す<br>
+るために使用できる。<a class="Comment" href="autocmd.html#:autocmd">:autocmd</a>&nbsp;で&nbsp;<a class="Comment" href="eval.html#:execute">:execute</a>&nbsp;を使用する必要があるような場合は、<br>
+この関数を使用することが好ましい。<br>
 <br>
 <span class="Todo">Note</span>: &quot;:autocmd&quot; コマンドの後には、パターンが期待される位置に '|' が現れる場合<br>
 にのみ別のコマンドを続けることができる。これは動作する:<br>
@@ -149,6 +175,9 @@ helpname: 'autocmd'
 <span class="PreProc">==============================================================================</span><br>
 3. 自動コマンドの除去&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="autocmd.html#autocmd-remove" name="autocmd-remove">autocmd-remove</a><br>
 <br>
+以下で説明するコマンドに加えて、<span class="MissingTag">autocmd_delete()</span>&nbsp;関数を使用し Vim script か<br>
+ら自動コマンドおよびグループのリストを削除できる。<br>
+<br>
 :au[tocmd]!&nbsp;<span class="Special">[group]</span>&nbsp;<span class="Special">{event}</span>&nbsp;<span class="Special">{aupat}</span>&nbsp;[++once] [++nested]&nbsp;<span class="Special">{cmd}</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{event}</span>&nbsp;と&nbsp;<span class="Special">{aupat}</span>&nbsp;に関連づけられた全ての自動コマンド<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を除去し、コマンド&nbsp;<span class="Special">{cmd}</span>&nbsp;を加える。<br>
@@ -202,6 +231,8 @@ helpname: 'autocmd'
 <br>
 バッファローカルな自動コマンドを列挙するには、<span class="Special">&lt;buffer&gt;</span>または&lt;buffer=<span class="Special">N</span>&gt;という形<br>
 のパターンを使う。<a class="Identifier" href="autocmd.html#autocmd-buflocal">autocmd-buflocal</a>を参照。<br>
+<br>
+<span class="MissingTag">autocmd_get()</span>&nbsp;関数で自動コマンドのリストを Vim script から取得できる。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="autocmd.html#:autocmd-verbose" name=":autocmd-verbose">:autocmd-verbose</a><br>
 <a class="Type" href="options.html#'verbose'">'verbose'</a>&nbsp;がゼロでないならば、自動コマンドを列挙するときに、それが最後にどこで<br>
