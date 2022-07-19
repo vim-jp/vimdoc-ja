@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 9.0.  Last change: 2022 Apr 06
+*eval.txt*	For Vim バージョン 9.0.  Last change: 2022 Jun 17
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -176,11 +176,16 @@ Note: " " と "0" も空文字列ではないので、TRUE と見なされる。
 
 
 1.2 関数への参照 ~
-				*Funcref* *E695* *E718* *E1086* *E1192*
-関数への参照は、関数|function()|、関数|funcref()|またはラムダ式|expr-lambda|を
-使うことで得られる。関数への参照は、式の中で関数名が要求される場所で使うと参照
-先の関数を呼び出す。例: >
+					*Funcref* *E695* *E718* *E1192*
+関数への参照は、関数 |function()|、関数 |funcref()|、(|Vim9| script 内で)関数
+の名前あるいはラムダ式 |expr-lambda| による生成で得られる。関数への参照は、式
+の中で関数名が要求される場所で使うと参照先の関数を呼び出す。|Vim9| script での
+例: >
 
+	:var Fn = MyFunc
+	:echo Fn()
+
+旧来のスクリプトでは: >
 	:let Fn = function("MyFunc")
 	:echo Fn()
 <							*E704* *E705* *E707*
@@ -503,11 +508,11 @@ Blob の場合、一度に 1 バイトが使われる。
 <							*E713* *E716* *E717*
 キーは必ず文字列である。数値を使うこともできるが、自動的に文字列に変換される。
 よって文字列 '4' のキーと数値4のキーは同一の要素を参照する。
-Note 文字列 '04' と数値04は異なることに注意。なぜなら数値04は文字列 '4' に変換
-されるからである。空文字列もまたキーとして使用できる。
+Note 文字列 '04' と数値04は異なることに注意。先頭の0が削除されてから数値が文字
+列 '4' に変換されるためである。空文字列もまたキーとして使用できる。
 
-|Vim9| script では、キーが英数字、アンダースコア、ダッシュで構成されている場
-合、リテラルキーが使える。|vim9-literal-dict| を参照。
+|Vim9| script では、キーが英数字、アンダースコア、ダッシュのみで構成されている
+場合に、リテラルのキーが使える。|vim9-literal-dict| を参照。
 						*literal-Dict* *#{}*
 すべてのキーを引用符で囲む必要を避けるために、旧来のスクリプトでは #{} 形式を
 使用できる。この形式は、ASCII文字、数字、'-' および '_' のみで構成されるキーを
@@ -516,7 +521,8 @@ Note 文字列 '04' と数値04は異なることに注意。なぜなら数値0
 	:let mydict = #{zero: 0, one_key: 1, two-key: 2, 333: 3}
 Note ここでは 333 は 文字列 "333" であることに注意。空のキーは #{} を使うこと
 ができない。
-|Vim9| script では #{} 形式は使用できない。
+|Vim9| script では #{} 形式は使用できない、なぜならコメントの開始と紛らわしい
+ためである。
 
 値はどんな式でもよい。辞書を値にすると、ネストした辞書ができる: >
 	:let nestdict = {1: {11: 'a', 12: 'b'}, 2: {21: 'c'}}
@@ -844,34 +850,37 @@ MY_VAR_6		viminfoファイル
 	expr5 isnot expr5	異なるリスト |List|、辞書 |Dictionary| または
 				|Blob| のインスタンス
 
-|expr5|	expr6
-	expr6 +	 expr6 ...	足し算、リストまたはBlobの連結
-	expr6 -	 expr6 ...	引き算
-	expr6 .	 expr6 ...	文字列の連結
-	expr6 .. expr6 ...	文字列の連結
+|expr5|	expr6 << expr6		ビット単位の左シフト
+	expr6 >> expr6		ビット単位の右シフト
 
 |expr6|	expr7
-	expr7 *	 expr7 ...	掛け算
-	expr7 /	 expr7 ...	割り算
-	expr7 %	 expr7 ...	剰余(割った余り)
+	expr7 +	 expr7 ...	足し算、リストまたはBlobの連結
+	expr7 -	 expr7 ...	引き算
+	expr7 .	 expr7 ...	文字列の連結
+	expr7 .. expr7 ...	文字列の連結
 
 |expr7|	expr8
-	<type>expr8		型のチェックと変換 (|Vim9| のみ)
+	expr8 *	 expr8 ...	掛け算
+	expr8 /	 expr8 ...	割り算
+	expr8 %	 expr8 ...	剰余(割った余り)
 
 |expr8|	expr9
-	! expr8			論理否定
-	- expr8			単項のマイナス
-	+ expr8			単項のプラス
+	<type>expr9		型のチェックと変換 (|Vim9| のみ)
 
 |expr9|	expr10
-	expr9[expr1]		文字列のバイト、またはリストの要素
-	expr9[expr1 : expr1]	文字列の部分文字列、またはリストの部分リスト
-	expr9.name		辞書 |Dictionary| の要素
-	expr9(expr1, ...)	|Funcref| 変数による関数呼び出し
-	expr9->name(expr1, ...) |method| 呼び出し
+	! expr9			論理否定
+	- expr9			単項のマイナス
+	+ expr9			単項のプラス
+
+|expr10|  expr11
+	expr10[expr1]		文字列のバイト、またはリストの要素
+	expr10[expr1 : expr1]	文字列の部分文字列、またはリストの部分リスト
+	expr10.name		辞書 |Dictionary| の要素
+	expr10(expr1, ...)	|Funcref| 変数による関数呼び出し
+	expr10->name(expr1, ...) |method| 呼び出し
 
 
-|expr10|  number		数定数
+|expr11|  number		数定数
 	"string"		文字列定数。バックスラッシュは特別な意味を持つ
 	'string'		リテラル文字列定数。'を含めるには2重にする
 	[expr1, ...]		リスト |List|
@@ -1098,16 +1107,26 @@ NOTE: |Vim9| script では 'ignorecase' を使用しない。
 	"foo\nbar" =~ "\n"	1として評価される
 	"foo\nbar" =~ "\\n"	0として評価される
 
+expr5						*expr5* *bitwise-shift*
+-----
+expr6 << expr6	ビット単位の左シフト				*expr-<<*
+expr6 >> expr6	ビット単位の右シフト				*expr->>*
+							*E1282* *E1283*
+"<<" および ">>" 演算子を使用して、右オペランドで指定されたビット数だけ左オペ
+ランドのビット単位の左または右シフトがおこなえる。オペランドは正の数として使用
+される。">>" で右にシフトすると、最上位ビット(しばしば符号ビットと呼ばれる)は
+クリアされる。右オペランド(シフト量)が数値の最大ビット数(|v:numbersize|)より大
+きい場合、結果は0になる。
 
-expr5 and expr6				*expr5* *expr6* *E1036* *E1051*
+expr6 and expr7				*expr6* *expr7* *E1036* *E1051*
 ---------------
-expr6 + expr6   足し算、リスト |List| または |Blob| の連結	*expr-+*
-expr6 - expr6   引き算						*expr--*
-expr6 . expr6   文字列の連結					*expr-.*
-expr6 .. expr6  文字列の連結					*expr-..*
+expr7 + expr7   足し算、リスト |List| または |Blob| の連結	*expr-+*
+expr7 - expr7   引き算						*expr--*
+expr7 . expr7   文字列の連結					*expr-.*
+expr7 .. expr7  文字列の連結					*expr-..*
 
-リストに対しては "+" のみ可能で、expr6は両方ともリストでなければならない。結果
-は2つのリストを連結した新しいリスト。
+リストに対しては "+" のみ可能で、expr7 は両方ともリストでなければならない。結
+果は2つのリストを連結した新しいリスト。
 
 文字列の連結には ".." が推奨される。"." はあいまいで、|Dict| メンバーアクセス
 と浮動小数点数にも使用される。
@@ -1117,9 +1136,9 @@ expr6 .. expr6  文字列の連結					*expr-..*
 |Vim9| script では ".." の引数の単順な型は文字列に変換される: 数値、浮動小数点
 数、特殊値、真偽値。その他の型は |string()| を使用する必要がある。
 
-expr7 *	expr7  掛け算						*expr-star*
-expr7 /	expr7  割り算						*expr-/*
-expr7 %	expr7  剰余(割った余り)					*expr-%*
+expr8 *	expr8  掛け算						*expr-star*
+expr8 /	expr8  割り算						*expr-/*
+expr8 %	expr8  剰余(割った余り)					*expr-%*
 
 旧来のスクリプトでは、"." と ".." を除くすべての演算子で文字列は数値に変換され
 る。
@@ -1162,17 +1181,17 @@ Note 旧来のスクリプトでの "+" と ".." の違い:
 "."、".."、"%" は浮動小数点数には適用できない。 *E804* *E1035*
 
 
-expr7							*expr7*
+expr8							*expr8*
 -----
-<type>expr8
+<type>expr9
 
 これは |Vim9| script でのみ使用可能である。|type-casting| を参照。
 
-expr8							*expr8*
+expr9							*expr9*
 -----
-! expr8			論理否定		*expr-!*
-- expr8			単項マイナス		*expr-unary--*
-+ expr8			単項プラス		*expr-unary-+*
+! expr9			論理否定		*expr-!*
+- expr9			単項マイナス		*expr-unary--*
++ expr9			単項プラス		*expr-unary-+*
 
 '!' 演算子では|TRUE|は|FALSE|に、|FALSE|は|TRUE|になる。
 '-' では数値の符号が反転される。
@@ -1192,29 +1211,29 @@ expr8							*expr8*
 	--9	    == 9
 
 
-expr9							*expr9*
------
-この式は |expr10|、もしくは連続する以下の選択方式であり、どんな順番でもよい。
+expr10							*expr10*
+------
+この式は |expr11|、もしくは連続する以下の選択方式であり、どんな順番でもよい。
 例として、これらはすべて可能である:
-	expr9[expr1].name
-	expr9.name[expr1]
-	expr9(expr1, ...)[expr1].name
-	expr9->(expr1, ...)[expr1]
+	expr10[expr1].name
+	expr10.name[expr1]
+	expr10(expr1, ...)[expr1].name
+	expr10->(expr1, ...)[expr1]
 評価は常に左から右に行われる。
 
-expr9[expr1]		文字列またはリストの要素	*expr-[]* *E111*
+expr10[expr1]		文字列またはリストの要素	*expr-[]* *E111*
 						*E909* *subscript* *E1062*
 旧来の Vim script では:
-expr9が数値か文字列ならば、この値は文字列 expr9 の第 expr1 番目のバイトからな
-る1バイトの文字列となる。expr9は文字列 (数値の場合は自動で文字列に変換される)、
-expr1は数として扱われる。マルチバイトのエンコーディングを認識しないため、代わ
-りの方法は `byteidx()` を参照するか、`split()`を使って文字列を文字のリストに変
-換すれば良い。例えばカーソルの下のバイトを得るには: >
+expr10 が数値か文字列ならば、この値は文字列 expr10 の第 expr1 番目のバイトから
+なる1バイトの文字列となる。expr10 は文字列 (数値の場合は自動で文字列に変換され
+る)、expr1 は数として扱われる。マルチバイトのエンコーディングを認識しないため、
+代わりの方法は `byteidx()` を参照するか、`split()`を使って文字列を文字のリスト
+に変換すれば良い。例えばカーソルの下のバイトを得るには: >
 	:let c = getline(".")[col(".") - 1]
 
 |Vim9| script では:					*E1147* *E1148*
-expr9 が文字列ならば、この値は文字列 expr9 の第 expr1 番目の文字 (合成文字があ
-る場合はそれらを全て含む) に相当する文字列となる。バイトインデックスの場合は
+expr10 が文字列ならば、この値は文字列 expr10 の第 expr1 番目の文字 (合成文字が
+ある場合はそれらを全て含む) に相当する文字列となる。バイトインデックスの場合は
 |strpart()| を使う。
 
 インデックスが0の場合最初のバイトもしくは文字になる。注意: テキストの列番号は0
@@ -1226,23 +1245,25 @@ expr9 が文字列ならば、この値は文字列 expr9 の第 expr1 番目の
 Vim9 script では負数のインデックスはリストと同様に使用され、終端からのカウント
 になる。
 
-expr9がリスト|List|ならばインデックスexpr1の要素が返る。取りうるインデックスの
-値については|list-index|を参照。インデックスが範囲を超えている場合はエラーとな
-る。例: >
+expr10 がリスト|List|ならばインデックスexpr1の要素が返る。取りうるインデックス
+の値については|list-index|を参照。インデックスが範囲を超えている場合はエラーと
+なる。例: >
 	:let item = mylist[-1]		" 最後の要素を取得
 
 一般的には、インデックスが正でリストの長さ以上または、負でリストの長さ×-1より
 小さいときエラーとなる。
 
 
-expr9[expr1a : expr1b]	部分文字列または部分リスト	*expr-[:]*
+							*expr-[:]* *substring*
+expr10[expr1a : expr1b]	部分文字列または部分リスト(|sublist|)
 
-expr9が文字列ならば、バイトか文字数でexpr1aからexpr1bまでの部分文字列となる
-(両端を含む)。expr9は文字列として扱われ、expr1aとexpr1bは数値として扱われる。
+expr10 が文字列ならば、バイトか文字数で expr1a から expr1b までの部分文字列と
+なる (両端を含む)。expr10 は文字列として扱われ、expr1a と expr1b は数値として
+扱われる。
 
 旧来の Vim script ではインデックスはバイトインデックスとなる。マルチバイトのエ
 ンコーディングは認識しない。マルチバイト文字列のインデックスを計算する方法につ
-いては |byteidx()| を参照。expr9が数値ならば最初に文字列に変換される。
+いては |byteidx()| を参照。expr10 が数値ならば最初に文字列に変換される。
 
 Vim9 script ではインデックスは文字インデックスであり、合成文字を含む {訳注: 1
 個の基底文字とその任意個の合成文字をまとめて 1 としてカウントする}。バイトイン
@@ -1268,31 +1289,31 @@ expr1aが省略されたときは0となる。expr1bが省略されたときは�
 	:let s = s[:-3]			" 最後の2文字を削除する
 <
 							*slice*
-expr9が |List| ならば、インデックスexpr1aとexpr1bの間の要素からなる新しい |List|
-となる。すぐ上で説明した文字列の場合と同様である。部分リスト|sublist|も参照の
-こと。例: >
+expr10 が |List| ならば、インデックスexpr1aとexpr1bの間の要素からなる新しい
+|List| となる。すぐ上で説明した文字列の場合と同様である。部分リスト|sublist|も
+参照のこと。例: >
 	:let l = mylist[:3]		" 最初の4個の要素
 	:let l = mylist[4:4]		" 1個の要素からなるリスト
 	:let l = mylist[:]		" リストの浅いコピー
 
-expr9が |Blob| ならば、インデックスexpr1aとexpr1bのバイト数を含む新しい |Blob|
-となる。
-例: >
+expr10 が |Blob| ならば、インデックス expr1a と expr1b のバイト数を含む新しい
+|Blob| となる。例: >
 	:let b = 0zDEADBEEF
 	:let bs = b[1:2]		" 0zADBE
 	:let bs = b[:]			" 0zDEADBEEF のコピー
 
-|Funcref|に対してexpr9[expr1]やexpr9[expr1a : expr1b]を使うとエラーになる。
+|Funcref| に対して expr10[expr1] や expr10[expr1a : expr1b] を使うとエラーにな
+る。
 
 部分リストでスコープと変数に続くコロンとの混乱に注意してください: >
 	mylist[n:]     " 変数nは使える
 	mylist[s:]     " スコープs:を使うとエラー！
 
 
-expr9.name		辞書|Dictionary|の要素		*expr-entry*
+expr10.name		辞書|Dictionary|の要素		*expr-entry*
 							*E1203* *E1229*
-expr9が辞書|Dictionary|のとき、ドットをつけるとその後に書かれた名前が辞書の
-キーと見なされる。例: expr9[name]。
+expr10 が辞書 |Dictionary| のとき、ドットをつけるとその後に書かれた名前が辞書
+のキーと見なされる。例: expr10[name]。
 
 名前は変数名と同じようにアルファベットと数字だけから構成されなければならない
 が、数字で始まってもよい。波括弧は使えない。
@@ -1309,17 +1330,17 @@ Note ドットは文字列連結にも使われる。混乱を避けるために
 周りには必ずスペースを入れること。
 
 
-expr9(expr1, ...)	|Funcref| 関数呼び出し  	*E1085*
+expr10(expr1, ...)	|Funcref| 関数呼び出し  	*E1085*
 
-expr9が|Funcref|型の変数のとき、その参照する関数を呼び出す。
+expr10 が |Funcref| 型の変数のとき、その参照する関数を呼び出す。
 
 
-expr9->name([args])	メソッド呼び出し		*method* *->*
-expr9->{lambda}([args])
+expr10->name([args])	メソッド呼び出し		*method* *->*
+expr10->{lambda}([args])
 							*E260* *E276* *E1265*
 グローバル関数としても利用可能なメソッドの場合、これは次と同じである: >
-    name(expr9 [, args])
-これらは "expr9" 専用としても利用できる
+    name(expr10 [, args])
+これらは "expr10" 専用としても利用できる
 
 これにより、あるメソッドが返す値を次のメソッドに渡して連鎖させることができる: >
     mylist->filter(filterexpr)->map(mapexpr)->sort()->join()
@@ -1327,7 +1348,7 @@ expr9->{lambda}([args])
 ラムダの使用例: >
 	GetPercentage()->{x -> x * 100}()->printf('%d%%')
 <
--> を使用する場合 |expr8| 演算子が最初に適用される。したがって: >
+-> を使用する場合 |expr9| 演算子が最初に適用される。したがって: >
 	-1.234->string()
 は、以下と同等である: >
 	(-1.234)->string()
@@ -1355,14 +1376,18 @@ Note この最後の呼び出しでは "(getFuncRef())" 関数の解決で "args
 ラムダ形式を使用する場合、} と ( の間に空白があってはならない。
 
 
-							*expr10*
+							*expr11*
 数
-------
+--
 number			数定数				*expr-number*
 
 			*0x* *hex-number* *0o* *octal-number* *binary-number*
 10進数、16進数(0xか0Xで始まる)、2進数(0bか0Bで始まる)、もしくは8進数(0か0oか0O
 で始まる)の数定数。
+
+64bitの数値が使用されている(|v:numbersize| を参照)と仮定するなら、符号なし整数
+は 0x7fffffffffffffff か 9223372036854775807 に丸められる。-1 を使用して
+0xffffffffffffffff を取得できる。
 
 						*floating-point-format*
 浮動小数点数は次の2つの形式で書ける:
@@ -1481,6 +1506,32 @@ Note シングルクォートが使われていることに注意。
 	if a =~ '\s*'
 
 
+文字列補間					*$quote* *interp-string* *E256*
+----------
+$"string"		補間された文字列定数			*expr-$quote*
+$'string'		補間されたリテラル文字列定数		*expr-$'*
+
+文字列補間は、文字列 |string| とリテラル文字列 |literal-string| の拡張であり、
+Vim script の式(|expr1| を参照)を含めることができる。任意の値を返す式は波括弧
+で囲むことができる。値は文字列に変換される。すべてのテキストと式の結果が連結さ
+れ新しい文字列が作成される。
+								*E1278*
+文字列の内容に開き波括弧 '{' または閉じ波括弧 '}' を含めるには、それを2重にす
+る。バックスラッシュを使用したダブルクォートで囲まれた文字列も動作する。単一の
+閉じ波括弧 '}' はエラーになる。
+
+例: >
+	let your_name = input("What's your name? ")
+<	What's your name?  Peter ~
+>
+	echo
+	echo $"Hello, {your_name}!"
+<	Hello, Peter! ~
+>
+	echo $"The square root of {{9}} is {sqrt(9)}"
+<	The square root of {9} is 3.0 ~
+
+
 オプション					*expr-option* *E112* *E113*
 ---------
 &option			オプション変数、ローカルなものが優先
@@ -1509,7 +1560,7 @@ Note シングルクォートが使われていることに注意。
 
 
 入れ子						*expr-nesting* *E110*
--------
+------
 (expr1)			式の入れ子
 
 
@@ -2844,7 +2895,7 @@ script の場合は、関数がエクスポートされていないことが原�
 
 自動コマンドを使う方法 ~
 
-これはユーザーマニュアルのセクション|41.14|で説明されている。
+これはユーザーマニュアルのセクション |51.4| で説明されている。
 
 自動コマンドは、長いVim scriptファイルのプラグインに対して有用である。自動コマ
 ンドを定義し、すぐに `:finish` でそのスクリプトを抜ける。こうするとVimの起動が
@@ -2862,7 +2913,7 @@ FuncUndefinedを使う。例: >
 
 オートロードスクリプトの使い方 ~
 							*autoload* *E746*
-これはユーザーマニュアルのセクション|41.15|で説明されている。
+これはユーザーマニュアルのセクション |52.2| で説明されている。
 
 "autoload" ディレクトリのスクリプトを使う方法はより簡単である。しかし完全に正
 しいファイル名を使う必要がある。オートロードされる関数は次のような名前を持つ: >
@@ -3127,14 +3178,30 @@ Note: |Vim9| script では、`:let` は使用されない。`:var` は変数宣�
 
 						*:let=<<* *:let-heredoc*
 					*E990* *E991* *E172* *E221* *E1145*
-:let {var-name} =<< [trim] {endmarker}
+:let {var-name} =<< [trim] [eval] {endmarker}
 text...
 text...
 {endmarker}
 			内部変数 {var-name} を文字列 {endmarker} で囲まれたテ
 			キスト行を含むリスト |List| に設定する。{endmarker} は
 			空白を含んではならない。
- 			テキストの各行は |literal-string| として扱われる。
+
+			"eval" が指定されていない場合、テキストの各行は
+			|literal-string| として扱われるが、シングルクォートは
+			除外され2重にする必要はない。
+			"eval" が指定されている場合、{expr} 形式の任意の Vim
+			の式が評価され、結果が |interp-string| のように式を置
+			き換える。
+			例として $HOME を展開する: >
+				let lines =<< trim eval END
+				  some text
+				  See the file {$HOME}/.vimrc
+				  more text
+				END
+<			1行に複数のVimの式は許容されるが、複数行に跨る式は許容
+			されない。どれかの式の評価が失敗する場合、変数への割り
+			当てに失敗する。
+
 			{endmarker} は小文字で始めることができない。
 			最後の行は {endmarker} 文字列だけで終わり、他の文字は
 			含まれない。{endmarker} の後の空白に気をつけること！
@@ -3181,6 +3248,13 @@ text...
 					1 2 3 4
 					5 6 7 8
 				DATA
+
+				let code =<< trim eval CODE
+				   let v = {10 + 20}
+				   let h = "{$HOME}"
+				   let s = "{Str1()} abc {Str2()}"
+				   let n = {MyFunc(3, 4)}
+				CODE
 <
 								*E121*
 :let {var-name}	..	変数{var-name}の値を一覧表示する。変数の名前を複数指定
@@ -3390,8 +3464,8 @@ text...
 :for {var} in {object}					*:for* *E690* *E732*
 :endfo[r]						*:endfo* *:endfor*
 			{object}の各要素に対し、`:for` と `:endfor` の間のコマ
-			ンドを繰り返す。{object}はリスト |List| または |Blob|
-			である。 *E1177*
+			ンドを繰り返す。{object}はリスト |List|、|Blob|、また
+			は文字列 |String| である。 *E1177*
 
 			変数{var}に各要素の値がセットされる。
 			|Vim9| script ではループ変数がグローバル/ウィンドウ/タ
