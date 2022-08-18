@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'channel'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="channel.html" name="channel.txt">channel.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 Feb 27<br>
+<a class="Constant" href="channel.html" name="channel.txt">channel.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 Jun 23<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -30,7 +30,9 @@ Netbeans インターフェイスもチャネルを使っています。<a class
 12. ジョブオプション&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#job-options">job-options</a><br>
 13. ジョブを制御する&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#job-control">job-control</a><br>
 14. プロンプトバッファを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#prompt-buffer">prompt-buffer</a><br>
+15. Language Server Protocol&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#language-server-protocol">language-server-protocol</a><br>
 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#E1277" name="E1277">E1277</a><br>
 <span class="Special">{Vim が&nbsp;</span><a class="Identifier" href="various.html#+channel">+channel</a><span class="Special">&nbsp;機能付きでコンパイルされたときのみ有効}</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Comment">has('channel')</span>&nbsp;でこれを確認できる<br>
 <span class="Special">{Vim が&nbsp;</span><a class="Identifier" href="various.html#+job">+job</a><span class="Special">&nbsp;機能付きでコンパイルされたときのみ有効}</span><br>
@@ -56,6 +58,7 @@ RAW&nbsp;&nbsp;&nbsp;&nbsp; 何も知られていない、Vim はメッセージ
 NL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;すべてのメッセージは NL (改行) 文字で終わります。<br>
 JSON&nbsp;&nbsp;&nbsp;&nbsp;JSON エンコーディング&nbsp;<a class="Identifier" href="builtin.html#json_encode()">json_encode()</a><br>
 JS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;JavaScript スタイルの JSON 風のエンコーディング&nbsp;<a class="Identifier" href="builtin.html#js_encode()">js_encode()</a><br>
+LSP&nbsp;&nbsp;&nbsp;&nbsp; Language Server Protocol のエンコーディング&nbsp;<a class="Identifier" href="channel.html#language-server-protocol">language-server-protocol</a><br>
 <br>
 共通の組み合わせ:<br>
 - NL モードでパイプを介して接続されたジョブを使用します。例えば、スタイルチェッ<br>
@@ -123,18 +126,22 @@ send を呼ぶたびに毎回コールバックを指定する代わりに、チ
 <br>
 <a class="Identifier" href="channel.html#ch_status()">ch_status()</a>&nbsp;を使用して、チャネルを開くことができたかどうかを確認します。<br>
 <br>
-<span class="Special">{address}</span>&nbsp;は &quot;ホスト名:ポート番号&quot; の形式です。例:&quot;localhost:8765&quot;<br>
-<br>
-IPv6 アドレスを使う時、角カッコでくくった中に納めてください。<br>
-たとえば、&quot;[2001:db8::1]:8765&quot;。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-address" name="channel-address">channel-address</a><br>
+<span class="Special">{address}</span>&nbsp;はドメイン名か IP アドレスで、それにポート番号を続ける、あるいは<br>
+&quot;unix:&quot; プリフィックスを付けて Unix ドメインソケットパス にできます。例<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;www.example.com:80&nbsp;&nbsp; &quot; ドメイン + ポート<br>
+&nbsp;&nbsp;&nbsp;&nbsp;127.0.0.1:1234&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot; IPv4 + ポート<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[2001:db8::1]:8765&nbsp;&nbsp; &quot; IPv6 + ポート<br>
+&nbsp;&nbsp;&nbsp;&nbsp;unix:/tmp/my-socket&nbsp;&nbsp;&quot; Unix ドメインソケットパス</div>
 <br>
 <span class="Special">{options}</span>&nbsp;はオプションのエントリを持つ辞書です:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-open-options" name="channel-open-options">channel-open-options</a><br>
 <br>
-&quot;mode&quot; でモード (通信フォーマット) を指定します:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-mode" name="channel-mode">channel-mode</a><br>
+&quot;mode&quot; は次のいずれかです:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-mode" name="channel-mode">channel-mode</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;json&quot; - JSONを使う (詳しくは下記を参照。もっとも使いやすい方法。既定)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;js&quot;&nbsp;&nbsp; - JS (JavaScript) エンコーディングを使用し、JSON よりも効率的。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;nl&quot;&nbsp;&nbsp; - NL 文字で終わるメッセージを使う<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;raw&quot;&nbsp;&nbsp;- raw メッセージを使う<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;lsp&quot;&nbsp;&nbsp;- language server protocol エンコーディングを使う<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-callback" name="channel-callback">channel-callback</a>&nbsp;<a class="Constant" href="channel.html#E921" name="E921">E921</a><br>
 &quot;callback&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;メッセージ受信時に他のハンドラーで扱われない時に呼ばれます<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(例えば、ID が0の JSON メッセージ)。これはチャネルのハンドル<br>
@@ -144,8 +151,8 @@ IPv6 アドレスを使う時、角カッコでくくった中に納めてくだ
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let channel = ch_open(&quot;localhost:8765&quot;, {&quot;callback&quot;: &quot;Handle&quot;})</div>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;mode&quot; が &quot;json&quot;, &quot;js&quot; の時には、&quot;msg&quot; 引数は受信したメッセー<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ジの本文で、Vim の型に変換されています。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;mode&quot; が &quot;json&quot;, &quot;js&quot;, &quot;lsp&quot; の時には、&quot;msg&quot; 引数は受信した<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;メッセージの本文で、Vim の型に変換されています。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;mode&quot; が &quot;nl&quot; の時には、&quot;msg&quot; 引数は NL を除く 1 つのメッセー<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ジです。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;mode&quot; が &quot;raw&quot; の時には、&quot;msg&quot; 引数はメッセージ全体を格納し<br>
@@ -170,6 +177,18 @@ IPv6 アドレスを使う時、角カッコでくくった中に納めてくだ
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;close_cb が呼び出されることがあります。プラグインは何とかこれ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を処理する必要があり、これ以上データが来ていないことを知ってお<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;くと便利です。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;読み込むメッセージがあるか不明な場合は、try/catch ブロックを使<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;います:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let msg = ch_readraw(a:channel)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let msg = 'no message'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endtry<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let err = ch_readraw(a:channel, #{part: 'err'})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let err = 'no error'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endtry</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-drop" name="channel-drop">channel-drop</a><br>
 &quot;drop&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;メッセージをいつドロップするかを指定します:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;auto&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;メッセージを処理するコールバックがない場合。<br>
@@ -412,6 +431,7 @@ mode が &quot;nl&quot; の場合、同様の方法でメッセージを送信�
 プロセス&nbsp;<span class="Special">{訳注:サーバーのこと}</span>&nbsp;はレスポンスを返し、チャネルのハンドラーに渡さ<br>
 れます。<br>
 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-onetime-callback" name="channel-onetime-callback">channel-onetime-callback</a><br>
 メッセージを送信し、レスポンスを特定の関数で非同期的に取り扱うには以下のように<br>
 します:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call ch_sendraw(channel, {string}, {'callback': 'MyHandler'})</div>
@@ -449,10 +469,11 @@ v:none、RAW または NL チャネルでは空の文字列です。<a class="Id
 コールバックメッセージがない場合、メッセージは破棄されます。これを回避するに<br>
 は、チャネルにコールバックを追加します。<br>
 <br>
-使用可能な RAW チャネルからすべての出力を読み込むには:<br>
+使用可能な RAW チャネルからすべての通常出力を読み込むには:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let output = ch_readraw(channel)</div>
-エラー出力を読むには:<br>
+使用可能な RAW チャネルからすべてのエラー出力を読み込むには:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let output = ch_readraw(channel, {&quot;part&quot;: &quot;err&quot;})</div>
+<span class="Todo">Note</span>&nbsp;チャネルが NL モードの場合、ch_readraw() は各呼び出しで1行しか返しません。<br>
 <br>
 ch_read() と ch_readraw() はチャネルタイムアウトを使用します。その時間内に何も<br>
 読み込めない場合、空の文字列が返されます。別のタイムアウトをミリ秒で指定するに<br>
@@ -510,13 +531,16 @@ ch_evalexpr(<span class="Special">{handle}</span>,&nbsp;<span class="Special">{e
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ンコードされる。この関数は生のチャネルでは使用できない。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-use">channel-use</a>&nbsp;を参照。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{handle}</span>&nbsp;はチャネルもしくはチャネルを持つジョブであっても良い。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;lsp&quot; モードでチャネル使用時は、<span class="Special">{expr}</span>&nbsp;は&nbsp;<a class="Identifier" href="eval.html#Dict">Dict</a>&nbsp;でなければな<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;らない。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#E917" name="E917">E917</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{options}</span>&nbsp;は辞書でなければならない。また &quot;callback&quot; のエントリ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を持ってはならない。また個別のリクエストに対して &quot;timeout&quot; を<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;持つ事ができる。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ch_evalexpr() は応答を待ち、式をデコードした物が返される。エ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ラーもしくはタイムアウトの場合は空文字列が返る。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ラーもしくはタイムアウトの場合は空の&nbsp;<a class="Identifier" href="eval.html#String">String</a>、あるいは &quot;lsp&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;モードでチャネル使用時は空の&nbsp;<a class="Identifier" href="eval.html#Dict">Dict</a>&nbsp;が返る。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>&nbsp;応答を待っている間、Vimは他のメッセージを処理する。これが<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;トラブルを引き起こさないことを確認する必要がある。<br>
@@ -568,10 +592,15 @@ ch_info(<span class="Special">{handle}</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ch_open() で開いた場合:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;hostname&quot;&nbsp;&nbsp;&nbsp;&nbsp; アドレスのホスト名<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;port&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; アドレスのポート<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;path&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Unix ドメインソケットのパス<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;sock_status&quot;&nbsp;&nbsp;&quot;open&quot; または &quot;closed&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;sock_mode&quot;&nbsp;&nbsp;&nbsp;&nbsp;&quot;NL&quot;, &quot;RAW&quot;, &quot;JSON&quot; または &quot;JS&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;sock_io&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;socket&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;sock_timeout&quot; タイムアウト(ミリ秒)<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>&nbsp;&quot;path&quot; は Unix ドメインソケットの場合にのみ存在し、通常は<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;hostname&quot; と &quot;port&quot; が代わりに存在する。<br>
+<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;job_start() で開いた場合:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;out_status&quot;&nbsp;&nbsp; &quot;open&quot;, &quot;buffered&quot; または &quot;closed&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;out_mode&quot;&nbsp;&nbsp;&nbsp;&nbsp; &quot;NL&quot;, &quot;RAW&quot;, &quot;JSON&quot; または &quot;JS&quot;<br>
@@ -582,7 +611,7 @@ ch_info(<span class="Special">{handle}</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;err_io&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;out&quot;, &quot;null&quot;, &quot;pipe&quot;, &quot;file&quot; または &quot;buffer&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;err_timeout&quot;&nbsp;&nbsp;タイムアウト(ミリ秒)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;in_status&quot;&nbsp;&nbsp;&nbsp;&nbsp;&quot;open&quot; または &quot;closed&quot;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;in_mode&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;NL&quot;, &quot;RAW&quot;, &quot;JSON&quot; または &quot;JS&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;in_mode&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;NL&quot;, &quot;RAW&quot;, &quot;JSON&quot;, &quot;JS&quot; または &quot;LSP&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;in_io&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;null&quot;, &quot;pipe&quot;, &quot;file&quot; または &quot;buffer&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;in_timeout&quot;&nbsp;&nbsp; タイムアウト(ミリ秒)<br>
 <br>
@@ -606,16 +635,20 @@ ch_logfile(<span class="Special">{fname}</span>&nbsp;[,&nbsp;<span class="Specia
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{fname}</span>&nbsp;へチャネルの挙動ログ出力を開始する。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{fname}</span>&nbsp;が空の場合、ロギングは停止する。<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{mode}</span>&nbsp;が省略されるか &quot;a&quot; の場合、ファイルへの追加になる。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{mode}</span>&nbsp;が &quot;w&quot; の場合、空のファイルへで開始される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{mode}</span>&nbsp;が省略されるか &quot;a&quot; を含むか &quot;o&quot; の場合、ファイルへの追<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;加になる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{mode}</span>&nbsp;が &quot;w&quot; を含み &quot;a&quot; を含まない場合、空のファイルで開始さ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{mode}</span>&nbsp;が &quot;o&quot; を含む場合、全ての端末出力が記録される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;その他の場合は、興味深い端末出力のみがログに記録される。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ログメッセージを書き込むには&nbsp;<a class="Identifier" href="channel.html#ch_log()">ch_log()</a>&nbsp;を使用する。UNIX で<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;tail -f&quot; にてリアルタイムで何が行われているかが見える様に、<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイルはメッセージ毎にフラッシュされる。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;最初期にログを有効にし、初期化中に端末から何を受信したのかを参<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;照するには、<a class="Identifier" href="starting.html#--cmd">--cmd</a>&nbsp;を使う:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim --cmd &quot;call ch_logfile('logfile', 'w')&quot;</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;照するには、<a class="Identifier" href="starting.html#--log">--log</a>&nbsp;(&quot;ao&quot; モードを使用) を使う:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim --log logfile</div>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この関数は&nbsp;<a class="Identifier" href="eval.html#sandbox">sandbox</a>&nbsp;内では無効である。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: チャネルとの通信はファイルに格納される。これには、あなた<br>
@@ -631,11 +664,8 @@ ch_open(<span class="Special">{address}</span>&nbsp;[,&nbsp;<span class="Special
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;チャネルを返す。失敗をチェックするには&nbsp;<a class="Identifier" href="channel.html#ch_status()">ch_status()</a>&nbsp;を使用す<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{address}</span>&nbsp;は文字列で &quot;localhost:8765&quot; のように &quot;ホスト名:ポー<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ト&quot; の形式である。<br>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IPv6 アドレスを使う時、角カッコでくくった中に納めること。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;たとえば、&quot;[2001:db8::1]:8765&quot;。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{address}</span>&nbsp;は文字列で、受け付け可能な形式は&nbsp;<a class="Identifier" href="channel.html#channel-address">channel-address</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を参照のこと。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{options}</span>&nbsp;が与えられる場合は辞書でなければならない。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-open-options">channel-open-options</a>&nbsp;を参照。<br>
@@ -680,6 +710,17 @@ ch_sendexpr(<span class="Special">{handle}</span>,&nbsp;<span class="Special">{e
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="channel.html#channel-use">channel-use</a>&nbsp;を参照。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{handle}</span>&nbsp;はチャネルもしくはチャネルを持つジョブであっても良い。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;チャネルは開いていなければならない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;lsp&quot; モードでチャネル使用時は、<span class="Special">{expr}</span>&nbsp;は&nbsp;<a class="Identifier" href="eval.html#Dict">Dict</a>&nbsp;でなければな<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;らない。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;チャネルのモードが &quot;lsp&quot; の場合、辞書を返す。それ以外は空の文<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;字列を返す。<span class="Special">{options}</span>&nbsp;に &quot;callback&quot; の項目が存在する場合、リク<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;エストメッセージのIDを含む辞書を返す。IDはLSPサーバーへキャン<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;セルのリクエスト(必要な場合)を送るのに使うことができる。エラー<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;のときは空の辞書を返す。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{expr}</span>&nbsp;に対して応答メッセージを受けないのであれば、<span class="Special">{options}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;に &quot;callback&quot; 項目を指定しないこと。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#method">method</a>&nbsp;としても使用できる:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GetChannel()-&gt;ch_sendexpr(expr)</div>
@@ -1370,6 +1411,156 @@ Shift-<span class="Special">CTRL-W</span>&nbsp;を使用します)。ウィン�
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# シェルコマンドの受け付けを開始する。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;startinsert</div>
 <br>
+<span class="PreProc">==============================================================================</span><br>
+15. Language Server Protocol&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#language-server-protocol" name="language-server-protocol">language-server-protocol</a><br>
 <br>
-<div class="helpExample">&nbsp;vim:tw=78:ts=8:noet:ft=help:norl:</div>
+language server protocol の仕様は以下にあります:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="Constant"><a href="https://microsoft.github.io/language-server-protocol/specification">https://microsoft.github.io/language-server-protocol/specification</a></span><br>
+<br>
+各 LSP プロトコルメッセージは単純な HTTP ヘッダ で始まり JSON-RPC フォーマット<br>
+にエンコードされたペイロードが続きます。次で説明されています:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="Constant"><a href="https://www.jsonrpc.org/specification">https://www.jsonrpc.org/specification</a></span><br>
+<br>
+Vim&nbsp;<a class="Identifier" href="eval.html#Dict">Dict</a>&nbsp;内の LSP のリクエスト/通知メッセージをエンコードして LSP JSON-RPC<br>
+メッセージ に入れて送信をするのと LSP JSON-RPC 応答/通知メッセージの受信とデ<br>
+コードをして Vim&nbsp;<a class="Identifier" href="eval.html#Dict">Dict</a>&nbsp;内に収めるには、<a class="Identifier" href="channel.html#channel-mode">channel-mode</a>&nbsp;を &quot;lsp&quot; に設定して LSP<br>
+サーバーに接続します。<br>
+<br>
+<a class="Identifier" href="channel.html#channel-mode">channel-mode</a>&nbsp;を &quot;lsp&quot; に設定したチャネルからメッセージを受信したたなら、Vim<br>
+は HTTP ヘッダを処理し、JSON-RPC ペイロードをデコードして Vim&nbsp;<a class="Identifier" href="eval.html#Dict">Dict</a>&nbsp;型に格納<br>
+し、<a class="Identifier" href="channel.html#channel-callback">channel-callback</a>&nbsp;関数もしくは指定された&nbsp;<a class="Identifier" href="channel.html#channel-onetime-callback">channel-onetime-callback</a>&nbsp;関数<br>
+を呼びます。<a class="Identifier" href="channel.html#ch_evalexpr()">ch_evalexpr()</a>&nbsp;か&nbsp;<a class="Identifier" href="channel.html#ch_sendexpr()">ch_sendexpr()</a>&nbsp;関数を用いてチャネルからメッセー<br>
+ジを送信した時には、Vim は HTTP ヘッダを付与し Vim の式を JSON にエンコードし<br>
+ます。Vim が組み込み型を JSON へエンコードあるいはデコードする方法の詳細につい<br>
+ては、<a class="Identifier" href="builtin.html#json_encode()">json_encode()</a>&nbsp;と&nbsp;<a class="Identifier" href="builtin.html#json_decode()">json_decode()</a>&nbsp;を参照してください。<br>
+<br>
+<a class="Type" href="options.html#'lsp'">'lsp'</a>&nbsp;モードを使用してチャネルを開くには、<a class="Identifier" href="channel.html#ch_open()">ch_open()</a>&nbsp;の引数&nbsp;<span class="Special">{options}</span>&nbsp;の<br>
+<span class="MissingTag">'mode'</span>&nbsp;項目を&nbsp;<a class="Type" href="options.html#'lsp'">'lsp'</a>&nbsp;にします。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let ch = ch_open(..., #{mode: 'lsp'})</div>
+<br>
+<a class="Type" href="options.html#'lsp'">'lsp'</a>&nbsp;モードを使用したチャネルをジョブで開くには、<a class="Identifier" href="channel.html#job_start()">job_start()</a>&nbsp;の引数<br>
+<span class="Special">{options}</span>&nbsp;の 'in_mode' と 'out_mode' 項目を&nbsp;<a class="Type" href="options.html#'lsp'">'lsp'</a>&nbsp;にします。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let cmd = ['clangd', '--background-index', '--clang-tidy']<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let opts = {}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let opts.in_mode = 'lsp'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let opts.out_mode = 'lsp'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let opts.err_mode = 'nl'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let opts.out_cb = function('LspOutCallback')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let opts.err_cb = function('LspErrCallback')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let opts.exit_cb = function('LspExitCallback')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let job = job_start(cmd, opts)</div>
+<br>
+<span class="Todo">Note</span>&nbsp;ジョブが LSP メッセージを標準出力に、非LSPメッセージを標準エラーに出す場<br>
+合、チャネルのコールバック関数は両方のメッセージフォーマットを適切に扱うか、上<br>
+記にあるように &quot;out_cb&quot; と &quot;err_cb&quot; で個別のコールバック関数を使って扱わなくて<br>
+はなりません。<br>
+<br>
+サーバーにむけて JSON-RPC リクエストの同期送信をするには、<a class="Identifier" href="channel.html#ch_evalexpr()">ch_evalexpr()</a>&nbsp;関数<br>
+を使います。この関数は応答を待ちサーバーからのレスポンスメッセージをデコードし<br>
+て返します。<a class="Identifier" href="channel.html#channel-timeout">channel-timeout</a>&nbsp;を使うかあるいは引数&nbsp;<span class="Special">{options}</span>&nbsp;の&nbsp;<a class="Type" href="options.html#'timeout'">'timeout'</a><br>
+フィールドに値を設定することで応答の待ち時間の制御ができます。レスポンスがタイ<br>
+ムアウトした場合、空の&nbsp;<a class="Identifier" href="eval.html#Dict">Dict</a>&nbsp;が返ります。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let req = {}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.method = 'textDocument/definition'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.params = {}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.params.textDocument = #{uri: 'a.c'}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.params.position = #{line: 10, character: 3}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let defs = ch_evalexpr(ch, req, #{timeout: 100})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if defs-&gt;empty()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;... &lt;handle failure&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;endif</div>
+<br>
+<span class="Todo">Note</span>&nbsp;リクエストメッセージには&nbsp;<span class="MissingTag">'id'</span>&nbsp;フィールドを指定してはいけません。指定した<br>
+場合、Vimは内部的に生成する識別子の値を上書きします。Vimは現在、<span class="MissingTag">'id'</span>&nbsp;フィール<br>
+ドの種別として数値のみをサポートしています。RPC のリクエストの成功と失敗の両方<br>
+でコールバック関数が呼び出されます。<br>
+<br>
+JSON-RPC リクエストをサーバーに送信して応答を非同期に処理するには、<br>
+<a class="Identifier" href="channel.html#ch_sendexpr()">ch_sendexpr()</a>&nbsp;関数を使ってコールバック関数を与えます。リクエストメッセージに<br>
+&quot;id&quot; フィールドが設定されている場合は、Vimは内部的に生成する識別子の値を上書き<br>
+します。この関数はメッセージに使用した識別子を含む Dict を返します。キャンセル<br>
+リクエストを LSP サーバーに送信する(必要な場合)にも使用できます。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let req = {}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.method = 'textDocument/hover'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.id = 200<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.params = {}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.params.textDocument = #{uri: 'a.c'}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.params.position = #{line: 10, character: 3}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let resp = ch_sendexpr(ch, req, #{callback: 'HoverFunc'})</div>
+<br>
+<a class="Identifier" href="channel.html#ch_sendexpr()">ch_sendexpr()</a>&nbsp;関数を使用してサーバーに送信した非同期 LSP リクエストの未処理<br>
+のものをキャンセルするには、リクエスト時に返されたIDとともに&nbsp;<a class="Identifier" href="channel.html#ch_sendexpr()">ch_sendexpr()</a><br>
+関数でキャンセル用メッセージをサーバーに送信します。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&quot; 補完リクエストを送信<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req = {}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.method = 'textDocument/completion'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.params = {}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.params.textDocument = #{uri: 'a.c'}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let req.params.position = #{line: 10, character: 3}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let reqstatus = ch_sendexpr(ch, req, #{callback: 'LspComplete'})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&quot; キャンセル通知を送信<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let notif = {}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let notif.method = '$/cancelRequest'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let notif.id = reqstatus.id<br>
+&nbsp;&nbsp;&nbsp;&nbsp;call ch_sendexpr(ch, notif)</div>
+<br>
+JSON-RPC 通知メッセージをサーバーに送信するには、<a class="Identifier" href="channel.html#ch_sendexpr()">ch_sendexpr()</a>&nbsp;関数を使いま<br>
+す。サーバーは通知のレスポンスメッセージを送信しません。&quot;callback&quot; 項目は指定<br>
+をしてはいけません。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;call ch_sendexpr(ch, #{method: 'initialized'})</div>
+<br>
+サーバーからの JSON-RPC リクエストメッセージへの返答には&nbsp;<a class="Identifier" href="channel.html#ch_sendexpr()">ch_sendexpr()</a>&nbsp;関数<br>
+を使用します。レスポンスメッセージの中の&nbsp;<span class="MissingTag">'id'</span>&nbsp;フィールドの値はサーバーへのリク<br>
+エストメッセージの応答メッセージからコピーします。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;let resp = {}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let resp.id = req.id<br>
+&nbsp;&nbsp;&nbsp;&nbsp;let resp.result = 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;call ch_sendexpr(ch, resp)</div>
+<br>
+サーバーからの JSON-RPC 通知メッセージは&nbsp;<a class="Identifier" href="channel.html#channel-callback">channel-callback</a>&nbsp;関数を通じて伝達さ<br>
+れます。<br>
+<br>
+ユースケースに依存しますが、ch_evalexpr(), ch_sendexpr(), ch_sendraw() 関数を<br>
+同じチャネルで使うことができます。<br>
+<br>
+LSP リクエストメッセージは以下のフォーマット(Vim Dict で表現)を持ちます。<br>
+&quot;params&quot; フィールドはオプションです:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;jsonrpc&quot;: &quot;2.0&quot;,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;id&quot;: &lt;number&gt;,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;method&quot;: &lt;string&gt;,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;params&quot;: &lt;list|dict&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+LSP レスポンスメッセージは以下のフォーマット(Vim Dict で表現)を持ちます。<br>
+&quot;result&quot; と &quot;error&quot; フィールドはオプションです:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;jsonrpc&quot;: &quot;2.0&quot;,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;id&quot;: &lt;number&gt;,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;result&quot;: &lt;vim type&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;error&quot;: &lt;dict&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+LSP 通知メッセージは以下のフォーマット(Vim Dict で表現)を持ちます。&quot;params&quot;<br>
+フィールドはオプションです:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;jsonrpc&quot;: &quot;2.0&quot;,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;method&quot;: &lt;string&gt;,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;params&quot;: &lt;list|dict&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+<br>
+&nbsp;vim:tw=78:ts=8:noet:ft=help:norl:<br>
 </div>
