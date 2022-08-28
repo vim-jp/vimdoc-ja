@@ -13,5 +13,5 @@ if has("conceal")
 else
   syn region helpHeadlineQuote matchgroup=helpIgnore start="^=" end="=$" contains=helpHeadlineValue keepend
 endif
-syn match  helpHeadlineValue "[^=].\+[^=]" contained
+syn match  helpHeadlineValue "[^=].*[^=]" contained
 hi def link helpHeadlineValue helpHeadline
