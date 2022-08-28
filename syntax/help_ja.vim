@@ -8,3 +8,10 @@ syn region helpTransNote start="{訳注:" end="}" contains=helpLeadBlank,helpHyp
 syn region helpBracesInTransNote start=".{"ms=e end="}."me=s transparent contained contains=helpLeadBlank,helpHyperTextJump,helpBracesInTransNote
 syn match helpSpecial "[。、]\zs\[[-a-z^A-Z0-9_]\{2,}]"
 hi def link helpTransNote Special
+if has("conceal")
+  syn region helpHeadlineQuote matchgroup=helpIgnore start="^=" end="=$" contains=helpHeadlineValue keepend concealends
+else
+  syn region helpHeadlineQuote matchgroup=helpIgnore start="^=" end="=$" contains=helpHeadlineValue keepend
+endif
+syn match  helpHeadlineValue "[^=].\+[^=]" contained
+hi def link helpHeadlineValue helpHeadline
