@@ -9,9 +9,9 @@ syn region helpBracesInTransNote start=".{"ms=e end="}."me=s transparent contain
 syn match helpSpecial "[。、]\zs\[[-a-z^A-Z0-9_]\{2,}]"
 hi def link helpTransNote Special
 if has("conceal")
-  syn region helpHeadlineQuote matchgroup=helpIgnore start="^=" end="=$" contains=helpHeadlineValue keepend concealends
+  syn region helpHeadlineQuote matchgroup=helpIgnore start="^※\(\s\)\@!" end="\ze\(\s\+\*\|$\)" contains=helpHeadlineValue keepend concealends
 else
-  syn region helpHeadlineQuote matchgroup=helpIgnore start="^=" end="=$" contains=helpHeadlineValue keepend
+  syn region helpHeadlineQuote matchgroup=helpIgnore start="^※\(\s\)\@!" end="\ze\(\s\+\*\|$\)" contains=helpHeadlineValue keepend
 endif
-syn match  helpHeadlineValue "[^=].*[^=]" contained
+syn match  helpHeadlineValue "[^\s]*" contained
 hi def link helpHeadlineValue helpHeadline
