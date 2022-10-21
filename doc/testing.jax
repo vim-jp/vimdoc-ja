@@ -92,6 +92,7 @@ test_gui_event({event}, {args})
 		    "findrepl"	テキストの検索と置換。
 		    "mouse"	マウスのボタンクリックイベント。
 		    "scrollbar"	スクロールバーの移動もしくはドラッグ。
+		    "sendevent" 低レベル GUI イベントを送出する。
 		    "tabline"	マウスクリックによるタブページ行の選択。
 		    "tabmenu"	タブページ行のメニューエントリの選択。
 
@@ -172,6 +173,16 @@ test_gui_event({event}, {args})
 				値は1から最大行長までの間になる。
 		    dragging:	1はスクロールバーをドラッグし、0はスクロール
 				バーをクリックする。
+
+		"sendevent":
+		  低レベルの GUI のイベント(例、キーUpやキーDown)を送出する。
+		  現在は MS-Windows のみサポートしている。
+		  {args} でサポートする項目は:
+		    event:	サポートする文字列値は:
+				    keyup   キーUpイベントを生成する
+				    keydown キーDownイベントを生成する
+		    keycode:    キーのUp/Downイベントで使用するキーコード
+								*E1291*
 
 		"tabline":
 		  タブページ行のマウスクリックイベントの注入によるタブページの
@@ -266,6 +277,9 @@ test_override({name}, {val})				*test_override()*
 		現在、{name} に使える値は:
 
 		{name}	     {val} が非 0 のときの効果 ~
+		alloc_lines  確保したメモリ内に各バッファの行のコピーを作り、
+			     それによりメモリアクセスのエラーが valgrind で検
+			     出できる
 		autoload    `import autoload` でスクリプトを正しい手順でロード
 			     し、項目が使用されるまで延期はしない
 		char_avail   char_avail() 関数を無効化する
@@ -284,7 +298,8 @@ test_override({name}, {val})				*test_override()*
 		uptime 	     sysinfo.uptime を上書きする
 		vterm_title  端末ウィンドウ内でジョブが走っている場合にウィン
 			     ドウタイトルを設定する
-		ALL	     すべての置き換えをクリアする ({val} は使われない)
+		ALL	     alloc_lines 以外のすべての置き換えをクリアする
+			     ({val} は使われない)
 
 		"starting" は、起動が完了したようにテストが振る舞うべきときに
 		使われる。テストはスクリプトを読み込むことによって開始されるの
