@@ -3,25 +3,129 @@ layout: vimdoc
 helpname: 'usr_50'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="usr_50.html" name="usr_50.txt">usr_50.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 May 13<br>
+<a class="Constant" href="usr_50.html" name="usr_50.txt">usr_50.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 Jun 20<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; VIM USER MANUAL - by Bram Moolenaar<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 高度な Vim script の書き方<br>
 <br>
 <br>
-TODO - この章はいずれ書きます<br>
-<br>
-<a class="Identifier" href="usr_50.html#50.1">50.1</a>&nbsp;&nbsp;執筆活動<br>
+<a class="Identifier" href="usr_50.html#50.1">50.1</a>&nbsp;&nbsp;例外<br>
+<a class="Identifier" href="usr_50.html#50.2">50.2</a>&nbsp;&nbsp;可変長引数の関数<br>
+<a class="Identifier" href="usr_50.html#50.3">50.3</a>&nbsp;&nbsp;ビューの復元<br>
 <br>
 次章:&nbsp;<a class="Identifier" href="usr_51.html">usr_51.txt</a>&nbsp;&nbsp;プラグインを作る<br>
 前章:&nbsp;<a class="Identifier" href="usr_45.html">usr_45.txt</a>&nbsp;&nbsp;言語を選択する (ロケール)<br>
 目次:&nbsp;<a class="Identifier" href="usr_toc.html">usr_toc.txt</a><br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
-<a class="Constant" href="usr_50.html#50.1" name="50.1">50.1</a>&nbsp;&nbsp;執筆活動<br>
+<a class="Constant" href="usr_50.html#50.1" name="50.1">50.1</a>&nbsp;&nbsp;例外<br>
 <br>
-TODO<br>
+まずは例から始めましょう:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; read ~/templates/pascal.tmpl<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch /E484:/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; echo &quot;パスカル用のテンプレートファイルは見つかりませんでした。&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endtry</div>
+<br>
+<a class="Comment" href="insert.html#:read">read</a>&nbsp;コマンドはファイルがなければ失敗します。そのエラーをキャッチして、エラー<br>
+メッセージの代わりにより詳細な情報のメッセージを表示しています。<br>
+<br>
+<a class="Comment" href="eval.html#:try">try</a>&nbsp;と&nbsp;<a class="Comment" href="eval.html#:endtry">endtry</a>&nbsp;の間で起きたエラーは例外に変換されます。例外は文字列です。エ<br>
+ラーの場合、文字列はエラーメッセージを含んでいます。そして、全てのエラーメッ<br>
+セージは番号を持っています。この場合、キャッチしたエラーには &quot;E484:&quot; が含まれ<br>
+ています。この番号は変わらないことが保証されています (テキストは翻訳されるなど<br>
+して変わる可能性があります)。<br>
+<br>
+素敵なエラーメッセージを出力し、Vim は&nbsp;<a class="Comment" href="eval.html#:endtry">:endtry</a>&nbsp;以降のコマンドの実行も続けま<br>
+す。それ以外のキャッチされないエラーに遭遇した場合、スクリプト/関数/マッピング<br>
+の実行は中断されます。<br>
+<br>
+<a class="Comment" href="insert.html#:read">read</a>&nbsp;コマンドが他のエラーを起こした場合、&quot;E484:&quot; というパターンはマッチしな<br>
+いでしょう。したがって、その例外はキャッチされず、通常のエラーメッセージの表示<br>
+とともに実行が中断されます。<br>
+<br>
+あなたはこれをしたくなるかもしれません:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; read ~/templates/pascal.tmpl<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; echo &quot;パスカル用のテンプレートファイルは見つかりませんでした。&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endtry</div>
+<br>
+全ての例外がキャッチされます。しかし &quot;E21: Cannot make changes,&nbsp;<a class="Type" href="options.html#'modifiable'">'modifiable'</a><br>
+is off&quot; のようなまったく異なる問題を示す有効なエラーに気づくことができません。<br>
+エラーをキャッチする前によく考えてください!<br>
+<br>
+もう1つの便利なメカニズムは&nbsp;<a class="Comment" href="eval.html#:finally">finally</a>&nbsp;コマンドです:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var tmp = tempname()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; exe &quot;:.,$write &quot; .. tmp<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; exe &quot;!filter &quot; .. tmp<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :.,$delete<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; exe &quot;:$read &quot; .. tmp<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;finally<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; delete(tmp)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endtry</div>
+<br>
+これは、ファイル名の引数をとる &quot;filter&quot; コマンドを使用して、カーソルからファイ<br>
+ルの終わりまでの行をフィルタリングします。フィルタリングが動作しても、<a class="Comment" href="eval.html#:try">try</a>&nbsp;と<br>
+<a class="Comment" href="eval.html#:finally">finally</a>&nbsp;の間で何か問題が発生した場合や、ユーザーが&nbsp;<span class="Special">CTRL-C</span>&nbsp;を押してフィルタリ<br>
+ングをキャンセルした場合は、常に&nbsp;<span class="Comment">delete(tmp)</span>&nbsp;呼び出しが実行されます。これに<br>
+より、一時ファイルを残さないようにすることができます。<br>
+<br>
+<a class="Comment" href="eval.html#:finally">finally</a>&nbsp;は例外をキャッチせず、エラーはそれ以降の実行を中断します。<br>
+<br>
+例外についてさらに詳しい情報はリファレンスマニュアルの<a class="Identifier" href="eval.html#exception-handling">exception-handling</a>を<br>
+参照してください。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_50.html#50.2" name="50.2">50.2</a>&nbsp;&nbsp;可変長引数の関数<br>
+<br>
+Vim では、可変数の引数を持つ関数を定義できます。例えば、次のコマンドは、1つの<br>
+引数(start)を持つ必要があり、最大20個の追加の引数を持つことができる関数を定義<br>
+します:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Show(start: string, ...items: list&lt;string&gt;)</div>
+<br>
+変数 &quot;items&quot; は、追加の引数を含む関数内のリストになります。any型のリストと同じ<br>
+ように使用できます。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Show(start: string, ...items: list&lt;string&gt;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echohl Title<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo &quot;start is &quot; .. start<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echohl None<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for index in range(len(items))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echon $&quot;&nbsp;&nbsp;Arg {index} is {items[index]}&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfor<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+<br>
+このように呼び出しできます:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Show('Title', 'one', 'two', 'three')</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">start is Title&nbsp;&nbsp;Arg 0 is one&nbsp;&nbsp;Arg 1 is two&nbsp;&nbsp;Arg 2 is three</span><br>
+<br>
+これは&nbsp;<a class="Comment" href="eval.html#:echohl">echohl</a>&nbsp;コマンドを使用して以降の&nbsp;<a class="Comment" href="eval.html#:echo">echo</a>&nbsp;コマンドをハイライトするように<br>
+指定しています。<span class="Comment">echohl None</span>&nbsp;で再度停止します。<a class="Comment" href="eval.html#:echon">echon</a>&nbsp;コマンドは&nbsp;<a class="Comment" href="eval.html#:echo">echo</a>&nbsp;と同<br>
+様に動作しますが、改行を出力しません。<br>
+<br>
+引数を1つで呼び出したときは &quot;items&quot; リストは空になります。<span class="Comment">range(len(items))</span><br>
+はインデックス付きのリストを返します。<a class="Comment" href="eval.html#:for">for</a>&nbsp;がループするものについては、さらに<br>
+詳しく説明します。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_50.html#50.3" name="50.3">50.3</a>&nbsp;&nbsp;ビューの復元<br>
+<br>
+場合によっては、ジャンプして変更を加えてから、同じ位置とビューに戻りたいことが<br>
+あります。例えば、ファイルヘッダーの何かを変更します。これは、次の 2 つの関数<br>
+で実行できます:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var view = winsaveview()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 移動して、変更を行う<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;winrestview(view)</div>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 <br>
