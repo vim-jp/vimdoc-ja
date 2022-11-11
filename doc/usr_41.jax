@@ -1,4 +1,4 @@
-*usr_41.txt*	For Vim バージョン 9.0.  Last change: 2022 Jun 10
+*usr_41.txt*	For Vim バージョン 9.0.  Last change: 2022 Oct 07
 
 		     VIM USER MANUAL - by Bram Moolenaar
 
@@ -263,14 +263,14 @@ Note: |Vim9| script を使わずにこれらのコマンドを試すと、旧来
 |Vim9| script 内ではスクリプトローカル変数を `unlet` できず、できるのは旧来の
 スクリプトの中のみです。
 
-スクリプトの実行が終了したとき、宣言したローカル変数は削除されません。そのスク
-リプトで定義された関数が使うことができます。例: >
+スクリプトを最後まで処理しきったとき、宣言したローカル変数は削除されません。そ
+のスクリプトで定義された関数が使うことができます。例: >
 
 	vim9script
 	var counter = 0
 	def g:GetCount(): number
-	  s:counter += 1
-	  return s:counter
+	  counter += 1
+	  return counter
 	enddef
 
 関数を呼ぶたびに次のカウントを返します: >
@@ -709,6 +709,8 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	fnameescape()		Vim コマンド用にファイル名をエスケープ
 	tr()			ある文字の集合から別の文字の集合へ置換する
 	strtrans()		文字列を印字可能な状態とする
+	keytrans()		内部キーコードから |:map| で使用可能な表記にす
+				る
 	tolower()		文字列を小文字にする
 	toupper()		文字列を大文字にする
 	charclass()		文字のクラス
@@ -766,14 +768,16 @@ substitute() の呼び出しの前後にいろいろな処理を入れたりす�
 	reduce()		リストの畳み込みの値を算出する
 	slice()			リストのスライスを取る
 	sort()			リストをソートする
-	reverse()		リストの並び順を反転させる
+	reverse()		リストあるいは Blob の並び順を反転させる
 	uniq()			隣接して繰り返される要素のコピーを削除する
 	split()			文字列を分割し、リストにする
 	join()			リストの要素を連結し、文字列にする
 	range()			数列リストを返す
 	string()		リストの文字列表現
 	call()			リストを引数として関数を呼ぶ
-	index()			リスト中の要素のインデックス
+	index()			リストあるいは Blob 中の要素のインデックス
+	indexof()		リストあるいは Blob で式の評価が真となった位置
+				のインデックス
 	max()			リスト中の最大値
 	min()			リスト中の最小値
 	count()			ある要素がリスト中に出現する回数を返す
@@ -1011,6 +1015,7 @@ Blob 操作:						*blob-functions*
 	getcmdline()		現在のコマンドラインを取得
 	getcmdpos()		コマンドラインにおけるカーソル位置を取得
 	getcmdscreenpos()	コマンドラインでのカーソルの画面位置を取得
+	setcmdline()		現在のコマンドラインを設定
 	setcmdpos()		コマンドラインにおけるカーソル位置を設定
 	getcmdtype()		現在のコマンドラインの種類を返す
 	getcmdwintype()		現在のコマンドラインウィンドウの種類を返す
@@ -1264,6 +1269,8 @@ Vimサーバー:					*server-functions*
 	popup_filter_yesno()	'y' か 'n' が押されるまでブロックする
 	popup_getoptions()	ポップアップの現在のオプションを取得する
 	popup_getpos()		ポップアップの実際の位置とサイズを取得する
+	popup_findecho()	`:echowindow` で使用しているポップアップのウィ
+				ンドウIDを取得
 	popup_findinfo()	ポップアップ情報ウィンドウのウィンドウIDを取得
 				する
 	popup_findpreview()	ポップアッププレビューウィンドウのウィンドウID
@@ -1271,6 +1278,14 @@ Vimサーバー:					*server-functions*
 	popup_list()		全ポップアップのウィンドウIDのリストを取得する
 	popup_locate()		スクリーン上の指定の位置にあるポップアップの
 				ウィンドウIDを取得する
+
+Registers:					*register-functions*
+	getreg()		レジスタの値を得る
+	getreginfo()		レジスタの情報を得る
+	getregtype()		レジスタのタイプを得る
+	setreg()		レジスタの値を設定する
+	reg_executing()		実行中のレジスタ名を返す
+	reg_recording()		記録中のレジスタ名を返す
 
 タイマー:					*timer-functions*
 	timer_start()		タイマーを作る
@@ -1322,6 +1337,7 @@ Vimサーバー:					*server-functions*
 	did_filetype()		FileType自動コマンドが使用されたかどうか
 	eventhandler()		イベントハンドラによって起動されたかどうか
 	getpid()		Vim のプロセスIDを得る
+	getscriptinfo()		読み込んだ Vim script のリストを取得
 	getimstatus()		IME のステータスがアクティブかをチェック
 	interrupt()		スクリプトの実行を中断する
 	windowsversion()	MS-Windows バージョンの取得
@@ -1332,13 +1348,6 @@ Vimサーバー:					*server-functions*
 
 	undofile()		アンドゥファイルの名前を得る
 	undotree()		アンドゥツリーの状態を返す
-
-	getreg()		レジスタの値を得る
-	getreginfo()		レジスタの情報を得る
-	getregtype()		レジスタのタイプを得る
-	setreg()		レジスタの値を設定する
-	reg_executing()		実行中のレジスタ名を返す
-	reg_recording()		記録中のレジスタ名を返す
 
 	shiftwidth()		'shiftwidth' の実際の値
 
@@ -1717,9 +1726,10 @@ range()が生成するリストの最初の要素は0であることに注意し
 ==============================================================================
 *41.9*	空白
 
-空の行はあっても構いません。無視されます。
+空の行はスクリプト内にあっても構いません。無視されます。
 
-行頭の空白 (スペースとTAB) は常に無視されます。
+"trim" 無しで |:let-heredoc| を使用する場合以外、行頭の空白 (スペースとTAB) は
+は無視されます。
 
 末尾の空白は多くの場合無視されますが、常にではありません。`map` というコマンド
 は末尾空白を含みます。それに気を付けなくてはいけませんが、分かりにくい間違いを
@@ -1835,12 +1845,15 @@ Unix では特別なコメント書式を使って Vim script を実行形式に
 *41.12*	ファイルフォーマット
 
 行末の文字はシステムに依存します。Vim script では Unix のファイルフォーマット
-が常に推奨されます。これはまた他のシステムでも動作します。この方法でならあなた
-の Vim script を MS-Windows から Unix にコピーしても動くようにすることができま
-す。|:source_crnl| を参照。確実に正しく設定されるには、ファイルを書き込む前に
-次のようにします: >
+が常に推奨されます。行は改行文字 (注:<NL>) で区切られます。これはまた他のシス
+テムでも動作します。この方法でならあなたの Vim script を MS-Windows から Unix
+にコピーしても動くようにすることができます。|:source_crnl| を参照。確実に正し
+く設定されるには、ファイルを書き込む前に次のようにします: >
 
 	:setlocal fileformat=unix
+
+"dos" ファイルフォーマット使用時は、行は CR-NL の二文字で区切られます。CR 文字
+はさまざまな問題の原因なので、これは回避するのが良いです。
 
 ==============================================================================
 
