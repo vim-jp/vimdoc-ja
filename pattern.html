@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'pattern'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="pattern.html" name="pattern.txt">pattern.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 8.2.</span>&nbsp;&nbsp;Last change: 2020 Jul 10<br>
+<a class="Constant" href="pattern.html" name="pattern.txt">pattern.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 Sep 24<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; by Bram Moolenaar</span><br>
@@ -24,6 +24,7 @@ helpname: 'pattern'
 8. 合成文字&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#patterns-composing">patterns-composing</a><br>
 9. Perl のパターンとの比較&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#perl-patterns">perl-patterns</a><br>
 10. マッチしたテキストを強調する<a class="Identifier" href="pattern.html#match-highlight">match-highlight</a><br>
+11. ファジーマッチ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#fuzzy-matching">fuzzy-matching</a><br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 1. 検索コマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#search-commands" name="search-commands">search-commands</a><br>
@@ -136,6 +137,11 @@ gD&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">CTRL-Break</span>を使ってください&nbsp;<a class="Identifier" href="os_dos.html#dos-CTRL-Break">dos-CTRL-Break</a>。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ノーマルモードでは、入力済みの、まだ実行されていないコ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;マンドをすべて中止します。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;出力をリダイレクトして Vim を起動し、変更されたバッファ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;がない場合、<span class="Special">CTRL-C</span>&nbsp;で Vim を終了します。これは、&quot;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;file | grep word&quot; を使用していて、抜け出す方法がわから<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ないユーザーを支援するためです(盲目的に :qa<span class="Special">&lt;CR&gt;</span>&nbsp;と入力<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;してもうまくいきます)。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#:noh" name=":noh">:noh</a>&nbsp;<a class="Constant" href="pattern.html#:nohlsearch" name=":nohlsearch">:nohlsearch</a><br>
 :noh[lsearch]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'hlsearch'">'hlsearch'</a>&nbsp;オプションによる強調表示をやめます。検索コ<br>
@@ -165,9 +171,12 @@ gD&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <span class="Todo">Note</span>: 総数はオフセットを考慮していません。<br>
 <br>
 マッチが見つからなかった場合はエラーが表示されます:&nbsp;<a class="Constant" href="pattern.html#E486" name="E486">E486</a>&nbsp;Pattern not found<br>
-<span class="Todo">Note</span>:&nbsp;<a class="Identifier" href="repeat.html#:global">:global</a>&nbsp;コマンドではこの動作はノーマルメッセージと同じです (Vi 互換の<br>
-ため)。<a class="Identifier" href="change.html#:s">:s</a>&nbsp;コマンドでは &quot;e&quot; フラグを指定することでエラーメッセージを抑制でき<br>
-ます&nbsp;<a class="Identifier" href="change.html#:s_flags">:s_flags</a>。<br>
+<span class="Todo">Note</span>:&nbsp;<a class="Comment" href="repeat.html#:global">:global</a>&nbsp;コマンドを旧来のスクリプトで使うと、Vi の互換性のためノーマル<br>
+メッセージ &quot;Pattern not found&quot; になります。<br>
+<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script ではエラーで E486 の &quot;pattern not found&quot; か&nbsp;<a class="Comment" href="repeat.html#:vglobal">:vglobal</a>&nbsp;で各行に<br>
+マッチするパターンの時に&nbsp;<a class="Constant" href="pattern.html#E538" name="E538">E538</a>&nbsp;になります。<br>
+<a class="Identifier" href="change.html#:s">:s</a>&nbsp;コマンドでは &quot;e&quot; フラグを指定することでエラーメッセージを抑制できます<br>
+<a class="Identifier" href="change.html#:s_flags">:s_flags</a>。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#search-offset" name="search-offset">search-offset</a>&nbsp;<a class="Constant" href="pattern.html#{offset}" name="{offset}">{offset}</a><br>
 上記の検索コマンドは指定されたパターンを検索します。&quot;/&quot; と &quot;?&quot; ではさらにオフ<br>
@@ -316,7 +325,7 @@ continuing at TOP&quot; というメッセージが表示されます。この�
 <span class="PreProc">==============================================================================</span><br>
 2. パターンの定義&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#search-pattern" name="search-pattern">search-pattern</a>&nbsp;<a class="Constant" href="pattern.html#pattern" name="pattern">pattern</a>&nbsp;<a class="Constant" href="pattern.html#[pattern]" name="[pattern]">[pattern]</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#regular-expression" name="regular-expression">regular-expression</a>&nbsp;<a class="Constant" href="pattern.html#regexp" name="regexp">regexp</a>&nbsp;<a class="Constant" href="pattern.html#Pattern" name="Pattern">Pattern</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#E76" name="E76">E76</a>&nbsp;<a class="Constant" href="pattern.html#E383" name="E383">E383</a>&nbsp;<a class="Constant" href="pattern.html#E476" name="E476">E476</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#E383" name="E383">E383</a>&nbsp;<a class="Constant" href="pattern.html#E476" name="E476">E476</a><br>
 <br>
 初心者の方はユーザーマニュアルの27章&nbsp;<a class="Identifier" href="usr_27.html">usr_27.txt</a>&nbsp;を読んでください。<br>
 <br>
@@ -344,8 +353,8 @@ continuing at TOP&quot; というメッセージが表示されます。この�
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/concat" name="/concat">/concat</a><br>
 3. 連接は、連続した 1 つ以上のピースからなります。ピースがすべて、順番どおり<br>
-&nbsp;&nbsp; マッチした場合にマッチします。たとえば、&quot;f[0-9]b&quot; は最初に &quot;f&quot; にマッチし、<br>
-&nbsp;&nbsp; 次に 1 桁の数字、そして &quot;b&quot; にマッチします。<br>
+&nbsp;&nbsp; マッチした場合にマッチします。例えば、&quot;f[0-9]b&quot; は最初に &quot;f&quot; にマッチし、次<br>
+&nbsp;&nbsp; に 1 桁の数字、そして &quot;b&quot; にマッチします。<br>
 <br>
 &nbsp;&nbsp; concat&nbsp;&nbsp;::=&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;piece<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;piece piece<br>
@@ -354,7 +363,7 @@ continuing at TOP&quot; というメッセージが表示されます。この�
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/piece" name="/piece">/piece</a><br>
 4. ピースはアトムです。アトムが何回マッチするかを指示する、量指定子を後ろに置<br>
-&nbsp;&nbsp; くことができます。たとえば &quot;a*&quot; はいくつの &quot;a&quot; でもマッチします。<br>
+&nbsp;&nbsp; くことができます。例えば &quot;a*&quot; はいくつの &quot;a&quot; でもマッチします。<br>
 &nbsp;&nbsp; &quot;&quot;、&quot;a&quot;、&quot;aa&quot; など。<a class="Identifier" href="pattern.html#/multi">/multi</a>を参照。<br>
 <br>
 &nbsp;&nbsp; piece&nbsp;&nbsp; ::=&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;atom<br>
@@ -376,7 +385,7 @@ Vim は二つの正規表現エンジンを持っています:<br>
 1. 古い、バックトラッキングエンジン。すべての機能をサポート。<br>
 2. 新しい、NFA エンジン。いくつかのパターンで動作が速いがいくつかのパターンで<br>
 &nbsp;&nbsp; は遅くなる。<br>
-<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#E1281" name="E1281">E1281</a><br>
 Vim は自動的に適切なエンジンを選択します。何か問題が発生したか、あるいは明示的<br>
 にエンジンを選択したいか、あるいはその他の理由で、エンジンを指定したい場合はパ<br>
 ターンの先頭で次のように指定します:<br>
@@ -395,15 +404,18 @@ NFA エンジンが選択され、未実装の機能が使用され、パター�
 <span class="PreProc">==============================================================================</span><br>
 3. Magic&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/magic" name="/magic">/magic</a><br>
 <br>
-パターンの中でリテラルとして扱われる文字は、テキストの同じ文字とマッチします。<br>
-しかし、バックスラッシュが前置されると、特別な意味を持つようになります。<br>
+パターンの中でリテラル、つまり文字列として扱われる文字は、テキストの同じ文字と<br>
+マッチします。しかし、バックスラッシュが前置されると、特別な意味を持つことがあ<br>
+ります。<br>
 <br>
 バックスラッシュを前置しなくても特別な意味を持つ文字があります。そのような文字<br>
 をリテラル文字としてマッチさせるには、バックスラッシュを前置する必要がありま<br>
-す。<br>
+す。例えば &quot;.&quot; は任意の文字にマッチし &quot;\.&quot; はドットにマッチします。<br>
 <br>
 ある文字がリテラルとして処理されるかどうかは、オプション&nbsp;<a class="Type" href="options.html#'magic'">'magic'</a>&nbsp;と、以下で説<br>
-明するアイテムに依存します。<br>
+明するパターンに含まれるアイテムに依存します。オプション&nbsp;<a class="Type" href="options.html#'magic'">'magic'</a>&nbsp;は常に設定す<br>
+るべきですが、Vi 互換のためにオフにすることができます。ここでは網羅性のために<br>
+<a class="Type" href="options.html#'nomagic'">'nomagic'</a>&nbsp;の効果を説明しますが、使用については推奨しません。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\m" name="/\m">/\m</a>&nbsp;<a class="Constant" href="pattern.html#/\M" name="/\M">/\M</a><br>
 &quot;\m&quot; を使うと、それ以降のパターンは&nbsp;<a class="Type" href="options.html#'magic'">'magic'</a>&nbsp;がオンの状態で処理されます。<br>
 オプション&nbsp;<a class="Type" href="options.html#'magic'">'magic'</a>&nbsp;の設定よりも優先されます。<br>
@@ -418,23 +430,22 @@ ASCII文字は特別な意味を持ちます: &quot;very magic&quot;<br>
 例:<br>
 <span class="PreProc">after:&nbsp;&nbsp;&nbsp;&nbsp;\v&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \m&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \M&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \V&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; マッチするもの</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'magic'">'magic'</a>&nbsp;<a class="Type" href="options.html#'nomagic'">'nomagic'</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 行末<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リテラルの 'a'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 何かの英字 1 文字<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 何か 1 文字<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リテラルのドット<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 行末<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 直前のアトムの繰り返し<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 直近の置換文字列<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \(\)&nbsp;&nbsp;&nbsp;&nbsp; \(\)&nbsp;&nbsp;&nbsp;&nbsp; \(\)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; グループ化してアトムにする<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 選択の区切り<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 英字<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \(\)&nbsp;&nbsp;&nbsp;&nbsp; \(\)&nbsp;&nbsp;&nbsp;&nbsp; \(\)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; アトムとしてグループ化<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; マッチ無し: 選択の区切り<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; リテラルのバックスラッシュ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リテラルのドット<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リテラルの '{'<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リテラルの 'a'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リテラルの波カッコ<br>
 <br>
 {\m、\M、\v、\V、はVimだけの機能です}<br>
 <br>
-オプション&nbsp;<a class="Type" href="options.html#'magic'">'magic'</a>&nbsp;は初期設定のままにしておいてください。環境の違いによるトラ<br>
-ブルを回避できます。パターンが&nbsp;<a class="Type" href="options.html#'magic'">'magic'</a>&nbsp;の設定に影響されないようにするには、パ<br>
-ターンの先頭に &quot;\m&quot; か &quot;\M&quot; を置きます。<br>
+パターンが&nbsp;<a class="Type" href="options.html#'magic'">'magic'</a>&nbsp;の設定に影響されないよう望むなら、パターンの先頭に &quot;\m&quot; か<br>
+&quot;\M&quot; を置きます。<br>
 <br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
@@ -603,7 +614,7 @@ cat\Z&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ます。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;\_.&quot; の繰り返しには注意してください。たくさんのテキストがマッチして、<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;そして、時間が掛かります。たとえば、&quot;\_.*END&quot; は、カーソルの位置から 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;そして、時間が掛かります。例えば、&quot;\_.*END&quot; は、カーソルの位置から 1<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;番最後の &quot;END&quot; までのすべてのテキストがマッチします。&quot;*&quot; は最長一致な<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ので、まずファイルの末尾までスキップして、それから 1 文字ずつ後退しな<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;がら &quot;END&quot; を探します。<br>
@@ -641,7 +652,7 @@ cat\Z&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;{&quot; の直後に &quot;-&quot; がある場合は、最短一致のアルゴリズムが使われます (下<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;記の例を参照)。特に、&quot;\<span class="Special">{-}</span>&quot; は &quot;*&quot; と同じですが、最短一致のアルゴリズ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ムが使われます。しかし、早い位置でマッチするものが、短いマッチよりも優<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;先されます。たとえば、&quot;a\<span class="Special">{-}</span>b&quot; は &quot;xaaab&quot; の &quot;aaab&quot; にマッチします。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;先されます。例えば、&quot;a\<span class="Special">{-}</span>b&quot; は &quot;xaaab&quot; の &quot;aaab&quot; にマッチします。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Example&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; マッチするもの</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ab\<span class="Special">{2,3}</span>c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot;abbc&quot; または &quot;abbbc&quot;<br>
@@ -791,10 +802,12 @@ cat\Z&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^beep(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(おそらく) C 言語の関数 &quot;beep&quot; の開始。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\^" name="/\^">/\^</a><br>
-\^&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リテラル文字の '^' にマッチします。パターンのどの場所でも使えます。<br>
+\^&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リテラル文字の '^' にマッチします。[] の中以外のパターンのどの場所でも<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;使えます。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\_^" name="/\_^">/\_^</a><br>
-\_^&nbsp;&nbsp;&nbsp;&nbsp; 行頭にマッチします。<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a>&nbsp;&nbsp;パターンのどの場所でも使えます。<br>
+\_^&nbsp;&nbsp;&nbsp;&nbsp; 行頭にマッチします。<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a>&nbsp;[] の中以外のパターンのどの場所でも<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;使えます。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Example&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; マッチするもの</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\_s*\_^foo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;空白文字や空行の直後の、行頭の &quot;foo&quot;<br>
 <br>
@@ -804,12 +817,13 @@ $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; パターンの末尾、または &quot;\|
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'$' にマッチします。<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a><br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\$" name="/\$">/\$</a><br>
-\$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リテラル文字の '$' にマッチします。パターンのどの場所でも使えます。<br>
+\$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リテラル文字の '$' にマッチします。[] の中以外のパターンのどの場所でも<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;使えます。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\_$" name="/\_$">/\_$</a><br>
-\_$&nbsp;&nbsp;&nbsp;&nbsp; 行末にマッチします。<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a>&nbsp;&nbsp;パターンのどの場所でも使えます。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: &quot;a\_$b&quot; はどこにもマッチしません。&quot;b&quot; は行末とはマッチしないから<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;です。代わりに、&quot;a\nb&quot; を使ってください&nbsp;<a class="Identifier" href="pattern.html#/\n">/\n</a>。<br>
+\_$&nbsp;&nbsp;&nbsp;&nbsp; 行末にマッチします。<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a>&nbsp;[] の中以外のパターンのどの場所でも<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;使えます。<span class="Todo">Note</span>: &quot;a\_$b&quot; はどこにもマッチしません。&quot;b&quot; は行末とはマッチ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;しないからです。代わりに、&quot;a\nb&quot; を使ってください&nbsp;<a class="Identifier" href="pattern.html#/\n">/\n</a>。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">Example&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; マッチするもの</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;foo\_$\_s*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;行末の &quot;foo&quot; と、それに続く空白や空行<br>
 <br>
@@ -831,8 +845,9 @@ $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; パターンの末尾、または &quot;\|
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a><br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\zs" name="/\zs">/\zs</a><br>
-\zs&nbsp;&nbsp;&nbsp;&nbsp; どこにでもマッチして、マッチの開始地点を設定します。このアトムの次の文<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;字は、マッチした文字列の 1 文字目です。<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a><br>
+\zs&nbsp;&nbsp;&nbsp;&nbsp; [] の中以外のパターンのどの場所でもマッチして、マッチの開始地点を設定<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;します。このアトムの次の文字は、マッチした文字列の 1 文字目です。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/^\s*\zsif</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; これは、行頭からスペースを無視して、&quot;if&quot; にマッチします。<br>
@@ -843,8 +858,9 @@ $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; パターンの末尾、または &quot;\|
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;後ろに量指定子を置くことはできない。&nbsp;<a class="Constant" href="pattern.html#E888" name="E888">E888</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{</span><a class="Identifier" href="various.html#+syntax">+syntax</a><span class="Special">が有効な場合のみ利用できます}</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\ze" name="/\ze">/\ze</a><br>
-\ze&nbsp;&nbsp;&nbsp;&nbsp; どこにでもマッチして、マッチの末尾を設定します。このアトムの前の文字<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;は、マッチした文字列の最後の文字です。<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a><br>
+\ze&nbsp;&nbsp;&nbsp;&nbsp; [] の中以外のパターンのどの場所でもマッチして、マッチの終了地点を設定<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;します。このアトムの前の文字は、マッチした文字列の最後の文字で<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;複数回の繰り返しで使った場合は、最後にマッチしたものが使われます。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/end\ze\(if\|for\)</div>
@@ -900,43 +916,58 @@ $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; パターンの末尾、または &quot;\|
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\%'m" name="/\%'m">/\%'m</a>&nbsp;<a class="Constant" href="pattern.html#/\%<'m" name="/\%&lt;'m">/\%&lt;'m</a>&nbsp;<a class="Constant" href="pattern.html#/\%>'m" name="/\%&gt;'m">/\%&gt;'m</a><br>
 \%'m&nbsp;&nbsp;&nbsp;&nbsp;マーク m の位置にマッチします。<br>
 \%&lt;'m&nbsp;&nbsp; マーク m より前の位置にマッチします。<br>
-\%&gt;'m&nbsp;&nbsp; マーク m より後の位置にマッチします。<br>
+\%&gt;'m&nbsp;&nbsp; マーク m より後ろの位置にマッチします。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例えば、マーク 's から 'e までを強調するには次のようにします:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/.\%&gt;'s.*\%&lt;'e..</div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: マーク 'e の位置をマッチに含めるには 'e の後に二つのドットが必要<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;です。なぜなら、&quot;\%&lt;'e&quot; はマーク 'e の前の文字にマッチし、そしてそれは<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ゼロ幅マッチ<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a>&nbsp;なので、その文字は結果に含まれないからです。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: マーク 'e の位置をマッチに含めるには 'e の後ろに 2 つのドットが<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;必要です。なぜなら、&quot;\%&lt;'e&quot; はマーク 'e の前の文字にマッチし、そしてそ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れはゼロ幅マッチ<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a>&nbsp;なので、その文字は結果に含まれないからで<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">警告:</span>&nbsp;マークを検索した後にマークを移動した場合、その結果は正しくなくな<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ります。Vim は自動的にマッチの強調表示を更新したりしません。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#/\%#">/\%#</a>&nbsp;で検索した後にカーソルを動かした場合と似ています。<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\%l" name="/\%l">/\%l</a>&nbsp;<a class="Constant" href="pattern.html#/\%>l" name="/\%&gt;l">/\%&gt;l</a>&nbsp;<a class="Constant" href="pattern.html#/\%<l" name="/\%&lt;l">/\%&lt;l</a>&nbsp;<a class="Constant" href="pattern.html#E951" name="E951">E951</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\%l" name="/\%l">/\%l</a>&nbsp;<a class="Constant" href="pattern.html#/\%>l" name="/\%&gt;l">/\%&gt;l</a>&nbsp;<a class="Constant" href="pattern.html#/\%<l" name="/\%&lt;l">/\%&lt;l</a>&nbsp;<a class="Constant" href="pattern.html#E951" name="E951">E951</a>&nbsp;<a class="Constant" href="pattern.html#E1204" name="E1204">E1204</a>&nbsp;<a class="Constant" href="pattern.html#E1273" name="E1273">E1273</a><br>
 \%23l&nbsp;&nbsp; 指定した行にマッチします。<br>
 \%&lt;23l&nbsp;&nbsp;指定した行より上にマッチします。<br>
 \%&gt;23l&nbsp;&nbsp;指定した行より下にマッチします。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この 3 つを使って、バッファの特定の行にマッチできます。&quot;23&quot; の所に行番<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;号を指定してください。先頭の番号は 1 です。<br>
+\%.l&nbsp;&nbsp;&nbsp;&nbsp;カーソル行にマッチします。<br>
+\%&lt;.l&nbsp;&nbsp; カーソル行より上にマッチします。<br>
+\%&gt;.l&nbsp;&nbsp; カーソル行より下にマッチします。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この 6 つを使って、バッファの特定の行にマッチできます。&quot;23&quot; の所には任<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;意の行番号が指定可能です。先頭の番号は 1 です。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">警告:</span>&nbsp;行を挿入したり削除したりしても、マッチの結果は自動的に更新されま<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;せん。そのため、このアトムを使った構文強調は、すぐに誤った表示になって<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;しまいます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;しまいます。また、カーソル位置 (&quot;.&quot;) を参照しているとき、カーソルが移<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;動しても変化に合わせて表示が更新されることはありません。更新されるのは<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンド&nbsp;<a class="Identifier" href="various.html#CTRL-L">CTRL-L</a>&nbsp;を使ったときです (画面全体が更新されます)。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;現在行を強調表示するには次のようにします:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:exe '/\%' . line(&quot;.&quot;) . 'l.*'</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:exe '/\%' . line(&quot;.&quot;) . 'l'</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; あるいは次を使います:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/\%.l</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'hlsearch'">'hlsearch'</a>&nbsp;をオンにして、カーソルを移動し、テキストを変更してみて、表<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;示が更新されるかどうか確認してください。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\%c" name="/\%c">/\%c</a>&nbsp;<a class="Constant" href="pattern.html#/\%>c" name="/\%&gt;c">/\%&gt;c</a>&nbsp;<a class="Constant" href="pattern.html#/\%<c" name="/\%&lt;c">/\%&lt;c</a><br>
 \%23c&nbsp;&nbsp; 指定した列にマッチします。<br>
 \%&lt;23c&nbsp;&nbsp;指定した列より前にマッチします。<br>
-\%&gt;23c&nbsp;&nbsp;指定した列より後にマッチします。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この 3 つを使って、バッファの特定の列にマッチできます。&quot;23&quot; の所に列番<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;号を指定してください。先頭の番号は 1 です。実際には、何バイト目かを指<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;定するので、マルチバイト文字を扱うときには、&quot;列番号&quot; という表現は正確<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ではありません。<br>
+\%&gt;23c&nbsp;&nbsp;指定した列より後ろにマッチします。<br>
+\%.c&nbsp;&nbsp;&nbsp;&nbsp;カーソル列にマッチします。<br>
+\%&lt;.c&nbsp;&nbsp; カーソル列より前にマッチします。<br>
+\%&gt;.c&nbsp;&nbsp; カーソル列より後ろにマッチします。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この 6 つを使って、バッファの特定の列にマッチできます。&quot;23&quot; の所には任<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;意の列番号が指定可能です。先頭の番号は 1 です。実際には、何バイト目か<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を指定するので、マルチバイト文字を扱うときには、&quot;列番号&quot; という表現は<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;正確ではありません。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">警告:</span>&nbsp;行を挿入したり削除したりしても、マッチの結果は自動的に更新されま<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;せん。そのため、このアトムを使った構文強調は、すぐに誤った表示になって<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;しまいます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;しまいます。また、カーソル位置 (&quot;.&quot;) を参照しているとき、カーソルが移<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;動しても変化に合わせて表示が更新されることはありません。更新されるのは<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンド&nbsp;<a class="Identifier" href="various.html#CTRL-L">CTRL-L</a>&nbsp;を使ったときです (画面全体が更新されます)。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル位置の列を強調表示するには次のようにします:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:exe '/\%' . col(&quot;.&quot;) . 'c'</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:exe '/\%' .. col(&quot;.&quot;) .. 'c'</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; あるいは次を使います:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/\%.c</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'hlsearch'">'hlsearch'</a>&nbsp;をオンにして、カーソルを移動し、テキストを変更してみて、表<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;示が更新されるかどうか確認してください。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;44 バイト目を強調表示するには次のようにします:<br>
@@ -946,22 +977,30 @@ $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; パターンの末尾、または &quot;\|
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\%v" name="/\%v">/\%v</a>&nbsp;<a class="Constant" href="pattern.html#/\%>v" name="/\%&gt;v">/\%&gt;v</a>&nbsp;<a class="Constant" href="pattern.html#/\%<v" name="/\%&lt;v">/\%&lt;v</a><br>
 \%23v&nbsp;&nbsp; 指定した表示列にマッチします。<br>
 \%&lt;23v&nbsp;&nbsp;指定した表示列より前にマッチします。<br>
-\%&gt;23v&nbsp;&nbsp;指定した表示列より後にマッチします。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この 3 つを使って、バッファの特定の表示列にマッチできます。文字列<br>
+\%&gt;23v&nbsp;&nbsp;指定した表示列より後ろにマッチします。<br>
+\%.v&nbsp;&nbsp;&nbsp;&nbsp;現在の表示列にマッチします。<br>
+\%&lt;.v&nbsp;&nbsp; 現在の表示列より前にマッチします。<br>
+\%&gt;.v&nbsp;&nbsp; 現在の表示列より後ろにマッチします。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この 6 つを使って、バッファの特定の表示列にマッチできます。文字列<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<a class="Identifier" href="eval.html#expr-string">expr-string</a>) とマッチングするときは、カレントウィンドウの、<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'tabstop'">'tabstop'</a>&nbsp;などの設定が使われます。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;23&quot; の所に表示列番号を指定してください。先頭の番号は 1 です。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;23&quot; の所には任意の表示列番号が指定可能です。先頭の番号は 1 です。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: Tab 文字や全角文字などの、複数列で表示される文字の途中の列を指定<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;した場合は、マッチしません。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">警告:</span>&nbsp;行を挿入したり削除したりしても、マッチの強調表示は自動的に更新さ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れません。そのため、このアトムを使った構文強調は、すぐに誤った表示に<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;なってしまいます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;なってしまいます。また、カーソル位置 (&quot;.&quot;) を参照しているとき、カーソ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ルが移動しても変化に合わせて表示が更新されることはありません。更新され<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;るのはコマンド&nbsp;<a class="Identifier" href="various.html#CTRL-L">CTRL-L</a>&nbsp;を使ったときです (画面全体が更新されます)。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;表示列の72桁目以降のすべての文字を強調表示するには次のようにします:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/\%&gt;72v.*</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'hlsearch'">'hlsearch'</a>&nbsp;をオンにして、カーソルを移動し、テキストを変更してみて、表<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;示が更新されるかどうか確認してください。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;17 列までのテキストにマッチさせるには次のようにします:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/^.*\%17v</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 現在の表示列 (カーソルがある場所) より後ろの全ての文字にマッチさせるに<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;は:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/\%&gt;.v.*</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 17 列目は含まれません。なぜならこれはゼロ幅マッチ (<a class="Identifier" href="pattern.html#/zero-width">/zero-width</a>) であ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る為です。列を含むには次を使用します:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/^.*\%17v.</div>
@@ -1030,12 +1069,14 @@ $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; パターンの末尾、または &quot;\|
 ~&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 最後に置換された文字列とマッチします&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/~" name="/~">/~</a>&nbsp;<a class="Constant" href="pattern.html#/\~" name="/\~">/\~</a><br>
 <br>
 \(\)&nbsp;&nbsp;&nbsp;&nbsp;パターンをカッコでまとめます&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\(" name="/\(">/\(</a>&nbsp;<a class="Constant" href="pattern.html#/\(\)" name="/\(\)">/\(\)</a>&nbsp;<a class="Constant" href="pattern.html#/\)" name="/\)">/\)</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;たとえば、&quot;\(^a\)&quot; は行頭の 'a' にマッチします。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例えば、&quot;\(^a\)&quot; は行頭の 'a' にマッチします。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;これらは10個しかありません。&quot;\%(&quot; を使用してさらに追加できますが、部分<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;正規表現としてカウントすることはできません。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#E51" name="E51">E51</a>&nbsp;<a class="Constant" href="pattern.html#E54" name="E54">E54</a>&nbsp;<a class="Constant" href="pattern.html#E55" name="E55">E55</a>&nbsp;<a class="Constant" href="pattern.html#E872" name="E872">E872</a>&nbsp;<a class="Constant" href="pattern.html#E873" name="E873">E873</a><br>
 <br>
 \1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\( と \) に囲まれた最初の部分正規表現が&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\1" name="/\1">/\1</a>&nbsp;<a class="Constant" href="pattern.html#E65" name="E65">E65</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;マッチした文字列と同じ文字列にマッチします。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;たとえば、&quot;\([a-z]\).\1&quot; は &quot;ata&quot;、&quot;ehe&quot;、&quot;tot&quot;、などにマッチします。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例えば、&quot;\([a-z]\).\1&quot; は &quot;ata&quot;、&quot;ehe&quot;、&quot;tot&quot;、などにマッチします。<br>
 \2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;\1&quot; と同じですが、2 番目の部分正規表現を使います&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\2" name="/\2">/\2</a><br>
 <span class="Statement">&nbsp;&nbsp; ...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="pattern.html#/\3" name="/\3">/\3</a><br>
 \9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;\1&quot; と同じですが、9 番目の部分正規表現を使います&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/\9" name="/\9">/\9</a><br>
@@ -1052,7 +1093,7 @@ x&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 特別な意味のない文字は、その
 \x&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;バックスラッシュと文字の組合せで、現在、特別な意味を持っていない文字<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;は、将来の拡張のために予約されています。<br>
 <br>
-[]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<a class="Type" href="options.html#'nomagic'">'nomagic'</a>&nbsp;のときは \[])&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/[]" name="/[]">/[]</a>&nbsp;<a class="Constant" href="pattern.html#/\[]" name="/\[]">/\[]</a>&nbsp;<a class="Constant" href="pattern.html#/\_[]" name="/\_[]">/\_[]</a>&nbsp;<a class="Constant" href="pattern.html#/collection" name="/collection">/collection</a><br>
+[]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<a class="Type" href="options.html#'nomagic'">'nomagic'</a>&nbsp;のときは \[])&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#/[]" name="/[]">/[]</a>&nbsp;<a class="Constant" href="pattern.html#/\[]" name="/\[]">/\[]</a>&nbsp;<a class="Constant" href="pattern.html#/\_[]" name="/\_[]">/\_[]</a>&nbsp;<a class="Constant" href="pattern.html#/collection" name="/collection">/collection</a>&nbsp;<a class="Constant" href="pattern.html#E76" name="E76">E76</a><br>
 \_[]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コレクションです。複数の文字を角カッコで囲みます。コレクションに含まれ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る任意の 1 文字とマッチします。<br>
@@ -1115,9 +1156,9 @@ x&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 特別な意味のない文字は、その
 <a class="Constant" href="pattern.html#[:keyword:]" name="[:keyword:]">[:keyword:]</a>&nbsp;&nbsp;&nbsp;&nbsp; [:keyword:]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; キーワード文字 (&quot;\k&quot; と同じ)<br>
 <a class="Constant" href="pattern.html#[:fname:]" name="[:fname:]">[:fname:]</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [:fname:]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ファイル名の文字 (&quot;\f&quot; と同じ)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;角カッコで囲んだ文字クラス表現を、コレクションの角カッコ内に書きま<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。たとえば、&quot;[-./[:alnum:]_~]\+&quot; は、UNIX のファイル名として妥当な<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;パターンです。このパターンは、'-'、'.'、'/'、英数字、'_'、'~'、のど<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;の文字の組合せでも、1 文字以上の文字列にマッチします。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。例えば、&quot;[-./[:alnum:]_~]\+&quot; は、UNIX のファイル名として妥当なパ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ターンです。このパターンは、'-'、'.'、'/'、英数字、'_'、'~'、のどの<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;文字の組合せでも、1 文字以上の文字列にマッチします。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;これらのものは、8 ビット文字のみマッチします。ただし、新しい正規表現<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;エンジンを使用している場合は [:lower:] と [:upper:] のみマルチバイト<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;文字にも作用します。<a class="Identifier" href="pattern.html#two-engines">two-engines</a>&nbsp;を参照。将来的にはこれらの項目は、<br>
@@ -1161,7 +1202,7 @@ x&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 特別な意味のない文字は、その
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\b&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;BS&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;改行。<a class="Identifier" href="pattern.html#/[\n]">/[\n]</a>&nbsp;参照。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\d123&nbsp;&nbsp; 10進数の文字番号<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\o40&nbsp;&nbsp;&nbsp;&nbsp;8 進数の文字番号 (最大値 0377)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\o40&nbsp;&nbsp;&nbsp;&nbsp;8 進数の文字番号 (最大値 0o377)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\x20&nbsp;&nbsp;&nbsp;&nbsp;16進数の文字番号 (最大値 0xff)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\u20AC&nbsp;&nbsp;16進数のマルチバイト文字番号 (最大値 0xffff)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\U1234&nbsp;&nbsp;16進数のマルチバイト文字番号 (最大値 0xffffffff)<br>
@@ -1198,9 +1239,9 @@ x&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 特別な意味のない文字は、その
 <br>
 \%d123&nbsp;&nbsp;10進数で指定した文字にマッチします。このアトムの後ろには数字以外の文字<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を置いてください。<br>
-\%o40&nbsp;&nbsp; 8 進数で指定した文字にマッチします (最大値 0377)。040 より小さい値を指<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;定するとき、このアトムの後ろには8進数字以外の文字か、数字以外の文字を<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;置いてください。<br>
+\%o40&nbsp;&nbsp; 8進数で指定した文字にマッチします (最大値 0o377)。0o40 より小さい値を<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;指定するとき、このアトムの後ろには8進数字以外の文字か、数字以外の文字<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を置いてください。<br>
 \%x2a&nbsp;&nbsp; 16進数で指定した文字にマッチします。2桁まで。<br>
 \%u20AC 16進数で指定した文字にマッチします。4桁まで。<br>
 \%U1234abcd&nbsp;&nbsp;&nbsp;&nbsp; 16進数で指定した文字にマッチします。8桁まで。0x7fffffff まで。<br>
@@ -1245,7 +1286,7 @@ x&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 特別な意味のない文字は、その
 (バックスラッシュと n) は&nbsp;<span class="Special">&lt;NL&gt;</span>&nbsp;とはマッチしません。バッファ中のテキストとの<br>
 マッチの場合のみ、&quot;\n&quot; は改行とマッチします。<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#pattern-multi-byte" name="pattern-multi-byte">pattern-multi-byte</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#pattern-multi-byte" name="pattern-multi-byte">pattern-multi-byte</a>&nbsp;<a class="Constant" href="pattern.html#pattern-multibyte" name="pattern-multibyte">pattern-multibyte</a><br>
 マルチバイト文字を使ったパターンは、たいていは、ユーザーが期待したとおりに機能<br>
 します。しかし、不正なバイトでトラブルが起こることもあります。不正なバイトを含<br>
 むパターンはおそらく、決してマッチしません。<br>
@@ -1342,42 +1383,45 @@ Vim では、'^' と '$' は常に中間の改行にもマッチします。最�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{pattern}</span>&nbsp;の区切りには // 以外の文字を使うことができます。'&quot;'<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;や '|' などの特別な文字を使うときは注意してください。<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{group}</span>&nbsp;は、コマンドを実行する前に定義しておく必要があります。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{group}</span>&nbsp;はコマンドを実行する前に定義しておく必要があります。<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{group}</span>&nbsp;の強調は、<a class="Type" href="options.html#'hlsearch'">'hlsearch'</a>&nbsp;や構文強調 (<a class="Type" href="options.html#'syntax'">'syntax'</a>&nbsp;参照) の強調<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;よりも優先されます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{group}</span>&nbsp;の強調表示は、<a class="Type" href="options.html#'hlsearch'">'hlsearch'</a>&nbsp;で文字を強調表示する場合にも<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;適用されますが、これはマッチでの強調表示が&nbsp;<a class="Type" href="options.html#'hlsearch'">'hlsearch'</a>&nbsp;の強調表<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;示よりも優先されるためです。構文の強調表示 (<a class="Type" href="options.html#'syntax'">'syntax'</a>&nbsp;を参照)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;もマッチによって上書きします。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>:&nbsp;<a class="Type" href="options.html#'hlsearch'">'hlsearch'</a>&nbsp;の強調はすべてのウィンドウに適用されますが、<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;:match&quot; はカレントウィンドウだけです。ウィンドウのバッファを<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;切り替えても、強調表示は維持されます。<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;の設定は使われません。大文字と小文字は区別されま<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。大文字と小文字の違いを無視するには、<a class="Identifier" href="pattern.html#/\c">/\c</a>&nbsp;を使います。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'ignorecase'">'ignorecase'</a>&nbsp;の設定は使われず、大文字と小文字の違いを無視する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;には&nbsp;<a class="Identifier" href="pattern.html#/\c">/\c</a>&nbsp;を使います。それ以外では大文字と小文字は区別されま<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;せん。<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'redrawtime'">'redrawtime'</a>&nbsp;を設定すると、検索に費やす時間を制限できます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'redrawtime'">'redrawtime'</a>&nbsp;で検索に費やす最大の時間を定義できます。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;改行にマッチしているときに、Vim がディスプレイの一部だけを再描<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;画すると、予期しない結果になることがありますが、それは、Vim が<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;再描画した行からマッチの検索を開始するからです。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;画すると、予期しない結果になることがあります。それは、Vim が再<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;描画した行からマッチの検索を開始するからです。<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#matcharg()">matcharg()</a>&nbsp;は&nbsp;<a class="Identifier" href="pattern.html#:match">:match</a>&nbsp;コマンドで使用されたパターンと強調グ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ループを返します。<a class="Identifier" href="eval.html#getmatches()">getmatches()</a>&nbsp;は&nbsp;<a class="Identifier" href="eval.html#matchadd()">matchadd()</a>&nbsp;と&nbsp;<a class="Identifier" href="pattern.html#:match">:match</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;で定義されたマッチのパターンと強調グループのリストを返します。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="builtin.html#matcharg()">matcharg()</a>&nbsp;と&nbsp;<a class="Identifier" href="builtin.html#getmatches()">getmatches()</a>&nbsp;も参照してください。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;前者はハイライトグループと&nbsp;<a class="Identifier" href="pattern.html#:match">:match</a>&nbsp;コマンドで使用されたパター<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ンを返します。後者はハイライトグループのリストと&nbsp;<a class="Identifier" href="builtin.html#matchadd()">matchadd()</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;および&nbsp;<a class="Identifier" href="pattern.html#:match">:match</a>&nbsp;で定義されたパターンを返します。<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#:match">:match</a>&nbsp;コマンドではマッチを三つまで定義できます (<a class="Identifier" href="pattern.html#:match">:match</a>、<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#:2match">:2match</a>、<a class="Identifier" href="pattern.html#:3match">:3match</a>)。<a class="Identifier" href="eval.html#matchadd()">matchadd()</a>&nbsp;にはこのような制限はありま<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;せん。加えて、優先順位を設定することもできます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="pattern.html#:match">:match</a>&nbsp;を用いたハイライトのマッチは3つのマッチに制限されてい<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ます (余談ながら&nbsp;<a class="Identifier" href="pattern.html#:match">:match</a>,&nbsp;<a class="Identifier" href="pattern.html#:2match">:2match</a>,&nbsp;<a class="Identifier" href="pattern.html#:3match">:3match</a>&nbsp;があります)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="builtin.html#matchadd()">matchadd()</a>&nbsp;にはこの制限はなく、加えてマッチの優先度付けがで<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;きます。<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:match コマンドによって設定された強調グループとパターンを得る<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;には&nbsp;<a class="Identifier" href="eval.html#matcharg()">matcharg()</a>&nbsp;を使います。<br>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;次の例は、表示桁で 72 列目以降の文字をすべて強調表示します:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;別の例として、72 表示列目以降の文字をすべて強調表示します:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:highlight rightMargin term=bold ctermfg=blue guifg=blue<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:match rightMargin /.\%&gt;72v/</div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 表示桁で 7 列目の文字をすべて強調表示するには次のようにします:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7 表示列目の文字をすべて強調表示するには次のようにします:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:highlight col8 ctermbg=grey guibg=grey<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:match col8 /\%&lt;8v.\%&gt;7v/</div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: TAB のような文字は、1 桁を超えて表示されます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>: TAB のような複数表示列を占める文字にもマッチさせるため2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;つの項目を使用しています。<br>
 <br>
 :mat[ch]<br>
 :mat[ch] none<br>
@@ -1396,6 +1440,38 @@ Vim では、'^' と '$' は常に中間の改行にもマッチします。最�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;:3match&quot; コマンドは&nbsp;<a class="Identifier" href="pi_paren.html#matchparen">matchparen</a>&nbsp;プラグインで使用されていま<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。あなたが手動でマッチを設定するときは &quot;:match&quot; を使ってくだ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;さい。他のプラグインでは &quot;:2match&quot; を使ってください。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+11. ファジーマッチ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="pattern.html#fuzzy-matching" name="fuzzy-matching">fuzzy-matching</a><br>
+<br>
+ファジーマッチとは、不正確な検索文字列を使って文字列を検索することを言います。<br>
+ファジーマッチで、ある文字列がマッチするのは、検索文字列の全ての文字がその文字<br>
+列のどこかに同じ順序で存在する場合です。大文字小文字は無視されます。マッチした<br>
+文字列では、検索文字列内で隣り合う2文字の間に他の文字が存在するかもしれません。<br>
+検索文字列が複数の単語を持つ場合、各単語は別々にマッチします。そのため検索文字<br>
+列内の複数の単語は<span class="Special">{訳注: マッチした}</span>文字列内でどのような順序でも存在し得ます。<br>
+<br>
+ファジーマッチではマッチした文字列ごとに以下の基準に基づいてスコアが割り当てら<br>
+れます:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- 連続してマッチした文字の個数。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- 検索文字列内で隣り合う2文字の間の文字の個数 (距離)。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- 単語の先頭でのマッチ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- キャメルケース文字でのマッチ (例えば CamelCase の Case)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- パスの区切り文字またはハイフンの後ろでのマッチ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<span class="Special">{訳注: マッチした}</span>文字列内のマッチしなかった文字の個数。<br>
+マッチした文字列でスコアが最も高かったものが最初に返されます。<br>
+<br>
+例えば &quot;get pat&quot; という文字列をファジーマッチで検索すると、&quot;GetPattern&quot;、<br>
+&quot;PatternGet&quot;、&quot;getPattern&quot;、&quot;patGetter&quot;、&quot;getSomePattern&quot;、&quot;MatchpatternGet&quot;<br>
+などの文字列がマッチします。<br>
+<br>
+関数&nbsp;<a class="Identifier" href="builtin.html#matchfuzzy()">matchfuzzy()</a>&nbsp;や&nbsp;<a class="Identifier" href="builtin.html#matchfuzzypos()">matchfuzzypos()</a>&nbsp;で文字列のリストに含まれる文字列をファ<br>
+ジー検索できます。関数 matchfuzzy() はマッチした文字列のリストを返します。関数<br>
+matchfuzzypos() はマッチのリスト、マッチの位置およびファジーマッチのスコアを返<br>
+します。<br>
+<br>
+<a class="Comment" href="quickfix.html#:vimgrep">:vimgrep</a>&nbsp;の フラグ &quot;f&quot; はファジーマッチを有効にします。<br>
+<br>
 <br>
 <span class="Special">{訳注: 訳語:</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">concat 連接</span><br>
