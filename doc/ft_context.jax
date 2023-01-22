@@ -1,0 +1,158 @@
+*ft_context.txt*	For Vim バージョン 9.0.  Last change: 2022 Sep 27
+
+これは ConTeXt ファイルタイププラグインのドキュメントです。
+
+NOTE: このプラグインは +vim9script が必要です。
+
+==============================================================================
+☆内容						*context.vim* *ft-context*
+
+1. 前書き				|ft-context-intro|
+2. コマンド				|ft-context-commands|
+3. 設定					|ft-context-settings|
+4. マッピング				|ft-context-mappings|
+
+==============================================================================
+							*ft-context-intro*
+前書き ~
+
+ConTeXtは、LaTeXと同じで、Tex上に構築されたマクロベースの組版システムです:
+>
+	https://wiki.contextgarden.net
+	https://wiki.contextgarden.net/Vim
+<
+ConTeXt プラグインは構文ハイライト、組版したConTeXt文章の補完とサポートを提供
+します。文章を組版するのに推奨する方法は |:ConTeXt| を使うことです。これは
+`$PATH` 上で見付けた `mtxrun` スクリプトを動作させます。
+
+コマンドとその環境でよりきめ細かな制御をするには、`context.Typeset()` を直接使
+うことができます(または旧来の Vim script からは `context#Typeset()`)。例えば、
+`~/context` 内にインストールされているバージョンの ConTeXt の場合、以下のよう
+にそれを使用する関数を定義できます:
+>
+	import autoload 'context.vim'
+
+	def MyConTeXt()
+	    const env = {'PATH':
+	      printf("%s/context/tex/texmf-<os>-<arch>/bin:%s", $HOME, $PATH)}
+	    context.Typeset("%", env)
+	enddef
+
+このコードは `~/.vim/after/ftplugin/context.vim` に置かれるかもしれません。そ
+して、カスタムコマンドを呼び出すためのマッピングを定義することができます:
+>
+	nnoremap <silent><buffer><leader>t <scriptcmd>MyConTeXt()<cr>
+<
+`context.Typeset()` は、カスタムの組版コマンドを指定するための 3 番目のオプショ
+ナルな引数を受け入れます。これは、パスを受け取り、コマンドをリストとして返す関
+数でなければなりません。例えば:
+>
+	def ConTeXtCustomCommand(path: string): list<string>
+	  return ['mtxrun', '--script', 'context', '--nonstopmode', path]
+	enddef
+
+	context.ConTeXtTypeset("%", v:none, ConTeXtCustomCommand)
+<
+大規模なプロジェクトでは、ルートドキュメントと様々な章ファイルで構成されること
+がよくあります。章ファイルを編集する場合、ルートファイルに切り替えることなく、
+章ファイル上で直接 |:ConTeXt| を呼び出すと便利です。各章ファイルの先頭には、
+ルートファイルへの相対パスを指定する "マジック行" を追加することができます。例
+えば:
+>
+	% !TEX root = ../MyRoot.tex
+<
+Vim は、カレントバッファの最初の 10 行内にマジック行を検索します: 見付かった場
+合はカレントバッファの文書ではなく、その行で指定された文書が組版されます。ルー
+ト文書が Vim で開かれている必要はありません。
+
+補完と構文ハイライトを拡張するには、ConTeXt を使用して補助ファイル群を生成して
+設定に追加します。設定が `~/.vim` にある場合は、これらのコマンドが使用できます:
+>
+	mkdir -p ~/.vim/syntax/shared
+	cd ~/.vim/syntax/shared
+	mtxrun --script interface --vim
+<
+最後のコマンドは以下の構文ファイルを生成します:
+
+- `context-data-context.vim`;
+- `context-data-interfaces.vim`;
+- `context-data-metafun.vim`;
+- `context-data-tex.vim`.
+
+同じコマンドを使用して、これらの構文ファイルを更新できます。
+
+							*ft-context-commands*
+コマンド ~
+					*:ConTeXt*
+カレントバッファの文書を組版するバックグラウンド |job| を開始します。このコマ
+ンドは、別バッファの文書を組版したい場合、オプションとしてバッファ名を受け入れ
+ます。
+
+					*:ConTeXtLog*
+カレントバッファの文章ソースに対応するログファイルを編集します。
+
+					*:ConTeXtJobsStatus*
+現在バックグラウンドで動作しているジョブ数を表示します。
+
+					*:ConTeXtStopJobs*
+現在バックグラウンドで動作している ConTeXt ジョブをすべて停止します。
+
+							*ft-context-settings*
+設定 ~
+					*'b:context_ignore_makefile'*
+					*'g:context_ignore_makefile'*
+`:make` で(同期的な)文章の組版が行えます。Makefile が存在し、このオプションが
+未設定の場合、通常の `make` が使用されます。このオプションが設定されている場合
+は、Makefile が存在していても、代わりに `mtxrun` が呼び出されます。
+>
+	g:context_ignore_makefile = 0
+<
+NOTE: `:make` を使用する前に、バッファの作業ディレクトリを組版するファイルの
+ディレクトリに設定します。
+
+					*'g:context_extra_options'*
+`mtxrun` に渡す追加のオプションのリスト。
+>
+	g:context_extra_options = []
+<
+					*'b:context_include'*
+					*'g:context_include'*
+\startGROUP と \stopGROUP の間で有効になる構文ハイライトのファイルタイプ/GROUP
+のペアの辞書。デフォルトでは `\startXML` と `\stopXML` の間がXMLでハイライトさ
+れます。
+>
+	g:context_include = {'xml': 'XML'}
+
+NOTE: Lua と MetaPost は個別のブロック内では常にハイライトされます。
+
+					*'g:no_context_maps'*
+設定時、マッピングは定義されません。
+>
+	g:no_context_maps = 0
+<
+							*ft-context-mappings*
+マッピング ~
+
+tp			"reflow TeX paragraph"、TeX での段落を整形します。
+
+i$			"inside inline math block"、インラインの数式ブロック内
+			部を選択します。
+
+a$			"around inline math block"、インラインの数式ブロックを
+			選択します。
+
+]]			[count] セクションの開始に進む。
+
+[[			[count] セクションの開始に戻る。
+
+][			[count] セクションの終了に進む。
+
+[]			[count] セクションの終了に戻る。
+
+]}			[count] ブロックの終了 (\stop..., \setup...,
+			\define...) に進む。
+
+[{			[count] ブロックの開始 (\start..., \setup...,
+			\define...) に戻る。
+
+ vim:tw=78:sw=4:ts=8:noet:ft=help:norl:
