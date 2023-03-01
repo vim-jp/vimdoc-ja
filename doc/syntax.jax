@@ -1,4 +1,4 @@
-*syntax.txt*	For Vim バージョン 9.0.  Last change: 2022 Jun 10
+*syntax.txt*	For Vim バージョン 9.0.  Last change: 2022 Dec 26
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -488,7 +488,7 @@ Note -s フラグは .vimrc とプラグインの読み込みを抑制する。�
 'number' の設定に従うように戻すには: >
    :unlet g:html_number_lines
 <
-                                                             *g:html_line_ids*
+							*g:html_line_ids*
 初期設定: 1。|g:html_number_lines| が設定されていないときは 0。
 この設定が 1 なら、各行番号に HTML の id 属性を付ける。行番号が表示されていな
 いときは空の <span> 要素を挿入して id を付ける。この ID 属性は、HTML が単一の
@@ -671,6 +671,22 @@ Vim 内での表示と同じように表示され、タブ文字もそのまま�
 >
    :let g:html_no_pre = 1
 <
+							       *g:html_no_doc*
+初期設定: 0
+1 の場合、DOCTYPE, <head>, <body> などを含む完全な HTML ドキュメントは生成され
+ない。|g:html_use_css| が有効になっている場合 (デフォルト)、CSS を手動で定義す
+る必要がある。|g:html_dynamic_folds| および |g:html_line_ids| 設定 (デフォルト
+ではオフ) も、いくつかの JavaScript を挿入する。
+
+
+							     *g:html_no_links*
+初期設定: 0
+URL のようなテキストには <a> タグを生成しない。
+
+							  *g:html_no_modeline*
+初期設定: 0
+折り畳みを無効化するモードラインを生成しない。
+
 							  *g:html_expand_tabs*
 初期設定: 'tabstop' が 8 で 'expandtab' が 0 で 'vartabstop' が使われていない、
 かつ、foldcolumn と行番号がない場合は 0。
@@ -1810,6 +1826,16 @@ htmlプロセッサー言語は複数ある。html.vimはインクルードし�
 そしてプリプロセッサー言語を含むすべての領域をクラスタhtmlPreprocに加えればよ
 い。
 
+							*html-folding*
+HTML 構文ファイルは、開始タグと終了タグ間の構文折り畳み |folding| (|:syn-fold|
+を参照) を提供する。これは次の方法でオンにできる >
+
+	:let g:html_syntax_folding = 1
+	:set foldmethod=syntax
+
+Note: 構文による折り畳みは、構文ハイライトを著しく遅くする可能性がある。特に巨
+大なファイルではそうである。
+
 
 HTML/OS (by Aestiva)				*htmlos.vim* *ft-htmlos-syntax*
 
@@ -2829,7 +2855,7 @@ RUBY						*ruby.vim* *ft-ruby-syntax*
 
 "ruby_foldable_groups" をセットすることで、折り畳み可能なグループを制限できる: >
 
-        :let ruby_foldable_groups = 'if case %'
+	:let ruby_foldable_groups = 'if case %'
 <
 値は、キーワードのリストをスペース文字区切りで指定:
 
@@ -2837,22 +2863,22 @@ RUBY						*ruby.vim* *ft-ruby-syntax*
     ----------  ------------------------------------- ~
     ALL          大部分のブロック構文 (デフォルト)
     NONE         なし
-    if           "if" or "unless" ブロック
+    if	         "if" or "unless" ブロック
     def          "def" ブロック
     class        "class" ブロック
     module       "module" ブロック
-    do           "do" ブロック
+    do	         "do" ブロック
     begin        "begin" ブロック
     case         "case" ブロック
     for          "for", "while", "until" ループ
-    {            波カッコ ブロック、またはハッシュ リテラル
-    [            配列リテラル
-    %            "%" 記法によるリテラル。 例: %w(STRING), %!STRING!
-    /            正規表現
+    {	         波カッコ ブロック、またはハッシュ リテラル
+    [	         配列リテラル
+    %	         "%" 記法によるリテラル。 例: %w(STRING), %!STRING!
+    /	         正規表現
     string       文字列とシェルコマンドの出力 (', ", ` でくくられた)
-    :            シンボル
-    #            複数行コメント
-    <<           ヒアドキュメント
+    :	         シンボル
+    #	         複数行コメント
+    <<	         ヒアドキュメント
     __END__      "__END__" ディレクティブ以降のソースコード
 
 						*ruby_no_expensive*
@@ -2915,14 +2941,23 @@ SDL用のハイライトにはいくつかのキーワードが抜けている�
 SED						*sed.vim* *ft-sed-syntax*
 
 タブをハイライトして通常の空白と区別しやすくするには、次の行をvimrcに書いて
-"highlight_sedtabs" を定義する(TODOと同じ構文グループが使われる) >
+"g:sed_highlight_tabs" を定義する(TODOと同じ構文グループが使われる) >
 
-	:let highlight_sedtabs = 1
-
+	:let g:sed_highlight_tabs = 1
+<
 (タブのハイライトは、検索パターン、置換テキスト、アドレス、
 Append/Change/Insertコマンドに含まれるテキストいずれかの中のタブにだけ適用され
 る)。このオプションを有効化するなら、タブ幅を1文字にするとよい。そうすると文字
 列中のタブの数を数えやすくなる。
+
+GNU sed では、同じ行のテキストの後ろにコメントを書くことができる。BSD sed では
+"#" が行頭である場合にしかコメントとみなされない。BSD 形式のコメントを強制す
+る、すなわち行末コメントをエラーとして表示するには: >
+
+	:let g:sed_dialect = "bsd"
+<
+Note GNU sed と BSD sed の間には、この設定によって (まだ) 影響を受けていない他
+の違いがある。
 
 バグ:
 
@@ -3039,7 +3074,7 @@ syntax/sh.vim は構文ベースの折り畳みを数種類用意している: >
 さい値にすること。欠点はハイライト間違いが出るかもしれないことである。
 
 syntax/sh.vim は特定のプログラムをエラーとして表示しようとする。通常は、余分な
-']', 'done', 'fi' などがこれに当たる。もしもこのエラーの扱いがあなたの目的で問
+"]", "done", "fi" などがこれに当たる。もしもこのエラーの扱いがあなたの目的で問
 題を起こす場合は、.vimrc に以下を書くことでエラーの強調表示を抑制できる: >
 
 	let g:sh_no_error= 1
@@ -3306,10 +3341,10 @@ LOCALMATHをあなたが決めた新しいmathグループに書き換える必�
 					*tex-style* *b:tex_stylish*
  Tex: 新しいスタイルを始めるには ~
 
-*.texファイルで "\makeatletter" を使う人がいるかもしれないので、コマンド中で
-"@" が使えるようになっている。しかし*.texファイルは次の拡張子: sty cls clo dtx
-ltx を持たないので @ をエラーと判断してハイライトする。これを解決するにはこう
-する: >
+*.tex ファイルで "\makeatletter" を使用すると、"@" を含むコマンドを使用できる
+ようになる。しかしながら、*.tex ファイルは sty cls clo dtx ltx のいずれかの接
+尾辞ではないため、構文の強調表示によって @ の使用箇所がエラーとして表示される。
+これを解決するには: >
 
 	:let b:tex_stylish = 1
 	:set ft=tex
@@ -3462,6 +3497,14 @@ syntax/vim.vimによるエラーのハイライトは必ずしも正しいとは
 
 	let g:vimsyn_noerror = 1
 <
+
+
+WDL							*wdl.vim* *wdl-syntax*
+
+ワークフロー記述言語は、人間が読み書きできる構文でデータ処理ワークフローを指定
+する方法である。これはバイオインフォマティクスでよく使われる。仕様詳細について
+は、以下を参照。
+https://github.com/openwdl/wdl
 
 
 XF86CONFIG				*xf86conf.vim* *ft-xf86conf-syntax*
@@ -3669,7 +3712,7 @@ SYNTAX ISKEYWORD SETTING				*:syn-iskeyword*
 			バッファローカルの 'iskeyword' 設定を有効にする。
 	{option}        シンタックスの 'iskeyword' オプション値を設定する。
 
-	Example: >
+	例: >
   :syntax iskeyword @,48-57,192-255,$,_
 <
 	これは全てのアルファベットと数字、アクセント付き文字、および "_" と
@@ -4684,7 +4727,7 @@ Note: "*/" を含む文字列で行をまたぐものがあると、Cコメン�
 次の章では個別のハイライトグループとその固有の色をどのようにすべきかについての
 情報を見付けることができる。可能性が高いのは `:colorscheme` コマンドを使いあな
 たの欲しい色のセットについてちょうどよいものを選択することである。例: >
-	
+
 	    colorscheme pablo
 <
 						*:colo* *:colorscheme* *E185*
@@ -4721,6 +4764,7 @@ Note: "*/" を含む文字列で行をまたぐものがあると、Cコメン�
 がトリガーされる。カラースキームが読み込まれた後に |ColorScheme| 自動コマンド
 イベントがトリガーされる。
 
+						*colorscheme-override*
 カラースキームがほぼ相応しい場合は、|ColorScheme| 自動コマンドを使用して、その
 上に変更を加えることができる。例えば、背景色を削除するには(一部の端末では透過
 することができる): >
@@ -4733,7 +4777,7 @@ Note: "*/" を含む文字列で行をまたぐものがあると、Cコメン�
 	augroup my_colorschemes
 	  au!
 	  au Colorscheme pablo hi Normal ctermbg=NONE
-		      \ | higlight Special ctermfg=63
+		      \ | highlight Special ctermfg=63
 		      \ | highlight Identifier ctermfg=44
 	augroup END
 
@@ -5072,7 +5116,7 @@ guisp={color-name}					*highlight-guisp*
 		"gg"	Green値
 		"bb"	Blue値
 	これらの値は16進であり、範囲は "00" から "ff"。例: >
-            :highlight Comment guifg=#11f0c3 guibg=#ff00ff
+	    :highlight Comment guifg=#11f0c3 guibg=#ff00ff
 <
 	あなたがカラースキームの作者であり同じ16進数値を繰り返し使うのであれば
 	|v:colornames| にカラー名を定義することができる。例えば: >
@@ -5161,23 +5205,27 @@ LineNrBelow	'relativenumber' オプションが設定されているときのカ
 CursorLineNr	LineNr と同じだが 'cursorline' が設定され、'cursorlineopt' に
 		"number" が含まれるか "both" が設定されているときに現在行に使
 		われる。
-							*hl-CursorLineSign*
-CursorLineSign	SignColumn と同じだが 'cursorline' が設定されたときに現在行に
-		使われる。
 							*hl-CursorLineFold*
 CursorLineFold	FoldColumn と同じだが 'cursorline' が設定されたときに現在行に
+		使われる。
+							*hl-CursorLineSign*
+CursorLineSign	SignColumn と同じだが 'cursorline' が設定されたときに現在行に
 		使われる。
 							*hl-MatchParen*
 MatchParen	カーソル下の文字、または直後の文字が括弧であるとき、その文字と
 		対応する括弧に使われる。|pi_paren.txt|
+							*hl-MessageWindow*
+MessageWindow	`:echowindow` で表示されるポップアップウィンドウにおけるメッ
+		セージ。定義されていないときは |hl-WarningMsg| が用いられる。
 							*hl-ModeMsg*
 ModeMsg		'showmode' のメッセージ(例、"-- INSERT --")。
 							*hl-MoreMsg*
 MoreMsg		|more-prompt|
 							*hl-NonText*
-NonText		ウィンドウの端の '@' と 'showbreak' で設定された文字など、実際
-		のテキストには存在しない文字(例. 全角文字が行末に収まらないと
-		き ">" が表示される)。
+NonText		ウィンドウの端の '@' や、'smoothscroll' を設定しているときの行
+		頭に表示される "<<<"、'showbreak' で設定された文字など、実際の
+		テキストには存在しない文字(例. 全角文字が行末に収まらないとき
+		">" が表示される)。
 							*hl-Normal*
 Normal		通常のテキスト。
 							*hl-Pmenu*
@@ -5188,6 +5236,10 @@ PmenuSel	ポップアップメニュー: 選択されている項目。
 PmenuSbar	ポップアップメニュー: スクロールバー。
 							*hl-PmenuThumb*
 PmenuThumb	ポップアップメニュー: スクロールバーのつまみ部分。
+							*hl-PopupNotification*
+PopupNotification
+		|popup_notification()| で生成されたポップアップウィンドウ。定
+		義されていないときは |hl-WarningMsg| が用いられる。
 							*hl-Question*
 Question	ヒットエンタープロンプト|hit-enter|とyes/noクエスチョン。
 							*hl-QuickFixLine*
@@ -5461,7 +5513,8 @@ types.vim: *.[ch]
 更されない。"b:current_syntax" は構文ファイルによって変更されるが、
 "b:current_syntax" を一時的に保存・復元することで値が変わらないようになってい
 る。構文ファイルによって設定された値が "w:current_syntax" に代入される。
-Note: This resets the 'spell', 'spellcapcheck' and 'spellfile' options.
+Note: この設定によって 'spell', 'spellcapcheck', 'spellfile' オプションは初期
+設定に戻る。
 
 ウィンドウの独自構文が定義されると、同じバッファの他のウィンドウで実行された構
 文コマンド (:syntax clear を含む) が影響しなくなる。逆に、そのウィンドウで実行
