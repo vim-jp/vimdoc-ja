@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'vim9'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="vim9.html" name="vim9.txt">vim9.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 Sep 15<br>
+<a class="Constant" href="vim9.html" name="vim9.txt">vim9.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2023 Feb 21<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
 <br>
@@ -20,9 +20,9 @@ script の新しい文法と機能について書かれています。<br>
 3.&nbsp;&nbsp;新しいスタイルの関数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9.html#fast-functions">fast-functions</a><br>
 4.&nbsp;&nbsp;型&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9.html#vim9-types">vim9-types</a><br>
 5.&nbsp;&nbsp;名前空間、Import と Export&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9.html#vim9script">vim9script</a><br>
-6.&nbsp;&nbsp;将来的な変更: クラス&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9.html#vim9-classes">vim9-classes</a><br>
+6.&nbsp;&nbsp;クラスとインターフェイス&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9.html#vim9-classes">vim9-classes</a><br>
 <br>
-9.&nbsp;&nbsp;言語設計の背景&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9.html#vim9-rationale">vim9-rationale</a><br>
+9.&nbsp;&nbsp;理論的根拠&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9.html#vim9-rationale">vim9-rationale</a><br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 <br>
@@ -253,9 +253,9 @@ Vi において # は行番号付きでテキストを表示します。Vim9 scr
 Vim9 script でスクリプト直下に&nbsp;<a class="Comment" href="userfunc.html#:function">:function</a>&nbsp;や&nbsp;<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;を使って関数を定義する<br>
 と、関数はプリフィックス &quot;s:&quot; をつけた際のように、スクリプトローカルで定義され<br>
 ます。グローバルスコープの関数や変数を定義するにはプリフィックス &quot;g:&quot; をつける<br>
-必要があります。 スクリプト内の関数のうち他のスクリプトからインポートされるも<br>
-のとオートロードスクリプト内の関数について、他のスクリプトで利用できるようにす<br>
-るためには &quot;export&quot; をつける必要があります。<br>
+必要があります。スクリプト内の関数のうち他のスクリプトから import されるものと<br>
+オートロードスクリプト内の関数について、他のスクリプトで利用できるようにするた<br>
+めには &quot;export&quot; をつける必要があります。<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def ThisFunction()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# スクリプトローカル<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def g:ThatFunction()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# グローバル<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;export def Function()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # import と import autoload 関数</div>
@@ -284,7 +284,7 @@ Vim9 script でスクリプト直下に&nbsp;<a class="Comment" href="userfunc.h
 - 同じ関数の中、ブロックスコープの中<br>
 - スクリプトスコープの中<br>
 <br>
-インポートされた関数は、<a class="Comment" href="vim9.html#:import">:import</a>&nbsp;コマンドで決まる名前を前置して見つけられます。<br>
+import された関数は、<a class="Comment" href="vim9.html#:import">:import</a>&nbsp;コマンドで決まる名前を前置して見つけられます。<br>
 <br>
 スクリプトローカル関数の参照が &quot;s:&quot; をつけることなく使えるので、スクリプトロー<br>
 カル関数の名前はプリフィックス &quot;s:&quot; をつけて宣言した場合でも大文字から始まる必<br>
@@ -301,9 +301,9 @@ Vim9 script において、スクリプトレベルでのプリフィックス &
 Vim script 内ではスクリプトローカルな関数と変数に対して &quot;s:&quot; を使いますが、<br>
 Vim9 script 内では使いません。これはこのドキュメントの以下の説明でも同様です。<br>
 <br>
-旧来の関数内においては、スクリプトローカルなアイテムに対しての &quot;s:&quot; の指定は従<br>
-来通り必要です。これはスクリプトが Vim9 script であろうが旧来の Vim script で<br>
-あろうが関係ありません。<br>
+旧来の関数内においては、スクリプトローカルな項目に対しての &quot;s:&quot; の指定は従来通<br>
+り必要です。これはスクリプトが Vim9 script であろうが旧来の Vim script であろ<br>
+うが関係ありません。<br>
 <br>
 いずれの場合でも、関数は使用されるよりも前に定義されていなくてはなりません。使<br>
 用されるタイミングは、コマンド&nbsp;<a class="Comment" href="vim9.html#:defcompile">:defcompile</a>&nbsp;によってコンパイルされるとき、ま<br>
@@ -311,10 +311,9 @@ Vim9 script 内では使いません。これはこのドキュメントの以�
 す。<br>
 <br>
 その結果として、名前空間を持たない関数や変数は通常、スクリプト内で定義されてい<br>
-るか、インポートされたものかのどちらかで見つけることができます。グローバルな関<br>
-数や変数はどこでも定義できます (どこで定義されているか、見つかるといいですね！<br>
-しばしば&nbsp;<a class="Identifier" href="various.html#:verbose">:verbose</a>&nbsp;を使ってどこで最後に値がセットされたか調べることができま<br>
-す) 。<br>
+るか、import されたものかのどちらかで見つけることができます。グローバルな関数<br>
+や変数はどこでも定義できます (どこで定義されているか、見つかるといいですね！し<br>
+ばしば&nbsp;<a class="Identifier" href="various.html#:verbose">:verbose</a>&nbsp;を使ってどこで最後に値がセットされたか調べることができます)。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1102" name="E1102">E1102</a><br>
 グローバル関数は引き続き、ほとんどいつでも定義し、削除することができます。Vim9<br>
 script でのスクリプトローカル関数は、スクリプトが読み込まれたときに一度定義さ<br>
@@ -426,7 +425,7 @@ Vim9 script を2回目に読み込んだときは、存在するすべてのス�
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var myList: list&lt;number&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;myList-&gt;add(7)</div>
 <br>
-変数を null、例えば&nbsp;<span class="Comment">null_list</span>、で初期化することは変数を初期化しないこととは<br>
+変数を null、例えば&nbsp;<a class="Comment" href="vim9.html#null_list">null_list</a>、で初期化することは変数を初期化しないこととは<br>
 異なります。これはエラーになります:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var myList = null_list<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;myList-&gt;add(7)&nbsp;&nbsp;# E1130: null リストには追加できません</div>
@@ -449,9 +448,8 @@ Vim9 script では&nbsp;<a class="Comment" href="eval.html#:let">:let</a>&nbsp;�
 動作しません。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1006" name="E1006">E1006</a>&nbsp;<a class="Constant" href="vim9.html#E1041" name="E1041">E1041</a>&nbsp;<a class="Constant" href="vim9.html#E1167" name="E1167">E1167</a>&nbsp;<a class="Constant" href="vim9.html#E1168" name="E1168">E1168</a>&nbsp;<a class="Constant" href="vim9.html#E1213" name="E1213">E1213</a><br>
 変数と関数と関数の引数は、同じスクリプトファイル内で、すでに定義された、または<br>
-インポートされた変数と関数をシャドーイングすることはできません。一方で変数は<br>
-Ex コマンドをシャドーイングするので、必要であれば変数の名前を変更してくださ<br>
-い。<br>
+import された変数と関数をシャドーイングすることはできません。一方で変数は<br>
+Ex コマンドをシャドーイングするので、必要であれば変数の名前を変更してください。<br>
 <br>
 グローバル変数の前には、スクリプトレベルでも &quot;g:&quot; を付けなければなりません。<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
@@ -515,7 +513,7 @@ Ex コマンドをシャドーイングするので、必要であれば変数�
 あります。JavaScript がその一例です。また、値そのものを不変にすることもあり、<br>
 例えばリスト定数の内容を変更することができないとしている場合もあります。<br>
 Vim9ではこのどちらも定義することができます。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1021" name="E1021">E1021</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1021" name="E1021">E1021</a>&nbsp;<a class="Constant" href="vim9.html#E1307" name="E1307">E1307</a><br>
 変数とその値、両方を定数とするには、<a class="Comment" href="eval.html#:const">:const</a>&nbsp;を使用します。何らかの複合的な値<br>
 が変更できないようにする際に使用します。例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const myList = [1, 2]<br>
@@ -603,7 +601,7 @@ Vim9ではこのどちらも定義することができます。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var Lambda = (arg): type =&gt; expression</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1157" name="E1157">E1157</a><br>
 &quot;=&gt;&quot; まで含めて、ラムダ式の引数の定義の中では改行することはできません (Vim が<br>
-丸カッコで囲まれた式とラムダ式の引数の区別をつけられるようにするため)。 これは<br>
+丸カッコで囲まれた式とラムダ式の引数の区別をつけられるようにするため)。これは<br>
 OKです:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;filter(list, (k, v) =&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v &gt; 0)</div>
@@ -757,8 +755,8 @@ script の文法が使われます。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| echom 'AFTER bar'</div>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1050" name="E1050">E1050</a><br>
-行頭の演算子と識別できるようにするために、範囲指定の前にはコロンを置きま<br>
-す。&quot;start&quot; と &quot;print&quot; をつなげる例:<br>
+行頭の演算子と識別できるようにするために、範囲指定の前にはコロンを置きます。<br>
+&quot;start&quot; と &quot;print&quot; をつなげる例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var result = start<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ print</div>
 これは以下の記述と同じです:<br>
@@ -836,11 +834,11 @@ Vim9 script ではホワイトスペースの適切な使用を強制します�
 ホワイトスペースは大抵の演算子の周りで必須です。<br>
 <br>
 始まりと終わりと除いて、サブリスト (リストのスライス) の &quot;:&quot; の周りにホワイト<br>
-スペースが必要です。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;otherlist = mylist[v : count]&nbsp;&nbsp; # v:count は異なる意味を持つ<br>
+スペースが必要です:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;otherlist = mylist[v : count]&nbsp;&nbsp; # v:count は異なる意味を持つ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;otherlist = mylist[:]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # リストのコピーを作る<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;otherlist = mylist[v :]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;otherlist = mylist[: v]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;otherlist = mylist[: v]</div>
 <br>
 ホワイトスペースは許可されません:<br>
 - 関数名と &quot;(&quot; の間:<br>
@@ -927,7 +925,7 @@ Vim9 script ではホワイトスペースの適切な使用を強制します�
 常に偽を返します。旧来の Vim script では文字列の比較を行うだけでしたが、Vim9<br>
 script ではそれらは文字列オブジェクトが同一であることをチェックします。文字列<br>
 は使われるときに複製されるので、二つの文字列は同一と判定されることはありませ<br>
-ん。 (いつか、もし文字列が複製されるのではなく参照カウントで管理されるようにな<br>
+ん。(いつか、もし文字列が複製されるのではなく参照カウントで管理されるようにな<br>
 ると、この挙動は変更されるかもしれません)<br>
 <br>
 <br>
@@ -973,6 +971,11 @@ for ループをつくるために幾つかのトリックがあります。Vim9
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3<br>
 一般的に、反復しているリストを変更してはいけません。必要であれば最初にコピーを<br>
 作ります。<br>
+リストのリストをループする場合、ネストされたリストを変更できます。ループ変数は<br>
+&quot;final&quot; であり、変更することはできませんが、その値は変更できます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1306" name="E1306">E1306</a><br>
+:for ループと :while ループを合わせたループの深さは、10 を超えることはできませ<br>
+ん。<br>
 <br>
 <br>
 <span class="PreProc">条件と式</span><br>
@@ -1030,7 +1033,9 @@ falsy か truthy として評価されます。これは JavaScript とほぼ同
 <br>
 単純型とは、文字列 (string)、数値 (float)、特殊値 (special) と真偽値 (bool) で<br>
 す。他の型では&nbsp;<a class="Identifier" href="builtin.html#string()">string()</a>&nbsp;を使う必要があります。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#false" name="false">false</a>&nbsp;<a class="Constant" href="vim9.html#true" name="true">true</a>&nbsp;<a class="Constant" href="vim9.html#null" name="null">null</a>&nbsp;<a class="Constant" href="vim9.html#E1034" name="E1034">E1034</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#false" name="false">false</a>&nbsp;<a class="Constant" href="vim9.html#true" name="true">true</a>&nbsp;<a class="Constant" href="vim9.html#null" name="null">null</a>&nbsp;<a class="Constant" href="vim9.html#null_blob" name="null_blob">null_blob</a>&nbsp;<a class="Constant" href="vim9.html#null_channel" name="null_channel">null_channel</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#null_dict" name="null_dict">null_dict</a>&nbsp;<a class="Constant" href="vim9.html#null_function" name="null_function">null_function</a>&nbsp;<a class="Constant" href="vim9.html#null_job" name="null_job">null_job</a>&nbsp;<a class="Constant" href="vim9.html#null_list" name="null_list">null_list</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#null_partial" name="null_partial">null_partial</a>&nbsp;<a class="Constant" href="vim9.html#null_string" name="null_string">null_string</a>&nbsp;<a class="Constant" href="vim9.html#E1034" name="E1034">E1034</a><br>
 Vim9 script では以下の定義済みの値が使えます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;true<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;false<br>
@@ -1264,6 +1269,7 @@ Vim9 関数はすべてコンパイルされます:<br>
 :defc[ompile]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 現在のスクリプトで定義されている関数のうち、まだコンパ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;イルされていないものをコンパイルします。これはコンパイ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ル時に見つかったいかなるエラーも報告します。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;クラス内部で定義された関数は除きます。<br>
 <br>
 :defc[ompile]&nbsp;<span class="Special">{func}</span><br>
 :defc[ompile] debug&nbsp;<span class="Special">{func}</span><br>
@@ -1272,6 +1278,10 @@ Vim9 関数はすべてコンパイルされます:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;profile&quot; はコンパイルモードを指定するのに使います。こ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れはコンパイル時に見つかったいかなるエラーも報告しま<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;す。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{func}</span>&nbsp;コールは、&quot;ClassName.functionName&quot; とすること<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;で、クラス内の関数やメソッドもコンパイルできます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{func}</span>&nbsp;コールは、&quot;ClassName&quot; とすることで、クラス内の<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;すべての関数とメソッドをコンパイルすることもできます。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:disa" name=":disa">:disa</a>&nbsp;<a class="Constant" href="vim9.html#:disassemble" name=":disassemble">:disassemble</a><br>
 :disa[ssemble]&nbsp;<span class="Special">{func}</span>&nbsp;&nbsp;&nbsp;<span class="Special">{func}</span>&nbsp;用に生成された命令列を表示します。これはデバ<br>
@@ -1388,7 +1398,7 @@ Vim9 関数はすべてコンパイルされます:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 関数の本体<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
 <br>
-- 引数に使われる &quot;a:&quot; を削除する。 例:<br>
+- 引数に使われる &quot;a:&quot; を削除する。例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return len(a:text)</div>
 &nbsp;&nbsp;&nbsp;がこうなる:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return len(text)</div>
@@ -1415,7 +1425,7 @@ Vim9 関数はすべてコンパイルされます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo line(1) .. line(2)</div>
 <br>
 - 常に行継続にバックスラッシュが必要なわけではない:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo ['one',<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo ['one',<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'two',<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'three'<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ ]</div>
@@ -1424,6 +1434,20 @@ Vim9 関数はすべてコンパイルされます:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'two',<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'three'<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]</div>
+<br>
+<br>
+<span class="PreProc">式のオプションで関数を呼び出す</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#expr-option-function" name="expr-option-function">expr-option-function</a><br>
+<a class="Type" href="options.html#'foldexpr'">'foldexpr'</a>&nbsp;などのいくつかのオプションの値は、値を取得するために評価される式で<br>
+す。評価には、かなりのオーバーヘッドが発生する可能性があります。オーバーヘッド<br>
+を最小限に抑え、オプション値を非常に単純に保つ 1 つの方法は、コンパイル済み関<br>
+数を定義し、引数なしで呼び出すようにオプションを設定することです。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def MyFoldFunc(): any<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ... v:lnum の行の折り畳みレベルを計算する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return level<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set foldexpr=s:MyFoldFunc()</div>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 <br>
@@ -1484,7 +1508,7 @@ func(<span class="Special">{type}</span>, ?<span class="Special">{type}</span>, 
 いる場合、<a class="Identifier" href="eval.html#Partial">Partial</a>&nbsp;にすることもできます。それらは同じように呼び出されるた<br>
 め、宣言も同じです。<br>
 <br>
-<a class="Comment" href="vim9.html#:type">:type</a>&nbsp;を使ってカスタム型を定義できます:<br>
+<span class="Comment">:type</span>&nbsp;を使ってカスタム型を定義できます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:type MyList list&lt;string&gt;</div>
 ユーザー関数と似たように、後から追加される組み込み型との名前の衝突を避けるた<br>
 め、カスタム型は大文字から始まらなければなりません。<br>
@@ -1636,94 +1660,92 @@ Vim9 script ではこれは厳格にされています。使われている値�
 リスト定数を直接使うときは、型は宣言されず、変更することが許可されます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo map([1, 2, 3], (i, v) =&gt; 'item ' .. i)&nbsp;&nbsp;# OK</div>
 <br>
-The reasoning behind this is that when a type is declared and the list is<br>
-passed around and changed, the declaration must always hold.&nbsp;&nbsp;So that you can<br>
-rely on the type to match the declared type.&nbsp;&nbsp;For a constant this is not<br>
-needed.<br>
+この背景となる理由は、型が宣言され、リストが渡されて変更された場合、宣言は常に<br>
+保持されている必要があるためです。そのため、宣言された型と一致する型に依存して<br>
+います。定数の場合、これは必要ありません。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1158" name="E1158">E1158</a><br>
-Same for&nbsp;<a class="Identifier" href="builtin.html#extend()">extend()</a>, use&nbsp;<a class="Identifier" href="builtin.html#extendnew()">extendnew()</a>&nbsp;instead, and for&nbsp;<a class="Identifier" href="builtin.html#flatten()">flatten()</a>, use<br>
-<a class="Identifier" href="builtin.html#flattennew()">flattennew()</a>&nbsp;instead.&nbsp;&nbsp;Since&nbsp;<a class="Identifier" href="builtin.html#flatten()">flatten()</a>&nbsp;is intended to always change the<br>
-type, it can not be used in Vim9 script.<br>
+<a class="Identifier" href="builtin.html#extend()">extend()</a>&nbsp;も同様で、代わりに&nbsp;<a class="Identifier" href="builtin.html#extendnew()">extendnew()</a>&nbsp;を、<a class="Identifier" href="builtin.html#flatten()">flatten()</a>&nbsp;は、代わりに<br>
+<a class="Identifier" href="builtin.html#flattennew()">flattennew()</a>&nbsp;を使用します。<a class="Identifier" href="builtin.html#flatten()">flatten()</a>&nbsp;は常に型を変更することを目的としてい<br>
+るため、Vim9 script では使用できません。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1211" name="E1211">E1211</a>&nbsp;<a class="Constant" href="vim9.html#E1217" name="E1217">E1217</a>&nbsp;<a class="Constant" href="vim9.html#E1218" name="E1218">E1218</a>&nbsp;<a class="Constant" href="vim9.html#E1219" name="E1219">E1219</a>&nbsp;<a class="Constant" href="vim9.html#E1220" name="E1220">E1220</a>&nbsp;<a class="Constant" href="vim9.html#E1221" name="E1221">E1221</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1222" name="E1222">E1222</a>&nbsp;<a class="Constant" href="vim9.html#E1223" name="E1223">E1223</a>&nbsp;<a class="Constant" href="vim9.html#E1224" name="E1224">E1224</a>&nbsp;<a class="Constant" href="vim9.html#E1225" name="E1225">E1225</a>&nbsp;<a class="Constant" href="vim9.html#E1226" name="E1226">E1226</a>&nbsp;<a class="Constant" href="vim9.html#E1227" name="E1227">E1227</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1228" name="E1228">E1228</a>&nbsp;<a class="Constant" href="vim9.html#E1238" name="E1238">E1238</a>&nbsp;<a class="Constant" href="vim9.html#E1250" name="E1250">E1250</a>&nbsp;<a class="Constant" href="vim9.html#E1251" name="E1251">E1251</a>&nbsp;<a class="Constant" href="vim9.html#E1252" name="E1252">E1252</a>&nbsp;<a class="Constant" href="vim9.html#E1253" name="E1253">E1253</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1256" name="E1256">E1256</a>&nbsp;<a class="Constant" href="vim9.html#E1297" name="E1297">E1297</a>&nbsp;<a class="Constant" href="vim9.html#E1298" name="E1298">E1298</a>&nbsp;<a class="Constant" href="vim9.html#E1301" name="E1301">E1301</a><br>
-Types are checked for most builtin functions to make it easier to spot<br>
-mistakes.<br>
+間違いを発見しやすくするために、ほとんどの組み込み関数で型がチェックされます。<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 <br>
-5. Namespace, Import and Export<br>
+5. 名前空間、Import と Export<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#vim9script" name="vim9script">vim9script</a>&nbsp;<a class="Constant" href="vim9.html#vim9-export" name="vim9-export">vim9-export</a>&nbsp;<a class="Constant" href="vim9.html#vim9-import" name="vim9-import">vim9-import</a><br>
 <br>
-A Vim9 script can be written to be imported.&nbsp;&nbsp;This means that some items are<br>
-intentionally exported, made available to other scripts.&nbsp;&nbsp;When the exporting<br>
-script is imported in another script, these exported items can then be used in<br>
-that script.&nbsp;&nbsp;All the other items remain script-local in the exporting script<br>
-and cannot be accessed by the importing script.<br>
+Vim9 script は、import されるように書くことができます。これは、いくつかの項目<br>
+が意図的に export され、他のスクリプトで利用できるようになることを意味します。<br>
+export したスクリプトが他のスクリプトで import されると、これらの export され<br>
+た項目はそのスクリプトで使用することができます。その他の項目は、export したス<br>
+クリプトのスクリプトローカルのままであり、import スクリプトからアクセスするこ<br>
+とはできません。<br>
 <br>
-This mechanism exists for writing a script that can be sourced (imported) by<br>
-other scripts, while making sure these other scripts only have access to what<br>
-you want them to.&nbsp;&nbsp;This also avoids using the global namespace, which has a<br>
-risk of name collisions.&nbsp;&nbsp;For example when you have two plugins with similar<br>
-functionality.<br>
+この機構は、他のスクリプトがソース (import される) されうるスクリプトを書くた<br>
+めに存在し、他のスクリプトがあなたが望むものだけにアクセスできるようにします。<br>
+また、名前衝突の危険性があるグローバル名前空間を使用することも避けられます。例<br>
+えば、似たような機能を持つ2つのプラグインがある場合です。<br>
 <br>
-You can cheat by using the global namespace explicitly.&nbsp;&nbsp;That should be done<br>
-only for things that really are global.<br>
+グローバル名前空間を明示的に使用することで、ごまかすことができます。これは、本<br>
+当にグローバルなものだけに行うべきことです。<br>
 <br>
 <br>
-<span class="PreProc">Namespace</span><br>
+<span class="PreProc">名前空間</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#vim9-namespace" name="vim9-namespace">vim9-namespace</a><br>
-To recognize a file that can be imported the&nbsp;<a class="Comment" href="vim9.html#vim9script">vim9script</a>&nbsp;statement must<br>
-appear as the first statement in the file (see&nbsp;<a class="Identifier" href="vim9.html#vim9-mix">vim9-mix</a>&nbsp;for an exception).<br>
-It tells Vim to interpret the script in its own namespace, instead of the<br>
-global namespace.&nbsp;&nbsp;If a file starts with:<br>
+import 可能なファイルを認識するためには、<a class="Comment" href="vim9.html#vim9script">vim9script</a>&nbsp;ステートメントがファイル<br>
+の最初のステートメントとして現れる必要があります (例外については&nbsp;<a class="Identifier" href="vim9.html#vim9-mix">vim9-mix</a>&nbsp;を<br>
+参照)。これは Vim に、グローバルな名前空間ではなく、独自の名前空間でスクリプト<br>
+を解釈するように指示します。ファイルが次で始まる場合:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var myvar = 'yes'</div>
-Then &quot;myvar&quot; will only exist in this file.&nbsp;&nbsp;While without&nbsp;<a class="Comment" href="vim9.html#vim9script">vim9script</a>&nbsp;it would<br>
-be available as&nbsp;<span class="Comment">g:myvar</span>&nbsp;from any other script and function.<br>
+&quot;myvar&quot; はこのファイルの中にしか存在しないことになります。一方、<a class="Comment" href="vim9.html#vim9script">vim9script</a><br>
+がなければ、他のスクリプトや関数から&nbsp;<span class="Comment">g:myvar</span>&nbsp;として利用できます。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1101" name="E1101">E1101</a><br>
-The variables at the file level are very much like the script-local &quot;s:&quot;<br>
-variables in legacy Vim script, but the &quot;s:&quot; is omitted.&nbsp;&nbsp;And they cannot be<br>
-deleted.<br>
+ファイルレベルの変数は、旧来のVim script のスクリプトローカル変数 &quot;s:&quot; と非常<br>
+によく似ていますが、&quot;s:&quot; は省略されています。そして、それらは削除することがで<br>
+きません。<br>
 <br>
-In Vim9 script the global &quot;g:&quot; namespace can still be used as before.&nbsp;&nbsp;And the<br>
-&quot;w:&quot;, &quot;b:&quot; and &quot;t:&quot; namespaces.&nbsp;&nbsp;These have in common that variables are not<br>
-declared, have no specific type and they can be deleted.&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1304" name="E1304">E1304</a><br>
+Vim9 script では、グローバルな &quot;g:&quot; 名前空間は従来通り使用可能です。また、<br>
+&quot;w:&quot;、&quot;b:&quot;、&quot;t: &quot; 名前空間も使用できます。これらの共通点は、変数が宣言されてい<br>
+ないこと、特定の型を持っていないこと、削除できることです。&nbsp;<a class="Constant" href="vim9.html#E1304" name="E1304">E1304</a><br>
 <br>
-A side effect of&nbsp;<a class="Comment" href="repeat.html#:vim9script">:vim9script</a>&nbsp;is that the&nbsp;<a class="Type" href="options.html#'cpoptions'">'cpoptions'</a>&nbsp;option is set to the<br>
-Vim default value, like with:<br>
+<a class="Comment" href="vim9.html#vim9script">vim9script</a>&nbsp;の副作用として、<a class="Type" href="options.html#'cpoptions'">'cpoptions'</a>&nbsp;オプションが Vim のデフォルト値に設定<br>
+されることが挙げられます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set cpo&amp;vim</div>
-One of the effects is that&nbsp;<a class="Identifier" href="repeat.html#line-continuation">line-continuation</a>&nbsp;is always enabled.<br>
-The original value of&nbsp;<a class="Type" href="options.html#'cpoptions'">'cpoptions'</a>&nbsp;is restored at the end of the script, while<br>
-flags added or removed in the script are also added to or removed from the<br>
-original value to get the same effect.&nbsp;&nbsp;The order of flags may change.<br>
-In the&nbsp;<a class="Identifier" href="starting.html#vimrc">vimrc</a>&nbsp;file sourced on startup this does not happen.<br>
+効果の1つは、<a class="Identifier" href="repeat.html#line-continuation">line-continuation</a>&nbsp;が常に有効であることです。<a class="Type" href="options.html#'cpoptions'">'cpoptions'</a>&nbsp;の元の<br>
+値はスクリプトの最後に復元され、スクリプトで追加または削除されたフラグも元の値<br>
+に追加または削除されて同じ効果を得ることができます。フラグの順序は変更されるこ<br>
+とがあります。起動時に読み込まれる&nbsp;<a class="Identifier" href="starting.html#vimrc">vimrc</a>&nbsp;ファイルでは、このようなことは起こ<br>
+りません。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#vim9-mix" name="vim9-mix">vim9-mix</a><br>
-There is one way to use both legacy and Vim9 syntax in one script file:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; comments may go here<br>
+1つのスクリプトファイルで、旧来と Vim9 の両方の構文を使用する方法があります:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; コメントはこちら<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if !has('vim9script')<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot; legacy script commands go here<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot; 旧来のスクリプトのコマンドはこちら<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; finish<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Vim9 script commands go here</div>
-This allows for writing a script that takes advantage of the Vim9 script<br>
-syntax if possible, but will also work on a Vim version without it.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Vim9 script のコマンドはこちら</div>
+これにより、可能であれば Vim9 script 構文を利用したスクリプトを書くことができ<br>
+ますが、Vim9 のないバージョンでも動作するようになります。<br>
 <br>
-This can only work in two ways:<br>
-1. The &quot;if&quot; statement evaluates to false, the commands up to&nbsp;<a class="Comment" href="eval.html#:endif">endif</a>&nbsp;are<br>
-&nbsp;&nbsp; skipped and&nbsp;<a class="Comment" href="vim9.html#vim9script">vim9script</a>&nbsp;is then the first command actually executed.<br>
-2. The &quot;if&quot; statement evaluates to true, the commands up to&nbsp;<a class="Comment" href="eval.html#:endif">endif</a>&nbsp;are<br>
-&nbsp;&nbsp; executed and&nbsp;<a class="Comment" href="repeat.html#:finish">finish</a>&nbsp;bails out before reaching&nbsp;<a class="Comment" href="vim9.html#vim9script">vim9script</a>.<br>
+これは、2通りの方法でしか機能しません:<br>
+1. &quot;if&quot; 文は false と評価され、<a class="Comment" href="eval.html#:endif">endif</a>&nbsp;までのコマンドはスキップされ、<br>
+&nbsp;&nbsp;&nbsp;<a class="Comment" href="vim9.html#vim9script">vim9script</a>&nbsp;が実際に実行される最初のコマンドとなる。<br>
+2. &quot;if&quot; 文が true に評価されると、<a class="Comment" href="eval.html#:endif">endif</a>&nbsp;までのコマンドが実行され、<a class="Comment" href="repeat.html#:finish">finish</a>&nbsp;は<br>
+&nbsp;&nbsp;&nbsp;<a class="Comment" href="vim9.html#vim9script">vim9script</a>&nbsp;に到達する前に脱出します。<br>
 <br>
 <br>
 <span class="PreProc">Export</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:export" name=":export">:export</a>&nbsp;<a class="Constant" href="vim9.html#:exp" name=":exp">:exp</a><br>
-Exporting an item can be written as:<br>
+項目の export は次のように記述できます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;export const EXPORTED_CONST = 1234<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;export var someValue = ...<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;export final someValue = ...<br>
@@ -1732,561 +1754,498 @@ Exporting an item can be written as:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;export class MyClass ...<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;export interface MyClass ...</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1043" name="E1043">E1043</a>&nbsp;<a class="Constant" href="vim9.html#E1044" name="E1044">E1044</a><br>
-As this suggests, only constants, variables,&nbsp;<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;functions and classes can<br>
-be exported.&nbsp;<span class="Special">{not implemented yet: class, interface}</span><br>
+このことからわかるように、定数、変数、<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;関数、クラスのみが export 可能で<br>
+す。&nbsp;<span class="Special">{not implemented yet: class, interface}</span><br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1042" name="E1042">E1042</a><br>
-<a class="Comment" href="vim9.html#:export">:export</a>&nbsp;can only be used in Vim9 script, at the script level.<br>
+<a class="Comment" href="vim9.html#:export">:export</a>&nbsp;はスクリプトレベルで、Vim9 script でのみ使用できます。<br>
 <br>
 <br>
 <span class="PreProc">Import</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:import" name=":import">:import</a>&nbsp;<a class="Constant" href="vim9.html#:imp" name=":imp">:imp</a>&nbsp;<a class="Constant" href="vim9.html#E1094" name="E1094">E1094</a>&nbsp;<a class="Constant" href="vim9.html#E1047" name="E1047">E1047</a>&nbsp;<a class="Constant" href="vim9.html#E1262" name="E1262">E1262</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1048" name="E1048">E1048</a>&nbsp;<a class="Constant" href="vim9.html#E1049" name="E1049">E1049</a>&nbsp;<a class="Constant" href="vim9.html#E1053" name="E1053">E1053</a>&nbsp;<a class="Constant" href="vim9.html#E1071" name="E1071">E1071</a>&nbsp;<a class="Constant" href="vim9.html#E1088" name="E1088">E1088</a>&nbsp;<a class="Constant" href="vim9.html#E1236" name="E1236">E1236</a><br>
-The exported items can be imported in another script. The import syntax has<br>
-two forms. The simple form:<br>
+export された項目は、別のスクリプトで import することができます。import 構文に<br>
+は、2つの形式があります。単純な形式は:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import {filename}</div>
 <br>
-Where&nbsp;<span class="Special">{filename}</span>&nbsp;is an expression that must evaluate to a string.&nbsp;&nbsp;In this<br>
-form the filename should end in &quot;.vim&quot; and the portion before &quot;.vim&quot; will<br>
-become the script local name of the namespace. For example:<br>
+ここで&nbsp;<span class="Special">{filename}</span>&nbsp;は文字列として評価される式でなければなりません。この形式では、<br>
+ファイル名は &quot;.vim&quot; で終わる必要があり、&quot;.vim&quot; より前の部分が名前空間のスクリ<br>
+プトローカル名となります。例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import &quot;myscript.vim&quot;</div>
 <br>
-This makes each exported item in &quot;myscript.vim&quot; available as &quot;myscript.item&quot;.<br>
+これにより、&quot;myscript.vim&quot; に export された各項目は、&quot;myscript.item&quot; 等として<br>
+利用可能になります。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:import-as" name=":import-as">:import-as</a>&nbsp;<a class="Constant" href="vim9.html#E1257" name="E1257">E1257</a>&nbsp;<a class="Constant" href="vim9.html#E1261" name="E1261">E1261</a><br>
-In case the name is long or ambiguous, this form can be used to specify<br>
-another name:<br>
+名前が長い場合や曖昧な場合は、この形式を使用して別の名前を指定することができま<br>
+す:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import {longfilename} as {name}</div>
 <br>
-In this form&nbsp;<span class="Special">{name}</span>&nbsp;becomes a specific script local name for the imported<br>
-namespace.&nbsp;&nbsp;Therefore&nbsp;<span class="Special">{name}</span>&nbsp;must consist of letters, digits and '_', like<br>
-<a class="Identifier" href="eval.html#internal-variables">internal-variables</a>.&nbsp;&nbsp;The&nbsp;<span class="Special">{longfilename}</span>&nbsp;expression must evaluate to any<br>
-filename.&nbsp;&nbsp;For example:<br>
+この形式では、<span class="Special">{name}</span>&nbsp;が import された名前空間の特定のスクリプトローカル名とな<br>
+ります。したがって、<span class="Special">{name}</span>&nbsp;は&nbsp;<a class="Identifier" href="eval.html#internal-variables">internal-variables</a>&nbsp;のように、文字、数字、'_'で<br>
+構成されなければなりません。<span class="Special">{longfilename}</span>&nbsp;式は、任意のファイル名で評価する必<br>
+要があります。例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import &quot;thatscript.vim.v2&quot; as that</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1060" name="E1060">E1060</a>&nbsp;<a class="Constant" href="vim9.html#E1258" name="E1258">E1258</a>&nbsp;<a class="Constant" href="vim9.html#E1259" name="E1259">E1259</a>&nbsp;<a class="Constant" href="vim9.html#E1260" name="E1260">E1260</a><br>
-Then you can use &quot;that.item&quot;, etc.&nbsp;&nbsp;You are free to choose the name &quot;that&quot;.<br>
-Use something that will be recognized as referring to the imported script.<br>
-Avoid command names, command modifiers and builtin function names, because the<br>
-name will shadow them.&nbsp;&nbsp;Better not start the name starts with a capital<br>
-letter, since it can then also shadow global user commands and functions.<br>
-Also, you cannot use the name for something else in the script, such as a<br>
-function or variable name.<br>
+&quot;that.item&quot; 等として使えます。&quot;that&quot; という名称は自由です。import したスクリプ<br>
+トを指していると認識されるようなものを使ってください。コマンド名、コマンド修飾<br>
+語、組み込み関数名などは避けてください。名前がそれら被るからです。大文字で始ま<br>
+る名前は、グローバルなユーザーコマンドや関数と被る可能性があるため、避けた方が<br>
+無難です。また、その名前を関数や変数名など、スクリプト内の他の何かに使用するこ<br>
+とはできません。<br>
 <br>
-In case the dot in the name is undesired, a local reference can be made for a<br>
-function:<br>
+名前のドットが望ましくない場合は、関数のローカル参照を作成できます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var LongFunc = that.LongFuncName</div>
 <br>
-This also works for constants:<br>
+これは定数に対しても機能します:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const MAXLEN = that.MAX_LEN_OF_NAME</div>
 <br>
-This does not work for variables, since the value would be copied once and<br>
-when changing the variable the copy will change, not the original variable.<br>
-You will need to use the full name, with the dot.<br>
+これは変数には使えません。なぜなら、値は一度コピーされ、変数を変更するときは元<br>
+の変数ではなく、コピーが変更されるからです。ドットを含む完全な名前を使用する必<br>
+要があります。<br>
 <br>
-<a class="Comment" href="vim9.html#:import">:import</a>&nbsp;can also be used in legacy Vim script.&nbsp;&nbsp;The imported items still<br>
-become script-local, even when the &quot;s:&quot; prefix is not given.<br>
+<a class="Comment" href="vim9.html#:import">:import</a>&nbsp;は旧来の Vim script でも使用することができます。&quot;s:&quot; というプリフィ<br>
+ックスが与えられていない場合でも、import された項目はスクリプトローカルとなり<br>
+ます。<br>
 <br>
-<a class="Comment" href="vim9.html#:import">:import</a>&nbsp;can not be used in a function.&nbsp;&nbsp;Imported items are intended to exist<br>
-at the script level and only imported once.<br>
+関数内で&nbsp;<a class="Comment" href="vim9.html#:import">:import</a>&nbsp;を使用することはできません。import された項目はスクリプトレ<br>
+ベルに存在し、一度だけ import されることを意図しています。<br>
 <br>
-The script name after&nbsp;<a class="Comment" href="vim9.html#:import">import</a>&nbsp;can be:<br>
-- A relative path, starting &quot;.&quot; or &quot;..&quot;.&nbsp;&nbsp;This finds a file relative to the<br>
-&nbsp;&nbsp;location of the script file itself.&nbsp;&nbsp;This is useful to split up a large<br>
-&nbsp;&nbsp;plugin into several files.<br>
-- An absolute path, starting with &quot;/&quot; on Unix or &quot;D:/&quot; on MS-Windows.&nbsp;&nbsp;This<br>
-&nbsp;&nbsp;will rarely be used.<br>
-- A path not being relative or absolute.&nbsp;&nbsp;This will be found in the<br>
-&nbsp;&nbsp;&quot;import&quot; subdirectories of&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;entries.&nbsp;&nbsp;The name will usually be<br>
-&nbsp;&nbsp;longer and unique, to avoid loading the wrong file.<br>
-&nbsp;&nbsp;<span class="Todo">Note</span>&nbsp;that &quot;after/import&quot; is not used.<br>
+<a class="Comment" href="vim9.html#:import">import</a>&nbsp;の後のスクリプト名は次のようになります:<br>
+- &quot;.&quot; または &quot;..&quot; で始まる相対パス。スクリプトファイル自体の位置から相対的に<br>
+&nbsp;&nbsp;ファイルを検索する。大きなプラグインを複数のファイルに分割して使用する場合に<br>
+&nbsp;&nbsp;便利である。<br>
+- 絶対パス。Unixでは &quot;/&quot;、MS-Windowsでは &quot;D:/&quot; で始まる。これはほとんど使用さ<br>
+&nbsp;&nbsp;れない。<br>
+- 相対パスでも絶対パスでもないパス。これは、<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;エントリの &quot;import&quot;<br>
+&nbsp;&nbsp;サブディレクトリで見つかる。間違ったファイルを読み込まないようにするため、通<br>
+&nbsp;&nbsp;常、名前は長く、一意であるべきである。<br>
+&nbsp;&nbsp;<span class="Todo">Note</span>&nbsp;&quot;after/import&quot; は使われない。<br>
 <br>
-If the name does not end in &quot;.vim&quot; then the use of &quot;as name&quot; is required.<br>
+名前が &quot;.vim&quot; で終わらない場合は、&quot;as name&quot; を使用する必要があります。<br>
 <br>
-Once a vim9 script file has been imported, the result is cached and used the<br>
-next time the same script is imported.&nbsp;&nbsp;It will not be read again.<br>
+vim9 script ファイルを一度 import すると、その結果はキャッシュされ、次に同じス<br>
+クリプトを import するときに使用されます。再度読み込まれることはありません。<br>
 <br>
-It is not allowed to import the same script twice, also when using two<br>
-different &quot;as&quot; names.<br>
+2 つの異なる &quot;as&quot; 名を使用する場合も同様に、同じスクリプトを 2 回 import する<br>
+ことはできません。<br>
 <br>
-When using the imported name the dot and the item name must be in the same<br>
-line, there can be no line break:<br>
+import 名を使用する場合、ドットと項目名は同じ行になければならず、改行すること<br>
+はできません:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo that.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name&nbsp;&nbsp; # Error!<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name&nbsp;&nbsp; # エラー!<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo that<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.name&nbsp;&nbsp;# Error!</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.name&nbsp;&nbsp;# エラー!</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#import-map" name="import-map">import-map</a><br>
-When you've imported a function from one script into a vim9 script you can<br>
-refer to the imported function in a mapping by prefixing it with&nbsp;<a class="Identifier" href="map.html#<SID>">&lt;SID&gt;</a>:<br>
+あるスクリプトから vim9 script に関数を import した場合、import した関数の前に<br>
+<a class="Identifier" href="map.html#<SID>">&lt;SID&gt;</a>&nbsp;を付けることで、マッピングで参照することができます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;noremap &lt;silent&gt; ,a :call &lt;SID&gt;name.Function()&lt;CR&gt;</div>
 <br>
-When the mapping is defined &quot;<span class="Special">&lt;SID&gt;</span>name.&quot; will be replaced with&nbsp;<span class="Special">&lt;SNR&gt;</span>&nbsp;and the<br>
-script ID of the imported script.<br>
-An even simpler solution is using&nbsp;<a class="Identifier" href="map.html#<ScriptCmd>">&lt;ScriptCmd&gt;</a>:<br>
+マッピングが定義されると、&quot;<span class="Special">&lt;SID&gt;</span>name.&quot; は&nbsp;<span class="Special">&lt;SNR&gt;</span>&nbsp;とimport されたスクリプトのス<br>
+クリプトIDに置き換えられます。<br>
+さらに簡単な方法として、<a class="Identifier" href="map.html#<ScriptCmd>">&lt;ScriptCmd&gt;</a>&nbsp;を使用することができます:<br>
+<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;noremap ,a &lt;ScriptCmd&gt;name.Function()&lt;CR&gt;</div>
 <br>
-<span class="Todo">Note</span>&nbsp;that this does not work for variables, only for functions.<br>
+<span class="Todo">Note</span>&nbsp;これは変数には効かず、関数にしか効かないということです。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#import-legacy" name="import-legacy">import-legacy</a>&nbsp;<a class="Constant" href="vim9.html#legacy-import" name="legacy-import">legacy-import</a><br>
-<a class="Comment" href="vim9.html#:import">:import</a>&nbsp;can also be used in legacy Vim script.&nbsp;&nbsp;The imported namespace still<br>
-becomes script-local, even when the &quot;s:&quot; prefix is not given. For example:<br>
+<a class="Comment" href="vim9.html#:import">:import</a>&nbsp;は旧来の Vim script でも使用することができます。&quot;s:&quot; というプリフィ<br>
+ックスがない場合でも、import された名前空間はスクリプトローカルとなります。<br>
+例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import &quot;myfile.vim&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call s:myfile.MyFunc()</div>
 <br>
-And using the &quot;as name&quot; form:<br>
+そして &quot;as name&quot; 形式を使用する:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import &quot;otherfile.vim9script&quot; as that<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call s:that.OtherFunc()</div>
 <br>
-However, the namespace cannot be resolved on its own:<br>
+ただし、名前空間を単独で解決することはできません:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import &quot;that.vim&quot;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo s:that<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; ERROR: E1060: Expected dot after name: s:that</div>
 <br>
-This also affects the use of&nbsp;<a class="Identifier" href="map.html#<SID>">&lt;SID&gt;</a>&nbsp;in the legacy mapping context.&nbsp;&nbsp;Since<br>
-<a class="Identifier" href="map.html#<SID>">&lt;SID&gt;</a>&nbsp;is only a valid prefix for a function and NOT for a namespace, you<br>
-cannot use it<br>
-to scope a function in a script local namespace. Instead of prefixing the<br>
-function with&nbsp;<a class="Identifier" href="map.html#<SID>">&lt;SID&gt;</a>&nbsp;you should use<a class="Identifier" href="map.html#<ScriptCmd>">&lt;ScriptCmd&gt;</a>. For example:<br>
+これは、旧来のマッピングコンテキストにおける&nbsp;<a class="Identifier" href="map.html#<SID>">&lt;SID&gt;</a>&nbsp;の使用にも影響します。<br>
+<a class="Identifier" href="map.html#<SID>">&lt;SID&gt;</a>&nbsp;は関数に対してのみ有効なプリフィックスであり、名前空間に対しては有効で<br>
+はありません、スクリプトローカルな名前空間内の関数をスコープするために使用する<br>
+ことはできません。関数の前に&nbsp;<a class="Identifier" href="map.html#<SID>">&lt;SID&gt;</a>&nbsp;を付ける代わりに、<a class="Identifier" href="map.html#<ScriptCmd>">&lt;ScriptCmd&gt;</a>&nbsp;を使用す<br>
+る必要があります。例:<br>
+<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;noremap ,a &lt;ScriptCmd&gt;:call s:that.OtherFunc()&lt;CR&gt;</div>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:import-cycle" name=":import-cycle">:import-cycle</a><br>
-The&nbsp;<a class="Comment" href="vim9.html#:import">import</a>&nbsp;commands are executed when encountered.&nbsp;&nbsp;If script A imports<br>
-script B, and B (directly or indirectly) imports A, this will be skipped over.<br>
-At this point items in A after &quot;import B&quot; will not have been processed and<br>
-defined yet.&nbsp;&nbsp;Therefore cyclic imports can exist and not result in an error<br>
-directly, but may result in an error for items in A after &quot;import B&quot; not being<br>
-defined.&nbsp;&nbsp;This does not apply to autoload imports, see the next section.<br>
+<a class="Comment" href="vim9.html#:import">import</a>&nbsp;コマンドは、遭遇したときに実行されます。スクリプト A がスクリプト B<br>
+を import し、B が (直接または間接的に) A を import した場合、これはスキップさ<br>
+れます。この時点では、&quot;import B&quot; 以降の A 内の項目はまだ処理されておらず、定義<br>
+されていません。したがって、循環的な import が存在しても、直接的にはエラーにな<br>
+りませんが、&quot;import B&quot; 以降の A 内の項目が定義されていないためにエラーになる可<br>
+能性があります。これはオートロード import には適用されません。次項参照。<br>
 <br>
 <br>
-<span class="PreProc">Importing an autoload script</span><br>
+<span class="PreProc">オートロードスクリプトを import する</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#vim9-autoload" name="vim9-autoload">vim9-autoload</a>&nbsp;<a class="Constant" href="vim9.html#import-autoload" name="import-autoload">import-autoload</a><br>
-For optimal startup speed, loading scripts should be postponed until they are<br>
-actually needed.&nbsp;&nbsp;Using the autoload mechanism is recommended:<br>
+起動速度を最適化するために、スクリプトの読み込みは実際に必要になるまで延期する<br>
+必要があります。オートロード機構を使用することをお勧めします:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1264" name="E1264">E1264</a><br>
-1. In the plugin define user commands, functions and/or mappings that refer to<br>
-&nbsp;&nbsp; items imported from an autoload script.<br>
+1. プラグインでは、オートロードスクリプトから import された項目を参照するユー<br>
+&nbsp;&nbsp; ザーコマンド、関数、マッピングを定義します。<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import autoload 'for/search.vim'<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;command -nargs=1 SearchForStuff search.Stuff(&lt;f-args&gt;)</div>
 <br>
-&nbsp;&nbsp;&nbsp; This goes in .../plugin/anyname.vim.&nbsp;&nbsp;&quot;anyname.vim&quot; can be freely chosen.<br>
-&nbsp;&nbsp; The &quot;SearchForStuff&quot; command is now available to the user.<br>
+&nbsp;&nbsp;&nbsp; これは、.../plugin/anyname.vim に入ります。&quot;anyname.vim&quot; は自由に選ぶことが<br>
+&nbsp;&nbsp; できます。&quot;SearchForStuff &quot; コマンドが利用できるようになりました。<br>
 <br>
-&nbsp;&nbsp; The &quot;autoload&quot; argument to&nbsp;<a class="Comment" href="vim9.html#:import">:import</a>&nbsp;means that the script is not loaded<br>
-&nbsp;&nbsp; until one of the items is actually used.&nbsp;&nbsp;The script will be found under<br>
-&nbsp;&nbsp; the &quot;autoload&quot; directory in&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;instead of the &quot;import&quot;<br>
-&nbsp;&nbsp; directory.&nbsp;&nbsp;Alternatively a relative or absolute name can be used, see<br>
-&nbsp;&nbsp; below.<br>
+&nbsp;&nbsp;&nbsp;<a class="Comment" href="vim9.html#:import">import</a>&nbsp;の引数 &quot;autoload&quot; は、項目の1つが実際に使用されるまでスクリプトが<br>
+&nbsp;&nbsp; ロードされないことを意味します。スクリプトは &quot;import&quot; ディレクトリではなく、<br>
+&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;の &quot;autoload&quot; ディレクトリの下に見つかります。また、相対名や<br>
+&nbsp;&nbsp; 絶対名を使用することもできます。以下を参照。<br>
 <br>
-2. In the autoload script put the bulk of the code.<br>
+2. オートロードスクリプトに、コードの大部分を置きます。<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;export def Stuff(arg: string)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...</div>
 <br>
-&nbsp;&nbsp;&nbsp; This goes in .../autoload/for/search.vim.<br>
+&nbsp;&nbsp;&nbsp; これは、.../autoload/for/search.vim に入ります。<br>
 <br>
-&nbsp;&nbsp; Putting the &quot;search.vim&quot; script under the &quot;/autoload/for/&quot; directory has<br>
-&nbsp;&nbsp; the effect that &quot;for#search#&quot; will be prefixed to every exported item.&nbsp;&nbsp;The<br>
-&nbsp;&nbsp; prefix is obtained from the file name, as you would to manually in a<br>
-&nbsp;&nbsp; legacy autoload script.&nbsp;&nbsp;Thus the exported function can be found with<br>
-&nbsp;&nbsp; &quot;for#search#Stuff&quot;, but you would normally use&nbsp;<span class="Comment">import autoload</span>&nbsp;and not<br>
-&nbsp;&nbsp; use the prefix (which has the side effect of loading the autoload script<br>
-&nbsp;&nbsp; when compiling a function that encounters this name).<br>
+&nbsp;&nbsp; &quot;search.vim&quot; スクリプトを &quot;/autoload/for/&quot; ディレクトリに置くと、export さ<br>
+&nbsp;&nbsp; れた項目に &quot;for#search#&quot; というプリフィックスが付くようになります。このプリ<br>
+&nbsp;&nbsp; フィックスは、旧来のオートロードスクリプトで手動で行うように、ファイル名か<br>
+&nbsp;&nbsp; ら取得されます。したがって、export された関数は &quot;for#search#Stuff&quot; で見つけ<br>
+&nbsp;&nbsp; ることができますが、通常は&nbsp;<span class="Comment">import autoload</span>&nbsp;を使用し、プリフィックスを使用<br>
+&nbsp;&nbsp; しません (この名前に遭遇した関数をコンパイルするときにオートロードスクリプ<br>
+&nbsp;&nbsp; トをロードするという副作用が発生します)。<br>
 <br>
-&nbsp;&nbsp; You can split up the functionality and import other scripts from the<br>
-&nbsp;&nbsp; autoload script as you like.&nbsp;&nbsp;This way you can share code between plugins.<br>
+&nbsp;&nbsp; 機能を分割して、オートロードスクリプトから他のスクリプトを好きなように<br>
+&nbsp;&nbsp; import することができます。こうすることで、プラグイン間でコードを共有するこ<br>
+&nbsp;&nbsp; とができます。<br>
 <br>
-Searching for the autoload script in all entries in&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;can be a bit<br>
-slow.&nbsp;&nbsp;If the plugin knows where the script is located, quite often a relative<br>
-path can be used.&nbsp;&nbsp;This avoids the search and should be quite a bit faster.<br>
-Another advantage is that the script name does not need to be unique.&nbsp;&nbsp;An<br>
-absolute path is also possible.&nbsp;&nbsp;Examples:<br>
+<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;のすべてのエントリからオートロードスクリプトを検索するのは、少し時<br>
+間がかかることがあります。プラグインがスクリプトの場所を知っている場合、多くの<br>
+場合、相対パスが使用されます。これにより、検索が回避され、かなり速くなるはずで<br>
+す。また、スクリプト名が一意である必要がないことも利点です。絶対パスも可能です。<br>
+例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import autoload '../lib/implement.vim'<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import autoload MyScriptsDir .. '/lib/implement.vim'</div>
 <br>
-For defining a mapping that uses the imported autoload script the special key<br>
-<a class="Identifier" href="map.html#<ScriptCmd>">&lt;ScriptCmd&gt;</a>&nbsp;is useful.&nbsp;&nbsp;It allows for a command in a mapping to use the<br>
-script context of where the mapping was defined.<br>
+import したオートロードスクリプトを使用するマッピングを定義するには、特殊キー<br>
+<a class="Identifier" href="map.html#<ScriptCmd>">&lt;ScriptCmd&gt;</a>&nbsp;が便利です。これは、マッピングのコマンドで、マッピングが定義され<br>
+た場所のスクリプトコンテキストを使用することを可能にします。<br>
 <br>
-When compiling a&nbsp;<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;function and a function in an autoload script is<br>
-encountered, the script is not loaded until the&nbsp;<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;function is called.<br>
-This also means you get any errors only at runtime, since the argument and<br>
-return types are not known yet.&nbsp;&nbsp;If you would use the name with '#' characters<br>
-then the autoload script IS loaded.<br>
+<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;関数をコンパイルしているときに、オートロードスクリプトの関数に遭遇する<br>
+と、<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;関数が呼び出されるまでスクリプトはロードされません。これは、引数や<br>
+戻り値の型がまだ分かっていないため、実行時にのみエラーが発生することも意味しま<br>
+す。もし、'#' 文字を含む名前を使用するのであれば、そのオートロードスクリプトは<br>
+ロードされます。<br>
 <br>
-Be careful to not refer to an item in an autoload script that does trigger<br>
-loading it unintentionally.&nbsp;&nbsp;For example, when setting an option that takes a<br>
-function name, make sure to use a string, not a function reference:<br>
+オートロードスクリプトの中で、意図せずロードのきっかけとなる項目を参照しないよ<br>
+うに注意してください。例えば、関数名を取るオプションを設定する場合、関数参照で<br>
+はなく、必ず文字列を使用してください:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import autoload 'qftf.vim'<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;quickfixtextfunc = 'qftf.Func'&nbsp;&nbsp;# autoload script NOT loaded<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;quickfixtextfunc = qftf.Func&nbsp;&nbsp;&nbsp;&nbsp;# autoload script IS loaded</div>
-On the other hand, it can be useful to load the script early, at a time when<br>
-any errors should be given.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;quickfixtextfunc = 'qftf.Func'&nbsp;&nbsp;# オートロードスクリプトはロードされ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # ない<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;quickfixtextfunc = qftf.Func&nbsp;&nbsp;&nbsp;&nbsp;# オートロードスクリプトはロードされる</div>
+一方で、スクリプトを早めに読み込むことで、エラーが発生した場合に、その旨を伝え<br>
+ることができるようになり便利です。<br>
 <br>
-For testing the&nbsp;<a class="Identifier" href="testing.html#test_override()">test_override()</a>&nbsp;function can be used to have the<br>
-<span class="Comment">import autoload</span>&nbsp;load the script right away, so that the items and types can<br>
-be checked without waiting for them to be actually used:<br>
+<a class="Identifier" href="testing.html#test_override()">test_override()</a>&nbsp;のテスト用関数を使用して、<span class="Comment">import autoload</span>&nbsp;にスクリプトをす<br>
+ぐにロードさせることができます。これにより、項目と型が実際に使用されるのを待た<br>
+ずにチェックできるようになります:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test_override('autoload', 1)</div>
-Reset it later with:<br>
+後でリセットします:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test_override('autoload', 0)</div>
-Or:<br>
+または:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test_override('ALL', 0)</div>
 <br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 <br>
-6. Future work: classes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#vim9-classes" name="vim9-classes">vim9-classes</a><br>
+6. クラスとインターフェイス&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#vim9-classes" name="vim9-classes">vim9-classes</a><br>
 <br>
-Above &quot;class&quot; was mentioned a few times, but it has not been implemented yet.<br>
-Most of Vim9 script can be created without this functionality, and since<br>
-implementing classes is going to be a lot of work, it is left for the future.<br>
-For now we'll just make sure classes can be added later.<br>
+旧来のスクリプトでは、関数であるメンバーを追加することで、辞書を一種のオブジェ<br>
+クトとして使用することができます。しかし、これは非常に非効率的で、すべてのオブ<br>
+ジェクトが正しいメンバーを持っていることを確認する作業を作成者が行う必要があり<br>
+ます。<a class="Identifier" href="eval.html#Dictionary-function">Dictionary-function</a>&nbsp;を参照。<br>
 <br>
-Thoughts:<br>
--&nbsp;<a class="Comment" href="vim9.html#:class">class</a>&nbsp;/&nbsp;<a class="Comment" href="vim9.html#:endclass">endclass</a>, the whole class must be in one file<br>
-- Class names are always CamelCase (to avoid a name clash with builtin types)<br>
-- A single constructor called &quot;constructor&quot;<br>
-- Single inheritance with&nbsp;<span class="Comment">class ThisClass extends BaseClass</span><br>
--&nbsp;<span class="Comment">abstract class</span>&nbsp;(class with incomplete implementation)<br>
--&nbsp;<a class="Comment" href="vim9.html#:interface">interface</a>&nbsp;/&nbsp;<a class="Comment" href="vim9.html#:endinterface">endinterface</a>&nbsp;(abstract class without any implementation)<br>
--&nbsp;<span class="Comment">class SomeClass implements SomeInterface</span><br>
-- Generics for class:&nbsp;<span class="Comment">class &lt;Tkey, Tentry&gt;</span><br>
-- Generics for function:&nbsp;<span class="Comment">def &lt;Tkey&gt; GetLast(key: Tkey)</span><br>
+<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では、一般的なオブジェクト指向プログラミング言語のように、クラス、<br>
+オブジェクト、インターフェイスを持つことができます。これは多くの機能を含んでい<br>
+るため、別のヘルプファイルに記載されています:&nbsp;<span class="MissingTag">vim9class.txt</span><br>
 <br>
-Again, much of this is from TypeScript with a slightly different syntax.<br>
-<br>
-Some things that look like good additions:<br>
-- Use a class as an interface (like Dart)<br>
-- Extend a class with methods, using an import (like Dart)<br>
-- Mixins<br>
-- For testing: Mock mechanism<br>
-<br>
-An important class that will be provided is &quot;Promise&quot;.&nbsp;&nbsp;Since Vim is single<br>
-threaded, connecting asynchronous operations is a natural way of allowing<br>
-plugins to do their work without blocking the user.&nbsp;&nbsp;It's a uniform way to<br>
-invoke callbacks and handle timeouts and errors.<br>
-<br>
-Some commands have already been reserved:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:class" name=":class">:class</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:endclass" name=":endclass">:endclass</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:abstract" name=":abstract">:abstract</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:enum" name=":enum">:enum</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:endenum" name=":endenum">:endenum</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:interface" name=":interface">:interface</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:endinterface" name=":endinterface">:endinterface</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:static" name=":static">:static</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:type" name=":type">:type</a><br>
-<br>
-Some examples:<br>
-<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;abstract class Person&nbsp;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static const prefix = 'xxx'<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var name: string<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def constructor(name: string)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.name = name<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
-<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def display(): void<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo name<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
-<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;abstract def find(string): Person<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 <br>
-9. Rationale&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#vim9-rationale" name="vim9-rationale">vim9-rationale</a><br>
+9. 理論的根拠&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#vim9-rationale" name="vim9-rationale">vim9-rationale</a><br>
 <br>
-<span class="PreProc">The :def command</span><br>
+<span class="PreProc">:def コマンド</span><br>
 <br>
-Plugin writers have asked for much faster Vim script.&nbsp;&nbsp;Investigations have<br>
-shown that keeping the existing semantics of function calls make this close to<br>
-impossible, because of the overhead involved with calling a function, setting<br>
-up the local function scope and executing lines.&nbsp;&nbsp;There are many details that<br>
-need to be handled, such as error messages and exceptions.&nbsp;&nbsp;The need to create<br>
-a dictionary for a: and l: scopes, the a:000 list and several others add too<br>
-much overhead that cannot be avoided.<br>
+プラグインの作者から、Vim script をもっと速くしたいとの要望がありました。関数<br>
+呼び出しの既存のセマンティクスを維持することは、関数の呼び出し、ローカル関数ス<br>
+コープの設定、行の実行に伴うオーバーヘッドのため、不可能に近いことが調査により<br>
+判明しました。エラーメッセージや例外など、処理しなければならない細部はたくさん<br>
+あります。a: および l: スコープ用の辞書を作成する必要性、a:000 のリスト、その<br>
+他いくつかの回避できないオーバーヘッドを追加しすぎています。<br>
 <br>
-Therefore the&nbsp;<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;method to define a new-style function had to be added,<br>
-which allows for a function with different semantics.&nbsp;&nbsp;Most things still work<br>
-as before, but some parts do not.&nbsp;&nbsp;A new way to define a function was<br>
-considered the best way to separate the legacy style code from Vim9 style code.<br>
+したがって、新しいスタイルの関数を定義するための&nbsp;<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;メソッドを追加する必要<br>
+があり、これにより異なるセマンティクスを持つ関数を定義することができるようにな<br>
+りました。ほとんどのことは以前と同じように動作しますが、そうでない部分もありま<br>
+す。関数を定義する新しい方法は、旧来のスタイルのコードとVim9スタイルのコードを<br>
+分離するための最良の方法であると考えられていました。<br>
 <br>
-Using &quot;def&quot; to define a function comes from Python. Other languages use<br>
-&quot;function&quot; which clashes with legacy Vim script.<br>
-<br>
-<br>
-<span class="PreProc">Type checking</span><br>
-<br>
-When compiling lines of Vim commands into instructions as much as possible<br>
-should be done at compile time.&nbsp;&nbsp;Postponing it to runtime makes the execution<br>
-slower and means mistakes are found only later.&nbsp;&nbsp;For example, when<br>
-encountering the &quot;+&quot; character and compiling this into a generic add<br>
-instruction, at runtime the instruction would have to inspect the type of the<br>
-arguments and decide what kind of addition to do.&nbsp;&nbsp;And when the type is<br>
-dictionary throw an error.&nbsp;&nbsp;If the types are known to be numbers then an &quot;add<br>
-number&quot; instruction can be used, which is faster.&nbsp;&nbsp;The error can be given at<br>
-compile time, no error handling is needed at runtime, since adding two numbers<br>
-cannot fail.<br>
-<br>
-The syntax for types, using&nbsp;<span class="Special">&lt;type&gt;</span>&nbsp;for compound types, is similar to Java.&nbsp;&nbsp;It<br>
-is easy to understand and widely used.&nbsp;&nbsp;The type names are what were used in<br>
-Vim before, with some additions such as &quot;void&quot; and &quot;bool&quot;.<br>
+&quot;def&quot; を使用して関数を定義するのは、Python に由来します。他の言語は、従来の<br>
+Vim script と競合する &quot;function&quot; を使用します。<br>
 <br>
 <br>
-<span class="PreProc">Removing clutter and weirdness</span><br>
+<span class="PreProc">型チェック</span><br>
 <br>
-Once decided that&nbsp;<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;functions have different syntax than legacy functions,<br>
-we are free to add improvements to make the code more familiar for users who<br>
-know popular programming languages.&nbsp;&nbsp;In other words: remove weird things that<br>
-only Vim does.<br>
+Vim コマンドの行を命令にコンパイルする場合、可能な限りコンパイル時に行うべきで<br>
+す。これを実行時に先送りすると、実行速度が遅くなり間違いに気づくのが遅くなりま<br>
+す。例えば、&quot;+&quot; 文字に遭遇し、これを一般的な加算命令にコンパイルする場合、実行<br>
+時に引数の型を検査し、どのような加算を行うかを決定する必要があります。そして、<br>
+その型が辞書であった場合には、エラーを投げます。もし、型が数値であることが分か<br>
+っていれば、「数値の加算」命令を使うことができ、その方が高速です。このエラーは<br>
+コンパイル時に発生する可能性があり、2 つの数値の加算は失敗しないため、実行時の<br>
+エラー処理は必要ありません。<br>
 <br>
-We can also remove clutter, mainly things that were done to make Vim script<br>
-backwards compatible with the good old Vi commands.<br>
-<br>
-Examples:<br>
-- Drop&nbsp;<a class="Comment" href="userfunc.html#:call">:call</a>&nbsp;for calling a function and&nbsp;<a class="Comment" href="eval.html#:eval">:eval</a>&nbsp;for evaluating an<br>
-&nbsp;&nbsp;expression.<br>
-- Drop using a leading backslash for line continuation, automatically figure<br>
-&nbsp;&nbsp;out where an expression ends.<br>
-<br>
-However, this does require that some things need to change:<br>
-- Comments start with # instead of &quot;, to avoid confusing them with strings.<br>
-&nbsp;&nbsp;This is good anyway, it is also used by several popular languages.<br>
-- Ex command ranges need to be prefixed with a colon, to avoid confusion with<br>
-&nbsp;&nbsp;expressions (single quote can be a string or a mark, &quot;/&quot; can be divide or a<br>
-&nbsp;&nbsp;search command, etc.).<br>
-<br>
-Goal is to limit the differences.&nbsp;&nbsp;A good criteria is that when the old syntax<br>
-is accidentally used you are very likely to get an error message.<br>
+複合型に&nbsp;<span class="Special">&lt;type&gt;</span>&nbsp;を使った型の構文は、Javaと似ています。理解しやすく、広く使われ<br>
+ています。型名は、以前 Vim で使われていたものに、&quot;void&quot; や &quot;bool&quot; などが追加さ<br>
+れています。<br>
 <br>
 <br>
-<span class="PreProc">Syntax and semantics from popular languages</span><br>
+<span class="PreProc">乱雑と奇妙さを取り除く</span><br>
 <br>
-Script writers have complained that the Vim script syntax is unexpectedly<br>
-different from what they are used to.&nbsp;&nbsp;To reduce this complaint popular<br>
-languages are used as an example.&nbsp;&nbsp;At the same time, we do not want to abandon<br>
-the well-known parts of legacy Vim script.<br>
+<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;関数が旧来の関数と異なる構文であることが決まれば、一般的なプログラミン<br>
+グ言語を知っているユーザーにとってより馴染みやすいコードにするための改良を加え<br>
+ることは自由です。言い換えれば、Vim でしかしないような奇妙なことは削除します。<br>
 <br>
-For many things TypeScript is followed.&nbsp;&nbsp;It's a recent language that is<br>
-gaining popularity and has similarities with Vim script.&nbsp;&nbsp;It also has a<br>
-mix of static typing (a variable always has a known value type) and dynamic<br>
-typing (a variable can have different types, this changes at runtime).&nbsp;&nbsp;Since<br>
-legacy Vim script is dynamically typed and a lot of existing functionality<br>
-(esp. builtin functions) depends on that, while static typing allows for much<br>
-faster execution, we need to have this mix in Vim9 script.<br>
-<br>
-There is no intention to completely match TypeScript syntax and semantics.&nbsp;&nbsp;We<br>
-just want to take those parts that we can use for Vim and we expect Vim users<br>
-will be happy with.&nbsp;&nbsp;TypeScript is a complex language with its own history,<br>
-advantages and disadvantages.&nbsp;&nbsp;To get an idea of the disadvantages read the<br>
-book: &quot;JavaScript: The Good Parts&quot;.&nbsp;&nbsp;Or find the article &quot;TypeScript: the good<br>
-parts&quot; and read the &quot;Things to avoid&quot; section.<br>
-<br>
-People familiar with other languages (Java, Python, etc.) will also find<br>
-things in TypeScript that they do not like or do not understand.&nbsp;&nbsp;We'll try to<br>
-avoid those things.<br>
-<br>
-Specific items from TypeScript we avoid:<br>
-- Overloading &quot;+&quot;, using it both for addition and string concatenation.&nbsp;&nbsp;This<br>
-&nbsp;&nbsp;goes against legacy Vim script and often leads to mistakes.&nbsp;&nbsp;For that reason<br>
-&nbsp;&nbsp;we will keep using &quot;..&quot; for string concatenation.&nbsp;&nbsp;Lua also uses &quot;..&quot; this<br>
-&nbsp;&nbsp;way.&nbsp;&nbsp;And it allows for conversion to string for more values.<br>
-- TypeScript can use an expression like &quot;99 ||&nbsp;<span class="MissingTag">'yes'</span>&quot; in a condition, but<br>
-&nbsp;&nbsp;cannot assign the value to a boolean.&nbsp;&nbsp;That is inconsistent and can be<br>
-&nbsp;&nbsp;annoying.&nbsp;&nbsp;Vim recognizes an expression with &amp;&amp; or || and allows using the<br>
-&nbsp;&nbsp;result as a bool.&nbsp;&nbsp;The&nbsp;<a class="Identifier" href="eval.html#falsy-operator">falsy-operator</a>&nbsp;was added for the mechanism to use a<br>
-&nbsp;&nbsp;default value.<br>
-- TypeScript considers an empty string as Falsy, but an empty list or dict as<br>
-&nbsp;&nbsp;Truthy.&nbsp;&nbsp;That is inconsistent.&nbsp;&nbsp;In Vim an empty list and dict are also<br>
-&nbsp;&nbsp;Falsy.<br>
-- TypeScript has various &quot;Readonly&quot; types, which have limited usefulness,<br>
-&nbsp;&nbsp;since a type cast can remove the immutable nature.&nbsp;&nbsp;Vim locks the value,<br>
-&nbsp;&nbsp;which is more flexible, but is only checked at runtime.<br>
-- TypeScript has a complicated &quot;import&quot; statement that does not match how the<br>
-&nbsp;&nbsp;Vim import mechanism works.&nbsp;&nbsp;A much simpler mechanism is used instead, which<br>
-&nbsp;&nbsp;matches that the imported script is only sourced once.<br>
+また、Vim script に古き良きViコマンドと後方互換性を持たせるために行われたもの<br>
+を中心に、雑多なものを取り除くことができます。<br>
 <br>
 <br>
-<span class="PreProc">Declarations</span><br>
+例:<br>
+- 関数を呼び出すための&nbsp;<a class="Comment" href="userfunc.html#:call">:call</a>&nbsp;と式を評価するための&nbsp;<a class="Comment" href="eval.html#:eval">:eval</a>&nbsp;を削除します。<br>
+- 行の継続のための先頭のバックスラッシュを使用しない。式がどこで終わるかを自動<br>
+&nbsp;&nbsp;的に把握します。<br>
 <br>
-Legacy Vim script uses&nbsp;<a class="Comment" href="eval.html#:let">:let</a>&nbsp;for every assignment, while in Vim9 declarations<br>
-are used.&nbsp;&nbsp;That is different, thus it's good to use a different command:<br>
-<a class="Comment" href="vim9.html#:var">:var</a>.&nbsp;&nbsp;This is used in many languages.&nbsp;&nbsp;The semantics might be slightly<br>
-different, but it's easily recognized as a declaration.<br>
+しかし、そのためには、いくつかのことを変える必要があります:<br>
+- コメントは、文字列と混同しないように、&quot; の代わりに # で始まるようにしました。<br>
+&nbsp;&nbsp;これはとにかく良いことで、いくつかの人気のある言語でも使用されています。<br>
+- Ex コマンドの範囲は、式との混同を避けるため、先頭にコロンを付ける必要があり<br>
+&nbsp;&nbsp;ます (シングルクォートは文字列またはマーク、&quot;/&quot; は割り算または検索コマンド、<br>
+&nbsp;&nbsp;等)。<br>
 <br>
-Using&nbsp;<a class="Comment" href="eval.html#:const">:const</a>&nbsp;&nbsp;for constants is common, but the semantics varies.&nbsp;&nbsp;Some<br>
-languages only make the variable immutable, others also make the value<br>
-immutable.&nbsp;&nbsp;Since &quot;final&quot; is well known from Java for only making the variable<br>
-immutable we decided to use that.&nbsp;&nbsp;And then&nbsp;<a class="Comment" href="eval.html#:const">:const</a>&nbsp;can be used for making<br>
-both immutable.&nbsp;&nbsp;This was also used in legacy Vim script and the meaning is<br>
-almost the same.<br>
 <br>
-What we end up with is very similar to Dart:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:var name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # mutable variable and value<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:final name&nbsp;&nbsp;&nbsp;&nbsp; # immutable variable, mutable value<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:const name&nbsp;&nbsp;&nbsp;&nbsp; # immutable variable and value</div>
+目標は、違いを制限することです。良い基準は、古い構文を誤って使用した場合に、<br>
+エラーメッセージが表示される可能性が非常に高いことです。<br>
 <br>
-Since legacy and Vim9 script will be mixed and global variables will be<br>
-shared, optional type checking is desirable.&nbsp;&nbsp;Also, type inference will avoid<br>
-the need for specifying the type in many cases.&nbsp;&nbsp;The TypeScript syntax fits<br>
-best for adding types to declarations:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var name: string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# string type is specified<br>
+<br>
+<span class="PreProc">人気のある言語から構文とセマンティクスを学ぶ</span><br>
+<br>
+スクリプトの作成者は、Vim script の構文が慣れ親しんでいるものとは予想外に異な<br>
+ると不満を漏らしています。この不満を軽減するために、人気のある言語を例として使<br>
+用します。同時に、旧来の Vim script のよく知られた部分を放棄することは避けたい<br>
+です。<br>
+<br>
+いろいろなことで TypeScript が踏襲されています。これは最近人気が出てきた言語で、<br>
+Vim script に似ています。また、静的型付け (変数は常に既知の値型を持つ) と動的<br>
+型付け (変数は異なる型を持つことができ、これは実行時に変更される) が混在してい<br>
+ます。旧来の Vim script は動的型付けされており、既存の多くの機能 (特に組み込み<br>
+関数) は動的型付けに依存していますが、静的型付けはより高速に実行できるため、<br>
+Vim9 script でもこの混ぜ合わせが必要です。<br>
+<br>
+TypeScript の構文やセマンティクスに完全に合わせるつもりはありません。私たちは<br>
+ただ、Vim に使える部分、Vim ユーザーが喜ぶと予想される部分を取り出したいだけで<br>
+す。TypeScript は、独自の歴史、利点と欠点を持つ複雑な言語です。デメリットを知<br>
+るには、この本を読んでください: &quot;JavaScript: The Good Parts&quot;。または、<br>
+&quot;TypeScript: the good parts&quot; という記事を見つけて、&quot;Things to avoid&quot; セクショ<br>
+ンを読んでください。<br>
+<br>
+他の言語 (Java、Pythonなど) に慣れている人も、TypeScript の中で気に入らないこ<br>
+とや理解できないことを見つけるでしょう。そういったものを避けるようにします。<br>
+<br>
+TypeScript から避ける特定の項目:<br>
+- &quot;+&quot; をオーバーロードして、加算と文字列連結の両方に使用します。これは旧来の<br>
+&nbsp;&nbsp;Vim script に反しており、しばしば間違いにつながります。そのため、文字列の連<br>
+&nbsp;&nbsp;結には &quot;..&quot; を使い続けることにします。Lua もこの方法で &quot;..&quot; を使っています。<br>
+&nbsp;&nbsp;そして、より多くの値のために文字列に変換することができます。<br>
+- TypeScript では、&quot;99 ||&nbsp;<span class="MissingTag">'yes'</span>&quot; のような式を条件として使うことができますが、<br>
+&nbsp;&nbsp;その値を真偽値に代入することができません。これは一貫性がなく、迷惑なことで<br>
+&nbsp;&nbsp;す。Vim は &amp;&amp; や || を使った式を認識し、その結果を bool として使うことができ<br>
+&nbsp;&nbsp;ます。デフォルト値を使う仕組みとして、<a class="Identifier" href="eval.html#falsy-operator">falsy-operator</a>&nbsp;が追加されました。<br>
+- TypeScript では、空の文字列を Falsy と見なしますが、空のリストや辞書を<br>
+&nbsp;&nbsp;Truthy と見なしています。これは矛盾しています。Vimでは、空のリストや辞書も<br>
+&nbsp;&nbsp;Falsy となります。<br>
+- TypeScript にはさまざまな &quot;読み出し専用&quot; 型がありますが、型キャストによって<br>
+&nbsp;&nbsp;不変な性質を取り除くことができるため、有用性は限定的です。Vim は値をロックす<br>
+&nbsp;&nbsp;るので、より柔軟性がありますが、実行時にしかチェックされません。<br>
+- TypeScript には複雑な &quot;import&quot; 文があり、Vim の import の仕組みとマッチしま<br>
+&nbsp;&nbsp;せん。代わりに、import されたスクリプトが一度だけ読み込まれることにマッチす<br>
+&nbsp;&nbsp;る、よりシンプルなメカニズムが使用されています。<br>
+<br>
+<br>
+<span class="PreProc">宣言</span><br>
+<br>
+旧来の Vim script では、すべての代入に&nbsp;<a class="Comment" href="eval.html#:let">:let</a>&nbsp;を使用しますが、Vim9 では宣言が<br>
+使用されます。これは異なるので、別のコマンドを使うのがよいでしょう。<a class="Comment" href="vim9.html#:var">var</a>&nbsp;で<br>
+す。これは多くの言語で使用されています。セマンティクスは若干異なるかもしれませ<br>
+んが、宣言として簡単に認識することができます。<br>
+<br>
+定数に&nbsp;<a class="Comment" href="eval.html#:const">:const</a>&nbsp;を使うのは一般的ですが、そのセマンティクスは様々です。変数だけ<br>
+を不変にする言語もあれば、値も不変にする言語もあります。Java では &quot;final&quot; が変<br>
+数だけを不変にするためによく知られているので、これを使うことにしました。そし<br>
+て、<a class="Comment" href="eval.html#:const">:const</a>&nbsp;を使うことで、両方を不変にすることができます。これは旧来の Vim<br>
+script でも使われていたもので、意味はほぼ同じです。<br>
+<br>
+最終的に得られるものは、Dart と非常によく似ています:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:var name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 可変な変数と値<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:final name&nbsp;&nbsp;&nbsp;&nbsp; # 不変な変数、可変な値<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:const name&nbsp;&nbsp;&nbsp;&nbsp; # 不変な変数と値</div>
+<br>
+旧来と Vim9 script が混在し、グローバル変数が共有されるため、オプションで型<br>
+チェックを行うことが望ましいです。また、型推論により、多くの場合、型を指定する<br>
+必要がなくなります。宣言に型を追加するには、TypeScript の構文が最も適していま<br>
+す:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var name: string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 文字列型が指定される<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name = 'John'<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const greeting = 'hello'&nbsp;&nbsp;# string type is inferred</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const greeting = 'hello'&nbsp;&nbsp;# 文字列型が推測される</div>
 <br>
-This is how we put types in a declaration:<br>
+これは、型を宣言に入れる方法です:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var mylist: list&lt;string&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;final mylist: list&lt;string&gt; = ['foo']<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Func(arg1: number, arg2: string): bool</div>
 <br>
-Two alternatives were considered:<br>
-1. Put the type before the name, like Dart:<br>
+2つの選択肢を検討しました:<br>
+1. Dart のように名前の前に型を置く:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var list&lt;string&gt; mylist<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;final list&lt;string&gt; mylist = ['foo']<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Func(number arg1, string arg2) bool</div>
-2. Put the type after the variable name, but do not use a colon, like Go:<br>
+2. 変数名の後に型を入れるが、Go のようにコロンを使わない:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var mylist list&lt;string&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;final mylist list&lt;string&gt; = ['foo']<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Func(arg1 number, arg2 string) bool</div>
 <br>
-The first is more familiar for anyone used to C or Java.&nbsp;&nbsp;The second one<br>
-doesn't really have an advantage over the first, so let's discard the second.<br>
+C や Java に慣れている人には1つ目の方が馴染みやすいと思います。2つ目は1つ目に<br>
+対しての優位性があまりないので、2つ目は捨ててしまいましょう。<br>
 <br>
-Since we use type inference the type can be left out when it can be inferred<br>
-from the value.&nbsp;&nbsp;This means that after&nbsp;<a class="Comment" href="vim9.html#:var">var</a>&nbsp;we don't know if a type or a name<br>
-follows.&nbsp;&nbsp;That makes parsing harder, not only for Vim but also for humans.<br>
-Also, it will not be allowed to use a variable name that could be a type name,<br>
-using&nbsp;<span class="Comment">var string string</span>&nbsp;is too confusing.<br>
+型推論を使うので、値から推論できる場合は型は省くことができます。つまり、<a class="Comment" href="vim9.html#:var">var</a><br>
+の後に型が続くのか名前が続くのかが分からないのです。そのため、Vim だけでなく人<br>
+間にとっても構文解析が難しくなります。また、型名になりうる変数名を使うことは許<br>
+されないでしょう。<span class="Comment">var string string</span>&nbsp;を使うのはあまりにも紛らわしいです。<br>
 <br>
-The chosen syntax, using a colon to separate the name from the type, adds<br>
-punctuation, but it actually makes it easier to recognize the parts of a<br>
-declaration.<br>
+コロンを使用して名前と型を区切る選ばれた構文は、句読点を追加しますが、実際に<br>
+は、宣言の部分を認識しやすくします。<br>
 <br>
 <br>
-<span class="PreProc">Expressions</span><br>
+<span class="PreProc">式</span><br>
 <br>
-Expression evaluation was already close to what other languages are doing.<br>
-Some details are unexpected and can be improved.&nbsp;&nbsp;For example a boolean<br>
-condition would accept a string, convert it to a number and check if the<br>
-number is non-zero.&nbsp;&nbsp;This is unexpected and often leads to mistakes, since<br>
-text not starting with a number would be converted to zero, which is<br>
-considered false.&nbsp;&nbsp;Thus using a string for a condition would often not give an<br>
-error and be considered false.&nbsp;&nbsp;That is confusing.<br>
+式の評価は、すでに他の言語が行っているものに近いものでした。いくつかの細部は予<br>
+期せぬものであり、改善することができます。例えば、真偽値条件では、文字列を受け<br>
+取り、それを数値に変換して、その数値が0でないかどうかをチェックします。これは<br>
+予想外のことで、しばしば間違いにつながります。なぜなら、数字で始まらないテキス<br>
+トはゼロに変換され、これは偽とみなされるからです。このように、条件に文字列を使<br>
+うと、エラーが出ず、偽とみなされることが多いのです。これは紛らわしいです。<br>
 <br>
-In Vim9 type checking is stricter to avoid mistakes.&nbsp;&nbsp;Where a condition is<br>
-used, e.g. with the&nbsp;<a class="Comment" href="eval.html#:if">:if</a>&nbsp;command and the&nbsp;<span class="Comment">||</span>&nbsp;operator, only boolean-like<br>
-values are accepted:<br>
+Vim9 では、間違いを避けるために型チェックがより厳しくなっています。例えば<br>
+<a class="Comment" href="eval.html#:if">:if</a>&nbsp;コマンドや&nbsp;<span class="Comment">||</span>&nbsp;演算子など、条件が使われる場所では、真偽値のような値しか<br>
+受け付けません:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;true:&nbsp;&nbsp;<a class="Comment" href="vim9.html#true">true</a>,&nbsp;<a class="Comment" href="eval.html#v:true">v:true</a>,&nbsp;<span class="Comment">1</span>,&nbsp;<span class="Comment">0 &lt; 9</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;false:&nbsp;<a class="Comment" href="vim9.html#false">false</a>,&nbsp;<a class="Comment" href="eval.html#v:false">v:false</a>,&nbsp;<a class="Comment" href="motion.html#0">0</a>,&nbsp;<span class="Comment">0 &gt; 9</span><br>
-<span class="Todo">Note</span>&nbsp;that the number zero is false and the number one is true.&nbsp;&nbsp;This is more<br>
-permissive than most other languages.&nbsp;&nbsp;It was done because many builtin<br>
-functions return these values, and changing that causes more problems than it<br>
-solves.&nbsp;&nbsp;After using this for a while it turned out to work well.<br>
+<span class="Todo">Note</span>&nbsp;数字の 0 は偽で、数字の 1 は真です。これは、他の多くの言語よりも寛容です。<br>
+これは、多くの組み込み関数がこれらの値を返すため、それを変更すると、解決するよ<br>
+りも多くの問題を引き起こすからです。これをしばらく使ってみると、うまくいくこと<br>
+が分かりました。<br>
 <br>
-If you have any type of value and want to use it as a boolean, use the&nbsp;<a class="Comment" href="change.html#!!">!!</a><br>
-operator:<br>
+任意の型を持つ値について、それを真偽値として使いたい場合は、<a class="Comment" href="change.html#!!">!!</a>&nbsp;演算子を使い<br>
+ます:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;true:&nbsp;<span class="Comment">!!'text'</span>&nbsp;&nbsp;&nbsp;<span class="Comment">!![99]</span>&nbsp;&nbsp;&nbsp;<span class="Comment">!!{'x': 1}</span>&nbsp;&nbsp;&nbsp;<span class="Comment">!!99</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;false:&nbsp;<span class="Comment">!!''</span>&nbsp;&nbsp;&nbsp;<span class="Comment">!![]</span>&nbsp;&nbsp;&nbsp;<span class="Comment">!!{}</span><br>
 <br>
-From a language like JavaScript we have this handy construct:<br>
+JavaScript のような言語には、このような便利な構文があります:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GetName() || 'unknown'</div>
-However, this conflicts with only allowing a boolean for a condition.<br>
-Therefore the &quot;??&quot; operator was added:<br>
+ただし、これは、条件に真偽値のみを許可することと競合します。したがって、&quot;??&quot;<br>
+演算子が追加されました:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GetName() ?? 'unknown'</div>
-Here you can explicitly express your intention to use the value as-is and not<br>
-result in a boolean. This is called the&nbsp;<a class="Identifier" href="eval.html#falsy-operator">falsy-operator</a>.<br>
+ここでは、値をそのまま使用し、真偽値にしないという意図を明示的に表すことがで<br>
+きます。これは&nbsp;<a class="Identifier" href="eval.html#falsy-operator">falsy-operator</a>&nbsp;と呼ばれます。<br>
 <br>
 <br>
-<span class="PreProc">Import and Export</span><br>
+<span class="PreProc">Import と Export</span><br>
 <br>
-A problem of legacy Vim script is that by default all functions and variables<br>
-are global.&nbsp;&nbsp;It is possible to make them script-local, but then they are not<br>
-available in other scripts.&nbsp;&nbsp;This defies the concept of a package that only<br>
-exports selected items and keeps the rest local.<br>
+旧来の Vim script の問題点は、デフォルトですべての関数と変数がグローバルである<br>
+ことです。スクリプトローカルにすることは可能ですが、そうすると他のスクリプトで<br>
+利用できなくなります。これは、選択された項目のみをエクスポートし、残りをローカ<br>
+ルに保つパッケージの概念に反しています。<br>
 <br>
-In Vim9 script a mechanism very similar to the JavaScript import and export<br>
-mechanism is supported.&nbsp;&nbsp;It is a variant to the existing&nbsp;<a class="Comment" href="repeat.html#:source">:source</a>&nbsp;command<br>
-that works like one would expect:<br>
-- Instead of making everything global by default, everything is script-local,<br>
-&nbsp;&nbsp;some of these are exported.<br>
-- When importing a script the symbols that are imported are explicitly listed,<br>
-&nbsp;&nbsp;avoiding name conflicts and failures if functionality is added later.<br>
-- The mechanism allows for writing a big, long script with a very clear API:<br>
-&nbsp;&nbsp;the exported functions, variables and classes.<br>
-- By using relative paths loading can be much faster for an import inside of a<br>
-&nbsp;&nbsp;package, no need to search many directories.<br>
-- Once an import has been used, its items are cached and loading it again is<br>
-&nbsp;&nbsp;not needed.<br>
-- The Vim-specific use of &quot;s:&quot; to make things script-local can be dropped.<br>
+Vim9 script では、JavaScript の import および export 機構に非常によく似た機構<br>
+がサポートされています。これは既存の&nbsp;<a class="Comment" href="repeat.html#:source">:source</a>&nbsp;コマンドの亜種で、期待通りに動<br>
+作します:<br>
+- デフォルトですべてをグローバルにするのではなく、すべてをスクリプトローカルに<br>
+&nbsp;&nbsp;することで、その一部をエクスポートすることができる。<br>
+- スクリプトの import 時には、import されるシンボルが明示的にリストされるため、<br>
+&nbsp;&nbsp;名前の衝突や、後から機能を追加した場合の失敗を回避することができる。<br>
+- この機構により、export された関数、変数、クラスという非常に明確なAPIを持つ巨<br>
+&nbsp;&nbsp;大で長いスクリプトを書くことができる。<br>
+- 相対パスを使用することで、パッケージ内のインポートのロードが非常に速くなり、<br>
+&nbsp;&nbsp;多くのディレクトリを検索する必要がない。<br>
+- 一度インポートを使用すると、その項目はキャッシュされ、再ロードする必要はな<br>
+&nbsp;&nbsp;い。<br>
+- スクリプトローカルにするための Vim 特有の &quot;s:&quot; の使用をやめることができる。<br>
 <br>
-When sourcing a Vim9 script (from a Vim9 or legacy script), only the items<br>
-defined globally can be used, not the exported items.&nbsp;&nbsp;Alternatives<br>
-considered:<br>
-- All the exported items become available as script-local items.&nbsp;&nbsp;This makes<br>
-&nbsp;&nbsp;it uncontrollable what items get defined and likely soon leads to trouble.<br>
-- Use the exported items and make them global.&nbsp;&nbsp;Disadvantage is that it's then<br>
-&nbsp;&nbsp;not possible to avoid name clashes in the global namespace.<br>
-- Completely disallow sourcing a Vim9 script, require using&nbsp;<a class="Comment" href="vim9.html#:import">:import</a>.&nbsp;&nbsp;That<br>
-&nbsp;&nbsp;makes it difficult to use scripts for testing, or sourcing them from the<br>
-&nbsp;&nbsp;command line to try them out.<br>
-<span class="Todo">Note</span>&nbsp;that you CAN also use&nbsp;<a class="Comment" href="vim9.html#:import">:import</a>&nbsp;in legacy Vim script, see above.<br>
-<br>
-<br>
-<span class="PreProc">Compiling functions early</span><br>
-<br>
-Functions are compiled when called or when&nbsp;<a class="Comment" href="vim9.html#:defcompile">:defcompile</a>&nbsp;is used.&nbsp;&nbsp;Why not<br>
-compile them early, so that syntax and type errors are reported early?<br>
-<br>
-The functions can't be compiled right away when encountered, because there may<br>
-be forward references to functions defined later.&nbsp;&nbsp;Consider defining functions<br>
-A, B and C, where A calls B, B calls C, and C calls A again.&nbsp;&nbsp;It's impossible<br>
-to reorder the functions to avoid forward references.<br>
-<br>
-An alternative would be to first scan through the file to locate items and<br>
-figure out their type, so that forward references are found, and only then<br>
-execute the script and compile the functions.&nbsp;&nbsp;This means the script has to be<br>
-parsed twice, which is slower, and some conditions at the script level, such<br>
-as checking if a feature is supported, are hard to use.&nbsp;&nbsp;An attempt was made<br>
-to see if it works, but it turned out to be impossible to make work well.<br>
-<br>
-It would be possible to compile all the functions at the end of the script.<br>
-The drawback is that if a function never gets called, the overhead of<br>
-compiling it counts anyway.&nbsp;&nbsp;Since startup speed is very important, in most<br>
-cases it's better to do it later and accept that syntax and type errors are<br>
-only reported then.&nbsp;&nbsp;In case these errors should be found early, e.g. when<br>
-testing, a&nbsp;<a class="Comment" href="vim9.html#:defcompile">:defcompile</a>&nbsp;command at the end of the script will help out.<br>
+(Vim9 または旧来の script から) Vim9 script を読み込む場合、グローバルに定義さ<br>
+れた項目のみが使用可能で、export された項目は使用できません。代替案を検討しま<br>
+した:<br>
+- export された項目は、すべてスクリプトローカル項目として利用できるようにする。<br>
+&nbsp;&nbsp;これにより、どの項目が定義されるかは制御できず、すぐにトラブルに発展する可能<br>
+&nbsp;&nbsp;性がある。<br>
+- export された項目を使用し、それらをグローバルにする。デメリットは、グローバ<br>
+&nbsp;&nbsp;ルな名前空間での名前の衝突を避けることができなくなることである。<br>
+- Vim9 script を読み込むことを完全に禁止し、<a class="Comment" href="vim9.html#:import">:import</a>&nbsp;を使うことを要求する。こ<br>
+&nbsp;&nbsp;れにより、スクリプトをテストに使用したり、コマンドラインからスクリプトを取得<br>
+&nbsp;&nbsp;して試したりすることが難しくなる。<br>
+<span class="Todo">Note</span>&nbsp;上記の通り、旧来の Vim script でも&nbsp;<a class="Comment" href="vim9.html#:import">:import</a>&nbsp;を使用することができます。<br>
 <br>
 <br>
-<span class="PreProc">Why not use an existing embedded language?</span><br>
+<span class="PreProc">関数を早期にコンパイルする</span><br>
 <br>
-Vim supports interfaces to Perl, Python, Lua, Tcl and a few others.&nbsp;&nbsp;But<br>
-these interfaces have never become widely used, for various reasons.&nbsp;&nbsp;When<br>
-Vim9 was designed a decision was made to make these interfaces lower priority<br>
-and concentrate on Vim script.<br>
+関数は、呼び出されたとき、または&nbsp;<a class="Comment" href="vim9.html#:defcompile">:defcompile</a>&nbsp;が使用されたときにコンパイルさ<br>
+れます。なぜ、早期にコンパイルして、構文エラーや型エラーが早期に報告されるよう<br>
+にしないのでしょうか？<br>
 <br>
-Still, plugin writers may find other languages more familiar, want to use<br>
-existing libraries or see a performance benefit.&nbsp;&nbsp;We encourage plugin authors<br>
-to write code in any language and run it as an external process, using jobs<br>
-and channels.&nbsp;&nbsp;We can try to make this easier somehow.<br>
+なぜなら、後に定義される関数への前方参照が存在する可能性があるからです。例え<br>
+ば、A、B、C という関数を定義し、A が B を呼び出し、B が C を呼び出し、C がまた<br>
+A を呼び出すとします。前方参照を避けるために関数を並べ替えることは不可能です。<br>
 <br>
-Using an external tool also has disadvantages.&nbsp;&nbsp;An alternative is to convert<br>
-the tool into Vim script.&nbsp;&nbsp;For that to be possible without too much<br>
-translation, and keeping the code fast at the same time, the constructs of the<br>
-tool need to be supported.&nbsp;&nbsp;Since most languages support classes the lack of<br>
-support for classes in Vim is then a problem.<br>
+別の方法としては、まずファイルをスキャンして項目を見つけ、そのタイプを把握し、<br>
+前方参照が見つかるようにしてから、スクリプトを実行し、関数をコンパイルする方法<br>
+があります。この場合、スクリプトを2回解析する必要があり、遅いです。また、機能<br>
+がサポートされているかどうかのチェックなど、スクリプトレベルでの条件もあるた<br>
+め、使いにくいです。うまくいくかどうか試行錯誤しましたが、うまく動作させること<br>
+は不可能であることが判明しました。<br>
+<br>
+スクリプトの最後にすべての関数をコンパイルすることは可能でしょう。しかし、ある<br>
+関数が一度も呼び出されない場合、その関数をコンパイルするためのオーバーヘッド<br>
+が、いずれにせよカウントされてしまうという欠点があります。起動速度は非常に重要<br>
+なので、ほとんどの場合、コンパイルは後回しにした方がよく、構文や型のエラーはそ<br>
+の時にしか報告されないことを受け入れることができます。例えばテスト時など、これ<br>
+らのエラーを早期に発見する必要がある場合は、スクリプトの最後の&nbsp;<a class="Comment" href="vim9.html#:defcompile">:defcompile</a><br>
+コマンドが効果的です。<br>
 <br>
 <br>
-<span class="PreProc">Classes</span><br>
+<span class="PreProc">なぜ既存の組み込み言語を使わないのか?</span><br>
 <br>
-Vim supports a kind-of object oriented programming by adding methods to a<br>
-dictionary.&nbsp;&nbsp;With some care this can be made to work, but it does not look<br>
-like real classes.&nbsp;&nbsp;On top of that, it's quite slow, because of the use of<br>
-dictionaries.<br>
+Vim は Perl、Python、Lua、Tcl、その他いくつかへのインターフェイスをサポートし<br>
+ています。しかし、これらのインターフェイスは様々な理由で広く使われるようになる<br>
+ことはありませんでした。Vim9 が設計されたとき、これらのインターフェイスの優先<br>
+順位を下げ、Vim script に集中させることが決定されました。<br>
 <br>
-It would be good to support real classes, and this is planned for a later<br>
-version.&nbsp;&nbsp;The support is a &quot;minimal common functionality&quot; of class support in<br>
-most languages.&nbsp;&nbsp;It will work much like Java, which is the most popular<br>
-programming language.<br>
+それでも、プラグイン作成者は他の馴染みのある言語を探したり、既存のライブラリを<br>
+使用したり、性能の恩恵を確認したりするかもしれません。我々は、プラグインの作者<br>
+が任意の言語でコードを書き、ジョブやチャネルを使って外部プロセスとして実行する<br>
+ことを推奨します。我々は、これをどうにかして簡単にできるように努力することがで<br>
+きます。<br>
+<br>
+外部ツールの使用にはデメリットもあります。代替案としては、ツールを Vim script<br>
+に変換することです。この場合、過度の翻訳を行ずに、同時にコードを高速に保つに<br>
+は、ツールの構成要素がサポートされている必要があります。ほとんどの言語がクラス<br>
+をサポートしているので、Vim でクラスがサポートされていないのは問題です。<br>
 <br>
 <br>
 <br>
