@@ -1,4 +1,4 @@
-*autocmd.txt*   For Vim バージョン 9.0.  Last change: 2022 May 24
+*autocmd.txt*   For Vim バージョン 9.0.  Last change: 2023 Feb 18
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -63,7 +63,7 @@ Vim9 script での例: >
 旧来のスクリプトの例: >
    call autocmd_add(#{replace: v:true,
 		    \ group: 'DemoGroup',
-   		    \ event: 'BufEnter',
+		    \ event: 'BufEnter',
 		    \ pattern: '*.txt',
 		    \ cmd: 'call DemoBufEnter()'
 		    \ })
@@ -94,7 +94,7 @@ Vim9 script での例: >
 `:autocmd` が Vim9 script (スクリプトが `:vim9script` で始まるのと `:def` 関数
 内) にあると {cmd} は Vim9 script として実行される。したがってこの依存は自動コ
 マンドが定義された位置に依存し、トリガーされた位置ではない。
-
+							*:autocmd-block*
 {cmd} は `:command` のようにブロックにできる。|:command-repl| を参照。例: >
 	au BufReadPost *.xml {
 		  setlocal matchpairs+=<:>
@@ -404,7 +404,7 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 |InsertEnter|		挿入モードを開始したとき
 |InsertChange|		挿入や置換モードで<Insert>をタイプしたとき
 |InsertLeave|		挿入モードを抜けるとき
-|InsertLeavePre| 	挿入モードを抜ける直前
+|InsertLeavePre|	挿入モードを抜ける直前
 |InsertCharPre|		挿入モードで文字が入力されたとき、その文字が挿入される
 			前
 
@@ -618,9 +618,10 @@ CmdlineEnter			ユーザーがコマンドを入力もしくは文字列を検�
 				きるコマンドラインにカーソルが移動した後、非イ
 				ンタラクティブなマッピング内での ":" 利用を含
 				むが、|<Cmd>| の利用は含まない。
+				パターンは、コマンドラインの種類を表す文字と照
+				合される。|cmdwin-char|
 				<afile> はコマンドラインの種類を示す 1 文字に
 				設定される。
-				|cmdwin-char|
 							*CmdlineLeave*
 CmdlineLeave			カーソルがコマンドラインを離れる前、非インタラ
 				クティブなマッピング内での ":" 利用を含むが、
@@ -1323,8 +1324,9 @@ VimSuspend			Vimのインスタンスがサスペンドしたとき。Vim内で
 				CTRL-Z がタイプされた時、もしくは SIGTSTP シグ
 				ナルがVimに送られた時で、SIGSTOP ではない。
 							*WinClosed*
-WinClosed			ウィンドウが閉じた後。パターンは |window-ID|
-				に対して照合される。<amatch> と <afile> は共に
+WinClosed			ウィンドウが閉じる時、ウィンドウレイアウトから
+				削除される直前。パターンは |window-ID| に対し
+				て照合される。<amatch> と <afile> は共に
 				|window-ID| を設定する。再帰的に発生しない(こ
 				のイベントで自分自身を発行しない)。
 							*WinEnter*
@@ -1349,17 +1351,42 @@ WinNew				新しいウィンドウが作成されたとき。Vim がちょう
 				れない。WinEnter イベントの前。
 
 							*WinScrolled*
-WinScrolled			ウィンドウのコンテンツがスクロールした後、もし
-				くはウィンドウのサイズ変更後。
-				パターンは |window-ID| に対してマッチする。
-				<amatch> と <afile> はどちらも |window-ID| が
-				設定される。
-				再帰的に発生しない(このイベントで自分自身を発
-				行しない)。しかしながら、コマンド由来でウィン
-				ドウのスクロールあるいはサイズの変化があると別
-				の WinScrolled イベントが後で発行される。
-				コマンドの追加時には発行されず、その後の最初の
-				スクロールかサイズ変更でのみ発行される。
+WinScrolled			カレントのタブページのウィンドウでテキストが
+				(水平または垂直)スクロールされるか、幅または高
+				さが変更された後。|win-scrolled-resized| を参
+				照。
+
+				パターンは、スクロールかリサイズされた最初の
+				ウィンドウの |window-ID| に対してマッチングさ
+				れる。<amatch> と <afile> 両方が |window-ID|
+				に設定される。
+
+				|v:event| には、サイズとスクロールの変更情報が
+				設定される。 |WinScrolled-event|
+
+				起動が完了し、最初の画面の再描画がおこなわれた
+				以降にのみ、トリガーを開始する。最初の
+				WinScrolled または WinResized を定義するときに
+				はトリガーされないが、さらに追加する時にはトリ
+				ガーされるかもしれない。
+
+				非再帰的: WinScrolled イベントのコマンドを実行
+				している間はイベントはトリガーしない。ただし、
+				コマンドによってウィンドウがスクロールまたはサ
+				イズ変更される場合は、後で別の WinScrolled イ
+				ベントがトリガーされる。
+
+
+							*WinResized*
+WinResized			カレントのタブページのウィンドウの幅または高さ
+				が変更された後。|win-scrolled-resized| を参
+				照。
+
+				|v:event| にはサイズ変更に関する情報が設定され
+				る。|WinResized-event|
+
+				パターン、トリガー、再帰性については、
+				|WinScrolled| と同じ挙動になる。
 
 ==============================================================================
 6. パターン					*autocmd-patterns* *{aupat}*
