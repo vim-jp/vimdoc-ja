@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'terminal'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="terminal.html" name="terminal.txt">terminal.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 Jun 09<br>
+<a class="Constant" href="terminal.html" name="terminal.txt">terminal.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 Nov 10<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -293,8 +293,8 @@ Normal ハイライトグループにより決定されます。<br>
 <br>
 ジョブが実行され続けるとウィンドウはそのバッファが変更されたかのように振る舞い<br>
 ます。<span class="Comment">CTRL-W :quit</span>&nbsp;でウィンドウを閉じようとしても失敗します。<span class="Comment">CTRL-W :quit!</span><br>
-を使うとジョブは終了します。ウィンドウのテキストは失われます。バッファは依然存<br>
-在しますが、<a class="Comment" href="windows.html#:buffer">:buffer</a>&nbsp;でウィンドウに割り当てても空のバッファが表示されます。<br>
+を使うとジョブは終了します。ウィンドウのテキストは失われ、バッファは削除されま<br>
+す。<span class="Comment">CTRL-W :bunload!</span>&nbsp;はバッファは残りますが、空になります。<br>
 <br>
 <span class="Comment">CTRL-W :close</span>&nbsp;で閉じようとしてもまた失敗します。<span class="Comment">CTRL-W :close!</span>&nbsp;はウィンド<br>
 ウを閉じ、バッファを隠し状態にします。<br>
@@ -471,7 +471,6 @@ MS-Windows 10の最新バージョン(&quot;October 2018 Update&quot; 以降)で
 <br>
 環境変数は実行中のジョブに情報を渡すために使用されます:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;VIM_SERVERNAME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v:servername<br>
-<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 2. 端末関数&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#terminal-function-details" name="terminal-function-details">terminal-function-details</a><br>
@@ -1013,6 +1012,38 @@ Vimにこのエスケープシーケンスを送信させるトリック:<br>
 <br>
 理論的根拠: コマンドや式を許可しないのはなぜですか？ セキュリティ上の問題が生<br>
 じる可能性があるためです。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#terminal-autoshelldir" name="terminal-autoshelldir">terminal-autoshelldir</a><br>
+これを使用して、カレントディレクトリをシェルから Vim に渡すことができます。こ<br>
+れを .vimrc に置きます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def g:Tapi_lcd(_, path: string)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if isdirectory(path)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;execute 'silent lcd ' .. fnameescape(path)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+<br>
+そして、bash の初期化ファイルには:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if [[ -n &quot;$VIM_TERMINAL&quot; ]]; then<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PROMPT_COMMAND='_vim_sync_PWD'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function _vim_sync_PWD() {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf '\033]51;[&quot;call&quot;, &quot;Tapi_lcd&quot;, &quot;%q&quot;]\007' &quot;$PWD&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fi</div>
+<br>
+または、zsh の場合は:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if [[ -n &quot;$VIM_TERMINAL&quot; ]]; then<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;autoload -Uz add-zsh-hook<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;add-zsh-hook -Uz chpwd _vim_sync_PWD<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function _vim_sync_PWD() {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf '\033]51;[&quot;call&quot;, &quot;Tapi_lcd&quot;, &quot;%q&quot;]\007' &quot;$PWD&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fi</div>
+<br>
+または、fish の場合は:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if test -n &quot;$VIM_TERMINAL&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function _vim_sync_PWD --on-variable=PWD<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf '\033]51;[&quot;call&quot;, &quot;Tapi_lcd&quot;, &quot;%s&quot;]\007' &quot;$PWD&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end</div>
 <br>
 <br>
 <span class="PreProc">クライアントサーバー機能を使う</span><br>
@@ -1089,7 +1120,6 @@ Vimはウィンドウのサイズ、テキスト、色、その他の属性を�
 <br>
 <span class="PreProc">画面ダンプを作成する</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#terminal-screendump" name="terminal-screendump">terminal-screendump</a><br>
-<br>
 画面ダンプを作成するには、端末でVim (または他のプログラム)を実行し、目的の状態<br>
 を表示させます。その後、<a class="Identifier" href="terminal.html#term_dumpwrite()">term_dumpwrite()</a>&nbsp;関数を使用して画面ダンプファイルを<br>
 作成します。例:<br>
@@ -1115,7 +1145,6 @@ Vimがまったく同じ画面を表示していることを確認するには�
 <br>
 <span class="PreProc">画面ダンプを比較する</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#terminal-diffscreendump" name="terminal-diffscreendump">terminal-diffscreendump</a><br>
-<br>
 <a class="Identifier" href="testing.html#assert_equalfile()">assert_equalfile()</a>&nbsp;は、何が違うのかを簡単に見分けることはできません。問題を<br>
 見つけるには、<a class="Identifier" href="terminal.html#term_dumpdiff()">term_dumpdiff()</a>&nbsp;を使用します:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call term_dumpdiff(&quot;mysyntax.dump&quot;, &quot;test.dump&quot;)</div>
@@ -1310,6 +1339,7 @@ gdb ウィンドウにフォーカスを移しコマンドを入力します。�
 &nbsp;&nbsp;Eval&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Comment" href="terminal.html#:Evaluate">:Evaluate</a><br>
 この方法で、マウスを使用して最も一般的なコマンドを実行できます。マウスのクリッ<br>
 クを有効にするには、<a class="Type" href="options.html#'mouse'">'mouse'</a>&nbsp;オプションを設定する必要があります。<br>
+このツールバーの設定については、<a class="Identifier" href="terminal.html#termdebug_winbar">termdebug_winbar</a>&nbsp;を参照。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#:Winbar" name=":Winbar">:Winbar</a><br>
 開いている他のウィンドウにウィンドウツールバーを追加することができます:<br>
 <div class="helpExample">&nbsp;&nbsp;:Winbar</div>
@@ -1374,6 +1404,20 @@ TermdebugStopPost&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;復帰した時。<br>
 <br>
 <br>
+<span class="PreProc">カスタマイズ</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#termdebug-customizing" name="termdebug-customizing">termdebug-customizing</a>&nbsp;<a class="Constant" href="terminal.html#g:termdebug_config" name="g:termdebug_config">g:termdebug_config</a><br>
+以前は、構成にいくつかのグローバル変数が使用されていました。これらは非推奨であ<br>
+り、g:termdebug_config 辞書の使用が推奨されます。g:termdebug_config が存在する<br>
+場合、他のグローバル変数は使用されません。推奨される方法は、空の辞書から始める<br>
+ことです:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_config = {}</div>
+<br>
+次に、以下のように辞書にエントリを追加することができます。非推奨のグローバル変<br>
+数名については、念のため記載しています。g:termdebug_config の使用に切り替える<br>
+場合は、古い変数名を見つけてその値を引き継ぎ、非推奨の変数を削除することができ<br>
+ます。<br>
+<br>
+<br>
 <span class="PreProc">プロンプトモード</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#termdebug-prompt" name="termdebug-prompt">termdebug-prompt</a><br>
 <a class="Identifier" href="various.html#+terminal">+terminal</a>&nbsp;機能がサポートされていない場合や MS-Windows上の場合、gdbは<br>
@@ -1390,13 +1434,13 @@ TermdebugStopPost&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#termdebug_use_prompt" name="termdebug_use_prompt">termdebug_use_prompt</a><br>
 プロンプトモードは、<a class="Identifier" href="various.html#+terminal">+terminal</a>&nbsp;機能が有効な場合でも使用できます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_config['use_prompt'] = 1</div>
-または、g:termdebug_config がない場合:<br>
+g:termdebug_config がない場合は、以下を使用できます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_use_prompt = 1</div>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#termdebug_map_K" name="termdebug_map_K">termdebug_map_K</a><br>
 K は通常 :Evaluate にマッピングされています。これが不要な場合は:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_config['map_K'] = 0</div>
-または、g:termdebug_config がない場合:<br>
+g:termdebug_config がない場合は、以下を使用できます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_map_K = 0</div>
 <br>
 <br>
@@ -1405,7 +1449,7 @@ Asm ウィンドウをデフォルトで表示させたい場合、このフラ�
 &quot;disasm_window_height&quot; エントリを使用してウィンドウの高さを設定できます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_config['disasm_window'] = 1<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_config['disasm_window_height'] = 15</div>
-または、g:termdebug_config がない場合:<br>
+g:termdebug_config がない場合は、以下を使用できます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_disasm_window = 15</div>
 1以上の任意の値を設定でき、その値が Asm ウィンドウの高さになります。<br>
 <br>
@@ -1423,25 +1467,18 @@ gdb は奇妙な動作をしていますが、プラグインはその問題を�
 に、<a class="Comment" href="terminal.html#:Continue">:Continue</a>&nbsp;コマンドに &quot;continue&quot; が使用されていることがわかります。<br>
 <br>
 <br>
-<span class="PreProc">カスタマイズ</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#termdebug-customizing" name="termdebug-customizing">termdebug-customizing</a>&nbsp;<a class="Constant" href="terminal.html#g:termdebug_config" name="g:termdebug_config">g:termdebug_config</a><br>
-以前はいくつかのグローバル変数を設定に使用していました。これらは非推奨になり、<br>
-辞書 g:termdebug_config の使用が推奨されます。g:termdebug_config が存在する時<br>
-は他のグローバル変数は使用されません。<br>
-<br>
-<br>
 <span class="PreProc">GDBコマンド</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#g:termdebugger" name="g:termdebugger">g:termdebugger</a><br>
 gdb コマンド以外のデバッガを使うには、<a class="Comment" href="terminal.html#:Termdebug">:Termdebug</a>&nbsp;を実行する前に<br>
 g:termdebug_config の &quot;debugger&quot; エントリか &quot;g:termdebugger&quot; 変数を変更してく<br>
 ださい:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_config['command'] = &quot;mygdb&quot;</div>
-または、g:termdebug_config がない場合:<br>
+g:termdebug_config がない場合は、以下を使用できます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebugger = &quot;mygdb&quot;</div>
 <br>
 コマンドに引数が必要な場合はリストを使用してください:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_config['command'] = ['rr', 'replay', '--']</div>
-または、g:termdebug_config がない場合:<br>
+g:termdebug_config がない場合は、以下を使用できます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebugger = ['rr', 'replay', '--']</div>
 <br>
 gdb がデバッガで適切に動作するように、いくつかの引数が追加されます。それらを変<br>
@@ -1477,7 +1514,6 @@ gdb と完全互換のあるデバッガのみが使えます。Vim は gdb の�
 <br>
 <span class="PreProc">ショートカット</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#termdebug_shortcuts" name="termdebug_shortcuts">termdebug_shortcuts</a><br>
-<br>
 TermDebugSendCommand() 関数を使用して、任意のウィンドウで動作する gdb を制御す<br>
 る独自のショートカット(マッピング)を定義できます。例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;map ,w :call TermDebugSendCommand('where')&lt;CR&gt;</div>
@@ -1486,7 +1522,6 @@ TermDebugSendCommand() 関数を使用して、任意のウィンドウで動作
 <br>
 <span class="PreProc">ポップアップメニュー</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#termdebug_popup" name="termdebug_popup">termdebug_popup</a><br>
-<br>
 デフォルトでTermdebugプラグインは&nbsp;<a class="Type" href="options.html#'mousemodel'">'mousemodel'</a>&nbsp;を &quot;popup_setpos&quot; に設定し、こ<br>
 れらのエントリをポップアップメニューに追加します:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Set breakpoint&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Comment" href="terminal.html#:Break">:Break</a><br>
@@ -1494,17 +1529,24 @@ TermDebugSendCommand() 関数を使用して、任意のウィンドウで動作
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Evaluate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Comment" href="terminal.html#:Evaluate">:Evaluate</a><br>
 あなたがこれを望まないならば、それを無効にしてください:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_config['popup'] = 0</div>
-または、g:termdebug_config がない場合:<br>
+g:termdebug_config がない場合は、以下を使用できます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_popup = 0</div>
+<br>
+<br>
+<span class="PreProc">ウィンドウツールバー</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#termdebug_winbar" name="termdebug_winbar">termdebug_winbar</a><br>
+デフォルトでは、マウスが有効な場合、Termdebug プラグインはウィンドウツールバー<br>
+を作成します (<a class="Identifier" href="terminal.html#:Winbar">:Winbar</a>&nbsp;を参照)。これを望まない場合は、次のようにして無効にし<br>
+てください:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_config['winbar'] = 0</div>
 <br>
 <br>
 <span class="PreProc">Vimのウィンドウ幅</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="terminal.html#termdebug_wide" name="termdebug_wide">termdebug_wide</a><br>
-<br>
 デバッグを開始した際に Vim のウィンドウ幅を変更し、垂直分割を利用するには次の<br>
 ように設定します:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:termdebug_config['wide'] = 163</div>
-または、g:termdebug_config がない場合:<br>
+g:termdebug_config がない場合は、以下を使用できます:<br>
 <div class="helpExample">&nbsp;&nbsp;let g:termdebug_wide = 163</div>
 <br>
 これは&nbsp;<a class="Comment" href="terminal.html#:Termdebug">:Termdebug</a>&nbsp;を実行した際に&nbsp;<a class="Type" href="options.html#'columns'">'columns'</a>&nbsp;を 163 に設定します。元の値はデ<br>
