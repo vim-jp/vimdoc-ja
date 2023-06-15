@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'eval'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="eval.html" name="eval.txt">eval.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 Dec 11<br>
+<a class="Constant" href="eval.html" name="eval.txt">eval.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2023 Apr 24<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -1540,6 +1540,32 @@ Vim script の式(<a class="Identifier" href="eval.html#expr1">expr1</a>&nbsp;�
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo $&quot;The square root of {{ "{{" }}9}} is {sqrt(9)}&quot;</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">The square root of {9} is 3.0</span><br>
 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#string-offset-encoding" name="string-offset-encoding">string-offset-encoding</a><br>
+文字列は複数の文字で構成される。文字がどのように格納されるかは&nbsp;<a class="Type" href="options.html#'encoding'">'encoding'</a>&nbsp;に<br>
+よって異なる。最も一般的なのは UTF-8 で、ASCII 文字には 1 バイト、その他のラテ<br>
+ン文字には 2 バイト、その他の文字にはそれ以上のバイトが使用される。<br>
+<br>
+文字列のオフセットは、文字数またはバイト数をカウントできる。他のプログラムで<br>
+は、UTF-16 エンコーディング (16-bit ワード) と UTF-16 ワードのオフセットを使用<br>
+する場合がある。一部の関数は、通常、UTF-8 エンコーディングのために、バイトオフ<br>
+セットを使用する。他の関数は文字オフセットを使用するが、その場合エンコーディン<br>
+グは重要ではない。<br>
+<br>
+文字列 &quot;a©😊&quot; に対する異なるオフセットは以下の通り;<br>
+<br>
+&nbsp;&nbsp;UTF-8 オフセット:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0]: 61, [1]: C2, [2]: A9, [3]: F0, [4]: 9F, [5]: 98, [6]: 8A<br>
+&nbsp;&nbsp;UTF-16 オフセット:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0]: 0061, [1]: 00A9, [2]: D83D, [3]: DE0A<br>
+&nbsp;&nbsp;UTF-32 (文字) オフセット:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0]: 00000061, [1]: 000000A9, [2]: 0001F60A<br>
+<br>
+文字に対して &quot;g8 &quot;と &quot;ga &quot;コマンドを使用すると、10進数/16進数/8進数の値を確認<br>
+することができる。<br>
+<br>
+関数&nbsp;<a class="Identifier" href="builtin.html#byteidx()">byteidx()</a>、<span class="MissingTag">utf16idx()</span>、<a class="Identifier" href="builtin.html#charidx()">charidx()</a>&nbsp;は、これらのインデックス間の変換に<br>
+使用できる。関数&nbsp;<a class="Identifier" href="builtin.html#strlen()">strlen()</a>、<span class="MissingTag">strutf16len()</span>、<a class="Identifier" href="builtin.html#strcharlen()">strcharlen()</a>&nbsp;は、それぞれ、文<br>
+字列のバイト数、UTF-16 コード単位、文字数を返す。<br>
 <br>
 オプション&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#expr-option" name="expr-option">expr-option</a>&nbsp;<a class="Constant" href="eval.html#E112" name="E112">E112</a>&nbsp;<a class="Constant" href="eval.html#E113" name="E113">E113</a><br>
 <span class="PreProc">---------</span><br>
@@ -1610,7 +1636,7 @@ function(expr1, ...)&nbsp;&nbsp;&nbsp;&nbsp;関数呼出<br>
 <br>
 ラムダ式&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#expr-lambda" name="expr-lambda">expr-lambda</a>&nbsp;<a class="Constant" href="eval.html#lambda" name="lambda">lambda</a><br>
 <span class="PreProc">--------</span><br>
-{args -&gt; expr1}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 旧来のラムダ式&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#E451" name="E451">E451</a><br>
+{args -&gt; expr1}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 旧来のラムダ式&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#E451" name="E451">E451</a><br>
 (args) =&gt; expr1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;のラムダ式<br>
 <br>
 ラムダ式は、<a class="Identifier" href="eval.html#expr1">expr1</a>&nbsp;を評価した結果を返す新しい無名関数を作成する。ラムダ式は以<br>
@@ -1741,6 +1767,7 @@ b:changedtick&nbsp;&nbsp; 現在のバッファに対する総変更の回数。
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp; call My_Update()<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:endif</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; b:changedtick 変数を変更したり削除することはできない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;変更に関する詳細情報が必要な場合は、<a class="Identifier" href="builtin.html#listener_add()">listener_add()</a>&nbsp;を参照。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#window-variable" name="window-variable">window-variable</a>&nbsp;<a class="Constant" href="eval.html#w:var" name="w:var">w:var</a>&nbsp;<a class="Constant" href="eval.html#w:" name="w:">w:</a><br>
 &quot;w:&quot; で始まる変数名は、カレントウィンドウにローカルな変数を意味する。これはウィ<br>
@@ -2441,6 +2468,10 @@ v:t_number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;数値&nbsp;<a class="Identifier" 
 v:t_string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;文字列&nbsp;<a class="Identifier" href="eval.html#String">String</a>&nbsp;型の値。読出し専用。 参照:&nbsp;<a class="Identifier" href="builtin.html#type()">type()</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#v:t_blob" name="v:t_blob">v:t_blob</a>&nbsp;<a class="Constant" href="eval.html#t_blob-variable" name="t_blob-variable">t_blob-variable</a><br>
 v:t_blob&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#Blob">Blob</a>&nbsp;型の値。読出し専用。 参照:&nbsp;<a class="Identifier" href="builtin.html#type()">type()</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#v:t_class" name="v:t_class">v:t_class</a>&nbsp;<a class="Constant" href="eval.html#t_class-variable" name="t_class-variable">t_class-variable</a><br>
+v:t_class&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="MissingTag">class</span>&nbsp;型の値。読出し専用。 参照:&nbsp;<a class="Identifier" href="builtin.html#type()">type()</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#v:t_object" name="v:t_object">v:t_object</a>&nbsp;<a class="Constant" href="eval.html#t_object-variable" name="t_object-variable">t_object-variable</a><br>
+v:t_object&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="MissingTag">object</span>&nbsp;型の値。読出し専用。 参照:&nbsp;<a class="Identifier" href="builtin.html#type()">type()</a><br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#v:termresponse" name="v:termresponse">v:termresponse</a>&nbsp;<a class="Constant" href="eval.html#termresponse-variable" name="termresponse-variable">termresponse-variable</a><br>
 v:termresponse&nbsp;&nbsp;termcapのエントリ<a class="Identifier" href="term.html#t_RV">t_RV</a>で端末から返されるエスケープシーケンス。<br>
@@ -2892,6 +2923,8 @@ text...<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;するために特に便利である(これらはスクリプト終了時に検<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;出されない)。関数ローカルな関数は、その関数から抜ける<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ときに自動的に削除される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;scriptでは、関数内またはスクリプトで宣言された<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;変数は削除できない。<br>
 <br>
 :unl[et] $<span class="Special">{env-name}</span>&nbsp;...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#:unlet-environment" name=":unlet-environment">:unlet-environment</a>&nbsp;<a class="Constant" href="eval.html#:unlet-$" name=":unlet-$">:unlet-$</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;環境変数&nbsp;<span class="Special">{env-name}</span>&nbsp;を削除する。<br>
@@ -4437,30 +4470,22 @@ matchstr()やsubstitute()を使えば実現できる。以下の例は、&quot;f
 <br>
 <span class="PreProc">辞書からscriptnamesを取り出す</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#scriptnames-dictionary" name="scriptnames-dictionary">scriptnames-dictionary</a><br>
-コマンド<a class="Identifier" href="repeat.html#:scriptnames">:scriptnames</a>により今までにsourceされた全てのスクリプトファイルのリス<br>
-トを取得することができる。これと等価な関数や変数は存在しない(めったに必要にな<br>
-らないからである)。そのような場合には次のコードが利用できる:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&quot; &quot;:scriptnames&quot; の出力を変数scriptnames_outputに入れる。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;let scriptnames_output = ''<br>
-&nbsp;&nbsp;&nbsp;&nbsp;redir =&gt; scriptnames_output<br>
-&nbsp;&nbsp;&nbsp;&nbsp;silent scriptnames<br>
-&nbsp;&nbsp;&nbsp;&nbsp;redir END</div>
+<a class="Comment" href="repeat.html#:scriptnames">:scriptnames</a>&nbsp;コマンドを使用すると、読み込まれたすべてのスクリプトファイルの<br>
+リストを取得できる。&nbsp;<span class="Comment">getscriptinfo()</span>&nbsp;関数もあるが、返される情報はまったく同<br>
+じではない。リストを操作する必要がある場合は、このコードをベースとして使用でき<br>
+る:<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&quot; 出力を行のリストに分割し、各行をパースする。辞書 &quot;scripts&quot; に要素を追加<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&quot; する。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;let scripts = {}<br>
-&nbsp;&nbsp;&nbsp;&nbsp;for line in split(scriptnames_output, &quot;\n&quot;)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 空行以外に対して実行<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if line =~ '\S'<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 行内の最初の番号を取得<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let nr = matchstr(line, '\d\+')<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; ファイル名を取得。スクリプト番号&quot; 123: &quot;を削除。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let name = substitute(line, '.\+:\s*', '', '')<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 辞書に要素を追加<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let scripts[nr] = name<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
-&nbsp;&nbsp;&nbsp;&nbsp;endfor<br>
-&nbsp;&nbsp;&nbsp;&nbsp;unlet scriptnames_output</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;# SNR によってインデックス付けされたスクリプト辞書を作成または更新し、それ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# を返す。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;def Scripts(scripts: dict&lt;string&gt; = {}): dict&lt;string&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for info in getscriptinfo()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if scripts-&gt;has_key(info.sid)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continue<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scripts[info.sid] = info.name<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfor<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return scripts<br>
+&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 10. Vim scriptバージョン&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#vimscript-version" name="vimscript-version">vimscript-version</a>&nbsp;<a class="Constant" href="eval.html#vimscript-versions" name="vimscript-versions">vimscript-versions</a><br>
