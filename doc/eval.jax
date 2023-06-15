@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 9.0.  Last change: 2022 Dec 11
+*eval.txt*	For Vim バージョン 9.0.  Last change: 2023 Apr 24
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1335,7 +1335,7 @@ Note ドットは文字列連結にも使われる。混乱を避けるために
 周りには必ずスペースを入れること。
 
 
-expr10(expr1, ...)	|Funcref| 関数呼び出し  	*E1085*
+expr10(expr1, ...)	|Funcref| 関数呼び出し		*E1085*
 
 expr10 が |Funcref| 型の変数のとき、その参照する関数を呼び出す。
 
@@ -1535,6 +1535,32 @@ Vim script の式(|expr1| を参照)を含めることができる。任意の�
 	echo $"The square root of {{9}} is {sqrt(9)}"
 <	The square root of {9} is 3.0 ~
 
+						*string-offset-encoding*
+文字列は複数の文字で構成される。文字がどのように格納されるかは 'encoding' に
+よって異なる。最も一般的なのは UTF-8 で、ASCII 文字には 1 バイト、その他のラテ
+ン文字には 2 バイト、その他の文字にはそれ以上のバイトが使用される。
+
+文字列のオフセットは、文字数またはバイト数をカウントできる。他のプログラムで
+は、UTF-16 エンコーディング (16-bit ワード) と UTF-16 ワードのオフセットを使用
+する場合がある。一部の関数は、通常、UTF-8 エンコーディングのために、バイトオフ
+セットを使用する。他の関数は文字オフセットを使用するが、その場合エンコーディン
+グは重要ではない。
+
+文字列 "a©😊" に対する異なるオフセットは以下の通り;
+
+  UTF-8 オフセット:
+      [0]: 61, [1]: C2, [2]: A9, [3]: F0, [4]: 9F, [5]: 98, [6]: 8A
+  UTF-16 オフセット:
+      [0]: 0061, [1]: 00A9, [2]: D83D, [3]: DE0A
+  UTF-32 (文字) オフセット:
+      [0]: 00000061, [1]: 000000A9, [2]: 0001F60A
+
+文字に対して "g8 "と "ga "コマンドを使用すると、10進数/16進数/8進数の値を確認
+することができる。
+
+関数 |byteidx()|、|utf16idx()|、|charidx()| は、これらのインデックス間の変換に
+使用できる。関数 |strlen()|、|strutf16len()|、|strcharlen()| は、それぞれ、文
+字列のバイト数、UTF-16 コード単位、文字数を返す。
 
 オプション					*expr-option* *E112* *E113*
 ---------
@@ -1605,7 +1631,7 @@ function(expr1, ...)	関数呼出
 
 ラムダ式					*expr-lambda* *lambda*
 --------
-{args -> expr1}		旧来のラムダ式  		*E451*
+{args -> expr1}		旧来のラムダ式				*E451*
 (args) => expr1		|Vim9| のラムダ式
 
 ラムダ式は、|expr1| を評価した結果を返す新しい無名関数を作成する。ラムダ式は以
@@ -1736,6 +1762,7 @@ b:changedtick	現在のバッファに対する総変更の回数。変更を行
 		    :   call My_Update()
 		    :endif
 <		b:changedtick 変数を変更したり削除することはできない。
+		変更に関する詳細情報が必要な場合は、|listener_add()| を参照。
 
 						*window-variable* *w:var* *w:*
 "w:" で始まる変数名は、カレントウィンドウにローカルな変数を意味する。これはウィ
@@ -2436,6 +2463,10 @@ v:t_number	数値 |Number| 型の値。読出し専用。 参照: |type()|
 v:t_string	文字列 |String| 型の値。読出し専用。 参照: |type()|
 					*v:t_blob* *t_blob-variable*
 v:t_blob	|Blob| 型の値。読出し専用。 参照: |type()|
+					*v:t_class* *t_class-variable*
+v:t_class	|class| 型の値。読出し専用。 参照: |type()|
+					*v:t_object* *t_object-variable*
+v:t_object	|object| 型の値。読出し専用。 参照: |type()|
 
 				*v:termresponse* *termresponse-variable*
 v:termresponse	termcapのエントリ|t_RV|で端末から返されるエスケープシーケンス。
@@ -2887,6 +2918,8 @@ text...
 			するために特に便利である(これらはスクリプト終了時に検
 			出されない)。関数ローカルな関数は、その関数から抜ける
 			ときに自動的に削除される。
+			|Vim9| scriptでは、関数内またはスクリプトで宣言された
+			変数は削除できない。
 
 :unl[et] ${env-name} ...			*:unlet-environment* *:unlet-$*
 			環境変数 {env-name} を削除する。
@@ -4432,30 +4465,22 @@ matchstr()やsubstitute()を使えば実現できる。以下の例は、"foobar
 
 辞書からscriptnamesを取り出す ~
 						*scriptnames-dictionary*
-コマンド|:scriptnames|により今までにsourceされた全てのスクリプトファイルのリス
-トを取得することができる。これと等価な関数や変数は存在しない(めったに必要にな
-らないからである)。そのような場合には次のコードが利用できる: >
-    " ":scriptnames" の出力を変数scriptnames_outputに入れる。
-    let scriptnames_output = ''
-    redir => scriptnames_output
-    silent scriptnames
-    redir END
+`:scriptnames` コマンドを使用すると、読み込まれたすべてのスクリプトファイルの
+リストを取得できる。 `getscriptinfo()` 関数もあるが、返される情報はまったく同
+じではない。リストを操作する必要がある場合は、このコードをベースとして使用でき
+る: >
 
-    " 出力を行のリストに分割し、各行をパースする。辞書 "scripts" に要素を追加
-    " する。
-    let scripts = {}
-    for line in split(scriptnames_output, "\n")
-      " 空行以外に対して実行
-      if line =~ '\S'
-	" 行内の最初の番号を取得
-        let nr = matchstr(line, '\d\+')
-	" ファイル名を取得。スクリプト番号" 123: "を削除。
-        let name = substitute(line, '.\+:\s*', '', '')
-	" 辞書に要素を追加
-        let scripts[nr] = name
-      endif
-    endfor
-    unlet scriptnames_output
+    # SNR によってインデックス付けされたスクリプト辞書を作成または更新し、それ
+    # を返す。
+    def Scripts(scripts: dict<string> = {}): dict<string>
+      for info in getscriptinfo()
+        if scripts->has_key(info.sid)
+          continue
+        endif
+        scripts[info.sid] = info.name
+      endfor
+      return scripts
+    enddef
 
 ==============================================================================
 10. Vim scriptバージョン	*vimscript-version* *vimscript-versions*
