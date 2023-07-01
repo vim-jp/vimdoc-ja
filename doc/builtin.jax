@@ -6,8 +6,10 @@
 
 組み込み関数					*builtin-functions*
 
-Note: 式の評価はコンパイル時に無効することができる。そうした場合は、組み込み関
-数は利用できない。|+eval| と |no-eval-feature| を参照。
+Note: 式の評価はコンパイル時に無効することができる。その場合、組み込み関数は使
+用できない。|+eval| と |no-eval-feature| を参照。
+
+使用目的別に分類された関数については、|function-list| を参照。
 
 1. 概要					|builtin-function-list|
 2. 詳細					|builtin-function-details|
@@ -64,6 +66,9 @@ assert_true({actual} [, {msg}])
 atan({expr})			浮動小数点数	{expr}のアークタンジェント
 atan2({expr1}, {expr2})		浮動小数点数	{expr1} / {expr2} のアークタン
 						ジェント
+autocmd_add({acmds})		真偽値	自動コマンドとグループのリストを追加
+autocmd_delete({acmds})		真偽値	自動コマンドとグループのリストを削除
+autocmd_get([{opts}])		リスト	自動コマンドのリストを返す
 balloon_gettext()		文字列	バルーン内のカレントテキストを得る
 balloon_show({expr})		なし	{expr} をバルーン内に表示
 balloon_split({msg})		リスト	{msg} をバルーンで使われるように分割す
@@ -981,9 +986,161 @@ atan2({expr1}, {expr2})					*atan2()*
 
 		|method| としても使用できる: >
 			Compute()->atan2(1)
-<
-		{|+float| 機能を有効にしてコンパイルしたときのみ有効}
 
+
+autocmd_add({acmds})					*autocmd_add()*
+		自動コマンドと自動コマンドグループを追加する。
+
+		引数 {acmds} は、各項目が以下のオプション項目を持つ辞書のリス
+		トである:
+		    bufnr	バッファローカルな自動コマンドを追加するための
+				バッファ番号。この項目を指定した場合、
+				"pattern" 項目は無視される。
+		    cmd		この自動コマンドイベントに対して実行する Ex コ
+				マンド
+		    event	自動コマンドイベント名。|autocmd-events| を参
+				照。これは、単一のイベント名の文字列またはイベ
+				ント名のリストのどちらかである。
+		    group	自動コマンドグループ名。|autocmd-groups| を参
+				照。グループが存在しない場合は作成される。指定
+				しない場合、または空の場合は、デフォルトのグ
+				ループが使用される。
+		    nested	真偽値フラグ。v:true に設定すると、ネストされ
+				た自動コマンドを追加する。|autocmd-nested| を
+				参照。
+		    once	真偽値フラグ。v:true に設定すると、一度だけ実
+				行される自動コマンドが追加される。
+				|autocmd-once| を参照。
+		    pattern	自動コマンドパターン文字列。|autocmd-patterns|
+				を参照。"bufnr" 項目が存在する場合、この項目は
+				無視される。単一のパターンを持つ文字列またはパ
+				ターンのリストにすることができる。
+		    replace	真偽値フラグ。v:true に設定すると、指定された
+				自動コマンドイベントおよびグループに関連付けら
+				れたすべてのコマンドが削除され、{cmd} が追加さ
+				れる。これは、グループ内の自動コマンドイベント
+				に対して同じコマンドを複数回追加することを避け
+				るのに役立つ。
+
+		成功した場合は v:true を返し、失敗した場合は v:false を返す。
+		例: >
+			" バッファ 5 のバッファローカルな自動コマンドを作成
+			let acmd = {}
+			let acmd.group = 'MyGroup'
+			let acmd.event = 'BufEnter'
+			let acmd.bufnr = 5
+			let acmd.cmd = 'call BufEnterFunc()'
+			call autocmd_add([acmd])
+<
+		|method| としても使用できる: >
+			GetAutocmdList()->autocmd_add()
+<
+autocmd_delete({acmds})					*autocmd_delete()*
+		自動コマンドと自動コマンドグループを削除する。
+
+		引数 {acmds} は、各項目が以下のオプション項目を持つ辞書のリス
+		トである:
+		    bufnr	バッファローカルな自動コマンドを削除するための
+				バッファ番号。この項目を指定した場合、
+				"pattern" 項目は無視される。
+		    cmd		この自動コマンドイベントに対して実行する Ex コ
+				マンド
+		    event	自動コマンドイベント名。|autocmd-events| を参
+				'*' の場合、このグループ内のすべての自動コマン
+				ドイベントが削除される。
+		    group	自動コマンドグループ名。|autocmd-groups| を参
+				照。指定なし、または空の場合は、デフォルトのグ
+				ループが使用される。
+		    nested	ネストされた自動コマンドの場合は v:true に設定
+				する。|autocmd-nested| を参照。
+		    once	一度だけ実行される自動コマンドの場合は v:true
+				に設定する。|autocmd-once| を参照。
+		    pattern	自動コマンドパターン文字列。|autocmd-patterns|
+				を参照。"bufnr" 項目が存在する場合、この項目は
+				無視される。
+
+		{acmds} エントリで {group} のみが指定されており、{event}、
+		{pattern}、および {cmd} が指定されていない場合、その自動コマン
+		ドグループは削除される。
+
+		成功した場合は v:true を返し、失敗した場合は v:false を返す。
+		例: >
+			" :autocmd! BufLeave *.vim
+			let acmd = #{event: 'BufLeave', pattern: '*.vim'}
+			call autocmd_delete([acmd]})
+			" :autocmd! MyGroup1 BufLeave
+			let acmd = #{group: 'MyGroup1', event: 'BufLeave'}
+			call autocmd_delete([acmd])
+			" :autocmd! MyGroup2 BufEnter *.c
+			let acmd = #{group: 'MyGroup2', event: 'BufEnter',
+							\ pattern: '*.c'}
+			" :autocmd! MyGroup2 * *.c
+			let acmd = #{group: 'MyGroup2', event: '*',
+							\ pattern: '*.c'}
+			call autocmd_delete([acmd])
+			" :autocmd! MyGroup3
+			let acmd = #{group: 'MyGroup3'}
+			call autocmd_delete([acmd])
+<
+		|method| としても使用できる: >
+			GetAutocmdList()->autocmd_delete()
+
+autocmd_get([{opts}])					*autocmd_get()*
+		自動コマンドの |List| を返す。{opts} が指定されていない場合は、
+		すべてのグループのすべてのイベントの自動コマンドを返す。
+
+		オプションの {opts} 辞書引数は、以下の項目をサポートする:
+		    group	自動コマンドグループ名。指定した場合、このグ
+				ループで定義されている自動コマンドのみを返す。
+				指定したグループが存在しない場合は、エラーメッ
+				セージが表示される。空の文字列を設定すると、デ
+				フォルトの自動コマンドグループが使用される。
+		    event	自動コマンドイベント名。指定した場合、このイベ
+				ントに定義された自動コマンドのみを返す。"*" を
+				設定すると、すべてのイベントの自動コマンドが返
+				される。指定したイベントが存在しない場合は、エ
+				ラーメッセージが表示される。
+		    pattern	自動コマンドパターン。指定した場合、このパター
+				ンに定義されている自動コマンドのみを返す。
+		上記 3 つの組み合わせを {opts} で指定できる。
+
+		返されたリストの各辞書には次の項目が含まれる:
+		    bufnr	バッファローカルな自動コマンドの場合、自動コマ
+				ンドが定義されているバッファ番号。
+		    cmd		自動コマンドに対して実行されたコマンド。
+		    event	自動コマンドイベント名。
+		    group	自動コマンドグループ名。
+		    nested	Booleanフラグ。ネストされた自動コマンドの場合、
+				v:true が設定される。|autocmd-nested| を参照。
+		    once	Booleanフラグ。自動コマンドが 1 回だけ実行され
+				る場合は、v:true に設定する。|autocmd-once| を
+				参照。
+		    pattern	自動コマンドパターン。バッファローカルな自動コ
+				マンドの場合、"<buffer=n>" の形式になる。
+		グループ内の自動コマンドイベントに複数のコマンドがある場合、コ
+		マンドごとに個別の項目が返される。
+
+		指定されたグループ、イベント、またはパターンを持つ自動コマンド
+		が見つからない場合は、空のリストを返す。
+
+		例: >
+			" :autocmd MyGroup
+			echo autocmd_get(#{group: 'Mygroup'})
+			" :autocmd G BufUnload
+			echo autocmd_get(#{group: 'G', event: 'BufUnload'})
+			" :autocmd G * *.ts
+			let acmd = #{group: 'G', event: '*', pattern: '*.ts'}
+			echo autocmd_get(acmd)
+			" :autocmd Syntax
+			echo autocmd_get(#{event: 'Syntax'})
+			" :autocmd G BufEnter *.ts
+			let acmd = #{group: 'G', event: 'BufEnter',
+							\ pattern: '*.ts'}
+			echo autocmd_get(acmd)
+<
+		|method| としても使用できる: >
+			Getopts()->autocmd_get()
+<
 balloon_gettext()					*balloon_gettext()*
 		バルーン内の現在のテキストを返す。文字列に対してのみ使用され、
 		リストには使用されない。
