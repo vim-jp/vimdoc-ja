@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'vim9'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="vim9.html" name="vim9.txt">vim9.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2023 Mar 07<br>
+<a class="Constant" href="vim9.html" name="vim9.txt">vim9.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2023 Jun 10<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
 <br>
@@ -123,6 +123,9 @@ Vim9 script と&nbsp;<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;で�
 - 特に指定しない限り、最新の&nbsp;<a class="Identifier" href="eval.html#scriptversion">scriptversion</a>&nbsp;が使われます。<br>
 - 式による指定のマッピングを定義する際は、その式はそのマッピングが定義されたス<br>
 &nbsp;&nbsp;クリプトのコンテキストで評価されます。<br>
+- 文字列にインデックスを付ける場合、インデックスはバイト数ではなく文字数でカウ<br>
+&nbsp;&nbsp;ントされます:&nbsp;<a class="Identifier" href="vim9.html#vim9-string-index">vim9-string-index</a><br>
+- 予想外の違いがいくつかあるかもしれません:&nbsp;<a class="Identifier" href="vim9.html#vim9-gotchas">vim9-gotchas</a>.<br>
 <br>
 <span class="PreProc"># から始まるコメント</span><br>
 <br>
@@ -200,8 +203,8 @@ Vi において # は行番号付きでテキストを表示します。Vim9 scr
 囲」も受け取らず、&quot;dict&quot; 属性を持つ関数になることもできません。そして常にク<br>
 ロージャとなれます。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#vim9-no-dict-function" name="vim9-no-dict-function">vim9-no-dict-function</a><br>
-いずれ、「辞書関数」機構を置き換えるクラスが追加されるでしょう。当面は明示的に<br>
-辞書を渡す必要があります。:<br>
+「辞書関数」の代わりに Vim9 クラス (<span class="MissingTag">Vim9-class</span>) を使用できます。辞書を明示的<br>
+に渡すこともできます:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def DictFunc(self: dict&lt;any&gt;, arg: string)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; echo self[arg]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
@@ -1069,12 +1072,12 @@ Vim9 script では以下の定義済みの値が使えます:<br>
 しかし、<a class="Comment" href="vim9.html#null">null</a>&nbsp;と数値、浮動小数点数、真偽値との比較は常に&nbsp;<a class="Comment" href="vim9.html#false">false</a>&nbsp;になります。<br>
 これは&nbsp;<a class="Comment" href="vim9.html#null">null</a>&nbsp;と 0 あるいは&nbsp;<a class="Comment" href="vim9.html#false">false</a>&nbsp;を比較した時に&nbsp;<a class="Comment" href="vim9.html#true">true</a>&nbsp;になる旧来の Vim<br>
 script とは異なる点です。<br>
-<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#vim9-false-true" name="vim9-false-true">vim9-false-true</a><br>
 真偽値を文字列に変換するときは、旧来の Vim script のように&nbsp;<a class="Comment" href="eval.html#v:false">v:false</a>&nbsp;と<br>
 <a class="Comment" href="eval.html#v:true">v:true</a>&nbsp;が使われるのではなく、<a class="Comment" href="vim9.html#false">false</a>&nbsp;と&nbsp;<a class="Comment" href="vim9.html#true">true</a>&nbsp;が使われます。<a class="Comment" href="eval.html#v:none">v:none</a>&nbsp;につい<br>
 ては、他の言語に同等のものが存在しないので、<a class="Comment" href="eval.html#v:none">v:none</a>&nbsp;が&nbsp;<span class="Comment">none</span>&nbsp;に変換されるよ<br>
 うになることはありません。<br>
-<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#vim9-string-index" name="vim9-string-index">vim9-string-index</a><br>
 文字列に対してインデックス&nbsp;<span class="Special">[idx]</span>&nbsp;や [idx : idx] を使用すると、バイト単位ではな<br>
 く文字単位のインデックスとして扱われます。結合文字が含まれています。例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo 'bár'[1]</div>
