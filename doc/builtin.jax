@@ -226,8 +226,10 @@ get({func}, {what})		任意	funcref/partial {func}のプロパティ取得
 getbufinfo([{buf}])		リスト	バッファに関する情報
 getbufline({buf}, {lnum} [, {end}])
 				リスト	バッファ{buf}の{lnum}から{end}行目
+getbufoneline({buf}, {lnum})	文字列	バッファ{buf}の{lnum}行目
 getbufvar({buf}, {varname} [, {def}])
 				任意	バッファ{buf}の変数 {varname}
+getcellwidths()			リスト	文字のセル幅の上書き設定を取得
 getchangelist([{buf}])		リスト	変更リスト要素のリスト
 getchar([expr])			数値/文字列	ユーザーから1文字を取得する
 getcharmod()			数値	修飾キーの状態を表す数値を取得
@@ -3169,7 +3171,8 @@ getbufinfo([{dict}])
 getbufline({buf}, {lnum} [, {end}])
 		バッファ{buf}の{lnum}行目から{end}行目まで(両端含む)の行からな
 		るリスト|List|を返す。{end}が省略されたときは{lnum}行目だけか
-		らなるリストを返す。
+		らなるリストを返す。1 行のみの取得については `getbufoneline()`
+		を参照。
 
 		{buf}の指定の仕方については|bufname()|を参照。
 
@@ -3192,6 +3195,11 @@ getbufline({buf}, {lnum} [, {end}])
 
 <		|method| としても使用できる: >
 			GetBufnr()->getbufline(lnum)
+<
+							*getbufoneline()*
+getbufoneline({buf}, {lnum})
+		`getbufline()` と似ているが、1 行だけを取得して文字列として返
+		す。
 
 getbufvar({buf}, {varname} [, {def}])				*getbufvar()*
 		バッファ{buf}のオプションの値やバッファローカル変数{varname}
@@ -3215,6 +3223,12 @@ getbufvar({buf}, {varname} [, {def}])				*getbufvar()*
 <		|method| としても使用できる: >
 			GetBufnr()->getbufvar(varname)
 <
+getcellwidths()						*getcellwidths()*
+		|setcellwidths()| によって上書きされた文字範囲のセル幅の
+		|List| を返す。形式は |setcellwidths()| の引数と同じである。セ
+		ル幅が上書きされた文字範囲がない場合、空のリストが返される。
+
+
 getchangelist([{buf}])					*getchangelist()*
 		バッファ {buf} の |changelist| を返す。{buf} の使い方は前述の
 		|bufname()| を参照。バッファ {buf} が存在しない場合、空のリス
@@ -3691,7 +3705,8 @@ getline({lnum} [, {end}])
 <		|method| としても使用できる: >
 			ComputeLnum()->getline()
 
-<		他のバッファの行を取得するには|getbufline()|を参照。
+<		他のバッファの行を取得するには |getbufline()| および
+		|getbufoneline()| を参照。
 
 getloclist({nr} [, {what}])				*getloclist()*
 		ウィンドウ{nr}のlocationリストの全項目からなるリスト |List| を
@@ -7480,7 +7495,7 @@ setbufvar({buf}, {varname}, {val})			*setbufvar()*
 
 
 setcellwidths({list})					*setcellwidths()*
-		指定した文字のレンジのセル幅を上書きする。これは、文字の幅が画
+		指定した文字範囲のセル幅を上書きする。これは、文字の幅が画
 		面のセルで数えてどれだけになるかを Vim に教えるのに使う。
 		これは 'ambiwidth' を上書きする。例: >
 		   setcellwidths([[0xad, 0xad, 1],
