@@ -129,14 +129,14 @@ ch_status({handle} [, {options}])
 changenr()			数値	現在の変更番号
 char2nr({expr} [, {utf8}])	数値	{expr}の先頭文字のASCII/UTF-8コード
 charclass({string})		数値	{string} の文字クラス
-charcol({expr})			数値	カーソルかマークのカラム番号
+charcol({expr} [, {winid}])	数値	カーソルかマークのカラム番号
 charidx({string}, {idx} [, {countcc} [, {utf16}]])
 				数値	{string} のバイト {idx} の文字のイン
 					デックス
 chdir({dir})			文字列	現在の作業ディレクトリを変更する
 cindent({lnum})			数値	{lnum}行目のCインデント量
 clearmatches([{win}])		なし	全マッチをクリアする
-col({expr})			数値	カーソルかマークのカラムバイトインデッ
+col({expr} [, {winid}])		数値	カーソルかマークのカラムバイトインデッ
 					クス
 complete({startcol}, {matches})	なし	挿入モード補完を設定する
 complete_add({expr})		数値	補完候補を追加する
@@ -169,6 +169,8 @@ digraph_setlist({digraphlist})	真偽値	複数のダイグラフ |digraph| の�
 echoraw({expr})			なし	{expr} をそのまま出力する
 empty({expr})			数値	{expr}が空なら|TRUE|
 environ()			辞書	すべての環境変数を返す
+err_teapot([{expr}])		なし	{expr} が |TRUE| の場合、E418、または
+					E503 を与える
 escape({string}, {chars})	文字列	{string}内の{chars}を '\' でエスケープ
 eval({string})			任意	{string}を評価し、値を得る
 eventhandler()			数値	イベントハンドラの内側なら|TRUE|
@@ -214,7 +216,7 @@ foldlevel({lnum})		数値	{lnum}の折り畳みレベル
 foldtext()			文字列	閉じた折り畳みに表示されている行
 foldtextresult({lnum})		文字列	{lnum}で閉じている折り畳みのテキスト
 foreground()			数値	Vimウィンドウを前面に移動する
-fullcommand({name})		文字列	{name} から完全なコマンドを取得
+fullcommand({name} [, {vim9}])	文字列	{name} から完全なコマンドを取得
 funcref({name} [, {arglist}] [, {dict}])
 				Funcref	関数{name}への参照
 function({name} [, {arglist}] [, {dict}])
@@ -236,8 +238,11 @@ getcharmod()			数値	修飾キーの状態を表す数値を取得
 getcharpos({expr})		リスト	カーソル、マーク、その他のカーソル位置
 getcharsearch()			辞書	最後の文字検索を取得
 getcharstr([expr])		文字列	ユーザーから1文字を取得する
+getcmdcompltype()		文字列	現在のコマンドライン補完のタイプを返す
 getcmdline()			文字列	現在のコマンドラインを取得
 getcmdpos()			数値	コマンドラインのカーソル位置を取得
+getcmdscreenpos()		数値	コマンドラインのカーソルのスクリーン位
+					置を返す
 getcmdtype()			文字列	現在のコマンドラインの種類を取得
 getcmdwintype()			文字列	現在のコマンドラインウィンドウの種類
 getcompletion({pat}, {type} [, {filtered}])
@@ -261,6 +266,7 @@ getloclist({nr}, {what})	辞書	指定したlocationリストのプロパティ
 getmarklist([{buf}])		リスト	グローバル/ローカルのマークのリスト
 getmatches([{win}])		リスト	現在のマッチのリスト
 getmousepos()			辞書	マウスの最新の位置
+getmouseshape()			文字列	現在のマウス形状名
 getpid()			数値	Vim のプロセス ID
 getpos({expr})			リスト	カーソル・マークなどの位置を取得
 getqflist()			リスト	quickfixリストの要素のリスト
@@ -269,6 +275,7 @@ getreg([{regname} [, 1 [, {list}]]])
 				文字列/リスト   レジスタの中身を取得
 getreginfo([{regname}])		辞書	レジスタについての情報
 getregtype([{regname}])		文字列	レジスタの種類を取得
+getscriptinfo([{opts}])		リスト	読み込まれたスクリプトの一覧
 gettabinfo([{expr}])		リスト	タブページのリスト
 gettabvar({nr}, {varname} [, {def}])
 				任意	タブ{nr}の変数{varname}または{def}
@@ -1502,7 +1509,7 @@ charclass({string})					*charclass()*
 			その他	Unicode 固有のクラス
 		クラスはパターンと単語単位の移動で使われる。
 
-charcol({expr})						*charcol()*
+charcol({expr} [, {winid}])				*charcol()*
 		|col()| と同様だが {expr} で返す桁位置がバイトインデックスでは
 		なく文字インデックスになる。
 
@@ -1595,8 +1602,8 @@ clearmatches([{win}])					*clearmatches()*
 		|method| としても使用できる: >
 			GetWin()->clearmatches()
 <
-							*col()*
-col({expr})	戻り値は数値で、{expr}で与えられる位置の桁番号(バイトインデッ
+col({expr} [, {winid}])					*col()*
+		戻り値は数値で、{expr}で与えられる位置の桁番号(バイトインデッ
 		クス)。有効な位置は:
 		    .	    現在の位置
 		    $	    カレント行の末尾(カレント行のバイト数+1を返す)
@@ -1608,6 +1615,8 @@ col({expr})	戻り値は数値で、{expr}で与えられる位置の桁番号(�
 		あってもよい。col に "$" を指定して、ある行の最後の桁を取得す
 		るのにとても便利である。"lnum" か "col" が範囲外である場合は
 		0 を返す。
+		オプションの {winid} 引数を指定すると、カレントウィンドウでは
+		なく、そのウィンドウの値が取得される。
 		行番号を取得するには|line()|を使う。行番号と桁番号両方を取得す
 		るには|getpos()|を使う。
 		画面上の桁番号を取得するには|virtcol()|を使う。文字の位置を取
@@ -2163,6 +2172,13 @@ environ()						*environ()*
 <		Note 変数名はキャメルケース(CamelCase)でも構わない。大文字と小
 		文字を区別しないためにこれを使用すること: >
 			:echo index(keys(environ()), 'HOME', 0, 1) != -1
+
+err_teapot([{expr}])					*err_teapot()*
+		RFC 2324 の実装に必要な 418 番のエラーを生成する。
+		{expr} が提示され、それが TRUE である場合、エラー 503 が与えら
+		れ、コーヒーが一時的に使用できないことを示す。
+		{expr} が提示される場合は文字列でなければならない。
+
 
 escape({string}, {chars})				*escape()*
 		{string}内に現れる{chars}の文字をバックスラッシュでエスケープ
@@ -2939,14 +2955,21 @@ foreground()	Vimのウィンドウを前面に移動する。この関数はク�
 		{Win32, Motif, GTKいずれかのGUI版とWin32コンソール版でのみ利用
 		できる}
 
-fullcommand({name})						*fullcommand()*
+fullcommand({name} [, {vim9}])				*fullcommand()*
 		短縮コマンド名から完全なコマンド名を取得する。コマンドの短縮名
 		については |20.2| を参照。
 
 		文字列引数 {name} は `:` から始まっても [range] を含んでよい
 		が、それらはスキップされ戻り値には含まない。
-		コマンドが存在しないか、曖昧になってしまう場:空文字列を返す
-		(ユーザー定義コマンド用)。
+		コマンドが存在しない場合、曖昧な場合 (ユーザー定義コマンドの場
+		合)、またはこの方法で短縮できない場合は空文字列を返す。
+		|vim9-no-shorten|
+
+		引数 {vim9} がない場合は、現在のスクリプトのバージョンを使用す
+		る。
+		{vim9} が存在し、FALSE の場合、旧来のスクリプトルールが使用さ
+		れる。{vim9} が存在し、TRUE の場合、Vim9 のルールが使用される。
+		例えば、"en" は "endif" の短縮形ではない。
 
 		例えば `fullcommand('s')`、 `fullcommand('sub')`、
 		`fullcommand(':%substitute')` はすべて "substitute" を返す。
@@ -3384,13 +3407,22 @@ getcharstr([expr])					*getcharstr()*
 		結果の数値が文字列に変換される以外は |getchar()| と同様に動作
 		する。
 
+getcmdcompltype()					*getcmdcompltype()*
+		現在のコマンドライン補完のタイプを返す。
+		コマンドラインが編集時にのみ動作するので、|c_CTRL-e| または
+		|c_CTRL-R_=| を使用する必要がある。
+                返す文字列については |:command-completion| を参照のこと。
+		|getcmdtype()|、|setcmdpos()|、|getcmdline()|、|setcmdline()|
+		も参照。
+                補完が定義されていない場合は空文字列を返す。
+
 getcmdline()						*getcmdline()*
 		現在のコマンドラインの内容を取得する。コマンドラインを編集して
 		いるときのみ動作する。つまり|c_CTRL-\_e|または|c_CTRL-R_=|を使っ
 		ているときのみ有効。
 		例: >
 			:cmap <F7> <C-\>eescape(getcmdline(), ' \')<CR>
-<		|getcmdtype()|, |getcmdpos()|, |setcmdpos()|も参照。
+<		|getcmdtype()|, |getcmdpos()|, |setcmdpos()| も参照。
 		パスワードを入力する時や |inputsecret()| を使う時は空文字列を
 		返す。
 
@@ -3399,7 +3431,18 @@ getcmdpos()						*getcmdpos()*
 		の桁は1となる。コマンドラインを編集しているときのみ動作する。
 		つまり|c_CTRL-\_e|または|c_CTRL-R_=|または式マッピングを使って
 		いるときのみ有効。そうでないときは 0 を返す。
-		|getcmdtype()|, |setcmdpos()|, |getcmdline()|も参照。
+		|getcmdtype()|, |setcmdpos()|, |getcmdline()|, |setcmdline()|
+		も参照。
+
+getcmdscreenpos()					*getcmdscreenpos()*
+		コマンドラインのカーソルのスクリーン位置をバイト単位で返す。最
+		初の桁は 1 である。
+                |getcmdpos()| の代わりにプロンプトの位置を加える。
+		コマンドラインの編集時のみ動作するため、|c_CTRL-e| または
+		|c_CTRL-R_=| または式マッピングを使用する必要がある。それ以外
+		は 0 を返す。
+		|getcmdpos()|, |setcmdpos()|, |getcmdline()|, |setcmdline()|
+		も参照。
 
 getcmdtype()						*getcmdtype()*
 		現在のコマンドラインの種類を返す。戻り値は次のいずれか:
@@ -3811,6 +3854,12 @@ getmousepos()						*getmousepos()*
 		|getchar()| を使ったとき、Vim 変数 |v:mouse_lnum|,
 		|v:mouse_col| と |v:mouse_winid| もこれらの値を提供する。
 
+getmouseshape()						*getmouseshape()*
+		現在表示されているマウスポインタの名前を返す。 |+mouseshape|
+		機能がサポートされていないか、形状が不明な場合は空の文字列が返
+		される。
+		この機能は主にテストを目的としている。
+
 							*getpid()*
 getpid()	Vim のプロセス ID を数値で返す。Unix と MS-Windows では Vim が
 		終了するまでこれは一意な数値である。
@@ -4016,6 +4065,45 @@ getregtype([{regname}])					*getregtype()*
 		|method| としても使用できる: >
 			GetRegname()->getregtype()
 
+getscriptinfo([{opts}])					*getscriptinfo()*
+		`:scriptnames` が見せるように、読み込まれたすべての Vim script
+		に関する情報を読み込まれた順序で |List| として返す。
+
+		オプションの Dict 引数 {opts} は、以下のオプション項目をサポー
+		トする:
+		    name	スクリプト名の一致パターン。指定され、"sid" が
+				指定されていない場合は、パターン "name" に一致
+				する名前を持つスクリプトに関する情報が返され
+				る。
+		    sid		スクリプト ID |<SID>|。指定された場合、ID "sid"
+				のスクリプトに関する情報のみが返され、"name"
+				は無視される。
+
+		返されたリストの各項目は、以下の項目を持つ |Dict| である:
+		    autoload	`import autoload` で使用されたが、実際にはまだ
+				読み込まれていないスクリプトには TRUE を設定す
+				る (|import-autoload| を参照)。
+		    functions   スクリプト内で定義されているスクリプトローカル
+				関数名のリスト。特定のスクリプトが {opts} の
+				"sid" 項目を使って指定されている場合にのみ表示
+				される。
+		    name	Vim script ファイル名。
+		    sid		スクリプト ID |<SID>|。
+		    sourced	このスクリプト名がリンクしている実際に読み込ま
+				れたスクリプトが存在する場合はスクリプト ID、
+				それ以外の場合はゼロ
+		    variables   スクリプトローカル変数を含む辞書。{opts} の
+				"sid" 項目を使って特定のスクリプトを指定した場
+				合のみ存在する。
+				Note これはコピーであり、この辞書を使ってスク
+				リプトローカル変数の値を変更することはできない
+				ことに注意。
+		    version	Vimscript バージョン (|scriptversion|)
+
+		例: >
+			:echo getscriptinfo({'name': 'myscript'})
+			:echo getscriptinfo({'sid': 15}).variables
+<
 gettabinfo([{tabnr}])					*gettabinfo()*
 		{tabnr}を指定しないと、すべてのタブページに関する情報がリスト
 		|List| として返される。各リスト項目は辞書 |Dictionary| である。
