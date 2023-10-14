@@ -116,10 +116,20 @@ undo されます。<br>
 にしたい場合に便利です。&nbsp;<a class="Identifier" href="insert.html#i_CTRL-G_u">i_CTRL-G_u</a><br>
 <br>
 <a class="Type" href="options.html#'undolevels'">'undolevels'</a>&nbsp;の値を設定したときも undo のブロックが閉じられます。新しい値と古<br>
-い値が同じでもそうなります。<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;undolevels = &amp;undolevels</div>
+い値が同じでもそうなります。<span class="Comment">g:undolevels</span>&nbsp;を使用して、<a class="Type" href="options.html#'undolevels'">'undolevels'</a>&nbsp;のグローバ<br>
+ル値のみを明示的に読み書きします。<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;g:undolevels = &amp;g:undolevels</div>
 旧来のスクリプトでは:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;undolevels = &amp;undolevels</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;g:undolevels = &amp;g:undolevels</div>
+<br>
+<span class="Todo">Note</span>&nbsp;同様に見える代入&nbsp;<span class="Comment">let &amp;undolevels=&amp;undolevels</span>&nbsp;は、ローカルオプションが別<br>
+の値に設定されている場合、グローバルオプションの&nbsp;<a class="Type" href="options.html#'undolevels'">'undolevels'</a>&nbsp;値を保持しないこ<br>
+とに注意してください。例えば:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 'undolevels' に異なるグローバル値とローカル値を使用して開始する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;g:undolevels = 1000<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;l:undolevels = 2000<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; この代入により、グローバルオプションが 2000 に変更される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;undolevels = &amp;undolevels</div>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 4. Undo ブランチ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="undo.html#undo-branches" name="undo-branches">undo-branches</a>&nbsp;<a class="Constant" href="undo.html#undo-tree" name="undo-tree">undo-tree</a><br>
@@ -375,11 +385,20 @@ Vi 互換方式の動作になります。マイナスの値に設定すると u
 <a class="Type" href="options.html#'undolevels'">'undolevels'</a>&nbsp;を -1 に設定しても、undo 情報はすぐにはクリアされません。次の変更<br>
 が加えられたときにクリアされます。強制的に undo 情報をクリアしたいときは次のコ<br>
 マンドを使ってください:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let old_undolevels = &amp;undolevels<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set undolevels=-1<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let old_undolevels = &amp;l:undolevels<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal undolevels=-1<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:exe &quot;normal a \&lt;BS&gt;\&lt;Esc&gt;&quot;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let &amp;undolevels = old_undolevels<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let &amp;l:undolevels = old_undolevels<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:unlet old_undolevels</div>
+<br>
+<span class="Todo">Note</span>&nbsp;<span class="Comment">&amp;l:undolevels</span>&nbsp;を使用して&nbsp;<a class="Type" href="options.html#'undolevels'">'undolevels'</a>&nbsp;のローカル値を明示的に読み取り、<br>
+<a class="Comment" href="options.html#:setlocal">:setlocal</a>&nbsp;を使用してローカルオプションのみを変更します (対応するグローバルオ<br>
+プション値より優先されます)。<span class="Comment">&amp;undolevels</span>&nbsp;を使用してオプション値を保存するこ<br>
+とは予測できません。ローカル値 (設定されている場合) またはグローバル値 (ローカ<br>
+ル値が設定されていない場合) のいずれかを読み取ります。また、ローカル値が設定さ<br>
+れている場合、<span class="Comment">:set undolevels</span>&nbsp;でオプションを変更すると、グローバル値とローカ<br>
+ル値の両方が変更され、両方の値を保存および復元するための追加の作業が必要になり<br>
+ます。<br>
 <br>
 バッファのマーク ('a から 'z) はテキストと同様に記録、復元されます。<br>
 <br>
