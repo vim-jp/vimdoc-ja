@@ -55,6 +55,8 @@ Vimには、特別な働きをさせるための多くの内部変数とスイ�
 			コードは内部的に生成され、変更が不可能だからだ。それに、
 			GUIバージョンでターミナルコードを変更するのは便利とは
 			言えない...
+			オプションの形式は t_AB である。|terminal-options| を
+			参照。
 
 :se[t]! termcap		同様だが、複数列を使用しない。
 
@@ -90,7 +92,7 @@ Vimには、特別な働きをさせるための多くの内部変数とスイ�
 			  'ttytype'
 			警告: これにはたくさんの副作用があるだろう。
 
-						*:set-args* *E487* *E521*
+						*:set-args* *:set=* *E487* *E521*
 :se[t] {option}={value}		または
 :se[t] {option}:{value}
 			数値および文字列オプションの値を {value} に設定する。
@@ -98,8 +100,10 @@ Vimには、特別な働きをさせるための多くの内部変数とスイ�
 			または ('0' を頭に付けて) 8進数で指定できる。
 			オプション 'wildchar' で指定された文字 (既定では
 			<Tab>、オプション 'compatible' がオンならば CTRL-E)
-			を打ち込むと、古い値を挿入できる。|cmdline-completion|
-			を参照。
+			を打ち込むと、古い値を挿入できる。固定された構文と名前
+			を持つ多くの文字列オプションは、既知の値の補完もサポー
+			トしている。|cmdline-completion| と
+			|complete-set-option| を参照。
 			{option} と '=' の間には空白を入れることができる。それ
 			らは無視される。'=' と {value} の間に空白を入れてはい
 			けない。
@@ -135,6 +139,9 @@ Vimには、特別な働きをさせるための多くの内部変数とスイ�
 			中に現れるままに、正確に指定しなければならない。問題が
 			起こるのを避けるために、フラグを取り除くときは1個ずつ
 			指定すること。
+			コンマで区切られたリストやフラグのリストにある個々の値
+			は、'wildchar' をタイプすることで挿入できる。
+			|complete-set-option| を参照のこと。
 			上の |:set-args| も参照。
 
 1回のコマンド ":set" に対し、複数の {option} を引数に指定できる。例: >
@@ -274,6 +281,8 @@ opt+=値" でオプションに文字列を追加したりするときには、�
 
 ローカルオプションの扱い			*local-options*
 
+Note: 以下は |global-local| オプションにも適用される。
+
 いくつかのオプションは、1つのウィンドウや1つのバッファのみに適用される。それぞ
 れのウィンドウやバッファは、そうしたオプションの独自のコピーを保持しているため、
 独自の値を持つことができる。これにより、あるウィンドウ内では 'list' オプション
@@ -328,6 +337,30 @@ opt+=値" でオプションに文字列を追加したりするときには、�
 ウィンドウについてローカルなオプションはバッファ毎に記憶される。バッファがロー
 ドされていなくても同様に記憶されている。ただし、バッファが破棄 (|:bwipe|) され
 たときは設定は消える。
+
+特別なローカルウィンドウオプション		*local-noglobal*
+
+以下のローカルウィンドウオプションは、新しいウィンドウが作成されたときにコピー
+されないため、若干異なる動作をする:
+
+	オプション	理由	~
+	'previewwindow'	1つしか存在できない
+	'scroll'	既存のウィンドウに固有のもの
+	'winfixheight'	既存のウィンドウに固有のもの
+	'winfixwidth'	既存のウィンドウに固有のもの
+
+特別なローカルバッファオプション
+
+以下のローカルバッファオプションは、新しいバッファが作成されるときにコピーされ
+ないため、若干異なる動作をする:
+
+	オプション	理由	~
+	'filetype'	自動コマンドによって明示的に設定される
+	'syntax'	自動コマンドによって明示的に設定される
+	'bufhidden'	|special-buffers| である
+	'buftype'	|special-buffers| である
+	'readonly'	自動的に検出される
+	'modified'	自動的に検出される
 
 							*:setl* *:setlocal*
 :setl[ocal][!] ...	コマンド ":set" と似ているが、カレントバッファ／ウィン
@@ -408,7 +441,6 @@ Note: 非切替かつ非数値オプションの変更で "<" を使うと、グ
 Note: 将来的に、より多くのグローバルオプションが |global-local| になる可能性が
 ある。そうなるとグローバルオプションに対する ":setlocal" の動作が変わるかもし
 れない。
-
 
 						*option-value-function*
 いくつかのオプション('completefunc', 'imactivatefunc', 'imstatusfunc',
@@ -834,6 +866,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	を削除するとき、ウィンドウを開閉するときに毎回作業ディレクトリが変更さ
 	れる。開かれた／選択されたファイルを含んでいるディレクトリがカレント
 	ディレクトリになる。
+	無名バッファの場合、ディレクトリもないため、そのバッファに移動してもカ
+	レントディレクトリは変更されない。
 	Note: このオプションがオンになっていると動かないプラグインがある。
 
 			*'autoshelldir'* *'asd'* *'noautoshelldir'* *'noasd'*
@@ -844,6 +878,31 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	要があり、シェルが pwd を変更する度に OSC 7 エスケープシーケンスを出力
 	しないといけない。例として、Linuxなら、あなたのシェルが bash か zsh の
 	場合 profile で /etc/profile.d/vte.sh を読み込むことができる。
+	bash の場合は、これでうまくいくはずだ (bash init ファイルに記述する): >
+		if [[ -n "$VIM_TERMINAL" ]]; then
+		    PROMPT_COMMAND='_vim_sync_PWD'
+		    function _vim_sync_PWD() {
+			printf '\033]7;file://%s\033\\' "$PWD"
+		    }
+		fi
+<
+	または、zsh init ファイルに記述する: >
+		if [[ -n "$VIM_TERMINAL" ]]; then
+		    autoload -Uz add-zsh-hook
+		    add-zsh-hook -Uz chpwd _vim_sync_PWD
+		    function _vim_sync_PWD() {
+			printf '\033]7;file://%s\033\\' "$PWD"
+		    }
+		fi
+<
+	fish init ファイルに記述する: >
+		if test -n "$VIM_TERMINAL"
+		    function _vim_sync_PWD --on-variable=PWD
+			printf '\033]7;file://%s\033\\' "$PWD"
+		    end
+		end
+<
+	別の方法は |terminal-autoshelldir| にある。
 	OSC シーケンスのパースに失敗したときは *E1179* になる。
 
 				*'arabic'* *'arab'* *'noarabic'* *'noarab'*
@@ -927,6 +986,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	はオプション 'autowriteall' を参照。
 	いくつかのバッファは書き込まれない。具体的には 'buftype' が "nowrite",
 	"nofile", "terminal" または "prompt" の時である。
+	使用上の注意: 保存したくないバッファに一時的な変更を加えた場合、このオ
+	プションを使用するとバッファが保存されてしまう可能性がある。":file
+	{name}" でバッファ名を変更すると、これを回避できる場合がある。
 
 			 *'autowriteall'* *'awa'* *'noautowriteall'* *'noawa'*
 'autowriteall' 'awa'	切替	(既定ではオフ)
@@ -1210,7 +1272,6 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 				 Unix: "/tmp/*,$TMPDIR/*,$TMP/*,$TEMP/*"
 				 Mac: "/private/tmp/*,$TMPDIR/*,$TMP/*,$TEMP/*")
 			グローバル
-			{|+wildignore| 機能付きでコンパイルされたときのみ有効}
 	ファイル名のパターンのリスト。書き込みをするファイルの名前にマッチする
 	パターンがこの中にあれば、そのファイルのバックアップは作られない。ファ
 	イル名を指定してもよいし、ファイルのフルパスを指定 {訳注: C:/temp/* 等
@@ -1284,7 +1345,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		\ ' on word "' .. v:beval_text .. '"'
     endfunction
     set bexpr=MyBalloonExpr()
-    set ballooneval
+    set ballooneval balloonevalterm
 <
 	|balloon_show()| も参照。バルーンの内容を非同期に取り込む場合に使うこ
 	とができる。その場合、'balloonexpr' を評価すると、空の文字列が返され
@@ -1474,7 +1535,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 
 						*'bufhidden'* *'bh'*
 'bufhidden' 'bh'	文字列 (既定では "")
-			バッファについてローカル
+			バッファについてローカル  |local-noglobal|
 	バッファがウィンドウ内に表示されなくなったときの動作を指定する。
 	  <empty>	グローバルオプション 'hidden' に従う
 	  hide		'hidden' がオフに設定されていても、バッファを隠す (解
@@ -1506,7 +1567,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 
 						*'buftype'* *'bt'* *E382*
 'buftype' 'bt'		文字列 (既定では "")
-			バッファについてローカル
+			バッファについてローカル  |local-noglobal|
 	このオプションはバッファの種類を指定する。
 	  <empty>	普通のバッファ
 	  nofile	ファイルと関連がなく、書き込まれる予定のないバッファ
@@ -1574,7 +1635,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			使う。現在のロケールは効果を持たない。
 			これはおそらくトルコ語でだけ問題になる。
 
-						*'cdhome'* *'cdh'*
+				*'cdhome'* *'cdh'* *'nocdhome'* *'nocdh'*
 'cdhome' 'cdh'		切替 (既定ではオフ)
 			グローバル
 	オンのときは、引数なしの |:cd|, |:tcd|, |:lcd| で Unix 風にカレントディ
@@ -1587,8 +1648,6 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 						*'cdpath'* *'cd'* *E344* *E346*
 'cdpath' 'cd'		文字列	(既定では環境変数 $CDPATH または ",,")
 			グローバル
-			{|+file_in_path| 機能付きでコンパイルされたときのみ有
-			効}
 	|:cd|、|:tcd| や |:lcd| を使ったときに検索されるディレクトリのリスト。
 	ただし検索されるディレクトリが "/", "./" や "../" で始まるときはこのオ
 	プションは使われない。
@@ -1657,6 +1716,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	Note v:charconvert_from と v:charconvert_to の値は 'encoding' と異なる
 	かもしれないので注意。Vim内部では UCS-2 または UCS-4 の代わりには
 	UTF-8 を使っている。
+
+	引数なしで関数呼び出しを使用する利点は、高速であることである。
+	|expr-option-function| を参照。
 
 	Vim は 'charconvert' を用いたエンコーディング変換では暗号化をしない。
 	変換後に暗号化をしたいなら、'charconvert' にそうさせる必要がある。
@@ -1732,7 +1794,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	はできない。従って += で後方への要素の追加ではなく ^= を使って前方への
 	追加をする。例: >
 		set clipboard^=unnamed
-<	認識されるのは、以下のキーワードである。
+<	GUI を使用する場合は、|'go-A'| を参照。
+	認識されるのは、以下のキーワードである。
 
 						*clipboard-unnamed*
 	unnamed		これが含まれると、コピー、削除、変更、ペーストなどの操
@@ -1813,9 +1876,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 
 						*'cmdheight'* *'ch'*
 'cmdheight' 'ch'	数値	(既定では 1)
-			グローバル
-	コマンドラインに使われる画面上の行数。|hit-enter| プロンプトの出現を避
-	けるのに役立つ。
+			グローバル／タブページについてローカル
+	コマンドラインに使われる画面上の行数。この値を大きくすると、
+	|hit-enter| プロンプトを避けることができる。
 	各タブページが異なる値を持てるようにするために、このオプションの値はタ
 	ブページに保存される。
 
@@ -1834,7 +1897,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	列番号は絶対値で指定するか、番号に '+' か '-' を前置して 'textwidth'
 	からの相対値として指定する。 >
 
-		:set cc=+1  " 'textwidth' の後の列を強調表示する
+		:set cc=+1	  " 'textwidth' の後の列を強調表示する
 		:set cc=+1,+2,+3  " 'textwidth' の後の3列を強調表示する
 		:hi ColorColumn ctermbg=lightgrey guibg=lightgrey
 <
@@ -1919,7 +1982,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 
 	'allowrevins'	+ オフ		コマンド CTRL-_ なし
 	'antialias'	+ オフ		アンチエイリアスフォントを使用しない
-	'arabic'	+ オフ	 	アラビア語関連オプションをリセット
+	'arabic'	+ オフ		アラビア語関連オプションをリセット
 	'arabicshape'	+ オン		文字表示補正を行う
 	'backspace'	+ ""		普通のバックスペース
 	'backup'	+ オフ		バックアップファイルなし
@@ -2520,12 +2583,14 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 							*pkzip*
 	   zip		PkZip 互換メソッド。弱い暗号化。
 			Vim 7.2 以前との後方互換。
+			後方互換性が必要な場合のみ使用すること。
 							*blowfish*
 	   blowfish	Blowfish メソッド。中強度の暗号化だが実装上の脆弱性が
 			ある。Vim 7.3 以降が必要。このメソッドで保存された
 			ファイルは Vim 7.2 以前のバージョンでは開くことができ
 			ない。ファイルには "seed" が付加されるのでファイルを書
 			き込むたびに暗号化されたバイト列は異なる。
+			廃れたので、今後は使用しないこと。
 							*blowfish2*
 	   blowfish2	Blowfish メソッド。中強度の暗号化。Vim 7.4.401 以降が
 			必要。このメソッドで保存されたファイルは Vim 7.3 以前
@@ -2547,10 +2612,21 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			ない。
 			アンドゥファイルの暗号化はまだサポートされていないた
 			め、アンドゥファイルは現在は書き込まれない。
-			現状は実験的: この方法で書き込まれたファイルは、バイナ
-			リ形式が後で変更された場合、同じバージョンの Vim で読
-			み戻す必要があるかもしれない。
+			注意: この方法で書き込まれたファイルは、バイナリ形式が
+			後で変更された場合、同じバージョンの Vim で読み戻す必
+			要があるかもしれない。
+			廃れたので、今後は使用しないこと。
+	   xchacha20v2  "xchacha20" と同じアルゴリズムで、暗号化ファイルととも
+			に鍵導出パラメータを正しく保存する。libsodium ライブラ
+			リのパラメータが変更された場合に、よりうまく動作するは
+			ずである。
+			まだ実験的: この方法で書かれたファイルは、後でバイナリ
+			フォーマットが変更された場合、同じバージョンの Vim で
+			読み返さなければならないかもしれない。
+
 	古いファイルを再度暗号化する時も "blowfish2" を使うべきである。
+	"xchacha20" メソッドはより優れた暗号化を提供するが、Vim のすべてのバー
+	ジョンで機能するわけではない。
 
 	暗号化されたファイルを読み込んだとき、'cryptmethod' は自動的にそのファ
 	イルに使用されている暗号メソッドに設定される。つまり、そのまま
@@ -2788,7 +2864,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 				コンテキストは6行になる。
 				0を使用する場合、折り畳みは削除された行につい
 				てもその間に行を必要とするので、コンテキストは
-				実際には1である。
+				実際には1である。折り畳みを完全に無効にするに
+				は、非常に大きな値 (999999) に設定する。
 				|fold-diff| を参照。
 
 		iblank		行がすべて空白の場合は変更を無視する。
@@ -2954,6 +3031,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	"lastline" も "truncate" も含まれていない時、収まらない最後の行は "@"
 	に置き換えられる。
 
+	"@" 文字は 'fillchars' の "lastline" 項目で変更できる。この文字は
+	|hl-NonText| でハイライトされる。
+
 						*'eadirection'* *'ead'*
 'eadirection' 'ead'	文字列	(既定では "both")
 			グローバル
@@ -3043,6 +3123,15 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	'encoding' が Unicode の一種に設定され、'fileencodings' がまだ設定され
 	ていなければ、'fileencodings' の既定値は変更される。
 
+			*'endoffile'* *'eof'* *'noendoffile'* *'noeof'*
+'endoffile' 'eof'	切替	(既定ではオン)
+			バッファについてローカル
+	ファイル読み込み時に、ファイルの最後に CTRL-Z 文字が見つかったことを示
+	す。通常、'fileformat' が "dos" の場合にのみ発生する。このオプションが
+	オフで 'binary' オプションがオン、または 'fixeol' オプションがオフの
+	ファイルを書き込む場合、ファイルの末尾に CTRL-Z は書き込まれない。
+        設定例については |eol-and-eof| を参照。
+
 			*'endofline'* *'eol'* *'noendofline'* *'noeol'*
 'endofline' 'eol'	切替	(既定ではオン)
 			バッファについてローカル
@@ -3059,6 +3148,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	に、<EOL> の有無を元のファイルのままにするといったシチュエーションを想
 	定している。しかし <EOL> の有無を現状から変えたい場合には、このオプ
 	ションを変更することで実現できる。
+        設定例については |eol-and-eof| を参照。
 
 			     *'equalalways'* *'ea'* *'noequalalways'* *'noea'*
 'equalalways' 'ea'	切替	(既定ではオン)
@@ -3377,7 +3467,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 
 					*'filetype'* *'ft'*
 'filetype' 'ft'		文字列 (既定では "")
-			バッファについてローカル
+			バッファについてローカル  |local-noglobal|
 	このオプションが変更されると autocommand のイベント FileType が発生し、
 	このオプションの値にマッチする全ての autocommand が実行される。つまり、
 	{訳注: 普通 autocommand が実行されるのはファイル名がマッチしたときだ
@@ -3404,20 +3494,23 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 						*'fillchars'* *'fcs'*
 'fillchars' 'fcs'	文字列	(既定では "vert:|,fold:-,eob:~")
 			グローバル
+			グローバル／ウィンドウについてローカル |global-local|
 			{|+folding| 機能付きでコンパイルされたときのみ有効}
-	ステータス行と垂直分割の区切りを埋める文字を設定する。値にはキーワード
-	をコンマで区切って指定する。
+	ウィンドウのステータス行、垂直分割の区切り、特殊行を埋める文字。
+	これはコンマで区切られた項目のリストである。各項目には、名前、コロン、
+	およびその項目の値がある:
 
 	  キーワード	既定値		変更の対象 ~
-	  stl:文字	' ' か '^'	カレントウィンドウのステータス行
-	  stlnc:文字	' ' か '='	非カレントウィンドウのステータス行
-	  vert:文字	'|'		垂直分割の区切り |:vsplit|
-	  fold:文字	'-'		'foldtext' での空白部分
-	  foldopen:文字	'-'		折り畳みの先頭のマーク
-	  foldclose:文字'+'		閉じられた折り畳みのマーク
-	  foldsep:文字	'|'		開いた折り畳みの中間文字
-	  diff:文字	'-'		'diff' での削除された行
-	  eob:文字	'~'		バッファ終端以降の空行
+	  stl		' ' or '^'	カレントウィンドウのステータス行
+	  stlnc		' ' or '='	非カレントウィンドウのステータス行
+	  vert		'|'		垂直分割の区切り |:vsplit|
+	  fold		'-'		'foldtext' での空白部分
+	  foldopen	'-'		折り畳みの先頭のマーク
+	  foldclose	'+'		閉じられた折り畳みのマーク
+	  foldsep	'|'		開いた折り畳みの中間文字
+	  diff		'-'		'diff' での削除された行
+	  eob		'~'		バッファ終端以降の空行
+	  lastline	'@'		'display' が含む最終行/切り捨て
 
 	指定されなかったキーワードについては、既定値が使われる。"stl" と
 	"stlnc" には、強調表示が行われているときは空白が、行われていないときは
@@ -3433,13 +3526,14 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	サポートしていない。
 
 	強調表示が行われるものおよびその属するグループ:
-	  キーワード	ハイライトグループ ~
-	  stl:文字	StatusLine		|hl-StatusLine|
-	  stlnc:文字	StatusLineNC		|hl-StatusLineNC|
-	  vert:文字	VertSplit		|hl-VertSplit|
-	  fold:文字	Folded			|hl-Folded|
-	  diff:文字	DiffDelete		|hl-DiffDelete|
-	  eob:文字	EndOfBuffer		|hl-EndOfBuffer|
+	  項目名	ハイライトグループ ~
+	  stl		StatusLine		|hl-StatusLine|
+	  stlnc		StatusLineNC		|hl-StatusLineNC|
+	  vert		VertSplit		|hl-VertSplit|
+	  fold		Folded			|hl-Folded|
+	  diff		DiffDelete		|hl-DiffDelete|
+	  eob		EndOfBuffer		|hl-EndOfBuffer|
+	  lastline	NonText			|hl-NonText|
 
 		*'fixendofline'* *'fixeol'* *'nofixendofline'* *'nofixeol'*
 'fixendofline' 'fixeol'	切替	(既定ではオン)
@@ -3450,6 +3544,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	'binary' オプションが設定されているときはこのオプションは意味を成さな
 	い。
 	オプション 'endofline' を参照。
+        設定例については |eol-and-eof| を参照。
 
 					*'fkmap'* *'fk'* *'nofkmap'* *'nofk'*
 'fkmap' 'fk'		切替	(既定ではオフ)
@@ -3660,6 +3755,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		:set formatexpr=mylang#Format()
 <	これは 'runtimepath' 内にある autoload/mylang.vim 中の関数
 	mylang#Format() を呼ぶ。|autoload|
+
+	引数なしで関数呼び出しを使用する利点は、高速であることである。
+	|expr-option-function| を参照。
 
 	また、'textwidth' がオンになっていて、テキストを追加しているときにその
 	値を超えたときにもこの式が評価される。これは内部整形が使われるときと同
@@ -3983,6 +4081,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 			 "A"		X			O
 			 "aA"		O			O
 
+		ターミナルを使用する場合は、'clipboard' オプションを参照。
+
 								*'go-c'*
 	  'c'	単純な選択にはポップアップダイアログでなくコンソールダイアログ
 		を使う。
@@ -4182,6 +4282,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 				     T:DiffText,>:SignColumn,-:Conceal,
 				     B:SpellBad,P:SpellCap,R:SpellRare,
 				     L:SpellLocal,+:Pmenu,=:PmenuSel,
+				     [:PmenuKind,]:PmenuKindSel,
+				     {:PmenuExtra,}:PmenuExtraSel,
 				     x:PmenuSbar,X:PmenuThumb,*:TabLine,
 				     #:TabLineSel,_:TabLineFill,!:CursorColumn,
 				     .:CursorLine,o:ColorColumn,q:QuickFixLine,
@@ -4241,6 +4343,10 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	|hl-SpellLocal|	 L  他の地域の単語 |spell|
 	|hl-Pmenu|	 +  ポップアップメニューの通常の行
 	|hl-PmenuSel|	 =  ポップアップメニューの選択された行
+	|hl-PmenuKind|	 [  ポップアップメニューの "kind" の通常の行
+	|hl-PmenuKindSel|  ]  ポップアップメニューの "kind" の選択された行
+	|hl-PmenuExtra|	 {  ポップアップメニューの "extra" の通常の行
+	|hl-PmenuExtraSel| }  ポップアップメニューの "extra" の選択された行
 	|hl-PmenuSbar|	 x  ポップアップメニューのスクロールバー
 	|hl-PmenuThumb|	 X  ポップアップメニューのスクロールバーのつまみ
 
@@ -4250,7 +4356,10 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		b	太字体		(termcapの項目 "md" と "me")
 		s	強調		(termcapの項目 "so" と "se")
 		u	下線		(termcapの項目 "us" と "ue")
-		c	下波線		(termcapの項目 "Cs" と "Ce")
+		c	下波線		(termcapの項目 "Us" と "Ce")
+		2	2重下線		(termcapの項目 "Ds" と "Ce")
+		d	点線下線	(termcapの項目 "ds" と "Ce")
+		=	破線下線	(termcapの項目 "Ds" と "Ce")
 		t	打ち消し線	(termcapの項目 "Ts" と "Te")
 		n	強調表示なし
 		-	強調表示なし
@@ -4543,9 +4652,14 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	オプション 'include' が判別した文字列を、ファイル名に変換するために使
 	われる expression を指定する。以下のようにして、Java言語で "." を "/"
 	に変換するようなときに便利である。 >
-		:set includeexpr=substitute(v:fname,'\\.','/','g')
+		:setlocal includeexpr=substitute(v:fname,'\\.','/','g')
 <	変数 "v:fname" は、判別されたファイル名に設定される。
-
+	Note 2 重バックスラッシュに注意: `:set` コマンドは最初にそれらを半分に
+	し、その後 1 つを値のままにします。ここで "\." は文字通りドットに一致
+	します。単純な文字置換の場合、`tr()` を使用するとエスケープの必要がな
+	くなります: >
+		:setlocal includeexpr=tr(v:fname,'.','/')
+<
 	コマンド |gf| でも、ファイルの実際の名前が見つからないときは、これが使
 	われる。プログラミング言語の 'include' 文の後で "gf" を使えるようにな
 	る。
@@ -4553,10 +4667,13 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 
 	式が s: か |<SID>| で始まる場合、スクリプトID(|local-function|) に置き
 	換えられる。例: >
-		set includeexpr=s:MyIncludeExpr(v:fname)
-		set includeexpr=<SID>SomeIncludeExpr(v:fname)
+		setlocal includeexpr=s:MyIncludeExpr()
+		setlocal includeexpr=<SID>SomeIncludeExpr()
 <	そうでない場合、式はオプションが設定されたスクリプトのコンテキストで評
 	価され、その結果スクリプトローカルな要素を使用できる。
+
+	値が引数なしの単なる関数呼び出しであれば、より効率的である、
+	|expr-option-function|を参照のこと。
 
 	このオプションがモードラインで設定されたときは、式はサンドボックス
 	(|sandbox|) の中で評価される。|sandbox-option| を参照。
@@ -4624,8 +4741,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	い行が作られるとき、オペレータ |=| が使われたとき、挿入モードでオプ
 	ション 'indentkeys' で指定したキーを打ち込んだときに使われる。
 	値が空でないとき、この設定が 'cindent' と 'smartindent' によるインデン
-	トの設定を上書きする。'lisp' がオンのとき、このオプションは Lisp のイ
-	ンデントアルゴリズムによって上書きされる。
+	トの設定を上書きする。'lisp' が設定されている場合、このオプションは
+	'lispoptions' に "expr:1" が含まれている場合にのみ使用される。
 	'paste' がオンのとき、このオプションはインデントに使われない。
 	指定された expression が評価されるとき、変数 |v:lnum| はインデント計算
 	の対象となっている行の行番号に設定される。また、この式を評価するとき、
@@ -4637,6 +4754,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		set indentexpr=<SID>SomeIndentExpr()
 <	そうでない場合、式はオプションが設定されたスクリプトのコンテキストで評
 	価され、その結果スクリプトローカルな要素を使用できる。
+
+	引数なしで関数呼び出しを使用する利点は、高速であることである。
+	|expr-option-function| を参照。
 
 	指定された expression は、インデントすべき空白の数を返さなければならな
 	い。そのままのインデントを保たせるには "-1" を返させればよい (つまり、
