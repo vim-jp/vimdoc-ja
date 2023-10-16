@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'usr_05'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="usr_05.html" name="usr_05.txt">usr_05.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2019 May 23<br>
+<a class="Constant" href="usr_05.html" name="usr_05.txt">usr_05.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2023 Sep 12<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; VIM USER MANUAL - by Bram Moolenaar<br>
 <br>
@@ -320,17 +320,27 @@ defaults.vim の読み込みは、次のコマンドで無効にできます:<br
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="usr_05.html#restore-cursor" name="restore-cursor">restore-cursor</a>&nbsp;<a class="Constant" href="usr_05.html#last-position-jump" name="last-position-jump">last-position-jump</a>&nbsp;<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;autocmd BufReadPost *<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ if line(&quot;'\&quot;&quot;) &gt;= 1 &amp;&amp; line(&quot;'\&quot;&quot;) &lt;= line(&quot;$&quot;) &amp;&amp; &amp;ft !~# 'commit'<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ |&nbsp;&nbsp; exe &quot;normal! g`\&quot;&quot;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ | endif</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;augroup RestoreCursor<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;autocmd!<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;autocmd BufReadPost *<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ let line = line(&quot;'\&quot;&quot;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ | if line &gt;= 1 &amp;&amp; line &lt;= line(&quot;$&quot;) &amp;&amp; &amp;filetype !~# 'commit'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; index(['xxd', 'gitrebase'], &amp;filetype) == -1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ |&nbsp;&nbsp; execute &quot;normal! g`\&quot;&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ | endif<br>
+&nbsp;&nbsp;&nbsp;&nbsp;augroup END</div>
 <br>
 自動コマンドをもう一つ。ファイルを読み込んだ直後に実行される自動コマンドを定義<br>
 しています。後ろのごちゃごちゃした部分は「'&quot; マークが定義されているかどうかを<br>
-チェックし、定義があればそこにジャンプする」という意味です。コマンドを複数行に<br>
-分けて書くために、行頭に &quot;\&quot; を書いています。行がやたらと長くなるのを防ぐため<br>
-です。<a class="Identifier" href="repeat.html#line-continuation">line-continuation</a>参照。&quot;\&quot; は Vim script 内でのみ使えます。コマンドラ<br>
-インで入力するときは使えません。<br>
+チェックし、定義があればそこにジャンプする」という意味です。コミットやリベース<br>
+メッセージの場合は、前回とは違うメッセージになる可能性が高く、また、xxd(1) を<br>
+使ってバイナリファイルをフィルタリングして編集を行う場合は、入力ファイルを行っ<br>
+たり来たり変換して、いわば二面性を持っているため、このようなことは行いません。<br>
+<a class="Identifier" href="tips.html#using-xxd">using-xxd</a>&nbsp;も参照してください。<br>
+<br>
+コマンドを複数行に分けて書くために、行頭に &quot;\&quot; を書いています。行がやたらと長<br>
+くなるのを防ぐためです。<a class="Identifier" href="repeat.html#line-continuation">line-continuation</a>&nbsp;参照。&quot;\&quot; は Vim script 内でのみ使<br>
+えます。コマンドラインで入力するときは使えません。<br>
 <br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis<br>
@@ -434,6 +444,16 @@ matchit プラグインを使い始めるには、以下の行をあなたの vi
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ここの &quot;fancytext&quot; はパッケージ名なので、実際には別の名前になるで<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; しょう。<br>
 <br>
+editorconfig パッケージの追加&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="usr_05.html#editorconfig-install" name="editorconfig-install">editorconfig-install</a><br>
+<br>
+matchit パッケージと同様に、Vim の起動時に配布されている editorconfig プラグイ<br>
+ンを読み込むには、vimrc ファイルに以下の行を追加します:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;packadd! editorconfig</div>
+<br>
+Vim を再起動するとプラグインがアクティブになり、以下でプラグインについて読むこ<br>
+とができます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:h editorconfig.txt</div>
+<br>
 パッケージについてのより詳しい情報は次の項目を参照してください:&nbsp;<a class="Identifier" href="repeat.html#packages">packages</a><br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
@@ -453,13 +473,18 @@ matchit プラグインを使い始めるには、以下の行をあなたの vi
 <a class="Identifier" href="usr_05.html#add-filetype-plugin">add-filetype-plugin</a>をします。<br>
 <br>
 <br>
-<span class="Statement">グローバルプラグイン</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="usr_05.html#standard-plugin" name="standard-plugin">standard-plugin</a><br>
+<span class="Statement">グローバルプラグイン</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="usr_05.html#standard-plugin" name="standard-plugin">standard-plugin</a>&nbsp;<a class="Constant" href="usr_05.html#distributed-plugins" name="distributed-plugins">distributed-plugins</a><br>
 <br>
 Vim を起動すると、自動的にいくつものグローバルプラグインがロードされます。特に<br>
 何もしなくて大丈夫です。グローバルプラグインは、ほとんどの人が欲しいと思うだろ<br>
 う機能を提供しています。それらの機能は Vim の中にコンパイルして組み込まれてい<br>
 るのではなく、Vim script として実装されています。ヘルプの目次にプラグインの一<br>
-覧があります<a class="Identifier" href="index.html#standard-plugin-list">standard-plugin-list</a>。<a class="Identifier" href="starting.html#load-plugins">load-plugins</a>も参照してください。<br>
+覧があります&nbsp;<a class="Identifier" href="index.html#standard-plugin-list">standard-plugin-list</a>。<br>
+<br>
+ローカルにインストールされたプラグインとパッケージ (別個のヘルプファイルが付属)<br>
+については、同様のリストがヘルプセクション&nbsp;<a class="Identifier" href="index.html#local-additions">local-additions</a>&nbsp;にあります。<br>
+<br>
+<a class="Identifier" href="starting.html#load-plugins">load-plugins</a>も参照してください。<br>
 <br>
 <span class="Statement">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="usr_05.html#add-global-plugin" name="add-global-plugin">add-global-plugin</a><br>
 グローバルプラグインを追加すると、いつでもその機能を使えるようになります。<br>
