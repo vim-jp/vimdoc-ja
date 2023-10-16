@@ -1,4 +1,4 @@
-*usr_05.txt*	For Vim バージョン 9.0.  Last change: 2019 May 23
+*usr_05.txt*	For Vim バージョン 9.0.  Last change: 2023 Sep 12
 
 		     VIM USER MANUAL - by Bram Moolenaar
 
@@ -315,17 +315,27 @@ CTRL-U でアンドゥすることができます。":iunmap <C-U>" で元に戻
 
 
 				*restore-cursor* *last-position-jump*  >
-    autocmd BufReadPost *
-      \ if line("'\"") >= 1 && line("'\"") <= line("$") && &ft !~# 'commit'
-      \ |   exe "normal! g`\""
-      \ | endif
+    augroup RestoreCursor
+      autocmd!
+      autocmd BufReadPost *
+        \ let line = line("'\"")
+        \ | if line >= 1 && line <= line("$") && &filetype !~# 'commit'
+        \      && index(['xxd', 'gitrebase'], &filetype) == -1
+        \ |   execute "normal! g`\""
+        \ | endif
+    augroup END
 
 自動コマンドをもう一つ。ファイルを読み込んだ直後に実行される自動コマンドを定義
 しています。後ろのごちゃごちゃした部分は「'" マークが定義されているかどうかを
-チェックし、定義があればそこにジャンプする」という意味です。コマンドを複数行に
-分けて書くために、行頭に "\" を書いています。行がやたらと長くなるのを防ぐため
-です。|line-continuation|参照。"\" は Vim script 内でのみ使えます。コマンドラ
-インで入力するときは使えません。
+チェックし、定義があればそこにジャンプする」という意味です。コミットやリベース
+メッセージの場合は、前回とは違うメッセージになる可能性が高く、また、xxd(1) を
+使ってバイナリファイルをフィルタリングして編集を行う場合は、入力ファイルを行っ
+たり来たり変換して、いわば二面性を持っているため、このようなことは行いません。
+|using-xxd| も参照してください。
+
+コマンドを複数行に分けて書くために、行頭に "\" を書いています。行がやたらと長
+くなるのを防ぐためです。|line-continuation| 参照。"\" は Vim script 内でのみ使
+えます。コマンドラインで入力するときは使えません。
 
 >
 	command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis
@@ -429,6 +439,16 @@ matchit プラグインを使い始めるには、以下の行をあなたの vi
 	   ここの "fancytext" はパッケージ名なので、実際には別の名前になるで
 	   しょう。
 
+editorconfig パッケージの追加				*editorconfig-install*
+
+matchit パッケージと同様に、Vim の起動時に配布されている editorconfig プラグイ
+ンを読み込むには、vimrc ファイルに以下の行を追加します: >
+	packadd! editorconfig
+
+Vim を再起動するとプラグインがアクティブになり、以下でプラグインについて読むこ
+とができます: >
+	:h editorconfig.txt
+
 パッケージについてのより詳しい情報は次の項目を参照してください: |packages|
 
 ==============================================================================
@@ -448,13 +468,18 @@ matchit プラグインを使い始めるには、以下の行をあなたの vi
 |add-filetype-plugin|をします。
 
 
-☆グローバルプラグイン					*standard-plugin*
+☆グローバルプラグイン			*standard-plugin* *distributed-plugins*
 
 Vim を起動すると、自動的にいくつものグローバルプラグインがロードされます。特に
 何もしなくて大丈夫です。グローバルプラグインは、ほとんどの人が欲しいと思うだろ
 う機能を提供しています。それらの機能は Vim の中にコンパイルして組み込まれてい
 るのではなく、Vim script として実装されています。ヘルプの目次にプラグインの一
-覧があります|standard-plugin-list|。|load-plugins|も参照してください。
+覧があります |standard-plugin-list|。
+
+ローカルにインストールされたプラグインとパッケージ (別個のヘルプファイルが付属)
+については、同様のリストがヘルプセクション |local-additions| にあります。
+
+|load-plugins|も参照してください。
 
                                                         *add-global-plugin*
 グローバルプラグインを追加すると、いつでもその機能を使えるようになります。
