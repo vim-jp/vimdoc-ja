@@ -757,9 +757,21 @@ Unix ~
 
 'pythondll' と 'pythonthreedll' オプションを、コンパイル時に
 DYNAMIC_PYTHON_DLL と DYNAMIC_PYTHON3_DLL で指定されている Python の共有ライブ
-ラリのファイルの、代わりを指定するのに使えます。共有ライブラリのバージョンは
-Vim をコンパイルする時に用いた Python 2.x または Python 3 のバージョンと一致し
-ていなければなりません。
+ラリのファイルの、代わりを指定するのに使えます。共有ライブラリのバージョンは、
+|python3-stable-abi| を使用しない限り、Vim がコンパイルされた Python 2.x また
+は Python 3 のバージョン (|v:python3_version|) と一致しなければなりません。
+
+
+Stable ABI と Python バージョンの混在 ~
+			*python-stable* *python-stable-abi* *python3-stable-abi*
+Vim が Stable ABI (Python 3 でのみ使用可能) でコンパイルされていない場合、
+Python 共有ライブラリのバージョンは Vim がコンパイルされたバージョンと一致して
+いなければなりません。そうでないと、バージョンが混在して予期せぬクラッシュや失
+敗を引き起こす可能性があります。Stable ABI ではこの制限は緩和され、少なくとも
+|v:python3_version| のバージョンを持つ Python 3 ライブラリであれば動作します。
+Stable ABI がサポートされているかどうかを確認する方法については、|has-python|
+を参照するか、バージョン出力に |+python3/dyn-stable| が含まれているかどうかを
+確認してください。
 
 ==============================================================================
 10. Python 3						*python3*
@@ -869,6 +881,19 @@ Note: Python の 2 と 3 の両方が利用可能で、Python が動的ロード
 	  echo 'compiled with Python 3.x support'
 	  if has('python3_dynamic')
 	    echo 'Python 3.x dynamically loaded'
+	  endif
+	endif
+
+ライブラリを動的にロードする場合、Vim は Python 3 Stable ABI
+(|python3-stable-abi|) をサポートするようにコンパイルすることができ、Vim がコ
+ンパイルしたものとは異なるバージョンの Python 3 ライブラリをロードすることがで
+きます。確認するには: >
+	if has('python3_dynamic')
+	  if has('python3_stable')
+	    echo 'support Python 3 Stable ABI.'
+	  else
+	    echo 'does not support Python 3 Stable ABI.'
+	    echo 'only use Python 3 version ' .. v:python3_version
 	  endif
 	endif
 
