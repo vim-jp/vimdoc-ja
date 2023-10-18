@@ -1,4 +1,4 @@
-*filetype.txt*  For Vim バージョン 9.0.  Last change: 2023 Feb 15
+*filetype.txt*  For Vim バージョン 9.0.  Last change: 2023 Sep 11
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -144,33 +144,38 @@ NOTE: Vi互換とは全てのオプションがグローバルであることを
 できる:
 
 	ファイル名	変数 ~
-	*.asa		g:filetype_asa	|ft-aspvbs-syntax| |ft-aspperl-syntax|
-	*.asm		g:asmsyntax	|ft-asm-syntax|
-	*.asp		g:filetype_asp	|ft-aspvbs-syntax| |ft-aspperl-syntax|
-	*.bas		g:filetype_bas	|ft-basic-syntax|
+	*.asa		g:filetype_asa		|ft-aspperl-syntax|
+						|ft-aspvbs-syntax|
+	*.asm		g:asmsyntax		|ft-asm-syntax|
+	*.asp		g:filetype_asp		|ft-aspperl-syntax|
+						|ft-aspvbs-syntax|
+	*.bas		g:filetype_bas		|ft-basic-syntax|
 	*.cfg		g:filetype_cfg
 	*.cls		g:filetype_cls
-	*.csh		g:filetype_csh	|ft-csh-syntax|
+	*.csh		g:filetype_csh		|ft-csh-syntax|
 	*.dat		g:filetype_dat
-	*.frm		g:filetype_frm	|ft-form-syntax|
-	*.fs		g:filetype_fs	|ft-forth-syntax|
-	*.i		g:filetype_i	|ft-progress-syntax|
+	*.f		g:filetype_f		|ft-forth-syntax|
+	*.frm		g:filetype_frm		|ft-form-syntax|
+	*.fs		g:filetype_fs		|ft-forth-syntax|
+	*.h		g:c_syntax_for_h	|ft-c-syntax|
+	*.i		g:filetype_i		|ft-progress-syntax|
 	*.inc		g:filetype_inc
 	*.lsl		g:filetype_lsl
-	*.m		g:filetype_m	|ft-mathematica-syntax|
+	*.m		g:filetype_m		|ft-mathematica-syntax|
 	*.mod		g:filetype_mod
-	*.p		g:filetype_p	|ft-pascal-syntax|
+	*.p		g:filetype_p		|ft-pascal-syntax|
 	*.pl		g:filetype_pl
-	*.pp		g:filetype_pp	|ft-pascal-syntax|
+	*.pp		g:filetype_pp		|ft-pascal-syntax|
 	*.prg		g:filetype_prg
 	*.r		g:filetype_r
 	*.sig		g:filetype_sig
-	*.sql		g:filetype_sql	|ft-sql-syntax|
+	*.sql		g:filetype_sql		|ft-sql-syntax|
 	*.src		g:filetype_src
 	*.sys		g:filetype_sys
-	*.sh		g:bash_is_sh	|ft-sh-syntax|
-	*.tex		g:tex_flavor	|ft-tex-plugin|
-	*.w		g:filetype_w	|ft-cweb-syntax|
+	*.sh		g:bash_is_sh		|ft-sh-syntax|
+	*.tex		g:tex_flavor		|ft-tex-plugin|
+	*.typ		g:filetype_typ
+	*.w		g:filetype_w		|ft-cweb-syntax|
 
 いくつかのファイル形式のグローバル変数はファイル形式を検知できなかったときのみ
 使用される:
@@ -397,7 +402,7 @@ Note: プラグインマネージャーや |packages| を使っている場合�
    新しいファイル形式プラグインを作り、'runtimepath' の始めのほうに置く。一例
    として、UNIXではこのファイルを利用できる: >
 	vim ~/.vim/ftplugin/fortran.vim
-<  追加したい設定やキーマップをこのファイルに記述する。グローバルプラグインは
+<   追加したい設定やキーマップをこのファイルに記述する。グローバルプラグインは
    これの後に読み込まれるので、ここで行った設定は上書される可能性がある。その
    ような場合には以下の2つの方法のどちらかを利用する。
 
@@ -405,7 +410,7 @@ Note: プラグインマネージャーや |packages| を使っている場合�
    'runtimepath' の始めのほうにそのプラグインのコピーを置く。一例として、UNIX
    ではこのように行う: >
 	cp $VIMRUNTIME/ftplugin/fortran.vim ~/.vim/ftplugin/fortran.vim
-<  そうすればコピーしたファイルを好きなように変更できる。これは変数
+<   そうすればコピーしたファイルを好きなように変更できる。これは変数
    b:did_ftpluginが設定されていれば、グローバルプラグインは読み込まれない仕組
    みになっていることによる。
    この方法には、配布されるプラグインが改良された際に、再びコピーし同じように
@@ -415,16 +420,29 @@ Note: プラグインマネージャーや |packages| を使っている場合�
    'runtimepath' の最後に、新しいファイル形式プラグインを作成する。一例として、
    UNIXではこのファイルを利用できる: >
 	vim ~/.vim/after/ftplugin/fortran.vim
-<  このファイルの中では、変更したい設定だけを変更できる。
+<   このファイルの中では、変更したい設定だけを変更できる。
 
 ==============================================================================
 3.  標準で付属する形式別プラグインの解説		*ftplugin-docs*
 
 
+					*plugin_exec* *g:plugin_exec*
+外部コマンドの実行を有効にする。これは歴史的に、例えば perl filetype プラグイ
+ン (および他のいくつかのプラグイン) の検索パスを設定するために行われていた。セ
+キュリティ上の理由から、デフォルトでは無効になっている: >
+	:let g:plugin_exec = 1
+特定のファイルタイプに対してのみ有効にすることも可能である: >
+	:let g:<filetype>_exec = 1
+したがって、これを Ruby に対してのみ有効にするには、次の変数を設定する: >
+	:let g:ruby_exec = 1
+
+グローバル `plugin_exec` と `<filetype>_exec` 固有の変数の両方が設定されている
+場合は、ファイルタイプ固有の変数が優先される必要がある。
+
 AWK							*ft-awk-plugin*
 
 @include のような、GNU Awk 固有の機能のサポートは、以下の設定で有効にできる: >
-	let g:awk_is_gawk = 1
+	:let g:awk_is_gawk = 1
 
 
 CHANGELOG						*ft-changelog-plugin*
