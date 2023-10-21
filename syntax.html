@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'syntax'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="syntax.html" name="syntax.txt">syntax.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 Dec 26<br>
+<a class="Constant" href="syntax.html" name="syntax.txt">syntax.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2023 Apr 24<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -220,9 +220,10 @@ MS-Windowsではオプション&nbsp;<a class="Type" href="options.html#'filefor
 プからハイライトグループにリンクされ、ハイライトグループに対して色が設定され<br>
 る。構文グループそれ自体は、色や属性を指定するものではない。<br>
 <br>
-ハイライトや構文のグループ名はASCII文字、数字、アンダースコアだけでつけなけれ<br>
-ばならない。正規表現では: &quot;[a-zA-Z0-9_]*&quot;&nbsp;&nbsp;しかしそれ以外の文字を使ってもVim<br>
-はエラーを出力しない。グループ名の最大長は約200バイトである。 E1249*<br>
+ハイライトや構文のグループ名はASCII文字、数字、アンダースコア、ドット、または<br>
+ハイフンだけでつけなければならない。正規表現では: &quot;[a-zA-Z0-9_.-]*&quot;&nbsp;&nbsp;しかしそ<br>
+れ以外の文字を使ってもVimはエラーを出力しない。グループ名の最大長は約200バイト<br>
+である。&nbsp;<a class="Constant" href="syntax.html#E1249" name="E1249">E1249</a><br>
 <br>
 各ユーザーが好みの色セットを使用できるように、多くの言語に共通するハイライトグ<br>
 ループには優先名が与えられている。推奨されているグループ名は以下のとおり(構文<br>
@@ -587,7 +588,7 @@ CSS を使うようになる。<br>
 存している。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#g:html_use_input_for_pc" name="g:html_use_input_for_pc">g:html_use_input_for_pc</a><br>
-デフォルト: &quot;fallback&quot;<br>
+デフォルト: &quot;none&quot;<br>
 <a class="Identifier" href="syntax.html#g:html_prevent_copy">g:html_prevent_copy</a>&nbsp;の値が空文字列でないとき:<br>
 <br>
 &quot;all&quot; なら、コピー抑制エリアにある通常テキストの代わりに読み込み専用の&nbsp;<span class="Special">&lt;input&gt;</span><br>
@@ -1279,19 +1280,33 @@ DocBook のバージョンを指定できる:<br>
 <br>
 DOSバッチファイル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#dosbatch.vim" name="dosbatch.vim">dosbatch.vim</a>&nbsp;<a class="Constant" href="syntax.html#ft-dosbatch-syntax" name="ft-dosbatch-syntax">ft-dosbatch-syntax</a><br>
 <br>
-DOSバッチファイルのハイライトにはオプションが1つある。このオプションにより<br>
-Windows 2000で導入されたコマンドインタープリターの新しい拡張機能がサポートさ<br>
-れ、変数dosbatch_cmdextversionによりその有効/無効が制御される。Windows NTでは<br>
-値1を設定し、Windows 2000では2を設定するのが良い。次のようにすれば使用するバー<br>
-ジョンを選択できる:<br>
+変数 dosbatch_cmdextversion でサポートされる Windows コマンドインタープリター<br>
+拡張機能のセットを選択する。Windows NT のバージョン (Windows 2000 より前) の場<br>
+合、この値は 1 である必要がある。Windows 2000 以降の場合、値は 2 である必要が<br>
+ある。<br>
+次のようにすれば使用するバージョンを選択できる:<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;:let dosbatch_cmdextversion = 1</div>
 <br>
-変数が定義されていない際のデフォルトはWindows 2000をサポートする2となる。<br>
+変数が定義されていない際のデフォルトは、Windows 2000 以降をサポートする 2 とな<br>
+る。<br>
 <br>
-2番目のオプションは、*.btm ファイルを &quot;dosbatch&quot; (MS-DOS バッチファイル) タイ<br>
-プか &quot;btm&quot; (4DOS バッチファイル) タイプのどちらと判定するかを指定する。デフォ<br>
-ルトでは後者が使われる。前者を使うには、次のようにする:<br>
+オリジナルの MS-DOS では、コメント行を入力する代替手段としてダブルコロン（::）<br>
+を使うイディオムをサポートしている。このイディオムは現在の Windows コマンドイ<br>
+ンタープリタでも使えるが、( ... ) コマンドブロックの中で使うと問題になることが<br>
+ある。これについては Stack Overflow で議論されている -<br>
+<br>
+<span class="Constant"><a href="https://stackoverflow.com/questions/12407800/which-comment-style-should-i-use-in-batch-files">https://stackoverflow.com/questions/12407800/which-comment-style-should-i-use-in-batch-files</a></span><br>
+<br>
+Windows コマンドインタープリタでのコメントや MS-DOS の bat ファイルでの作業で<br>
+:: イディオムを使えるようにするには、dosbatch_colons_comment 変数を何かに設定<br>
+する:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp; :let dosbatch_colons_comment = 1</div>
+<br>
+.btm ファイルを &quot;dosbatch&quot; タイプ (MS-DOS バッチファイル) として検出する<br>
+か、&quot;btm&quot; タイプ (4DOS バッチファイル) として検出するかを指定するオプションが<br>
+ある。デフォルトでは後者が使用される。以下の行で前者を選択することができる:<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp; :let g:dosbatch_syntax_for_btm = 1</div>
 <br>
@@ -1533,9 +1548,11 @@ FORM用の既定の拡張カラーモードではヘッダー命令とFORMプロ
 <br>
 <span class="Statement">FORTH&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="syntax.html#forth.vim" name="forth.vim">forth.vim</a>&nbsp;<a class="Constant" href="syntax.html#ft-forth-syntax" name="ft-forth-syntax">ft-forth-syntax</a><br>
 <br>
-&quot;*.fs&quot; にマッチするファイルのタイプは F# か Forth である。自動判別がうまく機能<br>
-しない場合、または F# ファイルを一切編集しない場合は、vimrcでこれを使用する:<br>
-<div class="helpExample">&nbsp;&nbsp; :let filetype_fs = &quot;forth&quot;</div>
+&quot;.f&quot; にマッチするファイルは Fortran か Forth で、&quot;*.fs&quot; にマッチするファイルは<br>
+F# か Forth である。自動検出がうまくいかない場合や、F# や Fortran をまったく編<br>
+集しない場合は、スタートアップの vimrc でこれを使用する:<br>
+<div class="helpExample">&nbsp;&nbsp; :let filetype_f&nbsp;&nbsp;= &quot;forth&quot;<br>
+&nbsp;&nbsp; :let filetype_fs = &quot;forth&quot;</div>
 <br>
 <br>
 <span class="Statement">FORTRAN&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="syntax.html#fortran.vim" name="fortran.vim">fortran.vim</a>&nbsp;<a class="Constant" href="syntax.html#ft-fortran-syntax" name="ft-fortran-syntax">ft-fortran-syntax</a><br>
@@ -2077,11 +2094,11 @@ LPCはシンプルでメモリ効率的な言語、Lars Pensjö Cの略である
 これでも適切に動作しないCまたはLPCのファイルに対してはモードラインを使うこと。<br>
 LPCファイルには:<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// vim&#0058;set ft=lpc:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// vim&#0058;set ft=lpc:</div>
 <br>
 LPCと認識されてしまうCファイルには:<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// vim&#0058;set ft=c:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// vim&#0058;set ft=c:</div>
 <br>
 変数をセットしたくないなら全てのLPCファイルでモードラインを使うこと。<br>
 <br>
@@ -2113,8 +2130,8 @@ Lua 構文ファイルはバージョン 4.0, 5.0, 5.1, 5.2 に対して使え�
 指定することができる。例えば、Lua 5.1 の構文ハイライトを有効にするには次のよう<br>
 に変数を設定する:<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let lua_version = 5<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let lua_subversion = 1<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let lua_version = 5<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let lua_subversion = 1</div>
 <br>
 <br>
 <span class="Statement">MAIL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="syntax.html#mail.vim" name="mail.vim">mail.vim</a>&nbsp;<a class="Constant" href="syntax.html#ft-mail.vim" name="ft-mail.vim">ft-mail.vim</a><br>
@@ -2685,14 +2702,20 @@ doctest とその中のコードのハイライト:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let python_no_doctest_highlight = 1</div>
 または<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let python_no_doctest_code_highlight = 1</div>
-(最初のオプションは二番目のオプションも含む)。<br>
+最初のオプションは 2 番目のオプションも含む。<br>
 <br>
 行末の空白と、スペースとタブの混在のハイライト:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let python_space_error_highlight = 1</div>
 <br>
-全てのハイライトを有効化させるには (最後に挙げたオプションを有効化し、他のオプ<br>
-ションを無効化するのと同じ):<br>
+全てのハイライトを有効化させるには:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let python_highlight_all = 1</div>
+これは python_space_error_highlight を設定し、他のすべての設定を解除するのと同<br>
+じ効果がある。<br>
+<br>
+Python 2 や straddling code (Python 2 と 3 の互換性) を使っている場合、Python 2<br>
+と Python 3.5 までをサポートした古い構文ファイルの使用を強制することができる<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let python_use_python2_syntax = 1</div>
+このオプションは、最新の Python 3.6 以上の機能をすべて除外する。<br>
 <br>
 <span class="Todo">Note</span>: 変数が定義されているかどうかが意味を持つ。値は関係ない。設定値は 1 以外<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;でも構わない。<br>
@@ -3608,11 +3631,11 @@ pyyaml&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timestamp の�
 構文アイテムには3つのタイプがある。<br>
 <br>
 1. キーワード (Keyword)<br>
-&nbsp;&nbsp; これはオプション&nbsp;<a class="Type" href="options.html#'iskeyword'">'iskeyword'</a>&nbsp;で定義されるキーワード文字だけからなる。他の構<br>
-&nbsp;&nbsp; 文要素を含むことはできない。完全な単語(マッチの前後にキーワード文字が存在し<br>
-&nbsp;&nbsp; ない)にのみマッチする。キーワード &quot;if&quot; は &quot;if(a=b)&quot; にはマッチする<br>
-&nbsp;&nbsp; が、&quot;ifdef x&quot; にはマッチしない。&quot;(&quot; はキーワード文字でなく、&quot;d&quot; はキーワー<br>
-&nbsp;&nbsp; ド文字だから。<br>
+&nbsp;&nbsp; キーワード文字は、<a class="Identifier" href="syntax.html#:syn-iskeyword">:syn-iskeyword</a>&nbsp;または&nbsp;<a class="Type" href="options.html#'iskeyword'">'iskeyword'</a>&nbsp;オプションで指定され<br>
+&nbsp;&nbsp; た文字に従ってのみ含むことができる。他の構文項目を含むことはできない。完全<br>
+&nbsp;&nbsp; な単語でのみマッチする (マッチの前後にキーワード文字がない)。キーワード<br>
+&nbsp;&nbsp; &quot;if&quot; は、&quot;if(a=b)&quot; ではマッチするが、&quot;ifdef x&quot; ではマッチしない。&quot;(&quot; はキー<br>
+&nbsp;&nbsp; ワード文字ではなく、&quot;d&quot; はキーワード文字だからである。<br>
 <br>
 2. マッチ (Match)<br>
 &nbsp;&nbsp; 単一の正規表現パターンにマッチする。<br>
@@ -5089,7 +5112,7 @@ guisp=<span class="Special">{color-name}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;guifgは文字色、guibgは背景色、guispは波線および取り消し線の色を指定す<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。これらはGUIで使用される。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;いくつか特別な名前がある:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NONE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;no color (透明)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NONE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;no color (透明)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#E1361" name="E1361">E1361</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通常の背景色を使う<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;background&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通常の背景色を使う<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通常の文字色を使う<br>
@@ -5158,7 +5181,7 @@ ColorColumn&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'col
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#hl-Conceal" name="hl-Conceal">hl-Conceal</a><br>
 Conceal&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Conceal されたテキストの代わりに表示される代替文字の表示に使わ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れる (<a class="Type" href="options.html#'conceallevel'">'conceallevel'</a>&nbsp;参照)。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#hl-Cursor" name="hl-Cursor">hl-Cursor</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#hl-Cursor" name="hl-Cursor">hl-Cursor</a>&nbsp;<a class="Constant" href="syntax.html#hl-lCursor" name="hl-lCursor">hl-lCursor</a><br>
 Cursor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カーソル下の文字。<br>
 lCursor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="map.html#language-mapping">language-mapping</a>&nbsp;が使用されているときのカーソルの下の文字<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<a class="Type" href="options.html#'guicursor'">'guicursor'</a>&nbsp;を参照)。<br>
@@ -5236,6 +5259,14 @@ Normal&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通常のテ�
 Pmenu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ポップアップメニュー: 通常の項目。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#hl-PmenuSel" name="hl-PmenuSel">hl-PmenuSel</a><br>
 PmenuSel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ポップアップメニュー: 選択されている項目。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#hl-PmenuKind" name="hl-PmenuKind">hl-PmenuKind</a><br>
+PmenuKind&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ポップアップメニュー: &quot;kind&quot; の通常の項目。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#hl-PmenuKindSel" name="hl-PmenuKindSel">hl-PmenuKindSel</a><br>
+PmenuKindSel&nbsp;&nbsp;&nbsp;&nbsp;ポップアップメニュー: &quot;kind&quot; の選択されている項目。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#hl-PmenuExtra" name="hl-PmenuExtra">hl-PmenuExtra</a><br>
+PmenuExtra&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ポップアップメニュー: &quot;extra text&quot; の通常の項目。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#hl-PmenuExtraSel" name="hl-PmenuExtraSel">hl-PmenuExtraSel</a><br>
+PmenuExtraSel&nbsp;&nbsp; ポップアップメニュー: &quot;extra text&quot; の選択されている項目。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#hl-PmenuSbar" name="hl-PmenuSbar">hl-PmenuSbar</a><br>
 PmenuSbar&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ポップアップメニュー: スクロールバー。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="syntax.html#hl-PmenuThumb" name="hl-PmenuThumb">hl-PmenuThumb</a><br>
