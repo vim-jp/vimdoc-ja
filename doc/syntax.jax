@@ -1,4 +1,4 @@
-*syntax.txt*	For Vim バージョン 9.0.  Last change: 2022 Dec 26
+*syntax.txt*	For Vim バージョン 9.0.  Last change: 2023 Apr 24
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -215,9 +215,10 @@ NOTE: 長い行があって表示が遅く、構文ハイライトをオフに�
 プからハイライトグループにリンクされ、ハイライトグループに対して色が設定され
 る。構文グループそれ自体は、色や属性を指定するものではない。
 
-ハイライトや構文のグループ名はASCII文字、数字、アンダースコアだけでつけなけれ
-ばならない。正規表現では: "[a-zA-Z0-9_]*"  しかしそれ以外の文字を使ってもVim
-はエラーを出力しない。グループ名の最大長は約200バイトである。 E1249*
+ハイライトや構文のグループ名はASCII文字、数字、アンダースコア、ドット、または
+ハイフンだけでつけなければならない。正規表現では: "[a-zA-Z0-9_.-]*"  しかしそ
+れ以外の文字を使ってもVimはエラーを出力しない。グループ名の最大長は約200バイト
+である。 *E1249*
 
 各ユーザーが好みの色セットを使用できるように、多くの言語に共通するハイライトグ
 ループには優先名が与えられている。推奨されているグループ名は以下のとおり(構文
@@ -582,7 +583,7 @@ CSS を使うようになる。
 存している。
 
 						    *g:html_use_input_for_pc*
-デフォルト: "fallback"
+デフォルト: "none"
 |g:html_prevent_copy| の値が空文字列でないとき:
 
 "all" なら、コピー抑制エリアにある通常テキストの代わりに読み込み専用の <input>
@@ -1274,19 +1275,33 @@ DocBook のバージョンを指定できる: >
 
 DOSバッチファイル			*dosbatch.vim* *ft-dosbatch-syntax*
 
-DOSバッチファイルのハイライトにはオプションが1つある。このオプションにより
-Windows 2000で導入されたコマンドインタープリターの新しい拡張機能がサポートさ
-れ、変数dosbatch_cmdextversionによりその有効/無効が制御される。Windows NTでは
-値1を設定し、Windows 2000では2を設定するのが良い。次のようにすれば使用するバー
-ジョンを選択できる: >
+変数 dosbatch_cmdextversion でサポートされる Windows コマンドインタープリター
+拡張機能のセットを選択する。Windows NT のバージョン (Windows 2000 より前) の場
+合、この値は 1 である必要がある。Windows 2000 以降の場合、値は 2 である必要が
+ある。
+次のようにすれば使用するバージョンを選択できる: >
 
   :let dosbatch_cmdextversion = 1
 
-変数が定義されていない際のデフォルトはWindows 2000をサポートする2となる。
+変数が定義されていない際のデフォルトは、Windows 2000 以降をサポートする 2 とな
+る。
 
-2番目のオプションは、*.btm ファイルを "dosbatch" (MS-DOS バッチファイル) タイ
-プか "btm" (4DOS バッチファイル) タイプのどちらと判定するかを指定する。デフォ
-ルトでは後者が使われる。前者を使うには、次のようにする: >
+オリジナルの MS-DOS では、コメント行を入力する代替手段としてダブルコロン（::）
+を使うイディオムをサポートしている。このイディオムは現在の Windows コマンドイ
+ンタープリタでも使えるが、( ... ) コマンドブロックの中で使うと問題になることが
+ある。これについては Stack Overflow で議論されている -
+
+https://stackoverflow.com/questions/12407800/which-comment-style-should-i-use-in-batch-files
+
+Windows コマンドインタープリタでのコメントや MS-DOS の bat ファイルでの作業で
+:: イディオムを使えるようにするには、dosbatch_colons_comment 変数を何かに設定
+する: >
+
+   :let dosbatch_colons_comment = 1
+
+.btm ファイルを "dosbatch" タイプ (MS-DOS バッチファイル) として検出する
+か、"btm" タイプ (4DOS バッチファイル) として検出するかを指定するオプションが
+ある。デフォルトでは後者が使用される。以下の行で前者を選択することができる: >
 
    :let g:dosbatch_syntax_for_btm = 1
 
@@ -1528,8 +1543,10 @@ FORM用の既定の拡張カラーモードではヘッダー命令とFORMプロ
 
 FORTH						*forth.vim* *ft-forth-syntax*
 
-"*.fs" にマッチするファイルのタイプは F# か Forth である。自動判別がうまく機能
-しない場合、または F# ファイルを一切編集しない場合は、vimrcでこれを使用する: >
+".f" にマッチするファイルは Fortran か Forth で、"*.fs" にマッチするファイルは
+F# か Forth である。自動検出がうまくいかない場合や、F# や Fortran をまったく編
+集しない場合は、スタートアップの vimrc でこれを使用する: >
+   :let filetype_f  = "forth"
    :let filetype_fs = "forth"
 
 
@@ -2070,11 +2087,11 @@ LPCはシンプルでメモリ効率的な言語、Lars Pensjö Cの略である
 	:let lpc_syntax_for_c = 1
 
 これでも適切に動作しないCまたはLPCのファイルに対してはモードラインを使うこと。
-LPCファイルには:
+LPCファイルには: >
 
 	// vim:set ft=lpc:
 
-LPCと認識されてしまうCファイルには:
+LPCと認識されてしまうCファイルには: >
 
 	// vim:set ft=c:
 
@@ -2106,7 +2123,7 @@ LUA						*lua.vim* *ft-lua-syntax*
 Lua 構文ファイルはバージョン 4.0, 5.0, 5.1, 5.2 に対して使える (5.2 がデフォル
 ト) グローバル変数 lua_version と lua_subversion を設定することでバージョンを
 指定することができる。例えば、Lua 5.1 の構文ハイライトを有効にするには次のよう
-に変数を設定する:
+に変数を設定する: >
 
 	:let lua_version = 5
 	:let lua_subversion = 1
@@ -2680,14 +2697,20 @@ doctest とその中のコードのハイライト: >
 	:let python_no_doctest_highlight = 1
 または >
 	:let python_no_doctest_code_highlight = 1
-(最初のオプションは二番目のオプションも含む)。
+最初のオプションは 2 番目のオプションも含む。
 
 行末の空白と、スペースとタブの混在のハイライト: >
 	:let python_space_error_highlight = 1
 
-全てのハイライトを有効化させるには (最後に挙げたオプションを有効化し、他のオプ
-ションを無効化するのと同じ): >
+全てのハイライトを有効化させるには: >
 	:let python_highlight_all = 1
+これは python_space_error_highlight を設定し、他のすべての設定を解除するのと同
+じ効果がある。
+
+Python 2 や straddling code (Python 2 と 3 の互換性) を使っている場合、Python 2
+と Python 3.5 までをサポートした古い構文ファイルの使用を強制することができる >
+	:let python_use_python2_syntax = 1
+このオプションは、最新の Python 3.6 以上の機能をすべて除外する。
 
 Note: 変数が定義されているかどうかが意味を持つ。値は関係ない。設定値は 1 以外
       でも構わない。
@@ -3603,11 +3626,11 @@ ZSH						    *zsh.vim* *ft-zsh-syntax*
 構文アイテムには3つのタイプがある。
 
 1. キーワード (Keyword)
-   これはオプション 'iskeyword' で定義されるキーワード文字だけからなる。他の構
-   文要素を含むことはできない。完全な単語(マッチの前後にキーワード文字が存在し
-   ない)にのみマッチする。キーワード "if" は "if(a=b)" にはマッチする
-   が、"ifdef x" にはマッチしない。"(" はキーワード文字でなく、"d" はキーワー
-   ド文字だから。
+   キーワード文字は、|:syn-iskeyword| または 'iskeyword' オプションで指定され
+   た文字に従ってのみ含むことができる。他の構文項目を含むことはできない。完全
+   な単語でのみマッチする (マッチの前後にキーワード文字がない)。キーワード
+   "if" は、"if(a=b)" ではマッチするが、"ifdef x" ではマッチしない。"(" はキー
+   ワード文字ではなく、"d" はキーワード文字だからである。
 
 2. マッチ (Match)
    単一の正規表現パターンにマッチする。
@@ -3709,7 +3732,7 @@ SYNTAX ISKEYWORD SETTING				*:syn-iskeyword*
 
 	clear:		シンタックス固有の iskeyword の設定を無効にし、
 			バッファローカルの 'iskeyword' 設定を有効にする。
-	{option}        シンタックスの 'iskeyword' オプション値を設定する。
+	{option}	シンタックスの 'iskeyword' オプション値を設定する。
 
 	例: >
   :syntax iskeyword @,48-57,192-255,$,_
@@ -5084,7 +5107,7 @@ guisp={color-name}					*highlight-guisp*
 	guifgは文字色、guibgは背景色、guispは波線および取り消し線の色を指定す
 	る。これらはGUIで使用される。
 	いくつか特別な名前がある:
-		NONE		no color (透明)
+		NONE		no color (透明)			*E1361*
 		bg		通常の背景色を使う
 		background	通常の背景色を使う
 		fg		通常の文字色を使う
@@ -5153,7 +5176,7 @@ ColorColumn	'colorcolumn' で設定された列の表示に使われる
 							*hl-Conceal*
 Conceal		Conceal されたテキストの代わりに表示される代替文字の表示に使わ
 		れる ('conceallevel' 参照)。
-							*hl-Cursor*
+						*hl-Cursor* *hl-lCursor*
 Cursor		カーソル下の文字。
 lCursor		|language-mapping| が使用されているときのカーソルの下の文字
 		('guicursor' を参照)。
@@ -5231,6 +5254,14 @@ Normal		通常のテキスト。
 Pmenu		ポップアップメニュー: 通常の項目。
 							*hl-PmenuSel*
 PmenuSel	ポップアップメニュー: 選択されている項目。
+							*hl-PmenuKind*
+PmenuKind	ポップアップメニュー: "kind" の通常の項目。
+							*hl-PmenuKindSel*
+PmenuKindSel	ポップアップメニュー: "kind" の選択されている項目。
+							*hl-PmenuExtra*
+PmenuExtra	ポップアップメニュー: "extra text" の通常の項目。
+							*hl-PmenuExtraSel*
+PmenuExtraSel	ポップアップメニュー: "extra text" の選択されている項目。
 							*hl-PmenuSbar*
 PmenuSbar	ポップアップメニュー: スクロールバー。
 							*hl-PmenuThumb*
