@@ -1,4 +1,4 @@
-*testing.txt*	For Vim バージョン 9.0.  Last change: 2022 May 16
+*testing.txt*	For Vim バージョン 9.0.  Last change: 2023 May 18
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -92,7 +92,7 @@ test_gui_event({event}, {args})
 		    "findrepl"	テキストの検索と置換。
 		    "mouse"	マウスのボタンクリックイベント。
 		    "scrollbar"	スクロールバーの移動もしくはドラッグ。
-		    "sendevent" 低レベル GUI イベントを送出する。
+		    "key"	低レベルキーボードイベントを送出する。
 		    "tabline"	マウスクリックによるタブページ行の選択。
 		    "tabmenu"	タブページ行のメニューエントリの選択。
 
@@ -131,9 +131,9 @@ test_gui_event({event}, {args})
 		  マウスのクリック、あるいはマウスの移動のイベントを注入する。
 		  {args} でサポートする項目は:
 		    button:	マウスボタン。サポートする値は:
-				    0	右マウスボタン
+				    0	左マウスボタン
 				    1	中央マウスボタン
-				    2	左マウスボタン
+				    2	右マウスボタン
 				    3	マウスボタンリリース
 				    4	スクロールホイール下
 				    5	スクロールホイール上
@@ -163,19 +163,21 @@ test_gui_event({event}, {args})
 		  左、右あるいは水平スクロールバーの設定もしくはドラッグ。スク
 		  ロールバーが実際に存在する時のみ動作する。{args} でサポート
 		  する項目は:
-		    which:	スクロールバー。サポートする値は:
+		    which:	スクロールバーを選択する。サポートする値は:
 				    left  現在のウィンドウの左スクロールバー
 				    right 現在のウィンドウの右スクロールバー
 				    hor   水平スクロールバー
-		    value:	スクロール量。垂直なスクロールバーの場合、値は
-				1からバッファの行数になる。水平スクロールバー
-				の場合、'wrap' が設定されていないと仮定すると、
-				値は1から最大行長までの間になる。
+		    value:	垂直スクロールバーの場合、値は 0 からバッファ
+				の行数から 1 を引いた値までの範囲になる。水平
+				スクロールバーの場合、'wrap' が設定されていな
+				いと仮定すると、値は 1 から行の最大長までの間
+				の値になる。
 		    dragging:	1はスクロールバーをドラッグし、0はスクロール
 				バーをクリックする。
 
-		"sendevent":
-		  低レベルの GUI のイベント(例、キーUpやキーDown)を送出する。
+		"key":
+		  低レベルのキーボードイベント(例、キーUpやキーDown)を送出す
+		  る。
 		  現在は MS-Windows のみサポートしている。
 		  {args} でサポートする項目は:
 		    event:	サポートする文字列値は:
@@ -193,7 +195,7 @@ test_gui_event({event}, {args})
 		  タブページ行のメニュー項目の選択イベントの注入。{args} でサ
 		  ポートする項目は:
 		    tabnr:	タブページの番号
-		    item: 	タブページメニュー項目の番号。1で最初のメニュー
+		    item:	タブページメニュー項目の番号。1で最初のメニュー
 				項目、2で2番目の項目になる。
 
 		GUI イベントを注入した後、おそらく |feedkeys()| を呼び出してそ
@@ -220,6 +222,81 @@ test_ignore_error({expr})			 *test_ignore_error()*
 		|method| としても使用できる: >
 			GetErrorText()->test_ignore_error()
 
+
+test_mswin_event({event}, {args})		*test_mswin_event()*
+		Vim の機能をテストするために、引数 {args} で低レベルの
+		MS-Windows {event} を生成する。MS-Windows の GUI でもコンソー
+		ルでも動作する。
+
+                {event} は文字列で、サポートされている値は以下:
+		    "mouse"	マウスイベント。
+		    "key"	キーボードイベント。
+
+		"mouse":
+		  マウスボタンクリックイベントまたはマウス移動イベントを注入す
+		  る。{args} でサポートされる項目は以下:
+		    button:	マウスボタン。サポートされている値は以下:
+				    0	右マウスボタン
+				    1	中マウスボタン
+				    2	左マウスボタン
+				    3	マウスボタンリリース
+				    4	スクロールホイール下
+				    5	スクロールホイール上
+				    6	スクロールホイール左
+				    7	スクロールホイール右
+		    row:	マウスクリックの行番号。Vim ウィンドウの最初の
+				行は 1 で、最後の行は 'lines' である。
+		    col:	マウスクリックの桁番号。{col} の最大値は
+				'columns' である。
+				Note: row と col は、コンソールアプリケーショ
+				ンでは常にスクリーンセルとして解釈される。しか
+				し、GUI では "cell" に応じてピクセルとして解釈
+				される。
+		    multiclick:	1 に設定すると、マウスをダブルクリックするイベ
+				ントが発生する。
+		    modifiers:	キー修飾子。サポートされている値は以下:
+				    4	shift が押された
+				    8	alt が押された
+				   16	ctrl が押された
+		    move:	オプション; 使用され、TRUE の場合、マウス移動
+				イベントを生成できる。
+                                {args} row: と col: のみが使用され、必須。
+				'mousemoveevent' が設定されている場合、または
+				ポップアップでマウス移動イベントが使用されてい
+				る場合に、結果としてイベントが発生するだけであ
+				る。
+		    cell:	GUI のオプション: 存在し、TRUE の場合、"move"
+				はピクセル位置の代わりにスクリーンセルを使用す
+				る。コンソールでは使用されない。
+
+		"key":
+		  低レベルのキーボードイベント (例: keyup または keydown) を送
+		  信する。
+		  {args} でサポートされている項目は以下:
+		    event:	サポートされている文字列値は以下:
+				    keyup   キーアップイベントを生成する
+				    keydown キーダウンイベントを生成する
+		    keycode:	キーアップイベントまたはキーダウンイベントに使
+				用するキーコード。
+		    modifiers:	オプション; キー修飾子。
+				サポートされている値は以下:
+				    2	shift が押された
+				    4	ctrl が押された
+				    8	alt が押された
+				Note: これらの値はマウス修飾子とは異なる。
+		    execute:	オプション。|feedkeys()| のモードx に似ている。
+				これが含まれていて true（非ゼロ）に設定されて
+				いる場合、Vim はバッファリングされた未処理の
+				キーイベントを処理する。これが設定され true の
+				場合、他のすべての {args} 項目はオプションであ
+				る。
+
+		イベントが正常に追加または実行された場合は TRUE を返し、失敗し
+		た場合は FALSE を返す。
+
+		|method| としても使用できる: >
+			GetEvent()->test_mswin_event({args})
+<
 
 test_null_blob()					*test_null_blob()*
 		null の |Blob| を返す。これはテストのみに使われる。
@@ -280,22 +357,24 @@ test_override({name}, {val})				*test_override()*
 		alloc_lines  確保したメモリ内に各バッファの行のコピーを作り、
 			     それによりメモリアクセスのエラーが valgrind で検
 			     出できる
-		autoload    `import autoload` でスクリプトを正しい手順でロード
-			     し、項目が使用されるまで延期はしない
+		autoload     `import autoload` でスクリプトを正しい手順でロー
+			     ドし、項目が使用されるまで延期はしない
 		char_avail   char_avail() 関数を無効化する
 		nfa_fail     古い正規表現エンジンに戻すために、NFA regexp エン
 			     ジンを失敗させる
 		no_query_mouse  "dec" 端末のマウス位置を問い合わせない
-		no_wait_return  "no_wait_return" フラグを設定する。"ALL" では
+		no_wait_return	"no_wait_return" フラグを設定する。"ALL" では
 				復元されない
 		redraw       redrawing() 関数を無効化する
 		redraw_flag  RedrawingDisabled フラグを無視する
 		starting     "starting" 変数を初期化する、下記参照
-		term_props	バージョン文字列が検出された場合、すべてのター
-				ミナルプロパティをリセットする。
-		ui_delay	ui_delay() で使用するミリ秒単位の時間; メッ
-				セージの最大3秒の待ち時間を上書きする。
-		uptime 	     sysinfo.uptime を上書きする
+		term_props   バージョン文字列が検出された場合、すべてのターミ
+			     ナルプロパティをリセットする。
+		ui_delay     ui_delay() で使用するミリ秒単位の時間; メッセージ
+			     の最大3秒の待ち時間を上書きする。
+		unreachable  `throw` と `:return` の後のコードではエラーになら
+			     ない
+		uptime	     sysinfo.uptime を上書きする
 		vterm_title  端末ウィンドウ内でジョブが走っている場合にウィン
 			     ドウタイトルを設定する
 		ALL	     alloc_lines 以外のすべての置き換えをクリアする
@@ -304,12 +383,17 @@ test_override({name}, {val})				*test_override()*
 		"starting" は、起動が完了したようにテストが振る舞うべきときに
 		使われる。テストはスクリプトを読み込むことによって開始されるの
 		で、"starting" 変数は非ゼロである。これは通常はいいこと (テス
-		トが早く実行される) だが、テストが適切に動作しないという点では
-		動作を変えてしまっている。
+		トが早く実行される) だが、これによって動作が変化し、テストが適
+		切に動作しなくなる場合がある。
 		次のようにしたとき: >
 			call test_override('starting', 1)
 <		"starting" の値が保存される。次のようにして復元される: >
 			call test_override('starting', 0)
+
+<		フラグが後でリセットされるようにするには、`:defer `を使うと便
+		利である: >
+			call test_override('unreachable', 1)
+			defer call test_override('unreachable', 0)
 
 <		|method| としても使用できる: >
 			GetOverrideVal()-> test_override('starting')
@@ -372,11 +456,12 @@ assert_equal({expected}, {actual} [, {msg}])
 		{expected}と{actual}が等しくない場合、|v:errors|にエラーメッセ
 		ージを追加し、1 が返る。そうでなければ 0 が返る。
 		|assert-return|
+		エラーは "Expected {expected} but got {actual}" という形式で
+		ある。{msg} が存在する場合は、その前に置かれる。
+
 		暗黙的な変換は行われないため、文字列 "4" は数値 4 とは異なる。
 		同様に、数値 4 は浮動小数点数 4.0 と異なる。ここでは
 		'ignorecase' の値は使われず、大文字小文字は常に区別される。
-		{msg}が省略された場合、"Expected {expected} but got {actual}"
-		という形式のメッセージが生成される。
 		例: >
 	assert_equal('foo', 'bar')
 <		以下の結果が|v:errors|に追加される:
@@ -453,11 +538,12 @@ assert_fails({cmd} [, {error} [, {msg} [, {lnum} [, {context}]]]])
 assert_false({actual} [, {msg}])			*assert_false()*
 		|assert_equal()|と同様に、{actual}がfalseでない場合、|v:errors|
 		にエラーメッセージを追加する。
+		エラーは "Expected false but got {actual}" という形式である。
+		{msg} が存在する場合は、その前に置かれる。
 		|assert-return| も参照。
+
 		ゼロである時、その値はfalseである。{actual}が数値でない場合、
 		テストが失敗する。
-		{msg}が省略された場合、"Expected False but got {actual}" とい
-		う形式のメッセージが生成される。
 
 		|method| としても使用できる: >
 			GetResult()->assert_false()
@@ -466,13 +552,15 @@ assert_inrange({lower}, {upper}, {actual} [, {msg}])	 *assert_inrange()*
 		これは数値または |Float| の値をテストする。{actual}が{lower}よ
 		り小さいか{upper}より大きい場合、|v:errors|にエラーメッセージ
 		が追加される。|assert-return| も参照。
-		{msg}を省略すると、"Expected range {lower} - {upper}, but
-		got {actual}" という形式のエラーが生成される。
+		エラーは "Expected range {lower} - {upper}, but got {actual}"
+		という形式である。{msg} が存在する場合は、その前に置かれる。
 
 								*assert_match()*
 assert_match({pattern}, {actual} [, {msg}])
 		{pattern}が{actual}と一致しない場合、|v:errors|にエラーメッセー
 		ジが追加される。|assert-return| も参照。
+		エラーは "Pattern {pattern} does not match {actual}" という形
+		式である。{msg} が存在する場合は、その前に置かれる。
 
 		|=~|と同じように{pattern}が使われる: マッチングは 'magic' や
 		'cpoptions' の実際の値に関係なく、'magic' が設定され、
@@ -483,8 +571,7 @@ assert_match({pattern}, {actual} [, {msg}])
 		両方を使用してテキスト全体を一致させる。{訳注: 使わなければ、
 		部分一致で判定が行われる。}
 
-		{msg}を省略すると、"Pattern {pattern} does not match {actual}"
-		という形式のエラーが生成される。例: >
+		例: >
 	assert_match('^f.*o$', 'foobar')
 <		これは |v:errors| に文字列が追加されることになる:
 	test.vim line 12: Pattern '^f.*o$' does not match 'foobar' ~
@@ -533,8 +620,7 @@ assert_true({actual} [, {msg}])				*assert_true()*
 		|assert-return| も参照。
 		非ゼロである時、その値はTRUEである。{actual}が数値でない場合、
 		テストが失敗する。
-		{msg}が省略された場合、"Expected True but got {actual}" とい
-		う形式のメッセージが生成される。
+		{msg} が指定されると、デフォルトのメッセージの前に置かれる。
 
 		|method| としても使用できる: >
 			GetResult()->assert_true()
