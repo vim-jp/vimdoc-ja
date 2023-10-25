@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'editing'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="editing.html" name="editing.txt">editing.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 Apr 16<br>
+<a class="Constant" href="editing.html" name="editing.txt">editing.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2023 Sep 27<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -388,7 +388,9 @@ MS-Windowsでは '\' がパスの区切り文字なので、オプション&nbsp
 &quot;path[abc]&quot; を編集できる。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="editing.html#starstar-wildcard" name="starstar-wildcard">starstar-wildcard</a><br>
-&quot;**&quot; の展開は、Unix, Win32, macOS、その他数種類のシステムでのみ使用できる。<br>
+&quot;**&quot; の展開は、Unix, Win32, macOS、その他数種類のシステムでのみ使用できる (た<br>
+だし、<a class="Type" href="options.html#'shell'">'shell'</a>&nbsp;設定に依存する可能性がある。zsh では正しく動作することが知られて<br>
+いる。bash では、少なくとも bash バージョン 4.X 以上が必要である)。<br>
 &quot;**&quot; はディレクトリツリーを再帰的に検索する。深さの上限は100ディレクトリである。<br>
 <span class="Todo">Note</span>: いくつかのコマンドでは、この挙動が少し異なる。<a class="Identifier" href="editing.html#file-searching">file-searching</a>&nbsp;を参照。<br>
 例:<br>
@@ -574,6 +576,43 @@ DOS 形式でファイルを読み込んで、Unix 形式でそれを保存す�
 オプション&nbsp;<a class="Type" href="options.html#'key'">'key'</a>&nbsp;をオンに設定することで、保存されるファイルを暗号化できる。こ<br>
 れは他人がユーザーのファイルを読むことに対して、ある程度の安全を保証する。<br>
 <a class="Identifier" href="editing.html#encryption">encryption</a><br>
+<br>
+<span class="Statement">行末とファイル終端</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="editing.html#eol-and-eof" name="eol-and-eof">eol-and-eof</a><br>
+<br>
+Vim には、ファイル形式を制御するためのいくつかのオプションがある:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'fileformat'">'fileformat'</a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;EOL&gt;</span>&nbsp;形式: Unix, DOS, Mac<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'endofline'">'endofline'</a>&nbsp;&nbsp;&nbsp;&nbsp; 最後の行が&nbsp;<span class="Special">&lt;EOL&gt;</span>&nbsp;で終わるかどうか<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'endoffile'">'endoffile'</a>&nbsp;&nbsp;&nbsp;&nbsp; ファイルが&nbsp;<span class="Special">CTRL-Z</span>&nbsp;で終わるかどうか<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'fixendofline'">'fixendofline'</a>&nbsp;&nbsp;eol と eof を修正するかどうか<br>
+<br>
+最初の 3 つの値は通常、ファイルの読み取り時に自動的に検出され、テキストをファ<br>
+イルに書き込むときに使用される。バッファを編集していると、すべての行に行末があ<br>
+り、<span class="Special">CTRL-Z</span>&nbsp;がないように見える (<a class="Type" href="options.html#'binary'">'binary'</a>&nbsp;が設定されている場合は例外で、その場合<br>
+は動作が異なる)。<br>
+<br>
+<a class="Type" href="options.html#'fixendofline'">'fixendofline'</a>&nbsp;オプションを使用して、書き込む内容を選択できる。オプションの値<br>
+を変更して、読み取り時とは異なる方法でファイルを書き込むこともできる。<br>
+<br>
+これらの使用例をいくつか示す。<br>
+<br>
+Unix 形式のファイルが必要な場合 (すべての行が NL で終了する):<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setl ff=unix fixeol</div>
+おそらく、Unix ライクなシステムであれば、どんなシステムでもこれを行うべきであ<br>
+る。また、最近の MS-Windows システムでもうまく動作する傾向がある。Vim script<br>
+には常にこのフォーマットを使うことをお勧めする。<br>
+<br>
+古い MS-DOS ファイルを最新の環境で使用する場合は、行末を修正して&nbsp;<span class="Special">CTRL-Z</span>&nbsp;を削除<br>
+するが、<span class="Special">&lt;CR&gt;&lt;NL&gt;</span>&nbsp;スタイルの&nbsp;<span class="Special">&lt;EOL&gt;</span>&nbsp;は維持する:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setl ff=dos fixeol</div>
+これは多くの MS-Windows プログラムにとって便利で、これらは通常&nbsp;<span class="Special">&lt;CR&gt;&lt;NL&gt;</span>&nbsp;行末を<br>
+期待する。<br>
+<br>
+最後の&nbsp;<span class="Special">&lt;EOL&gt;</span>&nbsp;を削除し、最後の&nbsp;<span class="Special">CTRL-Z</span>&nbsp;を追加したい場合（例えば CP/M のような古<br>
+いシステム向け）:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setl ff=dos nofixeol noeol eof</div>
+<br>
+最後の&nbsp;<span class="Special">&lt;EOL&gt;</span>&nbsp;と最後の&nbsp;<span class="Special">CTRL-Z</span>&nbsp;を含め、ファイル形式をそのまま保持したい場合:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setl nofixeol</div>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 3. 引数リスト&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="editing.html#argument-list" name="argument-list">argument-list</a>&nbsp;<a class="Constant" href="editing.html#arglist" name="arglist">arglist</a><br>
@@ -1058,6 +1097,13 @@ Vimはファイルを書き込むときにACL情報を保とうとする。バ�
 ACL情報は (ファイルを開くときに) ファイルが読込専用かどうか調べるのにも使われ<br>
 る。<br>
 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="editing.html#xattr" name="xattr">xattr</a>&nbsp;<a class="Constant" href="editing.html#E1506" name="E1506">E1506</a>&nbsp;<a class="Constant" href="editing.html#E1507" name="E1507">E1507</a>&nbsp;<a class="Constant" href="editing.html#E1508" name="E1508">E1508</a>&nbsp;<a class="Constant" href="editing.html#E1509" name="E1509">E1509</a><br>
+xattr は Extended Attributes の略で、ファイルシステム内のファイルと一緒にメタ<br>
+データを保存する高度な方法である。これは使用されている実際のファイルシステムに<br>
+依存し、Vim は Linux システムでのみサポートしている。<br>
+&nbsp;&nbsp; Vim はファイルの書き込み時に拡張属性情報を保存しようとする。バックアップファ<br>
+イルは、元のファイルの拡張属性を取得する。<br>
+<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="editing.html#read-only-share" name="read-only-share">read-only-share</a><br>
 MS-Windowsがネットワーク上でドライブを共有するとき、そこは読込専用にすることが<br>
 できる。つまりファイルに読込専用の属性がなく、NCネットワーク共有ドライブ上の<br>
@@ -1485,9 +1531,11 @@ Vimはファイルを暗号化して保存し、再び読み取ることがで�
 <br>
 <a class="Type" href="options.html#'cryptmethod'">'cryptmethod'</a>&nbsp;オプションを設定することで暗号化メソッドを選択できる。次の中から<br>
 選択できる:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal cm=zip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 弱いメソッド。後方互換。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal cm=blowfish&nbsp;&nbsp; &quot; 脆弱性ありのメソッド<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal cm=blowfish2&nbsp;&nbsp;&quot; 中強度のメソッド</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal cm=zip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 弱いメソッド。後方互換。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal cm=blowfish&nbsp;&nbsp;&nbsp;&nbsp; &quot; 脆弱性ありのメソッド。使用禁止。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal cm=blowfish2&nbsp;&nbsp;&nbsp;&nbsp;&quot; 中強度のメソッド<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:setlocal cm=xchacha20v2&nbsp;&nbsp;&quot; libsodium を使用した中強度のメソッド</div>
+<br>
 ファイルを保存する前に設定する。暗号化されたファイルを読み込んだとき、このオプ<br>
 ションは自動的にファイル保存時に使われたメソッドに設定される。ファイルを保存す<br>
 る前に&nbsp;<a class="Type" href="options.html#'cryptmethod'">'cryptmethod'</a>&nbsp;を変更することで使用するメソッドを変更できる。<br>
