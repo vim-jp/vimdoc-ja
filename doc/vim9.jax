@@ -1,4 +1,4 @@
-*vim9.txt*	For Vim バージョン 9.0.  Last change: 2023 Jun 10
+*vim9.txt*	For Vim バージョン 9.0.  Last change: 2023 Oct 23
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
 
@@ -260,8 +260,8 @@ Vim9 script でスクリプト直下に `:function` や `:def` を使って関�
 <						*E1058* *E1075*
 `:def` で定義される関数内で `:function` か `:def` でネストした関数を名前空間の
 指定なしに作成したときは、ネストした関数はその関数が定義されたブロックにローカ
-ルな関数になります。またその関数は `function()` に文字列を用いて渡すことはできず、
-その関数自身の参照を渡さなければいけません: >
+ルな関数になります。またその関数は `function()` に文字列を用いて渡すことはでき
+ず、その関数自身の参照を渡さなければいけません: >
 	def Outer()
 	  def Inner()
 	    echo 'inner'
@@ -1032,8 +1032,9 @@ falsy か truthy として評価されます。これは JavaScript とほぼ同
 単純型とは、文字列 (string)、数値 (float)、特殊値 (special) と真偽値 (bool) で
 す。他の型では |string()| を使う必要があります。
 			*false* *true* *null* *null_blob* *null_channel*
-			*null_dict* *null_function* *null_job* *null_list*
-			*null_partial* *null_string* *E1034*
+			*null_class* *null_dict* *null_function* *null_job*
+			*null_list* *null_object* *null_partial* *null_string*
+			*E1034*
 Vim9 script では以下の定義済みの値が使えます: >
 	true
 	false
@@ -1479,7 +1480,7 @@ Note スクリプトレベルにおいて、ループ変数はループの後で
 
 配列型はありません。代わりに list<{type}> を使ってください。不変のリストに
 対しては大量の細かいメモリを割り当てするのを避ける効率的な実装が使われます。
-							*E1005* *E1007*
+				    *vim9-func-declaration* *E1005* *E1007*
 部分適用と関数は幾らかの方法で宣言することができます:
 func				任意の種類の関数参照。引数や戻り値への型チェッ
 				クはない。
@@ -1494,12 +1495,12 @@ func(): {type}			引数がなく、戻り値の型がある関数。
 func({type})			引数の型があり、値を返さない関数。
 func({type}): {type}		引数の型と戻り値の型がある関数。
 func(?{type})			任意の引数の型があり、値を返さない関数。
-func(...{type})			可変長の引数の型があり、値を返さない関数。
-func({type}, ?{type}, ...{type}): {type}
+func(...list<{type}>)		可変長引数のリストの型で、値を返さない関数。
+func({type}, ?{type}, ...list<{type}>): {type}
 				以下をもつ関数:
 				- 必須の引数の型
 				- 任意の引数の型
-				- 可変長引数の型
+				- 可変長引数のリストの型
 				- 戻り値の型
 
 もし戻り値の型が "void" なら、関数は値を返しません。
@@ -1671,6 +1672,25 @@ Vim9 script ではこれは厳格にされています。使われている値�
 |flattennew()| を使用します。|flatten()| は常に型を変更することを目的としてい
 るため、Vim9 script では使用できません。
 
+引数を指定して funcref に代入すると (|vim9-func-declaration| を参照)、引数の厳
+密な型チェックが行われます。可変数の引数の場合も、型と一致する必要があります:
+>
+	var FuncRef: func(string, number, bool): number
+	FuncRef = (v1: string, v2: number, v3: bool) => 777	# OK
+	FuncRef = (v1: string, v2: number, v3: number) => 777	# エラー!
+	# 可変数の引数は同じ型でなければならない
+	var FuncVA: func(...list<string>): number
+	FuncVA = (...v: list<number>): number => v  # エラー!
+	FuncVA = (...v: list<any>): number => v	    # OK, `any` ランタイム確認
+	FuncVA = (v1: string, v: string2): number => 333     # エラー!
+	FuncVA = (v: list<string>): number => 3	    # エラー!
+
+宛先関数参照に引数が指定されていない場合、引数の型のチェックは行われません: >
+	var FuncUnknownArgs: func: number
+	FuncUnknownArgs = (v): number => v			# OK
+	FuncUnknownArgs = (v1: string, v2: string): number => 3	# OK
+	FuncUnknownArgs = (...v1: list<string>): number => 333	# OK
+<
 			 *E1211* *E1217* *E1218* *E1219* *E1220* *E1221*
 			 *E1222* *E1223* *E1224* *E1225* *E1226* *E1227*
 			 *E1228* *E1238* *E1250* *E1251* *E1252* *E1256*
