@@ -1,0 +1,1042 @@
+---
+layout: vimdoc
+helpname: 'vim9class'
+---
+<div id='vimCodeElement'>
+<a class="Constant" href="vim9class.html" name="vim9class.txt">vim9class.txt</a>&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2023 Sep 18<br>
+<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; by Bram Moolenaar</span><br>
+<br>
+<br>
+<span class="Todo">NOTE</span>&nbsp;- これはまだ完成したものではなく、まだ何かが変わる可能性がある! -&nbsp;<span class="Todo">NOTE</span><br>
+<br>
+<br>
+Vim9 のクラス、オブジェクト、インターフェイス、型定義と列挙型。<br>
+<br>
+1.&nbsp;&nbsp;概要&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9class.html#Vim9-class-overview">Vim9-class-overview</a><br>
+2.&nbsp;&nbsp;単純なクラス&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9class.html#Vim9-simple-class">Vim9-simple-class</a><br>
+3.&nbsp;&nbsp;クラス変数とメソッド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9class.html#Vim9-class-member">Vim9-class-member</a><br>
+4.&nbsp;&nbsp;抽象クラスを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9class.html#Vim9-abstract-class">Vim9-abstract-class</a><br>
+5.&nbsp;&nbsp;インターフェイスを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9class.html#Vim9-using-interface">Vim9-using-interface</a><br>
+6.&nbsp;&nbsp;さらなるクラスの詳細&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9class.html#Vim9-class">Vim9-class</a><br>
+7.&nbsp;&nbsp;型定義&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9class.html#Vim9-type">Vim9-type</a><br>
+8.&nbsp;&nbsp;列挙型&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9class.html#Vim9-enum">Vim9-enum</a><br>
+<br>
+9.&nbsp;&nbsp;論理的根拠<br>
+10. 後でやる<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+1. 概要&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#Vim9-class-overview" name="Vim9-class-overview">Vim9-class-overview</a><br>
+<br>
+聞こえのいい呼び名は「オブジェクト指向プログラミング」である。このテーマに関す<br>
+る教材はたくさんある。ここでは、あなたが基本をすでに理解していることを前提とし<br>
+て、<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script が提供するものを文書化する。この機能を効果的に使用する方法に<br>
+関する役立つヒントも加えている。Vim9 のクラスとオブジェクトは、旧来の Vim<br>
+script や従来の関数では使用できない。<br>
+<br>
+基本アイテムはオブジェクト:<br>
+- オブジェクトは状態を保存する。これには、それぞれ値を持つことができる 1 つ以<br>
+&nbsp;&nbsp;上の変数が含まれる。<br>
+- オブジェクトは、その状態を使用したり操作したりする関数を提供する。これらの関<br>
+&nbsp;&nbsp;数は「オブジェクト上で」呼び出され、これが従来のデータとデータを操作するコー<br>
+&nbsp;&nbsp;ドの分離とは異なる点である。<br>
+- オブジェクトには、型付きのメンバー変数とメソッドを備えた明確に定義されたイン<br>
+&nbsp;&nbsp;ターフェイスを持つ。<br>
+- オブジェクトはクラスから生成され、すべてのオブジェクトは同じインターフェイス<br>
+&nbsp;&nbsp;を持つ。これは実行時に変更されることはなく、動的なものではない。<br>
+<br>
+オブジェクトはクラスによってのみ生成さる。クラスは以下を提供する:<br>
+- コンストラクタとしての new() メソッド、これはクラスのオブジェクトを返す。<br>
+&nbsp;&nbsp;このメソッドはクラス名で呼び出される: MyClass.new()。<br>
+- クラスのすべてのオブジェクトで状態を共有する: クラス変数(クラスメンバ)。<br>
+- スーパークラスとサブクラス、継承によるクラスの階層。<br>
+<br>
+インターフェイスはオブジェクトのプロパティを指定するために使用される:<br>
+- オブジェクトはいくつかのインターフェイスを実装する宣言ができる。<br>
+- 同じインターフェイスを実装した異なるオブジェクトを同じように扱うことができ<br>
+&nbsp;&nbsp;る。<br>
+<br>
+クラス階層は単一の継承になる。それ以外の場合は、必要に応じてインターフェイスを<br>
+使用すること。<br>
+<br>
+<br>
+<span class="PreProc">クラスのモデリング</span><br>
+<br>
+好きな方法でクラスをモデル化できる。何を構築しているのかを念頭に置き、現実世界<br>
+をモデル化しようとしないこと。これは、特に教師が現実世界のオブジェクトを使用し<br>
+てクラス関係を説明するので、モデルが現実世界を反映している必要があると考えるか<br>
+もしれず、混乱を招く可能性がある。そうではない！ モデルは目的に合ったものでな<br>
+ければならない。<br>
+<br>
+多くの場合、合成(オブジェクトに他のオブジェクトが含まれる)の方が継承(オブジェ<br>
+クトが別のオブジェクトを拡張する)よりも優れていることを念頭に置くこと。最適な<br>
+クラスモデルを見つけるために時間を無駄にする必要はない。あるいは、正方形が長方<br>
+形なのか、それとも長方形が正方形なのかを議論するのは時間の無駄である。それは問<br>
+題ではない。<br>
+<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+2.&nbsp;&nbsp;単純なクラス&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#Vim9-simple-class" name="Vim9-simple-class">Vim9-simple-class</a><br>
+<br>
+簡単な例から始めよう: テキストの位置を保存するクラスだ (これをより効率的に行う<br>
+方法は後述する):<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class TextPosition<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.lnum: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.col: number</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def new(lnum: number, col: number)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.lnum = lnum<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.col = col<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def SetLnum(lnum: number)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.lnum = lnum<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def SetCol(col: number)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.col = col<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def SetPosition(lnum: number, col: number)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.lnum = lnum<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.col = col<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; endclass</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#object" name="object">object</a>&nbsp;<a class="Constant" href="vim9class.html#Object" name="Object">Object</a><br>
+new() メソッドを使用して、このクラスからオブジェクトを作成できる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var pos = TextPosition.new(1, 1)</div>
+<br>
+オブジェクト変数 &quot;lnum&quot; と &quot;col&quot; には直接アクセスできる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo $'The text position is ({pos.lnum}, {pos.col})'</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1317" name="E1317">E1317</a>&nbsp;<a class="Constant" href="vim9class.html#E1327" name="E1327">E1327</a><br>
+他のオブジェクト指向言語を使用したことがある場合は、Vim ではオブジェクトのメン<br>
+バが一貫してプリフィックス &quot;this.&quot; で参照されることに気付くだろう。これは、Java<br>
+や TypeScript などの言語とは異なる。この命名規則により、オブジェクトのメンバを<br>
+簡単に見つけることができる。また、変数にプリフィックス &quot;this.&quot; がない場合、そ<br>
+れがオブジェクト変数ではないことが分かる。<br>
+<br>
+<br>
+<span class="PreProc">オブジェクト変数の書き込みアクセス</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#read-only-variable" name="read-only-variable">read-only-variable</a><br>
+では、オブジェクト変数を直接変更してみよう:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pos.lnum = 9</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1335" name="E1335">E1335</a><br>
+これはエラーになる! デフォルトでは、オブジェクト変数は読み取ることはできても、<br>
+設定することはできないからである。TextPosition クラスがそのためのメソッドを提<br>
+供しているのはそのためだ:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pos.SetLnum(9)</div>
+<br>
+オブジェクト変数の読み取りは許可するが設定は許可しないのが、最も一般的で安全な<br>
+方法である。ほとんどの場合、値を使用しても問題はないが、値を設定すると注意が必<br>
+要な副作用が発生する可能性がある。この場合、SetLnum() メソッドは行番号が有効か<br>
+どうかをチェックし、エラーを返すか、最も近い有効な値を使用する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#:public" name=":public">:public</a>&nbsp;<a class="Constant" href="vim9class.html#public-variable" name="public-variable">public-variable</a>&nbsp;<a class="Constant" href="vim9class.html#E1331" name="E1331">E1331</a><br>
+副作用を気にせず、オブジェクト変数をいつでも変更できるようにしたい場合は、オブ<br>
+ジェクト変数をパブリックにすることができる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public this.lnum: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public this.col: number</div>
+<br>
+これで、SetLnum(), SetCol() および SetPosition() メソッドは必要なくなり、<br>
+&quot;pos.lnum&quot; を直接設定してもエラーが発生しなくなる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1326" name="E1326">E1326</a><br>
+存在しないオブジェクト変数を設定しようとすると、エラーが発生する:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pos.other = 9</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">E1326: Member not found on object &quot;TextPosition&quot;: other</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1376" name="E1376">E1376</a><br>
+クラス名を使用してオブジェクト変数にアクセスすることはできない。<br>
+<br>
+<span class="PreProc">Protected 変数</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#protected-variable" name="protected-variable">protected-variable</a>&nbsp;<a class="Constant" href="vim9class.html#E1332" name="E1332">E1332</a>&nbsp;<a class="Constant" href="vim9class.html#E1333" name="E1333">E1333</a><br>
+一方、オブジェクト変数をクラスまたはそのサブクラスの外部から直接読み取られたく<br>
+ない場合は、オブジェクト変数を保護することができる。これは、名前の前にアンダー<br>
+スコアを付けることによって行われる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this._lnum: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this._col number</div>
+<br>
+次に、protected 変数の値を取得するメソッドを提供する必要がある。これらは一般に<br>
+ゲッターと呼ばれる。&quot;Get&quot; で始まる名前を使用することをお勧めする:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def GetLnum(): number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return this._lnum<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def GetCol() number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return this._col<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+<br>
+この例はあまり役に立たない。変数はパブリックでもよいだろう。値を確認するときに<br>
+便利である。例えば、行番号を総行数に制限する:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def GetLnum(): number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if this._lnum &gt; this._lineCount<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this._lineCount<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; endif<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return this._lnum<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+<br>
+<span class="PreProc">Protected メソッド</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#private-method" name="private-method">private-method</a>&nbsp;<a class="Constant" href="vim9class.html#E1366" name="E1366">E1366</a><br>
+オブジェクトメソッドを同じクラスの他のメソッドからのみアクセス可能にし、クラス<br>
+の外部からは使用しないようにしたい場合は、オブジェクトメソッドを protected に<br>
+できる。これを行うには、メソッド名の前にアンダースコアを付ける:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;class SomeClass<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def _Foo(): number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return 10<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Bar(): number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this._Foo()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+クラス外の protected メソッドにアクセスすると、エラーが発生する (上記のクラス<br>
+を使用した場合):<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;var a = SomeClass.new()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;a._Foo()</div>
+<br>
+<span class="PreProc">new() メソッドの単純化</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#new()" name="new()">new()</a>&nbsp;<a class="Constant" href="vim9class.html#constructor" name="constructor">constructor</a><br>
+多くのコンストラクタはオブジェクト変数の値を受け取る。したがって、次のようなパ<br>
+ターンがよく見られる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; class SomeClass<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.lnum: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.col: number</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def new(lnum: number, col: number)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.lnum = lnum<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.col = col<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; endclass</div>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1390" name="E1390">E1390</a><br>
+このテキストを記述する必要があるだけでなく、各変数の型も 2 回記述されている。<br>
+これは非常に一般的なので、new() を記述する短い方法が提供されている:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def new(this.lnum, this.col)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef</div>
+<br>
+セマンティクスは理解しやすい。&quot;this.&quot; を含むオブジェクト変数名を new() の引数<br>
+として指定すると、new() 呼び出しで指定された値がそのオブジェクト変数に割り当て<br>
+られることを意味する。このメカニズムは Dart 言語から来ている。<br>
+<br>
+new() を使用して変数をパブリックにするこの方法をまとめると、最初のクラス定義よ<br>
+りもはるかに短いクラス定義になる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class TextPosition<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; public this.lnum: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; public this.col: number</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def new(this.lnum, this.col)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def SetPosition(lnum: number, col: number)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.lnum = lnum<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.col = col<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; endclass</div>
+<br>
+新しいオブジェクトを構築するシーケンスは次のとおり:<br>
+1. メモリが割り当てられ、クリアされる。すべての値はゼロ/偽/空でである。<br>
+2. 初期化子を持つ宣言されたオブジェクト変数ごとに、式が評価され、変数に割り当<br>
+&nbsp;&nbsp; てられる。これは、変数がクラスで宣言された順序で発生する。<br>
+3. &quot;this.name&quot; 形式の new() メソッドの引数が割り当てられる。<br>
+4. new() メソッドの本体が実行される。<br>
+<br>
+クラスが親クラスを拡張する場合も、同じことが起こる。2 番目のステップでは、最初<br>
+に親クラスのオブジェクト変数が初期化される。親が &quot;super()&quot; または &quot;new()&quot; を呼<br>
+び出す必要はない。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1365" name="E1365">E1365</a><br>
+new() メソッドを定義するときは、戻り値の型を指定しないこと。常にクラスのオブ<br>
+ジェクトを返す。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1386" name="E1386">E1386</a><br>
+オブジェクトメソッドを呼び出すときは、メソッド名の前にオブジェクト変数名を付け<br>
+る必要がある。クラス名を使用してオブジェクトメソッドを呼び出すことはできない。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+3.&nbsp;&nbsp;クラス変数とメソッド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#Vim9-class-member" name="Vim9-class-member">Vim9-class-member</a><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#:static" name=":static">:static</a>&nbsp;<a class="Constant" href="vim9class.html#E1337" name="E1337">E1337</a>&nbsp;<a class="Constant" href="vim9class.html#E1338" name="E1338">E1338</a>&nbsp;<a class="Constant" href="vim9class.html#E1368" name="E1368">E1368</a><br>
+クラスメンバは &quot;static&quot; で宣言される。これらは、定義されているクラス内でプリ<br>
+フィックスなしの名前によって使用される:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class OtherThing<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.size: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; static totalSize: number</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def new(this.size)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;totalSize += this.size<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1340" name="E1340">E1340</a>&nbsp;<a class="Constant" href="vim9class.html#E1341" name="E1341">E1341</a><br>
+名前はそのまま使用されるため、メソッドの引数名やローカル変数名による名前のシャ<br>
+ドウイングは許可されていない。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1374" name="E1374">E1374</a>&nbsp;<a class="Constant" href="vim9class.html#E1375" name="E1375">E1375</a>&nbsp;<a class="Constant" href="vim9class.html#E1384" name="E1384">E1384</a>&nbsp;<a class="Constant" href="vim9class.html#E1385" name="E1385">E1385</a><br>
+クラスメンバが定義されているクラスの外にあるクラスメンバにアクセスするには、ク<br>
+ラス名のプリフィックスを使用する必要がある。オブジェクトを使用してクラスメンバ<br>
+にアクセスすることはできない。<br>
+<br>
+オブジェクトメンバと同様に、名前の最初の文字としてアンダースコアを使用すること<br>
+でアクセスを保護することができ、プリフィックス &quot;public&quot; を付けることでアクセス<br>
+を公開することができる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;class OtherThing<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static total: number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 誰でも読み取り可、クラスのみ書き込み可<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static _sum: number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # クラスのみ読み書き可<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public static result: number&nbsp;&nbsp;# 誰でも読み書き可<br>
+&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#class-method" name="class-method">class-method</a><br>
+クラスメソッドも &quot;static&quot; で宣言される。クラス変数は使用できるが、オブジェクト<br>
+変数にはアクセスできず、&quot;this&quot; キーワードは使用できない。<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class OtherThing<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.size: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; static totalSize: number</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 合計サイズをクリアし、以前の値を返す。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; static def ClearTotalSize(): number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var prev = totalSize<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;totalSize = 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return prev<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+クラス内ではクラスメソッドを名前で直接呼び出すことができるが、クラスの外ではク<br>
+ラス名はプリフィックス付きである必要がある:&nbsp;<span class="Comment">OtherThing.ClearTotalSize()</span>。子<br>
+クラスでスーパークラスメソッドを使用するには、クラス名にプリフィックスを付ける<br>
+必要がある。<br>
+<br>
+オブジェクトメソッドと同様に、メソッド名の最初の文字としてアンダースコアを使用<br>
+することで、アクセスを protected にすることができる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;class OtherThing<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static def _Foo()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo &quot;Foo&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Bar()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_Foo()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1370" name="E1370">E1370</a><br>
+<span class="Todo">Note</span>&nbsp;コンストラクタは常に &quot;static&quot; であるため、コンストラクタを &quot;static&quot; とし<br>
+て宣言できないことに注意。<br>
+<br>
+拡張クラス内のスーパークラスのクラスメソッドとクラス変数にアクセスするには、定<br>
+義クラスの外部からの場合と同様に、クラス名のプリフィックスを使用する必要がある:<br>
+<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;class Vehicle<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static nextID: number = 1000<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static def GetID(): number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nextID += 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return nextID<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;endclass<br>
+&nbsp;&nbsp;&nbsp;&nbsp;class Car extends Vehicle<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.myID: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def new()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.myID = Vehicle.GetID()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+クラス変数とメソッドは子クラスに継承されない。子クラスは、スーパークラスと同じ<br>
+名前の静的変数またはメソッドを宣言できる。メンバが使用されるクラスに応じて、対<br>
+応するクラスのメンバが使用される。子クラスのクラスメンバの型は、スーパークラス<br>
+のクラスメンバの型とは異なる場合がある。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+4.&nbsp;&nbsp;抽象クラスを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#Vim9-abstract-class" name="Vim9-abstract-class">Vim9-abstract-class</a><br>
+<br>
+抽象クラスは、少なくとも 1 つのサブクラスのベースを形成する。クラスモデルでは、<br>
+いくつかのクラスが共有できる同じプロパティを持っていることがよくあるが、これら<br>
+のプロパティを持つクラスにはオブジェクトを作成するための十分な状態がない。サブ<br>
+クラスは、オブジェクトの作成に使用する前に、抽象クラスを拡張し、不足している状<br>
+態やメソッドを追加する必要がある。<br>
+<br>
+例えば、Shape クラスには色と太さを格納できる。Shape オブジェクトを作成すること<br>
+はできない。形状の種類に関する情報が欠落している。Shape クラスは、オブジェクト<br>
+を作成できる Square クラスと Triangle クラスのベースとして機能する。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;abstract class Shape<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.color = Color.Black<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.thickness = 10<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class Square extends Shape<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.size: number</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def new(this.size)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class Triangle extends Shape<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.base: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.height: number</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def new(this.base, this.height)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+抽象クラスは、new() メソッドがないことを除き、通常のクラスと同じ方法で定義され<br>
+る。&nbsp;<a class="Constant" href="vim9class.html#E1359" name="E1359">E1359</a><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#abstract-method" name="abstract-method">abstract-method</a>&nbsp;<a class="Constant" href="vim9class.html#E1371" name="E1371">E1371</a>&nbsp;<a class="Constant" href="vim9class.html#E1372" name="E1372">E1372</a><br>
+抽象メソッドは、抽象クラス内でメソッド定義時に &quot;abstract&quot; プリフィックスを使用<br>
+することで定義できる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;abstract class Shape<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; abstract def Draw()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; abstract static def SetColor()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+抽象クラスの静的メソッドを抽象メソッドにすることはできない。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1373" name="E1373">E1373</a><br>
+抽象クラスを拡張したクラスは、すべての抽象メソッドを実装する必要がある。署名<br>
+(引数、引数の型、戻り値の型) はまったく同じである必要がある。メソッドの戻り値<br>
+の型がクラスの場合、そのクラスまたはそのサブクラスの 1 つを拡張メソッドで使用<br>
+できる。抽象クラスのクラスメソッドは抽象メソッドにすることもできる。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+5.&nbsp;&nbsp;インターフェイスを使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#Vim9-using-interface" name="Vim9-using-interface">Vim9-using-interface</a><br>
+<br>
+Shape, Square および Triangle を使用した上記の例は、オブジェクトの表面積を計算<br>
+するメソッドを追加するとさらに便利になる。そのために、数値を返す 1 つのメソッ<br>
+ド Surface() を指定する HasSurface というインターフェイスを作成する。この例は<br>
+上記の例を拡張したものである:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;abstract class Shape<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.color = Color.Black<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.thickness = 10<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;interface HasSurface<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def Surface(): number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endinterface</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class Square extends Shape implements HasSurface<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.size: number</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def new(this.size)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def Surface(): number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this.size * this.size<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class Triangle extends Shape implements HasSurface<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.base: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.height: number</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def new(this.base, this.height)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def Surface(): number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this.base * this.height / 2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1348" name="E1348">E1348</a>&nbsp;<a class="Constant" href="vim9class.html#E1349" name="E1349">E1349</a>&nbsp;<a class="Constant" href="vim9class.html#E1367" name="E1367">E1367</a>&nbsp;<a class="Constant" href="vim9class.html#E1382" name="E1382">E1382</a>&nbsp;<a class="Constant" href="vim9class.html#E1383" name="E1383">E1383</a><br>
+クラスがインターフェイスの実装を宣言した場合、インターフェイスで指定されたすべ<br>
+ての項目が同じ型でクラス内に出現する必要がある。<br>
+<br>
+インターフェイス名は型として使用できる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var shapes: list&lt;HasSurface&gt; = [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Square.new(12),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Triangle.new(8, 15),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for shape in shapes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; echo $'the surface is {shape.Surface()}'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfor</div>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1378" name="E1378">E1378</a>&nbsp;<a class="Constant" href="vim9class.html#E1379" name="E1379">E1379</a>&nbsp;<a class="Constant" href="vim9class.html#E1380" name="E1380">E1380</a>&nbsp;<a class="Constant" href="vim9class.html#E1387" name="E1387">E1387</a><br>
+インターフェイスには、オブジェクトメソッドと読み取り専用のオブジェクト変数のみ<br>
+を含めることができる。インターフェイスには、読み書き可能または protected オブ<br>
+ジェクト変数、protected オブジェクトメソッド、クラス変数、およびクラスメソッド<br>
+を含めることはできまない。<br>
+<br>
+インターフェイスは、&quot;extends&quot; を使用して別のインターフェイスを拡張できる。サブ<br>
+インターフェイスは、スーパーインターフェイスからすべてのインスタンス変数とメ<br>
+ソッドを継承する。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+6.&nbsp;&nbsp;さらなるクラスの詳細&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#Vim9-class" name="Vim9-class">Vim9-class</a>&nbsp;<a class="Constant" href="vim9class.html#Class" name="Class">Class</a>&nbsp;<a class="Constant" href="vim9class.html#class" name="class">class</a><br>
+<br>
+<span class="PreProc">クラスの定義</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#:class" name=":class">:class</a>&nbsp;<a class="Constant" href="vim9class.html#:endclass" name=":endclass">:endclass</a>&nbsp;<a class="Constant" href="vim9class.html#:abstract" name=":abstract">:abstract</a><br>
+クラスは&nbsp;<a class="Comment" href="vim9class.html#:class">:class</a>&nbsp;と&nbsp;<a class="Comment" href="vim9class.html#:endclass">:endclass</a>&nbsp;の間で定義される。クラス全体は 1 つのスクリプ<br>
+トファイルで定義される。後からクラスに追加することはできない。<br>
+<br>
+クラスは&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script ファイル内でのみ定義できる。&nbsp;<a class="Constant" href="vim9class.html#E1316" name="E1316">E1316</a><br>
+関数内でクラスを定義することはできない。<br>
+<br>
+スクリプトファイル内に複数のクラスを定義することは可能である。しかし、通常はメ<br>
+インクラスを 1 つだけエクスポートする方が良い。型、列挙型、ヘルパークラスを定<br>
+義すると便利である。<br>
+<br>
+<a class="Comment" href="vim9class.html#:abstract">:abstract</a>&nbsp;キーワードをプリフィックスとして付けたり、<a class="Comment" href="vim9.html#:export">:export</a>&nbsp;を使用したりで<br>
+きる。これにより、次のようなバリエーションが得られる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class ClassName<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;export class ClassName<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;abstract class ClassName<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;export abstract class ClassName<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1314" name="E1314">E1314</a><br>
+クラス名は CamelCased にする必要がある。そして、大文字で始める必要がある。これ<br>
+により、組み込み型との衝突が回避される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1315" name="E1315">E1315</a><br>
+クラス名の後に、これらのオプションの項目を使用できる。それぞれ 1 回のみ出現で<br>
+きる。これらは任意の順序で出現できるが、この順序が推奨される:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;extends ClassName<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;implements InterfaceName, OtherInterface<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;specifies SomeInterface</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1355" name="E1355">E1355</a>&nbsp;<a class="Constant" href="vim9class.html#E1369" name="E1369">E1369</a><br>
+各変数とメソッドの名前は 1 回だけ使用できる。同じ名前で異なる型の引数を持つメ<br>
+ソッドを定義することはできない。パブリックと protected のメンバー変数を同じ名<br>
+前で使用することはできない。スーパークラスで使用したオブジェクト変数名を子クラ<br>
+スで再利用することはできない。<br>
+<br>
+<br>
+<span class="PreProc">オブジェクト変数の初期化</span><br>
+<br>
+変数の型がクラスで明示的に指定されていない場合、クラス定義時に &quot;any&quot; に設定さ<br>
+れる。オブジェクトがクラスからインスタンス化されると、変数の型が設定される。<br>
+<br>
+次の予約キーワード名は、オブジェクトまたはクラス変数名として使用できない:<br>
+&quot;super&quot;, &quot;this&quot;, &quot;true&quot;, &quot;false&quot;, &quot;null&quot;, &quot;null_blob&quot;, &quot;null_dict&quot;,<br>
+&quot;null_function&quot;, &quot;null_list&quot;, &quot;null_partial&quot;, &quot;null_string&quot;, &quot;null_channel&quot; お<br>
+よび &quot;null_job&quot;。<br>
+<br>
+<span class="PreProc">クラスを拡張する</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#extends" name="extends">extends</a><br>
+クラスは他のクラスを拡張できる。&nbsp;<a class="Constant" href="vim9class.html#E1352" name="E1352">E1352</a>&nbsp;<a class="Constant" href="vim9class.html#E1353" name="E1353">E1353</a>&nbsp;<a class="Constant" href="vim9class.html#E1354" name="E1354">E1354</a><br>
+基本的な考え方は、既存のクラスの上に構築し、それにプロパティを追加することだ。<br>
+<br>
+拡張されたクラスは &quot;base class&quot; (基底クラス) または &quot;super class&quot; (スーパーク<br>
+ラス) と呼ばれる。新しいクラスは &quot;child class&quot; (子クラス) と呼ばれる。<br>
+<br>
+基底クラスのオブジェクト変数はすべて子クラスに引き継がれる。(他の言語とは異な<br>
+り) それらをオーバーライドすることはできない。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1356" name="E1356">E1356</a>&nbsp;<a class="Constant" href="vim9class.html#E1357" name="E1357">E1357</a>&nbsp;<a class="Constant" href="vim9class.html#E1358" name="E1358">E1358</a><br>
+基底クラスのオブジェクトメソッドは無効にすることができる。署名 (引数、引数の<br>
+型、戻り値の型) はまったく同じである必要がある。メソッドの戻り値の型がクラスの<br>
+場合、そのクラスまたはそのサブクラスの 1 つを拡張メソッドで使用できる。基底ク<br>
+ラスのメソッドは、先頭に &quot;super.&quot; を付けることで呼び出すことができる。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1377" name="E1377">E1377</a><br>
+子クラスのメソッド (パブリックまたは protected) のアクセスレベルは、スーパーク<br>
+ラスと同じである必要がある。<br>
+<br>
+基底クラスの他のオブジェクトメソッドは、子クラスによって引き継がれる。<br>
+<br>
+&quot;new&quot; で始まるメソッドを含むクラスメソッドは、オブジェクトメソッドと同様に無効<br>
+にすることができる。基底クラスのメソッドは、クラス名 (クラスメソッドの場合) ま<br>
+たは &quot;super.&quot; のプリフィックスを付けることで呼び出すことができる。<br>
+<br>
+他の言語とは異なり、基底クラスのコンストラクタを呼び出す必要はない。実際に呼び<br>
+出すことはできない。基底クラスからの初期化を子クラスでも行う必要がある場合は、<br>
+それをオブジェクトメソッドに入れて、すべての constructor() からそのメソッドを<br>
+呼び出す。<br>
+<br>
+基底クラスで new() メソッドが指定されていない場合は、自動的に new() メソッドが<br>
+作成される。このメソッドは子クラスには引き継がれない。子クラスは独自の new()<br>
+メソッドを定義できるが、メソッドがなければ、new() メソッドが自動的に追加され<br>
+る。<br>
+<br>
+<br>
+<span class="PreProc">インターフェイスを実装するクラス</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#implements" name="implements">implements</a>&nbsp;<a class="Constant" href="vim9class.html#E1346" name="E1346">E1346</a>&nbsp;<a class="Constant" href="vim9class.html#E1347" name="E1347">E1347</a>&nbsp;<a class="Constant" href="vim9class.html#E1389" name="E1389">E1389</a><br>
+クラスは 1 つ以上のインターフェイスを実装できる。&quot;implements&quot; キーワードは 1 回<br>
+のみ使用できる&nbsp;<a class="Constant" href="vim9class.html#E1350" name="E1350">E1350</a>&nbsp;。複数のインターフェイスをコンマで区切って指定できる。<br>
+各インターフェイス名は 1 回だけ出現できる。&nbsp;<a class="Constant" href="vim9class.html#E1351" name="E1351">E1351</a><br>
+<br>
+<br>
+<span class="PreProc">インターフェイスを定義するクラス</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#specifies" name="specifies">specifies</a><br>
+クラスは、名前付きインターフェイスを使用して、そのインターフェイス、オブジェク<br>
+ト変数およびメソッドを宣言できる。これにより、多くの言語、特に Java で頻繁に行<br>
+われる、インターフェイスを個別に指定する必要がなくなった。<br>
+<br>
+<br>
+<span class="PreProc">クラス内の項目</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1318" name="E1318">E1318</a>&nbsp;<a class="Constant" href="vim9class.html#E1325" name="E1325">E1325</a>&nbsp;<a class="Constant" href="vim9class.html#E1388" name="E1388">E1388</a><br>
+クラス内では、<a class="Comment" href="vim9class.html#:class">:class</a>&nbsp;と&nbsp;<a class="Comment" href="vim9class.html#:endclass">:endclass</a>&nbsp;の間に、次の項目を含めることができる:<br>
+- オブジェクト変数宣言:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this._protectedVariableName: memberType<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.readonlyVariableName: memberType<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public this.readwriteVariableName: memberType</div>
+- クラス変数宣言:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static _protectedClassVariableName: memberType<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static readonlyClassVariableName: memberType<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static public readwriteClassVariableName: memberType</div>
+- コンストラクタメソッド:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def new(arguments)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def newName(arguments)</div>
+- クラスメソッド:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static def SomeMethod(arguments)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static def _ProtectedMethod(arguments)</div>
+- オブジェクトメソッド:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def SomeMethod(arguments)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def _ProtectedMethod(arguments)</div>
+<br>
+オブジェクト変数の場合は、型を指定する必要がある。最善の方法は、&quot;:&nbsp;<span class="Special">{type}</span>&quot; を<br>
+使用してこれを明示的に行うことである。単純な型の場合、&quot;= 123&quot; などの初期化子を<br>
+使用することもでき、Vim はその型が数値であると認識する。より複雑な型や、型が不<br>
+完全になる場合には、これを行わないこと。<br>
+例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.nameList = []</div>
+これはリストを指定するが、項目タイプは不明である。より良い使い方:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.nameList: list&lt;string&gt;</div>
+初期化は必要ない。デフォルトではリストは空である。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1330" name="E1330">E1330</a><br>
+&quot;void&quot;, &quot;null&quot; および &quot;v:none&quot; 等、一部の型は使用できない。<br>
+<br>
+<br>
+<span class="PreProc">インターフェイスの定義</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#:interface" name=":interface">:interface</a>&nbsp;<a class="Constant" href="vim9class.html#:endinterface" name=":endinterface">:endinterface</a><br>
+インターフェイスは&nbsp;<a class="Comment" href="vim9class.html#:interface">:interface</a>&nbsp;と&nbsp;<a class="Comment" href="vim9class.html#:endinterface">:endinterface</a>&nbsp;の間で定義される。プリフィッ<br>
+クスとして&nbsp;<a class="Comment" href="vim9.html#:export">:export</a>&nbsp;を付けることができる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;interface InterfaceName<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endinterface</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;export interface InterfaceName<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endinterface</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1344" name="E1344">E1344</a><br>
+インターフェイスは、クラスと同じようにオブジェクト変数を宣言できるが、初期化子<br>
+は必要ない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1345" name="E1345">E1345</a><br>
+インターフェイスは、引数と戻り値の型を含む&nbsp;<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;を使用してメソッドを宣言でき<br>
+るが、本体や&nbsp;<a class="Comment" href="vim9.html#:enddef">:enddef</a>&nbsp;は使用しない。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;interface HasSurface<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.size: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def Surface(): number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endinterface</div>
+<br>
+インターフェイス名は大文字で始めなければならない。<span class="MissingTag">E1343</span><br>
+&quot;Has&quot; プリフィックスを使うことで、インターフェイス名であることが推測しやすくな<br>
+り、それが何を提供するものであるかのヒントを与えることがでる。<br>
+インターフェイスは&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script ファイルでのみ定義できる。&nbsp;<a class="Constant" href="vim9class.html#E1342" name="E1342">E1342</a><br>
+インターフェイスは他のインターフェイスを &quot;implement&quot; することはできないが、他<br>
+のインターフェイスを &quot;extend&quot; することはできる。<span class="MissingTag">E1381</span><br>
+<br>
+<br>
+<span class="PreProc">null オブジェクト</span><br>
+<br>
+変数がオブジェクトの型を持つように宣言されているが初期化されていない場合、値は<br>
+null になる。この null オブジェクトを使用しようとすると、Vim はどのクラスを使<br>
+用することになっていたのかが分からないことがよくある。この場合、Vim は変数名が<br>
+正しいかどうかをチェックできず、変数名が無効な場合でも &quot;Using a null object&quot;<br>
+エラーが発生する。&nbsp;<a class="Constant" href="vim9class.html#E1360" name="E1360">E1360</a>&nbsp;<a class="Constant" href="vim9class.html#E1362" name="E1362">E1362</a><br>
+<br>
+<br>
+<span class="PreProc">デフォルトコンストラクタ</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#default-constructor" name="default-constructor">default-constructor</a><br>
+new() メソッドを使用せずにクラスを定義した場合は、自動的に new() メソッドが定<br>
+義される。このデフォルトコンストラクタには、指定された順序ですべてのオブジェク<br>
+ト変数の引数が含まれる。したがって、クラスが次のような場合:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class AutoNew<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.name: string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.age: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.gender: Gender<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+デフォルトコンストラクタは次のようになる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def new(this.name = v:none, this.age = v:none, this.gender = v:none)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+<br>
+&quot;= v:none&quot; のデフォルト値では、引数はオプションとなる。したがって、引数なしで<br>
+<a class="Comment" href="vim9class.html#new()">new()</a>&nbsp;を呼び出すこともできる。割り当ては行われず、オブジェクト変数のデフォル<br>
+ト値が使用される。これは、デフォルト値を使用した、より便利な例である:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class TextPosition<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.lnum: number = 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.col: number = 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+コンストラクタに必須の引数を持たせたい場合は、それを自分で記述する必要がああ<br>
+る。例えば、上記の AutoNew クラスで名前を取得する必要がある場合は、次のように<br>
+コンストラクタを定義できる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def new(this.name, this.age = v:none, this.gender = v:none)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#E1328" name="E1328">E1328</a><br>
+<span class="Todo">Note</span>&nbsp;ここでは &quot;v:none&quot; 以外のデフォルト値を使用できないことに注意。オブジェク<br>
+ト変数を初期化したい場合は、それらが宣言されている場所で実行すること。この方法<br>
+では、デフォルト値を 1 箇所で確認するだけで済む。<br>
+<br>
+すべてのオブジェクト変数は、アクセス保護されたものを含め、デフォルトのコンスト<br>
+ラクタで使用されます。<br>
+<br>
+クラスが別のクラスを拡張する場合、そのクラスのオブジェクト変数が最初に来る。<br>
+<br>
+<br>
+<span class="PreProc">複数のコンストラクタ</span><br>
+<br>
+通常、クラスには new() コンストラクタが 1 つだけある。コンストラクタが同じ引数<br>
+を使用して呼び出されることが多い場合は、それらの引数を 2 番目のコンストラクタ<br>
+メソッドに入れることでコードを簡素化できる。例えば、黒という色をよく使う場合<br>
+は、次のようにする:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def new(this.garment, this.color, this.size)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var pants = new(Garment.pants, Color.black, &quot;XL&quot;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var shirt = new(Garment.shirt, Color.black, &quot;XL&quot;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var shoes = new(Garment.shoes, Color.black, &quot;45&quot;)</div>
+<br>
+毎回色を繰り返す代わりに、それを含むコンストラクタを追加できる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def newBlack(this.garment, this.size)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this.color = Color.black<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var pants = newBlack(Garment.pants, &quot;XL&quot;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var shirt = newBlack(Garment.shirt, &quot;XL&quot;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var shoes = newBlack(Garment.shoes, &quot;9.5&quot;)</div>
+<br>
+<span class="Todo">Note</span>&nbsp;メソッド名は &quot;new&quot; で始まる必要があることに注意。&quot;new()&quot; というメソッドが<br>
+ない場合は、他のコンストラクタメソッドがあっても、デフォルトコンストラクタが追<br>
+加される。<br>
+<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+7.&nbsp;&nbsp;型定義&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#Vim9-type" name="Vim9-type">Vim9-type</a>&nbsp;<a class="Constant" href="vim9class.html#:type" name=":type">:type</a><br>
+<br>
+型定義は型仕様に名前を与える。これは型のエイリアスとしても知られている。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:type ListOfStrings = list&lt;string&gt;</div>
+<br>
+型エイリアスは、組み込み型が使用できる場所であればどこでも使用できる。型エイリ<br>
+アスは大文字で始める必要がある。型エイリアスはスクリプトレベルでのみ作成でき、<br>
+関数内では作成できない。型エイリアスはエクスポートして、スクリプト間で使用でき<br>
+る。<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+8.&nbsp;&nbsp;列挙型&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#Vim9-enum" name="Vim9-enum">Vim9-enum</a>&nbsp;<a class="Constant" href="vim9class.html#:enum" name=":enum">:enum</a>&nbsp;<a class="Constant" href="vim9class.html#:endenum" name=":endenum">:endenum</a><br>
+<br>
+<span class="Special">{not implemented yet&nbsp;&nbsp;(まだ実装されていない)}</span><br>
+<br>
+enum は、値のリストの 1 つを持つことができる型である。例:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:enum Color<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;White<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Red<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Green<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Blue<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Black<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:endenum</div>
+<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+9.&nbsp;&nbsp;論理的根拠<br>
+<br>
+<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;クラスのほとんどの選択肢は、Java, TypeScript, Dart 等の人気のある最近開<br>
+発された言語から来ている。構文は、クラス全体を波括弧で囲む代わりに&nbsp;<a class="Comment" href="vim9class.html#:endclass">endclass</a><br>
+を使用する等、Vim script の動作に合わせて作成されている。<br>
+<br>
+オブジェクト指向言語の一般的な構造の一部は、この種のプログラミングがまだ新し<br>
+かったかなり昔に選択されたもので、後に最適ではないことが判明した。この時点まで<br>
+に、これらの構造は広く使用されており、それらを変更するという選択肢はなかった。<br>
+Vim では、クラスがまったく新しいものであるため、さまざまな選択をする自由があ<br>
+る。「古い」言語が使用するものよりも、構文をより単純かつ一貫性のあるものにする<br>
+ことができる。あまり流用することなく、既存の言語から知っているものとほとんど同<br>
+じになるはずだ。<br>
+<br>
+最近開発された言語の中には、Vim には必要のないあらゆる種類の派手な機能を追加し<br>
+ているものもある。しかし、中には私たちが活用したいと思うような素晴らしいアイデ<br>
+アもある。<br>
+したがって、我々は一般的な言語をベースにし、悪いアイデアに見えるものを削除し、<br>
+理解しやすいいくつかの優れた機能を追加することになる。<br>
+<br>
+我々が決断を下す際に用いる主なルール:<br>
+- シンプルに。<br>
+- 奇をてらわず、他の言語がやっていることをほとんどやる。<br>
+- 過去の過ちを避ける。<br>
+- ほとんどのことを明白にし、スクリプト作成者が、物事がどのように機能するかを理<br>
+&nbsp;&nbsp;解するためにヘルプを参照する必要をなくす。<br>
+- 一貫性を保つ。<br>
+- 大規模なプロジェクトではなく、平均的な規模のプラグインを目指すこと。<br>
+<br>
+<br>
+<span class="PreProc">コンストラクタに new() を使用する</span><br>
+<br>
+多くの言語では、コンストラクタメソッドのクラス名が使用される。欠点は、多くの場<br>
+合、名前が長いことだ。また、クラス名を変更する場合は、すべてのコンストラクタメ<br>
+ソッドの名前を変更する必要がある。大したことではないが、それでもデメリットはあ<br>
+る。<br>
+<br>
+TypeScript などの他の言語では、&quot;constructor()&quot; 等の特定の名前が使用される。そ<br>
+の方が良さそうである。しかしながら、&quot;new&quot; または &quot;new()&quot; を使用して新しいオブ<br>
+ジェクトを作成することと、&quot;constructor()&quot; との明らかな関係はない。<br>
+<br>
+<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script の場合 すべてのコンストラクタに同じメソッド名を使用するスクリプ<br>
+トは正しい選択であるように思えた。これを new() と呼び出すことで、呼び出し元と<br>
+呼び出されるメソッドの関係が明確になる。<br>
+<br>
+<br>
+<span class="PreProc">コンストラクタのオーバーロードを行わない</span><br>
+<br>
+Vim script では、旧来と&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;の両スクリプトとも、メソッドのオーバーロードは<br>
+ない。つまり、異なる種類の引数で同じメソッド名を使用することはできない。した<br>
+がって、new() コンストラクタも 1 つだけ存在する。<br>
+<br>
+<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では引数が型付けされているため、オーバーロードをサポートできる。<br>
+ただし、これはすぐに複雑になる。new() 呼び出しを見て、いくつかの new() メソッ<br>
+ドのどれが実際に呼び出されているのかを知るためには、引数の型を調べなければなら<br>
+ない。そして、そのためにはかなりの量のコードを検査する必要がある。例えば、引数<br>
+の 1 つがメソッドの戻り値である場合、そのメソッドを見つけて、そのメソッドがど<br>
+のような型を返しているかを確認する必要がある。<br>
+<br>
+代わりに、すべてのコンストラクタには、&quot;new&quot; で始まる異なる名前を付ける必要があ<br>
+る。こうすることで、異なる引数を持つ複数のコンストラクタが可能になり、同時にど<br>
+のコンストラクタが使用されているかを確認するのが非常に簡単になる。引数の型も適<br>
+切に確認できる。<br>
+<br>
+<br>
+<span class="PreProc">メソッドのオーバーロードを行わない</span><br>
+<br>
+コンストラクタの場合と同じ理由である。多くの場合、引数の型が明らかではないた<br>
+め、実際にどのメソッドが呼び出されているかを把握することが困難になる。メソッド<br>
+に別の名前を付けるだけで、型チェックによって意図したとおりに動作することが確認<br>
+される。これにより、実際には必要のないポリモーフィズムが排除される。<br>
+<br>
+<br>
+<span class="PreProc">単一の継承とインターフェイス</span><br>
+<br>
+一部の言語は多重継承をサポートしている。これは場合によっては便利だが、クラスの<br>
+動作規則が非常に複雑になる。<br>
+代わりに、インターフェイスを使用してサポートされる内容を宣言する方がはるかに簡<br>
+単である。非常に人気のある Java 言語はこの方法で実行しており、Vim にはこれで十<br>
+分だ。ここでは「シンプルに」ルールが適用される。<br>
+<br>
+クラスがインターフェイスをサポートしていることを明示的に宣言すると、クラスの目<br>
+的が簡単に分かる。また、適切な型チェックを行うことも可能になる。インターフェイ<br>
+スが変更されると、その変更も変更されたかどうかがチェックされる。メソッドがたま<br>
+たま一致したからといって、クラスがインターフェイスを実装しているとみなすメカニ<br>
+ズムは脆弱で、分かりにくい問題を引き起こすため、やめておこう。<br>
+<br>
+<br>
+<span class="PreProc">あらゆる場所で &quot;this.variable&quot; を使用する</span><br>
+<br>
+さまざまなプログラミング言語のオブジェクト変数には、多くの場合、場所に応じてさ<br>
+まざまな方法でアクセスできる。曖昧さを避けるために &quot;this.&quot; を前置しなければな<br>
+らないこともある。通常は &quot;this.&quot; なしで宣言される。 これは非常に矛盾しており、<br>
+時に混乱を招く。<br>
+<br>
+非常に一般的な問題は、コンストラクタで引数がオブジェクト変数と同じ名前を使用し<br>
+ていることである。その場合、これらの変数では &quot;this.&quot; を本体に前置する必要があ<br>
+るが、他の変数ではその必要はなく、しばしば省略される。<br>
+このため、&quot;this.&quot; を含む変数と含まない変数が混在することになり、一貫性が失われ<br>
+る。<br>
+<br>
+<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;のクラスでは常にプリフィックス &quot;this.&quot; が使われる。変数の宣言にも。シン<br>
+プルで一貫性がある。クラス内部のコードを見る時にも、どの変数参照がオブジェクト<br>
+変数で、どれがそうでないかが直接明らかになる。<br>
+<br>
+<br>
+<span class="PreProc">クラス変数の使用</span><br>
+<br>
+&quot;static variable&quot; を使ってクラス変数を宣言するのはよくあることで、特に目新しい<br>
+ことはない。<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では、クラス変数は名前によって直接アクセスできる。<br>
+スクリプトローカル変数をメソッド内で使用する方法とよく似ている。オブジェクト変<br>
+数には常に &quot;this.&quot; を先頭につけてアクセスするので、それがどんな変数なのかもす<br>
+ぐに分かる。<br>
+<br>
+TypeScript は、クラス内でもクラス変数名の前にクラス名を付ける。これには 2 つの<br>
+問題がある: クラス名はかなり長くなり、かなりのスペースが必要になることと、クラ<br>
+ス名が変更されたときに、これらの場所もすべて変更する必要があることだ。<br>
+<br>
+<br>
+<span class="PreProc">オブジェクト変数とクラス変数の宣言</span><br>
+<br>
+主な選択肢は、変数宣言のように &quot;var&quot; を使うかどうかである。TypeScript では使用<br>
+していない:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class Point {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x: number;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y = 0;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+Vim のオブジェクト変数は以下のように宣言できる:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class Point<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.x: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.y = 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+一部のユーザーは、これは宣言というよりも代入のように見えると指摘した。&quot;var&quot; を<br>
+追加すると、次のように変更される:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class Point<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var this.x: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var this.y = 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+また、&quot;static&quot; キーワードを使ってクラス変数を宣言できるようにする必要もある。<br>
+ここでは &quot;var&quot; を省略することもできる:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class Point<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var this.x: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static count = 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+または、&quot;static&quot; の前にそれを使う:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class Point<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var this.x: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var static count = 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+あるいは、&quot;static&quot; の後:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class Point<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var this.x: number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static var count = 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endclass</div>
+<br>
+この方が &quot;static def Func()&quot; に近い。<br>
+<br>
+&quot;var&quot; を使うか使わないかの明確な好みはない。省略する主な理由は2つある:<br>
+1. TypeScript, Java その他の一般的な言語では使用されていない。<br>
+2. ごちゃごちゃしない。<br>
+<br>
+<br>
+<span class="PreProc">&quot;ClassName.new()&quot; を使用してオブジェクトを構築する</span><br>
+<br>
+多くの言語では、オブジェクトの作成に &quot;new&quot; 演算子を使用するが、コンストラクタ<br>
+はコマンドではなく引数を持つメソッドとして定義されているため、実際には少し奇妙<br>
+である。TypeScript にも &quot;new&quot; キーワードはあるが、メソッドは &quot;constructor()&quot;<br>
+と呼ばれており、両者の関係が分かりにくい。<br>
+<br>
+<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では、コンストラクタメソッドは new() と呼ばれ、new() として呼び<br>
+出される。シンプルで簡単だ。他の言語では &quot;new ClassName()&quot; が使用されるが、<br>
+ClassName() メソッドはなく、ClassName というクラス内の別名のメソッドである。か<br>
+なり混乱する。<br>
+<br>
+<br>
+<span class="PreProc">Vim9class のアクセスモード</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9class.html#vim9-access-modes" name="vim9-access-modes">vim9-access-modes</a><br>
+Vim9class でサポートされる変数アクセスモードとその意味は、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9class.html#public-variable">public-variable</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; どこからでも読み書きできる<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9class.html#read-only-variable">read-only-variable</a>&nbsp;&nbsp;&nbsp;&nbsp;どこからでも読み取れ、クラスおよびサブクラス内<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;から書き込みできる<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9class.html#protected-variable">protected-variable</a>&nbsp;&nbsp;&nbsp;&nbsp;クラスおよびサブクラス内から読み書きできる<br>
+<br>
+メソッドのアクセスモードは似ているが、読み取り専用モードがない。<br>
+<br>
+<br>
+<span class="PreProc">オブジェクト変数へのデフォルトの読み取りアクセス</span><br>
+<br>
+ユーザーの中には、オブジェクト変数のアクセスルールが非対称であると指摘する人も<br>
+いる。まあ、それは意図的だ。値の変更は、値の読み取りとは大きく異なるアクション<br>
+である。読み取り操作には副作用はなく、オブジェクトに影響を与えることなく何度で<br>
+も実行できる。値を変更すると、多くの副作用が発生する可能性があり、他のオブジェ<br>
+クトに影響を与える波及効果も生じる可能性がある。<br>
+<br>
+オブジェクト変数を追加する時、通常はこれについてあまり考えず、ただ型を正しくす<br>
+るだけである。通常、値は new() メソッドで設定される。したがって、ほとんどの場<br>
+合、デフォルトで読み取りアクセスのみが「機能」する。また、直接書き込むとエラー<br>
+が発生するため、本当にそれを許可する必要があるのか疑問に感じる。これは、間違い<br>
+の少ないコードを作成するのに役立つ。<br>
+<br>
+<br>
+<span class="PreProc">アンダースコアを使用してオブジェクト変数を protected にする</span><br>
+<br>
+オブジェクト変数がプライベートの場合、クラス内 (およびサブクラス内) でのみ読み<br>
+取りおよび変更でき、クラス外では使用できない。<br>
+<br>
+オブジェクト変数が保護されている場合、その変数はクラス内 (およびサブクラス内)<br>
+でのみ読み取りおよび変更でき、クラス外では使用できない。アンダースコアを先頭に<br>
+付けることは、それを可視化する簡単な方法である。さまざまなプログラミング言語が<br>
+これを推奨している。<br>
+<br>
+もし気が変わって、クラス外からオブジェクト変数にアクセスできるようにしたい場合<br>
+は、すべてのアンダースコアを削除する必要がある。<br>
+名前はクラス (およびサブクラス) の中にしか現れないため、見つけて変更するのは簡<br>
+単である。<br>
+<br>
+逆の方法ははるかに困難である: クラス内のオブジェクト変数の先頭にアンダースコア<br>
+を追加して protected にすることは簡単にできるが、他の場所で使用されている場合<br>
+は追跡して変更する必要がある。&quot;set&quot; メソッド呼び出しにする必要がある場合があ<br>
+る。これは、アクセスを奪うには、そのアクセスが存在するすべての場所に対して作業<br>
+を行う必要があるという現実の問題を反映している。<br>
+<br>
+別の方法としては、&quot;public&quot; がアクセスを別の方向に変更するのと同様に、<br>
+&quot;protected&quot; キーワードを使用することもできる。まぁ、これはキーワードの数を減ら<br>
+すためなのだが。<br>
+<br>
+<br>
+<span class="PreProc">オブジェクト変数に private はない</span><br>
+<br>
+一部の言語では、オブジェクト変数へのアクセスを制御するいくつかの方法が提供され<br>
+ている。<br>
+最もよく知られているのは &quot;protected&quot; だが、その意味は言語によって異なる。他に<br>
+は &quot;shared&quot;, &quot;private&quot;, &quot;package&quot; さらには &quot;friend&quot; もある。<br>
+<br>
+これらのルールは人生をより困難にする。多くの人が同じ複雑なコードに取り組むプロ<br>
+ジェクトでは、ミスを犯しやすいので、これは当然のことだ。特に、クラスモデルに対<br>
+するリファクタリングやその他の変更の場合。<br>
+<br>
+Vim script は、1 人または小規模なチームが作業するプラグインで使用されることが<br>
+想定されている。複雑なルールは事態をさらに複雑にするだけであり、ルールによって<br>
+提供される追加の安全性は実際には必要ない。アクセスの詳細は指定せず、単純なまま<br>
+にしておく。<br>
+<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+<br>
+10. 後でやる<br>
+<br>
+newSomething() コンストラクタは別のコンストラクタを呼び出すことができるか? 可<br>
+能な場合、制限は何?<br>
+<br>
+考えていること:<br>
+- クラスのジェネリクス:&nbsp;<span class="Comment">class &lt;Tkey, Tentry&gt;</span><br>
+- 関数のジェネリクス:&nbsp;<span class="Comment">def &lt;Tkey&gt; GetLast(key: Tkey)</span><br>
+- ミックスイン: 役立つかどうかは分からない。簡単にするために省略する。<br>
+<br>
+追加として良さそうなものをいくつか:<br>
+- テスト用: モック機構<br>
+<br>
+提供すべき重要なクラスは &quot;Promise&quot; だ。Vim はシングルスレッドであるため、非同<br>
+期操作を接続することは、ユーザーをブロックすることなくプラグインが作業を実行で<br>
+きるようにする自然な方法である。これは、コールバックを呼び出し、タイムアウトや<br>
+エラーを処理するための統一された方法である。<br>
+<br>
+<br>
+&nbsp;vim:tw=78:ts=8:noet:ft=help:norl:<br>
+</div>
