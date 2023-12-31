@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'os_vms'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="os_vms.html" name="os_vms.txt">os_vms.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2022 Nov 25<br>
+<a class="Constant" href="os_vms.html" name="os_vms.txt">os_vms.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.0.</span>&nbsp;&nbsp;Last change: 2023 Dec 09<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル</span><br>
@@ -49,6 +49,8 @@ Vimのソースコードは公式サイトからftpでダウンロードする�
 <br>
 コンパイル済みバイナリを利用するには、以下のどれか1つのアーカイブが必要:<br>
 <br>
+&nbsp;&nbsp;vim-XX-exe-x86-gui.zip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;X86_64 GUI/Motif用実行可能ファイル<br>
+&nbsp;&nbsp;vim-XX-exe-x86-term.zip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; X86_64 console用実行可能ファイル<br>
 &nbsp;&nbsp;vim-XX-exe-ia64-gui.zip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IA64 GUI/Motif用実行可能ファイル<br>
 &nbsp;&nbsp;vim-XX-exe-ia64-gtk.zip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IA64 GUI/GTK用実行可能ファイル<br>
 &nbsp;&nbsp;vim-XX-exe-ia64-term.zip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IA64 console用実行可能ファイル<br>
@@ -76,10 +78,10 @@ GTK 用実行可能ファイルでは Alpha と IA64 プラットフォームで
 <br>
 4. 問題点&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="os_vms.html#vms-problems" name="vms-problems">vms-problems</a><br>
 <br>
-コードはDEC Cコンパイラを用いて、Alpha, VAX, IA64 プラットフォームのOpen VMS<br>
-バージョン 6.2 から 8.2 でテストされた。それらでは大きな問題もなく動作するだろ<br>
-う。利用しているシステムにインクルードライブラリの欠けがある場合には、ファイル<br>
-OS_VMS_CONF.Hを修正することで対応する。<br>
+コードはDEC Cコンパイラを用いて、Alpha, VAX, IA64, X86_64 プラットフォームの<br>
+Open VMSバージョン 6.2 から 9.2 でテストされた。それらでは大きな問題もなく動作<br>
+するだろう。利用しているシステムにインクルードライブラリがない場合は、<br>
+OS_VMS_CONF.H ファイルで調整できる。<br>
 <br>
 Vimを+perlや+python、その他のオプションを追加して構築するならば、まず始めに<br>
 OpenVMS版のPerlやPythonを入手する必要がある。それらのライブラリを構築しインス<br>
@@ -93,8 +95,8 @@ GTK, XPM のライブラリパスも MAKE_VMS.MMS で設定される。<br>
 ラの解釈できる形へ変換するプログラムを使用しなければならない。詳細は<br>
 INSTALLvms.txt を参照。<br>
 <br>
-MMS_VIM.EXEはVIM.EXEと一緒に構築されるが、XXD.EXEは手動でサブディレクトリへ<br>
-移動して個別に構築しなければならない。<br>
+XXD.EXE をビルドするには、サブディレクトリに移動して個別にビルドする必要があ<br>
+る。<br>
 <br>
 もはやCTAGSはVimとは独立したソフトウェアになっているが、以下で述べるように<br>
 OpenVMS特有のソースコードにはCTAGSのソースコードファイルも含まれている。<br>
@@ -210,6 +212,7 @@ LOGIN.COMの例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$ define/nolog VIM DKA0:[UTIL.VIM81]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$ vi*m :== mcr VIM:VIM.EXE<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$ gv*im:== spawn/nowait/input=NLA0 mcr VIM:VIM.EXE -g -GEOMETRY 80x40<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$ set term/inq/ins ! 端末の機能を問い合わせる<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$ set disp/create/node=192.168.10.202/trans=tcpip</div>
 <br>
 <span class="Todo">NOTE</span>: 独立サーバーやクラスタ環境で使用しているならばこの設定で充分であろう。し<br>
@@ -452,7 +455,12 @@ defaulting to 'vt320'<br>
 <span class="Special">{訳注: メッセージの翻訳は省略します。実際には翻訳されて表示される可能性があり</span><br>
 <span class="Special">ます。}</span><br>
 <br>
-解決法はデフォルトの端末名を設定することである:<br>
+次のようにして強制的に端末の能力を問い合わせるようにする:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$ set term/inquire</div>
+<br>
+問い合わせが役に立たなかった場合、解決策はデフォルトの端末名を定義することであ<br>
+る:<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$ ! 不明な端末名。代わりにvt320かansiを使用する。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$ ! 注意: この名前は大文字小文字が区別される。<br>
@@ -763,7 +771,19 @@ GNU_TOOLS.ZIP の&nbsp;<span class="Special">[GNU]</span>gnu_tools.com スクリ
 <br>
 9. VMS関連の変更点&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="os_vms.html#vms-changes" name="vms-changes">vms-changes</a><br>
 <br>
-Version 8.2<br>
+Version 9.0 (2023 Nov 27)<br>
+- Vim は X86_64 アーキテクチャに移植された<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- 重要: X86_64 の ex_cmds.h などの構造体で getline 関数名が使用されて<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;いるため、CRTL_VER は 80500000 レベル未満に保たれる。適切な解決策は、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;構造体 (および使用されるすべての場所) 内で getline 関数の名前を別の名<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;前に変更し、構造体内で POSIX 関数を使用しないようにすることだが、この<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;変更は他のすべてのオペレーティングシステムに影響を与える。(VMS TODO リ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ストを追加)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;詳細については、<span class="Constant"><a href="https://forum.vmssoftware.com/viewtopic.php?f=38&amp;t=8914&amp;p=20049">https://forum.vmssoftware.com/viewtopic.php?f=38&amp;t=8914&amp;p=20049</a></span><br>
+- os_vms_conf.h のインクルードはすべてのアーキテクチャでレビューされている<br>
+- MODIFIED_BY 定義のサポートを追加<br>
+<br>
+Version 8.2 (2020 Feb 6)<br>
 - 全プラットフォームの VMS Vim 8.2 クリーンビルドで必要となる全ての変更を実施<br>
 - mkdir 呼び出しバグの修正 (vicente_polo@yahoo.es)<br>
 - VSI OpenVMS Alpha と Itanium プラットフォーム上のテスト<br>
@@ -772,17 +792,18 @@ Version 8.2<br>
 - XPM v3.4.11 ライブラリの IA64、AXP、VAX 版を追加<br>
 - 新テストスクリプト統合を開始<br>
 <br>
-Version 8.1<br>
+Version 8.1 (2019 Jan 9)<br>
 - VMSで v8.1 をビルドするために必要な変更<br>
+- GTK1.2.10 on VAX<br>
 <br>
-Version 8.0<br>
+Version 8.0 (2016 Nov 21)<br>
 - キーストロークを待っている間、CPU使用率 100% の問題を解決<br>
 - INFINITY(json.c で使用)の取り扱いに関するVMSの警告とエラーを修正<br>
 - 小さなVMSの移植に関連した変更<br>
 - make_vms.mms file を 8.0用に修正<br>
 - [.TESTDIR]make_vms.mms を 8.0用に修正<br>
 <br>
-Version 7.4<br>
+Version 7.4 (2013 Aug 10)<br>
 - Undo: VMS はファイル名に複数のドットを使えないので &quot;dir/name&quot; -&gt; &quot;dir/_un_name&quot; とする<br>
 &nbsp;&nbsp;先頭に _un_ を追加して拡張子を維持する<br>
 - スワップファイル名のワイルドカードの扱いを修正<br>
@@ -799,7 +820,7 @@ Version 7.4<br>
 - マイナーなコンパイラ警告の修正<br>
 - CTAGS 5.8 +regex 取り込み<br>
 <br>
-バージョン 7.3<br>
+Version 7.3 (2010 Aug 15)<br>
 - CTAGS 5.8 の取り込み<br>
 - VMS コンパイル警告の修正 - VAX の浮動小数点数オーバーフローの警告を直した<br>
 - ファイルパス補完の修正 - ファイル名とシェルコマンドにおいて余計な文字がエス<br>
@@ -964,7 +985,7 @@ Version 4.5 (1996 Dec 16)<br>
 10. 著者&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="os_vms.html#vms-authors" name="vms-authors">vms-authors</a><br>
 <br>
 OpenVMSの文章とコンパイル済みバイナリは以下がメンテナンスしている:<br>
-Zoltan Arpadffy &lt;arpadffy@polarhome.com&gt;<br>
+Zoltan Arpadffy &lt;zoltan.arpadffy@gmail.com&gt;<br>
 OpenVMS Vim page:&nbsp;<span class="Constant"><a href="http://www.polarhome.com/vim/">http://www.polarhome.com/vim/</a></span><br>
 <br>
 この文章には、初期の著者や貢献者の書いた部分や記述が含まれている:<br>
