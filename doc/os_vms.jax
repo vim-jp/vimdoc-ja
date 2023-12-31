@@ -1,4 +1,4 @@
-*os_vms.txt*    For Vim バージョン 9.0.  Last change: 2022 Nov 25
+*os_vms.txt*    For Vim バージョン 9.0.  Last change: 2023 Dec 09
 
 
 			  VIMリファレンスマニュアル
@@ -44,14 +44,16 @@ Vimのソースコードは公式サイトからftpでダウンロードする�
 
 コンパイル済みバイナリを利用するには、以下のどれか1つのアーカイブが必要:
 
-  vim-XX-exe-ia64-gui.zip       IA64 GUI/Motif用実行可能ファイル
-  vim-XX-exe-ia64-gtk.zip       IA64 GUI/GTK用実行可能ファイル
-  vim-XX-exe-ia64-term.zip      IA64 console用実行可能ファイル
+  vim-XX-exe-x86-gui.zip	X86_64 GUI/Motif用実行可能ファイル
+  vim-XX-exe-x86-term.zip	X86_64 console用実行可能ファイル
+  vim-XX-exe-ia64-gui.zip	IA64 GUI/Motif用実行可能ファイル
+  vim-XX-exe-ia64-gtk.zip	IA64 GUI/GTK用実行可能ファイル
+  vim-XX-exe-ia64-term.zip	IA64 console用実行可能ファイル
   vim-XX-exe-axp-gui.zip	Alpha GUI/Motif用実行可能ファイル
   vim-XX-exe-axp-gtk.zip	Alpha GUI/GTK用実行可能ファイル
-  vim-XX-exe-axp-term.zip       Alpha console用実行可能ファイル
+  vim-XX-exe-axp-term.zip	Alpha console用実行可能ファイル
   vim-XX-exe-vax-gui.zip	VAX GUI用実行可能ファイル
-  vim-XX-exe-vax-term.zip       VAX console用実行可能ファイル
+  vim-XX-exe-vax-term.zip	VAX console用実行可能ファイル
 
 そしてもちろん(これはなくてもよい)
   vim-XX-runtime.zip		Vim用ランタイムファイル
@@ -71,10 +73,10 @@ GTK 用実行可能ファイルでは Alpha と IA64 プラットフォームで
 
 4. 問題点						*vms-problems*
 
-コードはDEC Cコンパイラを用いて、Alpha, VAX, IA64 プラットフォームのOpen VMS
-バージョン 6.2 から 8.2 でテストされた。それらでは大きな問題もなく動作するだろ
-う。利用しているシステムにインクルードライブラリの欠けがある場合には、ファイル
-OS_VMS_CONF.Hを修正することで対応する。
+コードはDEC Cコンパイラを用いて、Alpha, VAX, IA64, X86_64 プラットフォームの
+Open VMSバージョン 6.2 から 9.2 でテストされた。それらでは大きな問題もなく動作
+するだろう。利用しているシステムにインクルードライブラリがない場合は、
+OS_VMS_CONF.H ファイルで調整できる。
 
 Vimを+perlや+python、その他のオプションを追加して構築するならば、まず始めに
 OpenVMS版のPerlやPythonを入手する必要がある。それらのライブラリを構築しインス
@@ -88,8 +90,8 @@ NOTE: VAXではDEC Cコンパイラを使えば問題ない。VAXCコンパイ�
 ラの解釈できる形へ変換するプログラムを使用しなければならない。詳細は
 INSTALLvms.txt を参照。
 
-MMS_VIM.EXEはVIM.EXEと一緒に構築されるが、XXD.EXEは手動でサブディレクトリへ
-移動して個別に構築しなければならない。
+XXD.EXE をビルドするには、サブディレクトリに移動して個別にビルドする必要があ
+る。
 
 もはやCTAGSはVimとは独立したソフトウェアになっているが、以下で述べるように
 OpenVMS特有のソースコードにはCTAGSのソースコードファイルも含まれている。
@@ -205,6 +207,7 @@ LOGIN.COMの例: >
 	$ define/nolog VIM DKA0:[UTIL.VIM81]
 	$ vi*m :== mcr VIM:VIM.EXE
 	$ gv*im:== spawn/nowait/input=NLA0 mcr VIM:VIM.EXE -g -GEOMETRY 80x40
+	$ set term/inq/ins ! 端末の機能を問い合わせる
 	$ set disp/create/node=192.168.10.202/trans=tcpip
 
 NOTE: 独立サーバーやクラスタ環境で使用しているならばこの設定で充分であろう。し
@@ -447,7 +450,12 @@ defaulting to 'vt320'
 {訳注: メッセージの翻訳は省略します。実際には翻訳されて表示される可能性があり
 ます。}
 
-解決法はデフォルトの端末名を設定することである: >
+次のようにして強制的に端末の能力を問い合わせるようにする: >
+
+	$ set term/inquire
+
+問い合わせが役に立たなかった場合、解決策はデフォルトの端末名を定義することであ
+る: >
 
 	$ ! 不明な端末名。代わりにvt320かansiを使用する。
 	$ ! 注意: この名前は大文字小文字が区別される。
@@ -758,7 +766,19 @@ GNU_TOOLS.ZIP の [GNU]gnu_tools.com スクリプトである。
 
 9. VMS関連の変更点					*vms-changes*
 
-Version 8.2
+Version 9.0 (2023 Nov 27)
+- Vim は X86_64 アーキテクチャに移植された
+	- 重要: X86_64 の ex_cmds.h などの構造体で getline 関数名が使用されて
+	いるため、CRTL_VER は 80500000 レベル未満に保たれる。適切な解決策は、
+	構造体 (および使用されるすべての場所) 内で getline 関数の名前を別の名
+	前に変更し、構造体内で POSIX 関数を使用しないようにすることだが、この
+	変更は他のすべてのオペレーティングシステムに影響を与える。(VMS TODO リ
+	ストを追加)
+	詳細については、https://forum.vmssoftware.com/viewtopic.php?f=38&t=8914&p=20049
+- os_vms_conf.h のインクルードはすべてのアーキテクチャでレビューされている
+- MODIFIED_BY 定義のサポートを追加
+
+Version 8.2 (2020 Feb 6)
 - 全プラットフォームの VMS Vim 8.2 クリーンビルドで必要となる全ての変更を実施
 - mkdir 呼び出しバグの修正 (vicente_polo@yahoo.es)
 - VSI OpenVMS Alpha と Itanium プラットフォーム上のテスト
@@ -767,17 +787,18 @@ Version 8.2
 - XPM v3.4.11 ライブラリの IA64、AXP、VAX 版を追加
 - 新テストスクリプト統合を開始
 
-Version 8.1
+Version 8.1 (2019 Jan 9)
 - VMSで v8.1 をビルドするために必要な変更
+- GTK1.2.10 on VAX
 
-Version 8.0
+Version 8.0 (2016 Nov 21)
 - キーストロークを待っている間、CPU使用率 100% の問題を解決
 - INFINITY(json.c で使用)の取り扱いに関するVMSの警告とエラーを修正
 - 小さなVMSの移植に関連した変更
 - make_vms.mms file を 8.0用に修正
 - [.TESTDIR]make_vms.mms を 8.0用に修正
 
-Version 7.4
+Version 7.4 (2013 Aug 10)
 - Undo: VMS はファイル名に複数のドットを使えないので "dir/name" -> "dir/_un_name" とする
   先頭に _un_ を追加して拡張子を維持する
 - スワップファイル名のワイルドカードの扱いを修正
@@ -794,7 +815,7 @@ Version 7.4
 - マイナーなコンパイラ警告の修正
 - CTAGS 5.8 +regex 取り込み
 
-バージョン 7.3
+Version 7.3 (2010 Aug 15)
 - CTAGS 5.8 の取り込み
 - VMS コンパイル警告の修正 - VAX の浮動小数点数オーバーフローの警告を直した
 - ファイルパス補完の修正 - ファイル名とシェルコマンドにおいて余計な文字がエス
@@ -959,7 +980,7 @@ Version 4.5 (1996 Dec 16)
 10. 著者						*vms-authors*
 
 OpenVMSの文章とコンパイル済みバイナリは以下がメンテナンスしている:
-Zoltan Arpadffy <arpadffy@polarhome.com>
+Zoltan Arpadffy <zoltan.arpadffy@gmail.com>
 OpenVMS Vim page: http://www.polarhome.com/vim/
 
 この文章には、初期の著者や貢献者の書いた部分や記述が含まれている:
