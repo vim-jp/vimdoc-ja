@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'vim9'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="vim9.html" name="vim9.txt">vim9.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2023 Dec 09<br>
+<a class="Constant" href="vim9.html" name="vim9.txt">vim9.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 Jan 12<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
 <br>
@@ -1068,8 +1068,11 @@ Vim9 script では以下の定義済みの値が使えます:<br>
 <br>
 また、それらの値は引数の既定値とするのにも便利です:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def MyFunc(b: blob = null_blob)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if b == null_blob<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 引数 b が与えられなかった</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Note: null_blob ではなく null と比較し、<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; デフォルト値と空 blob を区別する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if b == null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 引数 b が与えられなかった</div>
+null に対するテストについての詳細は、<a class="Identifier" href="vim9.html#null-compare">null-compare</a>&nbsp;を参照。<br>
 <br>
 <a class="Comment" href="vim9.html#null">null</a>&nbsp;はどんな値と比較すること可能で、型エラーが発生することはありません。<br>
 しかし、<a class="Comment" href="vim9.html#null">null</a>&nbsp;と数値、浮動小数点数、真偽値との比較は常に&nbsp;<a class="Comment" href="vim9.html#false">false</a>&nbsp;になります。<br>
@@ -1272,10 +1275,13 @@ Vim9 関数はすべてコンパイルされます:<br>
 なりません。それらは関数内で、旧来の関数内でも作成することはできません。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#:defc" name=":defc">:defc</a>&nbsp;<a class="Constant" href="vim9.html#:defcompile" name=":defcompile">:defcompile</a><br>
-:defc[ompile]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 現在のスクリプトで定義されている関数のうち、まだコンパ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;イルされていないものをコンパイルします。これはコンパイ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ル時に見つかったいかなるエラーも報告します。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;クラス内部で定義された関数は除きます。<br>
+:defc[ompile]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 現在のスクリプトで定義されている関数とクラス<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="MissingTag">class-compile</span>) のうち、まだコンパイルされていないも<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;のをコンパイルします。これはコンパイル時に見つかったい<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;かなるエラーも報告します。<br>
+<br>
+:defc[ompile] MyClass&nbsp;&nbsp; クラス内のすべてのメソッドをコンパイルします。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="MissingTag">class-compile</span><br>
 <br>
 :defc[ompile]&nbsp;<span class="Special">{func}</span><br>
 :defc[ompile] debug&nbsp;<span class="Special">{func}</span><br>
@@ -1701,6 +1707,157 @@ Vim9 script ではこれは厳格にされています。使われている値�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1228" name="E1228">E1228</a>&nbsp;<a class="Constant" href="vim9.html#E1238" name="E1238">E1238</a>&nbsp;<a class="Constant" href="vim9.html#E1250" name="E1250">E1250</a>&nbsp;<a class="Constant" href="vim9.html#E1251" name="E1251">E1251</a>&nbsp;<a class="Constant" href="vim9.html#E1252" name="E1252">E1252</a>&nbsp;<a class="Constant" href="vim9.html#E1256" name="E1256">E1256</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1297" name="E1297">E1297</a>&nbsp;<a class="Constant" href="vim9.html#E1298" name="E1298">E1298</a>&nbsp;<a class="Constant" href="vim9.html#E1301" name="E1301">E1301</a><br>
 間違いを発見しやすくするために、ほとんどの組み込み関数で型がチェックされます。<br>
+<br>
+<span class="PreProc">変数のカテゴリー、デフォルトおよび null の扱い</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#variable-categories" name="variable-categories">variable-categories</a>&nbsp;<a class="Constant" href="vim9.html#null-variables" name="null-variables">null-variables</a><br>
+変数には次のカテゴリがあります:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;プリミティブ&nbsp;&nbsp;&nbsp;&nbsp;number, float, boolean<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コンテナ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string, blob, list, dict<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;特殊&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function, job, channel, user-defined-object<br>
+<br>
+初期化子を使用せずに変数を宣言する場合は、明示的に型を指定する必要があります。<br>
+各カテゴリには、異なるデフォルトの初期化セマンティクスがあります。カテゴリごと<br>
+の例を次に示します:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var num: number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # プリミティブのデフォルトは 0 相当<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var cont: list&lt;string&gt;&nbsp;&nbsp;# コンテナのデフォルトは空コンテナ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var spec: job&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 特殊変数のデフォルトは null</div>
+<br>
+Vim にはおなじみの null 値はありません。<a class="Identifier" href="vim9.html#null_string">null_string</a>、<a class="Identifier" href="vim9.html#null_list">null_list</a>、<a class="Identifier" href="vim9.html#null_job">null_job</a><br>
+など、さまざまな null_<span class="Special">&lt;type&gt;</span>&nbsp;があらかじめ定義されています。プリミティブは<br>
+null_<span class="Special">&lt;type&gt;</span>&nbsp;を持ちません。null_<span class="Special">&lt;type&gt;</span>&nbsp;の典型的な使用例は以下の通りです:<br>
+- 変数をクリアし、そのリソースを解放。<br>
+- 関数定義内のパラメータのデフォルトとしては、<a class="Identifier" href="vim9.html#null-compare">null-compare</a>&nbsp;を参照。<br>
+<br>
+<a class="Comment" href="channel.html#job">job</a>&nbsp;などの特殊な変数の場合、リソースをクリアするために null_<span class="Special">&lt;type&gt;</span>&nbsp;が使用さ<br>
+れます。コンテナ変数の場合、空コンテナを変数に割り当てることによってリソースを<br>
+クリアすることもできます。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var j: job = job_start(...)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# ... ジョブはその仕事を行う<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j = null_job&nbsp;&nbsp;&nbsp;&nbsp;# 変数をクリアしてジョブのリソースを解放する</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var l: list&lt;any&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# ... リストにたくさんのものを追加<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;l = []&nbsp;&nbsp;# 変数をクリアしてコンテナリソースを解放する</div>
+null_<span class="Special">&lt;type&gt;</span>&nbsp;ではなく空コンテナを使用してコンテナ変数をクリアすると、<br>
+<a class="Identifier" href="vim9.html#null-anomalies">null-anomalies</a>&nbsp;で説明されているように null の複雑な問題を回避できる可能性が<br>
+あります。<br>
+<br>
+コンテナ変数と特殊な変数の初期化セマンティクスは異なります。初期化されていない<br>
+コンテナはデフォルトで空コンテナになります:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var l1: list&lt;string&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 空コンテナ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var l2: list&lt;string&gt; = []&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 空コンテナ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var l3: list&lt;string&gt; = null_list&nbsp;&nbsp;&nbsp;&nbsp;# null コンテナ</div>
+&quot;l1&quot; と &quot;l2&quot; は同等で区別できない初期化です。ただし、&quot;l3&quot; は null コンテナで<br>
+す。null コンテナは空コンテナに似ていますが、異なります。<a class="Identifier" href="vim9.html#null-anomalies">null-anomalies</a>&nbsp;を参<br>
+照してください。<br>
+<br>
+特殊変数のデフォルトは null です。これらのジョブの初期化は同等であり、区別でき<br>
+ません:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var j1: job<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var j2: job = null_job<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var j3 = null_job</div>
+<br>
+リストまたは辞書が宣言されている時に、項目の型が指定されておらず推論できない場<br>
+合、型は &quot;any&quot; になります:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var d1 = {}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 型は &quot;dict&lt;any&gt;&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var d2 = null_dict&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 型は &quot;dict&lt;any&gt;&quot;</div>
+<br>
+関数の宣言は特に独特です。<a class="Identifier" href="vim9.html#vim9-func-declaration">vim9-func-declaration</a>&nbsp;を参照。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#null-compare" name="null-compare">null-compare</a><br>
+一般的な null 比較セマンティクスでは、null コンテナが空コンテナと等しくない場<br>
+合、比較で null_<span class="Special">&lt;type&gt;</span>&nbsp;を使用しないでください:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def F(arg: list&lt;string&gt; = null_list)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if arg == null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; echo &quot;null&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo printf(&quot;not null, %sempty&quot;, empty(arg) ? '' : 'not ')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 出力: &quot;null&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F(null_list)&nbsp;&nbsp;&nbsp;&nbsp;# 出力: &quot;null&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F([])&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 出力: &quot;not null, empty&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F([''])&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 出力: &quot;not null, not empty&quot;</div>
+上記の関数は文字列のリストを取得し、それについてレポートします。<br>
+さまざまな種類の引数を受け入れるように、上記の関数シグネチャを変更します:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def F(arg: list&lt;any&gt; = null_list)&nbsp;&nbsp; # あらゆるタイプのリスト<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def F(arg: any = null)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# あらゆるタイプ</div>
+<br>
+上記の例では、null リストと空リストを区別することが目的であり、<a class="Comment" href="vim9.html#null_list">null_list</a>&nbsp;で<br>
+はなく&nbsp;<a class="Comment" href="vim9.html#null">null</a>&nbsp;と比較することが正しい選択です。基本的な理由は、<br>
+&quot;null_list == null&quot; および &quot;[] != null&quot; であるためです。<br>
+&quot;[] == null_list&quot; であるため、<a class="Comment" href="vim9.html#null_list">null_list</a>&nbsp;との比較は失敗します。次のセクション<br>
+で比較結果の詳細が記載されています。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#null-details" name="null-details">null-details</a>&nbsp;<a class="Constant" href="vim9.html#null-anomalies" name="null-anomalies">null-anomalies</a><br>
+このセクションでは、null および null_<span class="Special">&lt;type&gt;</span>&nbsp;の使用に関する問題について説明しま<br>
+す。以下に、null 比較の列挙結果を示します。場合によっては、vim9 の null セマン<br>
+ティクスに精通している場合、プログラマは比較やその他の状況で null_<span class="Special">&lt;type&gt;</span>&nbsp;を使<br>
+用することを選択することがあります。<br>
+<br>
+ドキュメントの他の場所には次のように書かれています:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 多くの場合、null 値は空の値と同じように処理されますが、常にそうとは限<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; りません<br>
+以下に例を示します:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var s1: list&lt;string&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var s2: list&lt;string&gt; = null_list<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo s1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 出力: &quot;[]&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo s2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 出力: &quot;[]&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo s1 + ['a']&nbsp;&nbsp;&nbsp;&nbsp; # 出力: &quot;['a']&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo s2 + ['a']&nbsp;&nbsp;&nbsp;&nbsp; # 出力: &quot;['a']&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo s1-&gt;add('a')&nbsp;&nbsp; # 出力: &quot;['a']&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo s2-&gt;add('a')&nbsp;&nbsp; # E1130: Can not add to null list</div>
+<br>
+null_<span class="Special">&lt;type&gt;</span>&nbsp;に等しい 2 つの値は、必ずしも互いに等しいとは限りません:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo {} == null_dict&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# true<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo null_dict == null&nbsp;&nbsp;&nbsp;&nbsp;# true<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo {} == null&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # false</div>
+<br>
+他のコンテナとは異なり、初期化されていない文字列は null と等しくなります。<a class="Comment" href="motion.html#is">is</a><br>
+演算子を使用して、null_string かどうかを判断できます:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var s1: string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var s2 = null_string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo s1 == null&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # true - これは想定外<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo s2 == null&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # true<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo s2 is null_string&nbsp;&nbsp;# true</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var b1: blob<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var b2 = null_blob<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo b1 == null&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # false<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo b2 == null&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # true</div>
+<br>
+null_<span class="Special">&lt;type&gt;</span>&nbsp;に初期化された変数はすべて、null_<span class="Special">&lt;type&gt;</span>&nbsp;と等しく、また null と等し<br>
+くなります。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var x = null_blob<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo x == null_blob&nbsp;&nbsp;&nbsp;&nbsp; # true<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo x == null&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# true</div>
+<br>
+初期化されていない変数は通常、null と等しくなります。それはそのタイプによって<br>
+異なります:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var s: string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; s == null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var b: blob&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; b != null&nbsp;&nbsp; ***<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var l: list<span class="Special">&lt;any&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;l != null&nbsp;&nbsp; ***<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var d: dict<span class="Special">&lt;any&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d != null&nbsp;&nbsp; ***<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var f: func&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f == null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var j: job&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j == null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var c: channel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c == null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var o: Class&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o == null<br>
+<br>
+空に初期化された変数は null_<span class="Special">&lt;type&gt;</span>&nbsp;と同等です。null ではありません:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var s2: string = &quot;&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; == null_string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!= null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var b2: blob = 0z&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; == null_blob&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!= null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var l2: list<span class="Special">&lt;any&gt;</span>&nbsp;= []&nbsp;&nbsp;&nbsp;&nbsp;== null_list&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!= null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var d2: dict<span class="Special">&lt;any&gt;</span>&nbsp;= {}&nbsp;&nbsp;&nbsp;&nbsp;== null_dict&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!= null<br>
+<br>
+<span class="Todo">NOTE</span>: ジョブなどの特殊な変数はデフォルトで null 値になり、対応する空の値はあり<br>
+ません。<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 <br>
