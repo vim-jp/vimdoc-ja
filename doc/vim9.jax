@@ -1,4 +1,4 @@
-*vim9.txt*	For Vim バージョン 9.1.  Last change: 2023 Dec 09
+*vim9.txt*	For Vim バージョン 9.1.  Last change: 2024 Jan 12
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
 
@@ -1063,8 +1063,11 @@ Vim9 script では以下の定義済みの値が使えます: >
 
 また、それらの値は引数の既定値とするのにも便利です: >
 	def MyFunc(b: blob = null_blob)
-	   if b == null_blob
-	      # 引数 b が与えられなかった
+	    # Note: null_blob ではなく null と比較し、
+	    #       デフォルト値と空 blob を区別する。
+	    if b == null
+	        # 引数 b が与えられなかった
+null に対するテストについての詳細は、|null-compare| を参照。
 
 `null` はどんな値と比較すること可能で、型エラーが発生することはありません。
 しかし、`null` と数値、浮動小数点数、真偽値との比較は常に `false` になります。
@@ -1267,10 +1270,13 @@ Note 認識されていないコマンドを "|" でつなぐと、その後の�
 なりません。それらは関数内で、旧来の関数内でも作成することはできません。
 
 						*:defc* *:defcompile*
-:defc[ompile]		現在のスクリプトで定義されている関数のうち、まだコンパ
-			イルされていないものをコンパイルします。これはコンパイ
-			ル時に見つかったいかなるエラーも報告します。
-			クラス内部で定義された関数は除きます。
+:defc[ompile]		現在のスクリプトで定義されている関数とクラス
+			(|class-compile|) のうち、まだコンパイルされていないも
+			のをコンパイルします。これはコンパイル時に見つかったい
+			かなるエラーも報告します。
+
+:defc[ompile] MyClass	クラス内のすべてのメソッドをコンパイルします。
+			|class-compile|
 
 :defc[ompile] {func}
 :defc[ompile] debug {func}
@@ -1696,6 +1702,157 @@ Vim9 script ではこれは厳格にされています。使われている値�
 			 *E1228* *E1238* *E1250* *E1251* *E1252* *E1256*
 			 *E1297* *E1298* *E1301*
 間違いを発見しやすくするために、ほとんどの組み込み関数で型がチェックされます。
+
+変数のカテゴリー、デフォルトおよび null の扱い ~
+				*variable-categories* *null-variables*
+変数には次のカテゴリがあります:
+	プリミティブ	number, float, boolean
+	コンテナ	string, blob, list, dict
+	特殊		function, job, channel, user-defined-object
+
+初期化子を使用せずに変数を宣言する場合は、明示的に型を指定する必要があります。
+各カテゴリには、異なるデフォルトの初期化セマンティクスがあります。カテゴリごと
+の例を次に示します: >
+	var num: number		# プリミティブのデフォルトは 0 相当
+	var cont: list<string>	# コンテナのデフォルトは空コンテナ
+	var spec: job		# 特殊変数のデフォルトは null
+<
+Vim にはおなじみの null 値はありません。|null_string|、|null_list|、|null_job|
+など、さまざまな null_<type> があらかじめ定義されています。プリミティブは
+null_<type> を持ちません。null_<type> の典型的な使用例は以下の通りです:
+- 変数をクリアし、そのリソースを解放。
+- 関数定義内のパラメータのデフォルトとしては、|null-compare| を参照。
+
+`job` などの特殊な変数の場合、リソースをクリアするために null_<type> が使用さ
+れます。コンテナ変数の場合、空コンテナを変数に割り当てることによってリソースを
+クリアすることもできます。例: >
+	var j: job = job_start(...)
+	# ... ジョブはその仕事を行う
+	j = null_job	# 変数をクリアしてジョブのリソースを解放する
+
+	var l: list<any>
+	# ... リストにたくさんのものを追加
+	l = []  # 変数をクリアしてコンテナリソースを解放する
+null_<type> ではなく空コンテナを使用してコンテナ変数をクリアすると、
+|null-anomalies| で説明されているように null の複雑な問題を回避できる可能性が
+あります。
+
+コンテナ変数と特殊な変数の初期化セマンティクスは異なります。初期化されていない
+コンテナはデフォルトで空コンテナになります: >
+	var l1: list<string>		    # 空コンテナ
+	var l2: list<string> = []	    # 空コンテナ
+	var l3: list<string> = null_list    # null コンテナ
+"l1" と "l2" は同等で区別できない初期化です。ただし、"l3" は null コンテナで
+す。null コンテナは空コンテナに似ていますが、異なります。|null-anomalies| を参
+照してください。
+
+特殊変数のデフォルトは null です。これらのジョブの初期化は同等であり、区別でき
+ません: >
+	var j1: job
+	var j2: job = null_job
+	var j3 = null_job
+
+リストまたは辞書が宣言されている時に、項目の型が指定されておらず推論できない場
+合、型は "any" になります: >
+	var d1 = {}		# 型は "dict<any>"
+	var d2 = null_dict	# 型は "dict<any>"
+
+関数の宣言は特に独特です。|vim9-func-declaration| を参照。
+
+						*null-compare*
+一般的な null 比較セマンティクスでは、null コンテナが空コンテナと等しくない場
+合、比較で null_<type> を使用しないでください: >
+	vim9script
+	def F(arg: list<string> = null_list)
+	    if arg == null
+	       echo "null"
+	    else
+		echo printf("not null, %sempty", empty(arg) ? '' : 'not ')
+	    endif
+	enddef
+	F()		# 出力: "null"
+	F(null_list)	# 出力: "null"
+	F([])		# 出力: "not null, empty"
+	F([''])		# 出力: "not null, not empty"
+上記の関数は文字列のリストを取得し、それについてレポートします。
+さまざまな種類の引数を受け入れるように、上記の関数シグネチャを変更します: >
+	def F(arg: list<any> = null_list)   # あらゆるタイプのリスト
+	def F(arg: any = null)		    # あらゆるタイプ
+<
+上記の例では、null リストと空リストを区別することが目的であり、`null_list` で
+はなく `null` と比較することが正しい選択です。基本的な理由は、
+"null_list == null" および "[] != null" であるためです。
+"[] == null_list" であるため、`null_list` との比較は失敗します。次のセクション
+で比較結果の詳細が記載されています。
+
+					*null-details* *null-anomalies*
+このセクションでは、null および null_<type> の使用に関する問題について説明しま
+す。以下に、null 比較の列挙結果を示します。場合によっては、vim9 の null セマン
+ティクスに精通している場合、プログラマは比較やその他の状況で null_<type> を使
+用することを選択することがあります。
+
+ドキュメントの他の場所には次のように書かれています:
+	 多くの場合、null 値は空の値と同じように処理されますが、常にそうとは限
+	 りません
+以下に例を示します: >
+	vim9script
+	var s1: list<string>
+	var s2: list<string> = null_list
+	echo s1		    # 出力: "[]"
+	echo s2		    # 出力: "[]"
+	
+	echo s1 + ['a']     # 出力: "['a']"
+	echo s2 + ['a']     # 出力: "['a']"
+	
+	echo s1->add('a')   # 出力: "['a']"
+	echo s2->add('a')   # E1130: Can not add to null list
+<
+null_<type> に等しい 2 つの値は、必ずしも互いに等しいとは限りません: >
+	vim9script
+	echo {} == null_dict      # true
+	echo null_dict == null    # true
+	echo {} == null           # false
+<
+他のコンテナとは異なり、初期化されていない文字列は null と等しくなります。`is`
+演算子を使用して、null_string かどうかを判断できます: >
+	vim9script
+	var s1: string
+	var s2 = null_string
+	echo s1 == null		# true - これは想定外
+	echo s2 == null		# true
+	echo s2 is null_string	# true
+
+	var b1: blob
+	var b2 = null_blob
+	echo b1 == null		# false
+	echo b2 == null		# true
+<
+null_<type> に初期化された変数はすべて、null_<type> と等しく、また null と等し
+くなります。例: >
+	vim9script
+	var x = null_blob
+	echo x == null_blob	# true
+	echo x == null		# true
+<
+初期化されていない変数は通常、null と等しくなります。それはそのタイプによって
+異なります:
+	var s: string		s == null
+	var b: blob		b != null   ***
+	var l: list<any>	l != null   ***
+	var d: dict<any>	d != null   ***
+	var f: func		f == null
+	var j: job		j == null
+	var c: channel		c == null
+	var o: Class		o == null
+
+空に初期化された変数は null_<type> と同等です。null ではありません:
+	var s2: string = ""	  == null_string	!= null
+	var b2: blob = 0z	  == null_blob		!= null
+	var l2: list<any> = []	  == null_list		!= null
+	var d2: dict<any> = {}	  == null_dict		!= null
+
+NOTE: ジョブなどの特殊な変数はデフォルトで null 値になり、対応する空の値はあり
+ません。
 
 ==============================================================================
 
