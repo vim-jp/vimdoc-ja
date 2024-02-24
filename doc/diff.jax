@@ -1,4 +1,4 @@
-*diff.txt*      For Vim バージョン 9.1.  Last change: 2023 Apr 04
+*diff.txt*      For Vim バージョン 9.1.  Last change: 2024 Feb 01
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -474,5 +474,49 @@ http://gnuwin32.sourceforge.net/packages/diffutils.htm.
 そうでない場合、式はオプションが設定されたスクリプトのコンテキストで評価され、
 その結果スクリプトローカルな要素を使用できる。
 
+
+☆diff 関数の例					*diff-func-examples*
+
+|diff()| 関数を使用して 2 つの文字列のリスト間の差分インデックスを計算する例を
+以下に示す。
+>
+  " いくつかの行が変更された
+  :echo diff(['abc', 'def', 'ghi'], ['abx', 'rrr', 'xhi'], {'output': 'indices'})
+   [{'from_idx': 0, 'from_count': 3, 'to_idx': 0, 'to_count': 3}]
+
+  " 冒頭に数行を追加した
+  :echo diff(['ghi'], ['abc', 'def', 'ghi'], {'output': 'indices'})
+   [{'from_idx': 0, 'from_count': 0, 'to_idx': 0, 'to_count': 2}]
+
+  " 冒頭から数行を削除した
+  :echo diff(['abc', 'def', 'ghi'], ['ghi'], {'output': 'indices'})
+   [{'from_idx': 0, 'from_count': 2, 'to_idx': 0, 'to_count': 0}]
+
+  " 途中に数行を追加した
+  :echo diff(['abc', 'jkl'], ['abc', 'def', 'ghi', 'jkl'], {'output': 'indices'})
+   [{'from_idx': 1, 'from_count': 0, 'to_idx': 1, 'to_count': 2}]
+
+  " 途中の数行を削除した
+  :echo diff(['abc', 'def', 'ghi', 'jkl'], ['abc', 'jkl'], {'output': 'indices'})
+   [{'from_idx': 1, 'from_count': 2, 'to_idx': 1, 'to_count': 0}]
+
+  " 末尾に数行を追加した
+  :echo diff(['abc'], ['abc', 'def', 'ghi'], {'output': 'indices'})
+   [{'from_idx': 1, 'from_count': 0, 'to_idx': 1, 'to_count': 2}]
+
+  " 末尾から数行を削除した
+  :echo diff(['abc', 'def', 'ghi'], ['abc'], {'output': 'indices'})
+   [{'from_idx': 1, 'from_count': 2, 'to_idx': 1, 'to_count': 0}]
+
+  " ばらばらな変更
+  :echo diff(['ab', 'def', 'ghi', 'jkl'], ['abc', 'def', 'ghi', 'jk'], {'output': 'indices', 'context': 0})
+   [{'from_idx': 0, 'from_count': 1, 'to_idx': 0, 'to_count': 1},
+    {'from_idx': 3, 'from_count': 1, 'to_idx': 3, 'to_count': 1}]
+
+  " コンテキスト長 1 のばらばらな変更
+  :echo diff(['ab', 'def', 'ghi', 'jkl'], ['abc', 'def', 'ghi', 'jk'], {'output': 'indices', 'context': 1})
+   [{'from_idx': 0, 'from_count': 4, 'to_idx': 0, 'to_count': 4}]
+
+<
 
  vim:tw=78:ts=8:noet:ft=help:norl:
