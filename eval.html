@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'eval'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="eval.html" name="eval.txt">eval.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 Jan 14<br>
+<a class="Constant" href="eval.html" name="eval.txt">eval.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 Feb 08<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -301,10 +301,15 @@ funcref() に渡すことで作成される。その関数を呼び出すと、�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#list-concatenation" name="list-concatenation">list-concatenation</a><br>
 2つのリストを連結するには演算子 &quot;+&quot; を使う:&nbsp;&gt;<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let longlist = mylist + [5, 6]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let mylist += [7, 8]</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let longlist = [5, 6] + mylist</div>
+1個の要素を先頭または末尾に付け加えるには、[]で囲んでリストにして連結する。<br>
 <br>
-1個の要素を先頭または末尾に付け加えるには、[]で囲んでリストにして連結する。リ<br>
-ストの特定の要素を変更するには後述の<a class="Identifier" href="eval.html#list-modification">list-modification</a>を参照。<br>
+リストは&nbsp;<a class="Identifier" href="eval.html#:let+=">:let+=</a>&nbsp;もしくは&nbsp;<a class="Identifier" href="builtin.html#extend()">extend()</a>&nbsp;を使うことで、他のリストとその場で連結す<br>
+ることができる:&nbsp;&gt;<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let mylist += [7, 8]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:call extend(mylist, [7, 8])</div>
+&lt;<br>
+リストをその場で変更する他の方法については&nbsp;<a class="Identifier" href="eval.html#list-modification">list-modification</a>&nbsp;を参照。<br>
 <br>
 <br>
 <span class="PreProc">部分リスト</span>&nbsp;~<br>
@@ -415,6 +420,19 @@ funcref() に渡すことで作成される。その関数を呼び出すと、�
 とも削除する範囲の要素数と同じ数だけ必要である:&nbsp;&gt;<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let list[3:5] = [3, 4, 5]</div>
 <br>
+リストに要素をその場で追加するには、<a class="Identifier" href="eval.html#:let+=">:let+=</a>&nbsp;(<a class="Identifier" href="eval.html#list-concatenation">list-concatenation</a>) を使うこと<br>
+ができる:&nbsp;&gt;<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let listA = [1, 2]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let listA += [3, 4]</div>
+&lt;<br>
+2 つのリストが同じリストを参照している時は、片方のリストをその場で変更すると、<br>
+他方のリストもその場で変更される:&nbsp;&gt;<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let listA = [1, 2]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let listB = listA<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let listB += [3, 4]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:echo listA<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1, 2, 3, 4]</div>
+&lt;<br>
 リストに要素を追加したり削除するには関数を使う。いくつか例を示す:&nbsp;&gt;<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:call insert(list, 'a')&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot; 先頭に要素 'a' を挿入する<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:call insert(list, 'a', 3)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 要素 'a' をlist[3]の前に挿入する<br>
@@ -727,12 +745,15 @@ Blob内のバイトは、Blobの後ろに角括弧でインデックスを入れ
 <br>
 <br>
 <span class="PreProc">Blobの連結</span>&nbsp;~<br>
-<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#blob-concatenation" name="blob-concatenation">blob-concatenation</a><br>
 2つのBlobは &quot;+&quot; 演算子で連結できる:&nbsp;&gt;<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let longblob = myblob + 0z4455<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let myblob += 0z6677</div>
-<br>
-Blobの決まった場所を変更するには、下記の&nbsp;<a class="Identifier" href="eval.html#blob-modification">blob-modification</a>&nbsp;を参照。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let longblob = 0z4455 + myblob</div>
+&lt;<br>
+Blob は&nbsp;<a class="Identifier" href="eval.html#:let+=">:let+=</a>&nbsp;を使うことで、他の Blob とその場で連結することができる:&nbsp;&gt;<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let myblob += 0z6677</div>
+&lt;<br>
+Blob をその場で変更する他の方法については、<a class="Identifier" href="eval.html#blob-modification">blob-modification</a>&nbsp;を参照。<br>
 <br>
 <br>
 <span class="PreProc">Blobの一部</span>&nbsp;~<br>
@@ -774,6 +795,19 @@ Blobの一部を変更するには、変更する最初と最後のバイトを�
 イト数は同じでなければならない:&nbsp;&gt;<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let blob[3:5] = 0z334455</div>
 <br>
+Blob に要素をその場で追加するには、<a class="Identifier" href="eval.html#:let+=">:let+=</a>&nbsp;(<a class="Identifier" href="eval.html#blob-concatenation">blob-concatenation</a>)を使うことが<br>
+できる:&nbsp;&gt;<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let blobA = 0z1122<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let blobA += 0z3344</div>
+&lt;<br>
+2 つの Blob が同じ Blob を参照している時は、片方の Blob をその場で変更すると、<br>
+他方の Blob もその場で変更される:&nbsp;&gt;<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let blobA = 0z1122<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let blobB = blobA<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let blobB += 0z3344<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:echo blobA<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0z11223344</div>
+&lt;<br>
 関数&nbsp;<a class="Identifier" href="builtin.html#add()">add()</a>,&nbsp;<a class="Identifier" href="builtin.html#remove()">remove()</a>&nbsp;および&nbsp;<a class="Identifier" href="builtin.html#insert()">insert()</a>&nbsp;も使用できる。<br>
 <br>
 <br>
@@ -1950,10 +1984,15 @@ v:collate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 現在のロケール設定での�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#v:colornames" name="v:colornames">v:colornames</a><br>
 v:colornames&nbsp;&nbsp;&nbsp;&nbsp;カラー名を16進数カラー文字列に対応付ける辞書。これらのカラー名<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;は、<a class="Identifier" href="syntax.html#highlight-guifg">highlight-guifg</a>,&nbsp;<a class="Identifier" href="syntax.html#highlight-guibg">highlight-guibg</a>,&nbsp;<a class="Identifier" href="syntax.html#highlight-guisp">highlight-guisp</a>&nbsp;の<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;パラメーターで使用できる。v:colornames のエントリを更新しても、<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;構文ハイライトにすぐに作用することはない。更新されたカラー値を<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;使用するには、highlight コマンド(おそらくカラースキームスクリ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;プト内)を再評価する必要がある。例:&nbsp;&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;パラメーターで使用できる。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Vim は色を小文字の色名で探すので、辞書のキーの値 (色名) は小文<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;字であるべきである。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v:colornames のエントリを更新しても、構文ハイライトにすぐに作<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;用することはない。更新されたカラー値を使用するには、highlight<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンド(おそらくカラースキームスクリプト内)を再評価する必要が<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ある。例:&nbsp;&gt;<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let v:colornames['fuscia'] = '#cf3ab4'<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let v:colornames['mauve'] = '#915f6d'<br>
@@ -2734,6 +2773,8 @@ Vimはこれを見つけると、まず波括弧の中の式を評価し、そ�
 :let&nbsp;<span class="Special">{var}</span>&nbsp;..=&nbsp;<span class="Special">{expr1}</span>&nbsp;&nbsp;&quot;:let&nbsp;<span class="Special">{var}</span>&nbsp;=&nbsp;<span class="Special">{var}</span>&nbsp;..&nbsp;<span class="Special">{expr1}</span>&quot; と同様。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{var}</span>がセットされていないときや、<span class="Special">{var}</span>と<span class="Special">{expr1}</span>の型が<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;演算子に合わないときは失敗する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<span class="Comment">+=</span>`&nbsp;は新たなリスト&nbsp;<a class="Identifier" href="eval.html#List">List</a>&nbsp;や&nbsp;<a class="Identifier" href="eval.html#Blob">Blob</a>&nbsp;を作る代わりにそ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;の場で変更する。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<span class="Comment">.=</span>`&nbsp;はVim scriptバージョン2以降ではサポートされていな<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;い。<a class="Identifier" href="eval.html#vimscript-version">vimscript-version</a>&nbsp;を参照。<br>
 <br>
