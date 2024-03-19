@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'gui_w32'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="gui_w32.html" name="gui_w32.txt">gui_w32.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2022 Mar 09<br>
+<a class="Constant" href="gui_w32.html" name="gui_w32.txt">gui_w32.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 Jan 23<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -460,5 +460,37 @@ github から vim16x16.xpm ファイルを入手する必要があるかもし�
 <span class="Constant"><a href="https://github.com/vim/vim/blob/master/runtime/vim16x16.xpm">https://github.com/vim/vim/blob/master/runtime/vim16x16.xpm</a></span><br>
 <br>
 <br>
+キーコード変換戦略&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="gui_w32.html#w32-experimental-keycode-trans-strategy" name="w32-experimental-keycode-trans-strategy">w32-experimental-keycode-trans-strategy</a><br>
+<br>
+Patch v8.2.4807 で、W32 の GVIM は、より多くのキーボードショートカットを使用で<br>
+きるようにすること、特に非標準のキーボードレイアウトをサポートすることを目的と<br>
+して、実験的なキーコード変換方法に変更された。このサポートを実装するために、<br>
+Win API TranslateMessage() 呼び出しは削除され、代わりにキーコードの認識が<br>
+ToUnicode() Win API 呼び出しに切り替えられた。このアプローチにより、多数の特殊<br>
+なケースが明らかになったが、これらは明らかに TranslateMessage() 実装によってカ<br>
+バーされており、それぞれ個別に対処する必要がある。したがって、当面はこの機能を<br>
+実験的であると宣言し、「古典的」キーコード変換方法をデフォルトとして再び復活さ<br>
+せることが決定された。<br>
+<br>
+「実験的」キーコード変換方法の使用に関する議論は、おそらくまだしばらく続くだろ<br>
+う。それまでの間、W32 GVIM で「古典的」キーコード変換方法に戻るこの変更の影響<br>
+を受ける場合は、次のスニペットを使用して vimrc で「実験的」変換方法を再度有効<br>
+にすることができる。<br>
+&gt;<br>
+<div class="helpExample">&nbsp;&nbsp;:call test_mswin_event('set_keycode_trans_strategy', {'strategy': 'experimental'})</div>
+&lt;<br>
+同様に、「古典的」キーコード変換方法を元に戻す必要がある場合 (例えば、テスト目<br>
+的など)、以下を使用する:<br>
+&gt;<br>
+<div class="helpExample">&nbsp;&nbsp;:call test_mswin_event('set_keycode_trans_strategy', {'strategy': 'classic'})</div>
+&lt;<br>
+あるいは (この方法は、test_mswin_event() を呼び出すことができない TINY GVIM ビ<br>
+ルドのために特に役立つ)、環境変数 VIM_KEYCODE_TRANS_STRATEGY を目的の値<br>
+(&quot;experimental&quot; または &quot;classic&quot;) に設定し、デフォルトをオーバーライドすること<br>
+もできる。例えば、dos プロンプトに以下のように入力する:<br>
+&gt;<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set VIM_KEYCODE_TRANS_STRATEGY=experimental<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gvim.exe</div>
+&lt;<br>
 &nbsp;vim:tw=78:sw=4:ts=8:noet:ft=help:norl:<br>
 </div>
