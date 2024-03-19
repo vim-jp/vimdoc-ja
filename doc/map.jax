@@ -1,4 +1,4 @@
-*map.txt*       For Vim バージョン 9.1.  Last change: 2023 May 28
+*map.txt*       For Vim バージョン 9.1.  Last change: 2024 Jan 25
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -20,9 +20,10 @@
    1.9 マップを使う				|map-typing|
    1.10 Altキーを使ったマップ			|:map-alt-keys|
    1.11 Metaキーを使ったマップ			|:map-meta-keys|
-   1.12 modifyOtherKeys モードのマップ		|modifyOtherKeys|
-   1.13 Kitty キーボードプロトコルを使ったマップ |kitty-keyboard-protocol|
-   1.14 オペレータの作成			|:map-operator|
+   1.12 superキーまたはcommandキーのマップ	|:map-super-keys|
+   1.13 modifyOtherKeys モードのマップ		|modifyOtherKeys|
+   1.14 Kitty キーボードプロトコルを使ったマップ |kitty-keyboard-protocol|
+   1.15 オペレータの作成			|:map-operator|
 2. 短縮入力			|abbreviations|
 3. ローカルマップとローカル関数	|script-local|
 4. ユーザー定義コマンド		|user-commands|
@@ -396,7 +397,8 @@ Note:
 
 							*E1255* *E1136*
 <Cmd> と <ScriptCmd> コマンドではマッピング定義の {rhs} が <CR> で終わる必要が
-あります。|Command-line| に入ることはありません。
+あります。|Command-line| に入ることはありません。{rhs} でリテラル <CR> を使用
+するには、|<lt>| を使用します。
 
 
 1.3 マップとモード					*:map-modes*
@@ -582,10 +584,12 @@ Note: ビジュアルモードのマップでは "'<" マークが使えます�
 グを追加したりクリアすることはできません。 *E1309*
 
 							*:map-verbose*
-'verbose' がゼロ以外のときにマップ一覧を表示すると、どこで定義されたのかも表示
-されます。例: >
+'verbose' がゼロ以外の場合、検出および使用された 'keyprotocol' の値が最初の行
+に表示されます。また、キーマップには、最後に定義された場所も表示されます。
+例: >
 
 	:verbose map <C-W>*
+	Kitty keyboard protocol: Cleared
 	n  <C-W>*      * <C-W><C-S>*
 		Last set from /home/abcd/.vimrc
 
@@ -971,7 +975,17 @@ Meta 修飾子には文字 "T" が使われます。例えば挿入モードで 
 	:imap <T-b> terrible
 
 
-1.12 modifyOtherKeys モードのマップ			*modifyOtherKeys*
+1.12 SuperキーまたはCommandキーのマップ		*:map-super-keys* *:map-cmd-key*
+
+Super 修飾子は、Linux 上の GVim および Mac OS 上の MacVim の GUI モード
+(|gui_running| が 1 の場合) で使用できます。Mac を使用している場合、これは
+Command キーを表し、GTK GUI を使用する Linux では、Super キーを表します。
+文字 "D" は、Super / Command 修飾子に使用されます。
+
+例えば、挿入モードで Command-b をマップするには: >
+	:imap <D-b> barritone
+
+1.13 modifyOtherKeys モードのマップ			*modifyOtherKeys*
 
 xterm と他のいくつかの端末は、修飾子付きのキーが特別なエスケープコードで送信さ
 れるモードにすることができます。Vim はこれらのコードを認識し、Backspace が文字
@@ -1035,7 +1049,7 @@ Note xterm の version 376 までは Shift-Esc が通常の Esc を送信し、S
 るのを防ぐため、挿入モードで modifyOtherKeys は無効化されます。
 
 
-1.13 Kitty キーボードプロトコルを使ったマップ	 *kitty-keyboard-protocol*
+1.14 Kitty キーボードプロトコルを使ったマップ	 *kitty-keyboard-protocol*
 
 'term' の値が "kitty" を含んでいる場合、Vim は Kitty キーボードプロトコルを有
 効化するエスケープシーケンスを送出します。これは 'keyprotocol' オプションで変
@@ -1061,7 +1075,7 @@ Vim はステータス要求 (これは |t_TI| termcap エントリの一部の�
 			以前の状態は不明
 
 
-1.14 オペレータの作成					*:map-operator*
+1.15 オペレータの作成					*:map-operator*
 
 オペレータは {motion} コマンドと合わせて使われます。独自のオペレータを定義する
 には、最初に 'operatorfunc' を設定し、そして、|g@| オペレータを呼びます。ユー
@@ -1608,6 +1622,7 @@ script2.vimを実行すると "None" が表示されます。期待した結果�
 	-complete=help		ヘルプの主題
 	-complete=highlight	ハイライトグループ
 	-complete=history	|:history| サブオプション
+	-complete=keymap	キーボードマッピング
 	-complete=locale	ロケール名 (locale -a の出力)
 	-complete=mapclear	バッファ引数
 	-complete=mapping	マップ
