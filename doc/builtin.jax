@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2024 Feb 01
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2024 Mar 29
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -279,6 +279,8 @@ getqflist({what})		辞書	指定したquickfixリストのプロパティ
 getreg([{regname} [, 1 [, {list}]]])
 				文字列/リスト   レジスタの中身を取得
 getreginfo([{regname}])		辞書	レジスタについての情報
+getregion({pos1}, {pos2} [, {opts}])
+				リスト	{pos1}から{pos2}までのテキストを取得
 getregtype([{regname}])		文字列	レジスタの種類を取得
 getscriptinfo([{opts}])		リスト	読み込まれたスクリプトの一覧
 gettabinfo([{expr}])		リスト	タブページのリスト
@@ -2099,23 +2101,28 @@ diff({fromlist}, {tolist} [, {options}])		*diff()*
 
 		{options} 辞書引数は diff オプション ('diffopt' と同様) も指定
 		し、以下の項目をサポートする:
-		    iblank		行がすべて空白の変更は無視する。
-		    icase		テキストの大小文字の変更を無視する。
-		    iwhite		空白の量の変化を無視する。
-		    iwhiteall		すべての空白の変更を無視する。
-		    iwhiteeol		行末の空白の変更を無視する。
-		    indent-heuristic	内部 diff ライブラリのインデントヒュー
-					リスティックを使用する。
 		    algorithm		使用する diff アルゴリズムを指定する辞
 					書。サポートされている真偽値項目は
 					"myers", "minimal", "patience",
 					"histogram"。
+		    context		diff context の長さ。デフォルトは 0。
+		    iblank		行がすべて空白の変更は無視する。
+		    icase		テキストの大小文字の変更を無視する。
+		    indent-heuristic	内部 diff ライブラリのインデントヒュー
+					リスティックを使用する。
+		    iwhite		空白の量の変化を無視する。
+		    iwhiteall		すべての空白の変更を無視する。
+		    iwhiteeol		行末の空白の変更を無視する。
 		これらのオプションの詳細については、'diffopt' を参照。
+
+		Unified diff を計算するために、{fromlist} のすべての項目は改行
+		区切りを用いてひとつの文字列に連結される。{tolist} も同様であ
+		る。Unified diff の出力は行番号を用いる。
 
 		{fromlist} と {tolist} が同一の場合、空のリストまたは文字列を
 		返す。
 
-		例:
+		例: >
 		    :echo diff(['abc'], ['xxx'])
 		     @@ -1 +1 @@
 		     -abc
@@ -2125,7 +2132,7 @@ diff({fromlist}, {tolist} [, {options}])		*diff()*
 		     [{'from_idx': 0, 'from_count': 1, 'to_idx': 0, 'to_count': 1}]
 		    :echo diff(readfile('oldfile'), readfile('newfile'))
 		    :echo diff(getbufline(5, 1, '$'), getbufline(6, 1, '$'))
-
+<
 		その他の例については、|diff-func-examples| を参照
 
 		|method| としても使用できる: >
@@ -2269,6 +2276,8 @@ empty({expr})						*empty()*
 		- ジョブ |Job| は開始に失敗したときは空である。
 		- チャネル |Channel| は閉じられていると空である。
 		- |Blob| はその長さが0のときは空である。
+		- |Object| はオブジェクトの empty() メソッドが (もし存在し) 真
+		  を返すとき空である。|object-empty()|
 
 		長いリストに対しては長さを0と比較するよりこちらの方がずっと高
 		速である。
@@ -2406,11 +2415,12 @@ exists({expr})	結果は数値で、変数{expr}が存在すれば|TRUE|とな�
 		引数{expr}は文字列で次のうちいずれかである。
 			varname		内部変数(|internal-variables|)
 			dict.key	|curly-braces-names|, |Dictionary|の要
-			list[i]		素、|List|の要素、import要素などに対し
-			import.Func	ても動作する。
-					コンパイルされる |:def| 関数内のローカ
-					ル変数には動作しない。
-					また関数参照が使用できるため、|Vim9|
+			list[i]		素、|List|の要素、クラスとオブジェクト
+			import.Func	のメソッド、import要素などに対しても動
+			class.Func	作する。
+			object.Func	コンパイルされる |:def| 関数内のローカ
+			class.varname	ル変数には動作しない。
+			object.varname	また関数参照が使用できるため、|Vim9|
 					script の関数でも動作する。
 					インデックスの評価で無効な式であるとエ
 					ラーメッセージが出る可能性があることに
@@ -2538,6 +2548,9 @@ expand({string} [, {nosuf} [, {list}]])				*expand()*
 		展開が失敗した場合、結果は空文字列となる。{string} が
 		'%'、'#'、'<' で始まらない限り、存在しないファイル名というの
 		は、結果の文字列には含まれない。下記を参照のこと。
+
+		|:terminal| のウィンドウに対しては、'%' は '!' とそれに続く実
+		行中のコマンドまたはシェルに展開される。|terminal-bufname|
 
 		{string} が '%' か '#' か '<' で始まる場合には、展開は
 		|cmdline-special|のように、変換子を受け付け、それらに関連付け
@@ -4199,6 +4212,57 @@ getreg([{regname} [, 1 [, {list}]]])			*getreg()*
 		|method| としても使用できる: >
 			GetRegname()->getreg()
 
+getregion({pos1}, {pos2} [, {opts}])			*getregion()*
+		バッファから、{pos1} から {pos2} までの文字列のリストを返す。
+
+		{pos1} と {pos2} はともに 4 つの整数からなる |List| でな
+		ければならない。このリストの形式については |getpos()| を参照。
+		他のバッファの位置を指定することができるが、|getregion-notes|
+		にある制限に注意すること。
+
+		オプショナル引数の {opts} は以下の項目をサポートする辞書である:
+
+			type		範囲の選択のタイプを指定する (デフォル
+					ト: "v"):
+			    "v"		|characterwise| モード
+			    "V"		|linewise| モード
+			    "<CTRL-V>"	|blockwise-visual| モード
+
+			exclusive	|TRUE| の場合、末尾の位置に排他的な選
+					択を用いる。
+					(デフォルト: 'selection' に従う)
+
+		|visualmode()| で最後の選択のタイプを取得することができる。
+		ビジュアルモードがアクティブな場合は、現在のビジュアルモードを
+		|mode()| で取得する (例えば、|:vmap| の中)。
+		この関数は、|characterwise-visual| 選択のような、始まりと終わ
+		りが異なる桁のテキストを取得するのに便利である。
+
+							*getregion-notes*
+		Note:
+		- {pos1} と {pos2} の順序は重要ではなく、常に左上の位置から右
+		  下の位置までの内容を返す。
+		- 'virtualedit' が有効で、領域が行末を越える場合、結果の行は空
+		  白で埋められる。
+		- 領域が矩形単位で、複数セル文字の途中で開始または終了する場
+		  合、その文字は含まれないが、その選択された部分は空白で置き換
+		  えられる。
+		- {pos1} と {pos2} が同じバッファにない場合は、空のリストが返
+		  される。
+		- {pos1} と {pos2} は必ず |bufloaded()| なバッファ上になければ
+		  ならない。
+		- これはカレントウィンドウのコンテキストで評価されるので、バッ
+		  ファが 'virtualedit' または 'list' の値が異なるウィンドウに
+		  表示される場合に違いが生じる。
+
+		例: >
+			:xnoremap <CR>
+			\ <Cmd>echow getregion(
+			\ getpos('v'), getpos('.'), #{ type: mode() })<CR>
+<
+		|method| としても使用できる: >
+			getpos('.')->getregion(getpos("'a"))
+<
 getreginfo([{regname}])					*getreginfo()*
 		レジスタ {regname} についての詳細情報として次の項目を持つ辞書
 		を返す:
@@ -5343,7 +5407,9 @@ len({expr})	結果は数値で、引数{expr}の長さ。{expr}が文字列ま�
 		{expr}がリスト |List| のときは要素数を返す。
 		{expr}が |Blob| の場合、バイト数を返す。
 		{expr}が辞書 |Dictionary| のときは要素数を返す。
-		それ以外のときはエラーとなり、ゼロを返す。
+		{expr}が |Object| のときは、オブジェクトの len() メソッドを
+		(存在する場合) 呼び出して長さを取得する (|object-len()|)。それ
+		以外のときはゼロを返す。
 
 		|method| としても使用できる: >
 			mylist->len()
@@ -5946,6 +6012,7 @@ match({expr}, {pat} [, {start} [, {count}]])			*match()*
 		Note {count}を指定すると、{start}の扱い方が変わってしまう。
 		前の段落を参照。
 
+						*match-pattern*
 		受け付ける正規表現については|pattern|を参照。
 		オプション 'ignorecase' により、大文字・小文字を区別するかどう
 		かを設定できる。'smartcase' は適用されない。マッチングは常に
@@ -6085,6 +6152,9 @@ matchbufline({buf}, {pat}, {lnum}, {end}, [, {dict}])
 
 		この関数はロードされたバッファに対してのみ機能する。必要であれ
 		ば、最初に |bufload()| を呼び出す。
+
+		パターンに対するいくつかのオプション設定の影響については
+		|match-pattern| を参照。
 
 		{buf} が有効なバッファでない場合、バッファがロードされていない
 		場合、{lnum} または {end} が有効でない場合は、エラー発生し、空
@@ -6253,6 +6323,9 @@ matchstrlist({list}, {pat} [, {dict}])
 		    text	マッチした文字列
 		    submatches	サブマッチのリスト。{dict} で "submatches" が
 				v:true に設定されている場合にのみ存在する。
+
+		パターンに対するいくつかのオプション設定の影響については
+		|match-pattern| を参照。
 
 		例: >
 		    :echo matchstrlist(['tik tok'], '\<\k\+\>')
@@ -6879,7 +6952,7 @@ printf({fmt}, {expr1} ...)				*printf()*
 <		    1.414
 
 		幅や精度を直接指定することと、位置引数を介して指定することを組
-		み合わせることができます: >
+		み合わせることができる: >
 
 		    echo printf("%1$4.*2$f", 1.4142135, 6)
 <		    1.414214 >
@@ -6887,6 +6960,9 @@ printf({fmt}, {expr1} ...)				*printf()*
 <		    1.4142 >
 		    echo printf("%1$*2$.*3$f", 1.4142135, 6, 2)
 <		      1.41
+
+		フィールド幅もしくは精度が 6400 文字より長い文字列になる場合
+		は、オーバーフローエラー |E1510| を得るだろう。
 
 							*E1500*
 		位置引数と非位置引数を混在させることはできない: >
@@ -7741,6 +7817,7 @@ search({pattern} [, {flags} [, {stopline} [, {timeout} [, {skip}]]]])
 		マッチが見つかった場合はその行番号を返す。
 		マッチがない場合は0を返し、カーソルは移動しない。エラーメッ
 		セージは表示されない。
+		マッチした文字列を得るには、|matchbufline()| を使う。
 
 		{flags} は以下のフラグ文字からなる文字列
 		'b'	後方(上方)に検索する
@@ -8781,7 +8858,7 @@ slice({expr}, {start} [, {end}])			*slice()*
 		スライス |slice| "expr[start : end]" と同様に使えるが、"end"
 		を含まない。そして文字列のインデックスは、|vim9script| と同様
 		にバイトインデックスの代わりに文字インデックスが使われる。ま
-		た、合成文字はカウントされない。
+		た、合成文字は直前の基底文字の一部として扱われる。
 		{end} がない場合スライスは最後の項目を含む。
 		{end} が-1の場合最後の項目を含まない。
 		{start} または {end} が無効な場合は空の値を返す。
@@ -9168,8 +9245,8 @@ strcharpart({src}, {start} [, {len} [, {skipcc}]])		*strcharpart()*
 		字のインデックスおよび長さを使用する。
 		{skipcc} を省略するかゼロにすると、合成文字は別々にカウントさ
 		れる。
-		{skipcc} を 1 にすると、|slice()| と同様に合成文字は無視され
-		る。
+		{skipcc} を 1 にすると、|slice()| と同様に合成文字は直前の基底
+		文字の一部として扱われる。
 		文字インデックスが存在しない文字を指す場合、それは 1 つの文字
 		としてカウントされるが、戻り値には現れない。例: >
 			strcharpart('abc', -1, 2)
@@ -9294,12 +9371,19 @@ string({expr})	{expr}を文字列に変換して返す。{expr}が数値、浮�
 			Blob		0z00112233.44556677.8899
 			リスト		[item, item]
 			辞書		{key: value, key: value}
-			クラス		クラス SomeName
-			オブジェクト	オブジェクト SomeName {lnum: 1, col: 3}
+			クラス		class SomeName
+			オブジェクト	object of SomeName {lnum: 1, col: 3}
+			列挙型		enum EnumName
+			列挙値		enum name.value {name: str, ordinal: nr}
 
 		リスト |List| や辞書 |Dictionary| に循環参照がある場合、それら
 		は "[...]" や "{...}" に置き換えられる。その結果に対して eval()
 		を使用すると失敗する。
+
+		オブジェクトに対しては、string() メソッドを呼び出してオブジェ
+		クトのテキスト表現を取得する。メソッドが存在しない場合は、デ
+		フォルトの表現が用いられる。|object-string()|
+
 		|method| としても使用できる: >
 			mylist->string()
 
@@ -10125,6 +10209,8 @@ type({expr})	{expr}の型を示す数値を返す。
 			クラス:	      12  |v:t_class|
 			オブジェクト: 13  |v:t_object|
 			型エイリアス: 14  |v:t_typealias|
+			列挙型:	      15  |v:t_enum|
+			列挙値:	      16  |v:t_enumvalue|
 		後方互換性のためには、次のような使い方ができる: >
 			:if type(myvar) == type(0)
 			:if type(myvar) == type("")
@@ -10487,17 +10573,16 @@ win_screenpos({nr})					*win_screenpos()*
 		の位置となり、タブラインがある場合は [2, 1] となる。
 		{nr} にはウィンドウ番号もしくは |window-ID| を指定する。現在の
 		ウィンドウには0を使う。
-		現在のタブページに対象のウィンドウが見つからない場合、[0, 0]を
-		返す。
+		対象のウィンドウが見つからない場合、[0, 0] を返す。
 
 		|method| としても使用できる: >
 			GetWinid()->win_screenpos()
 <
 win_splitmove({nr}, {target} [, {options}])		*win_splitmove()*
-		ウィンドウ {nr} をウィンドウ {target} の新しい分割に移動する。
-		これは {target} に移動し、|:split| を使用して新しいウィンドウ
-		を作成するが、ウィンドウ {nr} と同じ内容を使用してから、{nr}
-		を閉じることに似ている。
+		一時的にウィンドウ {target} に移り、そしてウィンドウ {nr} を
+		{target} に隣接する新しい分割に移動する。
+		|:split| などのコマンドと異なり、新しいウィンドウは作成されな
+		い (ウィンドウ {nr} の |window-ID| は移動後も変更されない)。
 
 		{nr} と {target} の両方とも、ウィンドウ番号または |window-ID|
 		である。両方とも現在のタブページになければならない。
@@ -10599,7 +10684,9 @@ winnr([{arg}])	結果は現在のウィンドウを示す数値。最上位の�
 			$	最後のウィンドウの番号(ウィンドウ数)
 			#	最後にアクセスしたウィンドウの番号(|CTRL-W_p|
 				の行き先)。前のウィンドウがないか、別のタブペー
-				ジにある場合は、0が返される。
+				ジにある場合は、0が返される。一部のケース (例
+				えば 'statusline' 式を評価しているとき) では、
+				現在のウィンドウを参照するかもしれない。
 			{N}j	現在のウィンドウの下N番目のウィンドウの番号
 				(|CTRL-W_j| の行き先)。
 			{N}k	現在のウィンドウの上N番目のウィンドウの番号
