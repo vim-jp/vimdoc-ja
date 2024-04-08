@@ -1,4 +1,4 @@
-*vim9class.txt*	For Vim バージョン 9.1.  Last change: 2024 Mar 03
+*vim9class.txt*	For Vim バージョン 9.1.  Last change: 2024 Mar 28
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -891,19 +891,124 @@ Note メソッド名は "new" で始まる必要があることに注意。"new(
 
 8.  列挙型					*Vim9-enum* *:enum* *:endenum*
 
-{not implemented yet  (まだ実装されていない)}
+						*enum* *E1418* *E1419* *E1420*
+列挙型は、値のリストの 1 つを持つことができる型である。例: >
 
-enum は、値のリストの 1 つを持つことができる型である。例: >
+    :enum Color
+	White,
+	Red,
+	Green, Blue, Black
+    :endenum
+<
+						*enumvalue* *E1422*
+列挙値はコンマで区切られる。複数の列挙値を 1 行にリストできる。最後の列挙値の
+後にコンマを付けてはならない。
 
-	:enum Color
-		White
-		Red
-		Green
-		Blue
-		Black
-	:endenum
+列挙値には、列挙名に続いて値の名前を使用してアクセスする: >
 
+    var a: Color = Color.Blue
+<
+列挙型はクラスとして扱われ、各列挙値は本質的にそのクラスのインスタンスである。
+|new()| メソッドを使用した一般的なオブジェクトのインスタンス化とは異なり、この
+方法では列挙型インスタンスを作成できない。
 
+列挙型は |Vim9| script ファイルでのみ定義できる。	*E1414*
+列挙型は関数内で定義できない。
+
+							*E1415*
+列挙名は大文字で始めなければならない。列挙型内の列挙値の名前は、大文字または小
+文字で始めることができる。
+
+							*E1416*
+列挙型はインターフェイスを実装できるが、クラスを拡張することはできない: >
+
+    enum MyEnum implements MyIntf
+	Value1,
+	Value2
+
+	def SomeMethod()
+	enddef
+    endenum
+<
+							*enum-constructor*
+列挙型内の列挙値値オブジェクトは、|new()| メソッドを使用する他のオブジェクトと
+同じように構築される。関数を呼び出すのと同じように、引数を列挙値名の後に指定す
+ることで、列挙型コンストラクタに引数を渡すことができる。デフォルトのコンストラ
+クタには引数がない。
+
+							*E1417*
+列挙型には、クラス変数、クラスメソッド、オブジェクト変数、およびオブジェクトメ
+ソッドを含めることができる。列挙型内のメソッドを |:abstract| メソッドにするこ
+とはできない。
+
+次の例は、オブジェクト変数とオブジェクトメソッドを含む列挙型を示している: >
+
+    vim9script
+    enum Planet
+	Earth(1, false),
+	Jupiter(95, true),
+	Saturn(146, true)
+
+	var moons: number
+	var has_rings: bool
+	def GetMoons(): number
+	    return this.moons
+	enddef
+    endenum
+    echo Planet.Jupiter.GetMoons()
+    echo Planet.Earth.has_rings
+<
+						*E1421* *E1423* *E1424* *E1425*
+列挙型とその値は不変である。宣言後に変更したり、数値型または文字列型として使用
+したりすることはできない。
+
+						*enum-name*
+各列挙値オブジェクトには、列挙値の名前を含む "name" インスタンス変数がある。こ
+れは読み取り専用の変数である。
+
+						*enum-ordinal* *E1426*
+各列挙値には、0 から始まる序数が関連付けられている。列挙値の序数には、インスタ
+ンス変数 "ordinal" を使用してアクセスできる。これは読み取り専用の変数である。
+Note 列挙型内の列挙値の順序が変更されると、その序数の値も変更されることに注意。
+
+						*enum-values*
+列挙型内のすべての値には、列挙型オブジェクトのリストである "values" クラス変数
+を使用してアクセスできる。これは読み取り専用の変数である。
+
+例: >
+    enum Planet
+	Mercury,
+	Venus,
+	Earth
+    endenum
+
+    echo Planet.Mercury
+    echo Planet.Venus.name
+    echo Planet.Venus.ordinal
+    for p in Planet.values
+	# ...
+    endfor
+<
+列挙型は、列挙値オブジェクトのクラス変数と、列挙値の名前と列挙値の序数のオブ
+ジェクト変数を持つクラスである: >
+
+    enum Planet
+	Mercury,
+	Venus
+    endenum
+<
+上記の列挙型定義は、以下のクラス定義と同等である: >
+
+    class Planet
+      public static final Mercury: Planet = Planet.new('Mercury', 0)
+      public static final Venus: Planet = Planet.new('Venus', 1)
+
+      public static const values: list<Planet> = [Planet.Mercury, Planet.Venus]
+
+      public const name: string
+      public const ordinal: number
+    endclass
+<
 ==============================================================================
 
 9.  論理的根拠
