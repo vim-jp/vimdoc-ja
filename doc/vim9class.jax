@@ -1,4 +1,4 @@
-*vim9class.txt*	For Vim バージョン 9.1.  Last change: 2024 Mar 28
+*vim9class.txt*	For Vim バージョン 9.1.  Last change: 2024 Apr 13
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -323,10 +323,28 @@ new() メソッドを定義するときは、戻り値の型を指定しない�
 	   enddef
 	endclass
 
-クラス内ではクラスメソッドを名前で直接呼び出すことができるが、クラスの外ではク
-ラス名はプリフィックス付きである必要がある: `OtherThing.ClearTotalSize()`。親
-クラスのクラスメソッドを子クラスで使用するには、クラス名をプリフィックスとして
-付ける必要がある。
+クラス内では、クラスメソッドを名前で直接呼び出すことができるが、クラスの外で
+は、クラス名がプリフィックスされている必要がある:
+`OtherThing.ClearTotalSize()`。また、クラス変数初期化子、ラムダ式、入れ子になっ
+た関数といった特殊なコンテキストでは、パブリッククラスメソッドに名前プリフィッ
+クスを使用しなければならない:
+>
+    class OtherThing
+	static var name: string = OtherThing.GiveName()
+
+	static def GiveName(): string
+	    def DoGiveName(): string
+		return OtherThing.NameAny()
+	    enddef
+
+	    return DoGiveName()
+	enddef
+
+	static def NameAny(): string
+	    return "any"
+	enddef
+    endclass
+<
 
 オブジェクトメソッドと同様に、メソッド名の最初の文字としてアンダースコアを使用
 することで、アクセスを protected にすることができる: >
@@ -571,8 +589,8 @@ Shape, Square および Triangle を使用した上記の例は、オブジェ�
 クラスは `:class` と `:endclass` の間で定義される。クラス全体は 1 つのスクリプ
 トファイルで定義される。後からクラスに追加することはできない。
 
-クラスは |Vim9| script ファイル内でのみ定義できる。 *E1316*
-関数内でクラスを定義することはできない。
+クラスは |Vim9| script ファイル内でのみ定義できる。  *E1316*
+関数内でクラスを定義することはできない。  *E1429*
 
 スクリプトファイル内に複数のクラスを定義することは可能である。しかし、通常はメ
 インクラスを 1 つだけエクスポートする方が良い。型、列挙型、ヘルパークラスを定
@@ -959,8 +977,8 @@ Note メソッド名は "new" で始まる必要があることに注意。"new(
     echo Planet.Earth.has_rings
 <
 						*E1421* *E1423* *E1424* *E1425*
-列挙型とその値は不変である。宣言後に変更したり、数値型または文字列型として使用
-したりすることはできない。
+列挙型とその値は不変である。数値型または文字列型として使用することはできない。
+列挙値は変更可能なインスタンス変数を宣言できる。
 
 						*enum-name*
 各列挙値オブジェクトには、列挙値の名前を含む "name" インスタンス変数がある。こ
