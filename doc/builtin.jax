@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2024 May 05
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2024 May 18
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -281,6 +281,8 @@ getreg([{regname} [, 1 [, {list}]]])
 getreginfo([{regname}])		辞書	レジスタについての情報
 getregion({pos1}, {pos2} [, {opts}])
 				リスト	{pos1}から{pos2}までのテキストを取得
+getregionpos({pos1}, {pos2} [, {opts}])
+				リスト	領域の位置のリストを取得
 getregtype([{regname}])		文字列	レジスタの種類を取得
 getscriptinfo([{opts}])		リスト	読み込まれたスクリプトの一覧
 gettabinfo([{expr}])		リスト	タブページのリスト
@@ -4214,6 +4216,34 @@ getreg([{regname} [, 1 [, {list}]]])			*getreg()*
 		|method| としても使用できる: >
 			GetRegname()->getreg()
 
+getreginfo([{regname}])					*getreginfo()*
+		レジスタ {regname} についての詳細情報として次の項目を持つ辞書
+		を返す:
+			regcontents	レジスタ {regname} に格納されている行
+					の、|getreg|({regname}, 1, 1) と同様の
+					リスト。
+			regtype		レジスタ {regname} の |getregtype()|
+					相当の種別。
+			isunnamed	真偽値フラグ、v:true は現在指している
+					レジスタが無名レジスタであることを示
+					す。
+			points_to	無名レジスタであれば、現在指しているレ
+					ジスタを示す単一文字 (|quotequote|を参
+					照)。
+					例えば、行を `dd` で削除後、このフィー
+					ルドは "1" となりそのレジスタには削除
+					したテキストが入る。
+
+		引数 {regname} は文字列。{regname} が不正なレジスタ名もしくは
+		未設定の場合、空の辞書が返される。{regname} が "" か "@" の場
+		合、無名レジスタ '"' が使われる。
+		{regname} が未指定の場合、|v:register| が使われる。
+		戻り値の辞書は |setreg()| に渡すことができる。
+		|Vim9-script| では {regname} は1文字でなくてはならない。
+
+		|method| としても使用できる: >
+			GetRegname()->getreginfo()
+
 getregion({pos1}, {pos2} [, {opts}])			*getregion()*
 		バッファから、{pos1} から {pos2} までの文字列のリストを返す。
 
@@ -4265,34 +4295,23 @@ getregion({pos1}, {pos2} [, {opts}])			*getregion()*
 		|method| としても使用できる: >
 			getpos('.')->getregion(getpos("'a"))
 <
-getreginfo([{regname}])					*getreginfo()*
-		レジスタ {regname} についての詳細情報として次の項目を持つ辞書
-		を返す:
-			regcontents	レジスタ {regname} に格納されている行
-					の、|getreg|({regname}, 1, 1) と同様の
-					リスト。
-			regtype		レジスタ {regname} の |getregtype()|
-					相当の種別。
-			isunnamed	真偽値フラグ、v:true は現在指している
-					レジスタが無名レジスタであることを示
-					す。
-			points_to	無名レジスタであれば、現在指しているレ
-					ジスタを示す単一文字 (|quotequote|を参
-					照)。
-					例えば、行を `dd` で削除後、このフィー
-					ルドは "1" となりそのレジスタには削除
-					したテキストが入る。
-
-		引数 {regname} は文字列。{regname} が不正なレジスタ名もしくは
-		未設定の場合、空の辞書が返される。{regname} が "" か "@" の場
-		合、無名レジスタ '"' が使われる。
-		{regname} が未指定の場合、|v:register| が使われる。
-		戻り値の辞書は |setreg()| に渡すことができる。
-		|Vim9-script| では {regname} は1文字でなくてはならない。
+getregionpos({pos1}, {pos2} [, {opts}])            *getregionpos()*
+		|getregion()| と同じだが、{pos1} と {pos2} によって囲まれたバッ
+		ファのテキストセグメントを表す位置のリストを返す。
+		セグメントは、各行の位置のペアである: >
+			[[{start_pos}, {end_pos}], ...]
+<
+		位置は 4 つの数値の |List| である:
+		    [bufnum, lnum, col, off]
+		"bufnum" はバッファ番号。
+		"lnum" と "col" はバッファ内の位置。最初の桁は 1 である。
+		'virtualedit' が使用されない限り、"off" の数値はゼロである。次
+		に、それは文字の先頭からの画面桁のオフセットになる。例えば、
+		<Tab> 内または最後の文字の後の位置である。
 
 		|method| としても使用できる: >
-			GetRegname()->getreginfo()
-
+			getpos('.')->getregionpos(getpos("'a"))
+<
 getregtype([{regname}])					*getregtype()*
 		レジスタ{regname}の種類を表す文字列を返す。
 		戻り値は次のいずれかとなる:
@@ -8764,10 +8783,12 @@ shellescape({string} [, {special}])			*shellescape()*
 		にする。そうでなければ、{string}をシングルクォートで囲み、"'"
 		を"'\''" で置き換える。
 
-		{special} が指定され、0 でない数値または空でない文字列の場合
-		(|non-zero-arg|)、"!", "%", "#", "<cword>" などの特殊なアイテ
-		ムの前にはバックスラッシュがつく。コマンド |:!| によってその
-		バックスラッシュは再び除かれる。
+		{special} 引数は、Vim コマンドで使用されるキーワードのエスケー
+		プを追加する。これが省略されずに、ゼロ以外の数値または空ではな
+		い文字列の場合 (|non-zero-arg|) 、"!", "%", "#", "<cword>" な
+		どの特殊な項目 (|expand()| にリストされている) の前にバックス
+		ラッシュが付く。このバックスラッシュは |:!| コマンドによって再
+		び削除される。
 
 		'shell' の値の末尾が "csh" である場合、{special} が
 		|non-zero-arg| ならば "!" の文字もエスケープされる。これは、
@@ -9974,8 +9995,9 @@ tempname()					*tempname()* *temp-file-name*
 		の呼出しまでは違う名前を生成することが保証される。例: >
 			:let tmpfile = tempname()
 			:exe "redir > " .. tmpfile
-<		Unix では、ファイルはプライベートなディレクトリに置かれる。
-		|tempfile|
+<		Unix では、ファイルはプライベートディレクトリ |tempfile| にあ
+		る。これは Vim の終了時に再帰的に削除されるが、他のシステムで
+		は、一時ファイルは終了時に自動的にクリーンアップされない。
 		MS-Windowsでは、'shellslash' がオンのときか、'shellcmdflag' が
 		'-' で始まり 'shell' が powershell か pwsh を含まない時はスラッ
 		シュが使われる。
