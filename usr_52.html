@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'usr_52'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="usr_52.html" name="usr_52.txt">usr_52.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 May 16<br>
+<a class="Constant" href="usr_52.html" name="usr_52.txt">usr_52.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 May 31<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; VIM USER MANUAL - by Bram Moolenaar<br>
 <br>
@@ -19,6 +19,7 @@ helpname: 'usr_52'
 <a class="Identifier" href="usr_52.html#52.3">52.3</a>&nbsp;&nbsp;インポート/エクスポートなしのオートロード<br>
 <a class="Identifier" href="usr_52.html#52.4">52.4</a>&nbsp;&nbsp;他に使えるメカニズム<br>
 <a class="Identifier" href="usr_52.html#52.5">52.5</a>&nbsp;&nbsp;旧来のスクリプトから Vim9 script を使う<br>
+<a class="Identifier" href="usr_52.html#52.6">52.6</a>&nbsp;&nbsp;Vim9 script サンプル: comment パッケージ, highlight-yank プラグイン<br>
 <br>
 次章:&nbsp;<a class="Identifier" href="usr_90.html">usr_90.txt</a>&nbsp;&nbsp;Vim のインストール<br>
 前章:&nbsp;<a class="Identifier" href="usr_51.html">usr_51.txt</a>&nbsp;&nbsp;プラグインを作る<br>
@@ -344,6 +345,47 @@ script ではこうしたグローバルのアイテムで確実にユニーク�
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;source ~/.vim/extra/myNicePlugin.vim<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call g:NicePluginTest()</div>
 <br>
+<span class="PreProc">==============================================================================</span><br>
+<a class="Constant" href="usr_52.html#52.6" name="52.6">52.6</a>&nbsp;&nbsp;Vim9 script サンプル: comment パッケージ, highlight-yank プラグイン<br>
+<br>
+☆<span class="Statement">comment パッケージ</span><br>
+<br>
+Vim には、Vim9 script で記述されたコメントプラグイン&nbsp;<a class="Identifier" href="usr_05.html#comment-install">comment-install</a>&nbsp;が付属<br>
+しています。<br>
+$VIMRUNTIME/pack/dist/opt/comment/ にあるパッケージを確認してください。<br>
+<br>
+☆<span class="Statement">highlight-yank プラグイン</span><br>
+<br>
+ヤンクされた領域をハイライトする例を以下に示します。これは、Vim 9.1.0446 以降<br>
+で使用可能な&nbsp;<a class="Identifier" href="builtin.html#getregionpos()">getregionpos()</a>&nbsp;関数を使用します。<br>
+<br>
+以下の例を新しいファイルにコピーしてプラグインディレクトリに配置すると、次回<br>
+Vim を起動したときにアクティブになります&nbsp;<a class="Identifier" href="usr_05.html#add-plugin">add-plugin</a>:&nbsp;&gt;<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def HighlightedYank(hlgroup = 'IncSearch', duration = 300, in_visual = true)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if v:event.operator ==? 'y'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if !in_visual &amp;&amp; visualmode() != null_string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;visualmode(1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var [beg, end] = [getpos(&quot;'[&quot;), getpos(&quot;']&quot;)]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var type = v:event.regtype ?? 'v'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var pos = getregionpos(beg, end, {type: type})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var end_offset = (type == 'V' || v:event.inclusive) ? 1 : 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var m = matchaddpos(hlgroup, pos-&gt;mapnew((_, v) =&gt; {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var col_beg = v[0][2] + v[0][3]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var col_end = v[1][2] + v[1][3] + end_offset<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return [v[0][1], col_beg, col_end - col_beg]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var winid = win_getid()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timer_start(duration, (_) =&gt; m-&gt;matchdelete(winid))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;autocmd TextYankPost * HighlightedYank()</div>
+&lt;<br>
 <span class="PreProc">==============================================================================</span><br>
 <br>
 次章:&nbsp;<a class="Identifier" href="usr_90.html">usr_90.txt</a>&nbsp;&nbsp;Vim のインストール<br>
