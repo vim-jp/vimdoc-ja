@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2024 May 18
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2024 Jun 03
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -192,6 +192,8 @@ extendnew({expr1}, {expr2} [, {expr3}])
 				リスト/辞書 |extend()| と同じだが新しいリスト/
 				辞書を作る
 feedkeys({string} [, {mode}])	数値	先行入力バッファにキーシーケンスを追加
+filecopy({from}, {to})		数値	ファイル {from} を {to} へコピーできた
+					場合は |TRUE|
 filereadable({file})		数値	{file}が読み込み可能なら|TRUE|
 filewritable({file})		数値	{file}が書き込み可能なら|TRUE|
 filter({expr1}, {expr2})	リスト/辞書/Blob/文字列
@@ -2754,9 +2756,20 @@ feedkeys({string} [, {mode}])				*feedkeys()*
 
 		|method| としても使用できる: >
 			GetInput()->feedkeys()
-<
-							*filereadable()*
-filereadable({file})
+
+filecopy({from}, {to})					*filecopy()*
+		名前 {from} で指定されたファイルを {to} にコピーする。結果は数
+		値で、ファイルのコピーが成功した場合は |TRUE|、失敗した場合は
+		|FALSE| になる。
+		名前 {to} のファイルがすでに存在する場合は失敗する。
+		Note ディレクトリは処理されないことに注意 (まだ)。
+
+		この関数は |sandbox| では使用できない。
+
+		|method| としても使用できる: >
+			GetOldName()->filecopy(newname)
+
+filereadable({file})					*filereadable()*
 		結果は数値で、{file}というファイルが存在し、読み込むことが可能
 		ならば|TRUE|となる。ファイル{file}が存在しないかディレクトリ
 		だった場合には、結果は|FALSE|となる。引数{file}は文字列として
@@ -4254,11 +4267,10 @@ getregion({pos1}, {pos2} [, {opts}])			*getregion()*
 
 		オプショナル引数の {opts} は以下の項目をサポートする辞書である:
 
-			type		範囲の選択のタイプを指定する (デフォル
-					ト: "v"):
-			    "v"		|characterwise| モード
-			    "V"		|linewise| モード
-			    "<CTRL-V>"	|blockwise-visual| モード
+			type		範囲の選択のタイプを指定する。可能な値
+					については |getregtype()| を参照。ただ
+					し、幅は省略可能で、空の文字列は使用で
+					きない。(デフォルト: "v")
 
 			exclusive	|TRUE| の場合、末尾の位置に排他的な選
 					択を用いる。
@@ -4305,6 +4317,24 @@ getregionpos({pos1}, {pos2} [, {opts}])            *getregionpos()*
 		    [bufnum, lnum, col, off]
 		"bufnum" はバッファ番号。
 		"lnum" と "col" はバッファ内の位置。最初の桁は 1 である。
+		開始位置の "off" の数値がゼロ以外の場合、それは文字の先頭から
+		の画面桁のオフセットである。例えば、<Tab> 内の位置、または最後
+		の文字の後の位置である。
+		終了位置の "off" の数値がゼロ以外の場合、それは選択範囲に含ま
+		れない文字の最初のセルのオフセットである。それ以外の場合は、そ
+		のすべてのセルが含まれる。
+
+		|getregion()| でサポートされているオプションとは別に、{opts}
+		は次のオプションもサポートしている:
+
+			eol		|TRUE| の場合、行末を超える位置を、行
+					の長さより 1 大きい "col" 値で示す。
+					|FALSE| の場合、位置は行内に制限され、
+					行が空の場合、または選択範囲が行の末尾
+					を完全に超えている場合は、両方の位置に
+					対して "col" 値 0 が使用される。
+					(デフォルト: |FALSE|)
+
 		'virtualedit' が使用されない限り、"off" の数値はゼロである。次
 		に、それは文字の先頭からの画面桁のオフセットになる。例えば、
 		<Tab> 内または最後の文字の後の位置である。
