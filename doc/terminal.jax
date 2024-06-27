@@ -1,4 +1,4 @@
-*terminal.txt*	For Vim バージョン 9.1.  Last change: 2024 Jun 13
+*terminal.txt*	For Vim バージョン 9.1.  Last change: 2024 Jun 20
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -641,7 +641,7 @@ term_getjob({buf})					*term_getjob()*
 		端末ウィンドウ {buf} に関連付いたジョブを取得する。
 		{buf} の扱いについては |term_getsize()| と同じ。
 		ジョブがない場合は |v:null| を返す。Vim9 script では、ジョブが
-		ない場合 null_job を返す。
+		ない場合 |null_job| を返す。
 
 		|method| としても使用できる: >
 			GetBufnr()->term_getjob()
@@ -1272,6 +1272,15 @@ debugPC を使ってサインが利用されます。
 2つのウィンドウが閉じられます。
 
 一度にアクティブにできるデバッガは1つだけです。
+
+						*termdebug-timeout*
+gdb の起動方法によっては、termdebug の起動時間が異なる場合があります。
+gdb の起動プロセスに時間が掛かりすぎる場合に termdebug が停止しないように、設
+定可能なタイムアウトが含まれています。このタイムアウトは、10 ミリ秒の倍数で設
+定できます: >
+    let g:termdebug_config['timeout'] = 500 # 500 * 10 ミリ秒 = 5 秒。
+
+デフォルトのタイムアウトは 3000 ミリ秒です。
 							*:TermdebugCommand*
 デバッグ中のコマンドに特定のコマンドを与える場合は、`:TermdebugCommand` コマン
 ドの後にコマンド名と追加パラメータを使用できます。 >
@@ -1370,8 +1379,8 @@ gdb ウィンドウにフォーカスを移しコマンドを入力します。�
 
 						*:Run* *:Arguments*
 ソースコードを表示するウィンドウで、これらのコマンドをgdbの制御に使用できます:
- :Run [args]	    [args] または以前の引数でプログラムを実行する
- :Arguments {args}  次の `:Run` のために引数を設定する
+ `:Run` [args]	    [args] または以前の引数でプログラムを実行する
+ `:Arguments` {args}  次の `:Run` のために引数を設定する
  *:Break*	カーソル位置にブレークポイントを設定する
  :Break {position}
 		指定位置にブレークポイントを設定する
@@ -1416,10 +1425,10 @@ gdbは各ブレークポイントに番号を与えます。Vim内では、赤�
 
 変数を検査する ~
 					*termdebug-variables* *:Evaluate*
- :Evaluate          カーソルの下の式を評価する
- K                  上に同じ (無効にする場合は |termdebug_map_K| を参照)
- :Evaluate {expr}   {expr} を評価する
- :'<,'>Evaluate     ビジュアル選択したテキストを評価する
+ `:Evaluate`          カーソルの下の式を評価する
+ `K`                  上に同じ (無効にする場合は |termdebug_map_K| を参照)
+ `:Evaluate` {expr}   {expr} を評価する
+ `:'<,'>Evaluate`     ビジュアル選択したテキストを評価する
 
 これは gdb ウィンドウで "print" コマンドを使ったのに相当します。
 `:Evaluate` は `:Ev` に短縮できます。
@@ -1427,14 +1436,14 @@ gdbは各ブレークポイントに番号を与えます。Vim内では、赤�
 
 スタックフレームの移動 ~
 				*termdebug-frames* *:Frame* *:Up* *:Down*
- :Frame [frame]		フレームを選択する。[frame] は、フレーム番号、アドレ
+ `:Frame` [frame]	フレームを選択する。[frame] は、フレーム番号、アドレ
 			ス、または関数名 (デフォルト: カレントフレーム)
- :Up [count]		[count] フレーム上へ (デフォルト: 1; カレントを呼び出
+ `:Up` [count]		[count] フレーム上へ (デフォルト: 1; カレントを呼び出
 			したフレーム)
- +			同上 (無効にするには |termdebug_map_plus| を参照)
- :Down [count]		[count] フレーム下へ (デフォルト: 1; カレントによって
+ `+`			同上 (無効にするには |termdebug_map_plus| を参照)
+ `:Down` [count]	[count] フレーム下へ (デフォルト: 1; カレントによって
 			呼び出されるフレーム)
- -			同上 (無効にするには |termdebug_map_minus| を参照)
+ `-`			同上 (無効にするには |termdebug_map_minus| を参照)
 
 
 その他のコマンド ~
@@ -1509,6 +1518,10 @@ g:termdebug_config がない場合は、以下を使用できます: >
 	let g:termdebug_use_prompt = 1
 <
 マッピング ~
+termdebug プラグインは、いくつかのデフォルトマッピングを有効にします。
+termdebug セッションが終了すると、これらのマッピングはすべて元の値にリセットさ
+れます。
+
 					*termdebug_map_K* *termdebug-mappings*
 K へのバッファローカル (|:map-local|) マッピングがすでに存在している場合を除
 き、K キーは通常 |:Evaluate| にマップされています。これが不要な場合は: >
