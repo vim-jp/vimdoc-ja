@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2024 Jun 17
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2024 Jun 23
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -28,8 +28,8 @@ acos({expr})			浮動小数点数	{expr}のアークコサイン
 add({object}, {item})		リスト/Blob	{item}を{object}に追加する
 and({expr}, {expr})		数値	ビット論理積
 append({lnum}, {text})		数値	{lnum}行目に{text}を付け加える
-appendbufline({expr}, {lnum}, {text})
-				数値	バッファ{expr}の{lnum}行目に{text}を付
+appendbufline({buf}, {lnum}, {text})
+				数値	バッファ{buf}の{lnum}行目に{text}を付
 					け加える
 argc([{winid}])			数値	引数内のファイルの数
 argidx()			数値	引数リスト内の現在のインデックス
@@ -73,6 +73,9 @@ balloon_gettext()		文字列	バルーン内のカレントテキストを得る
 balloon_show({expr})		なし	{expr} をバルーン内に表示
 balloon_split({msg})		リスト	{msg} をバルーンで使われるように分割す
 					る
+bindtextdomain({package}, {path})
+				なし	指定されたパスにテキストドメインをバイ
+					ンドする
 blob2list({blob})		リスト	{blob} を数値のリストに変換する
 browse({save}, {title}, {initdir}, {default})
 				文字列	ファイル選択ダイアログを表示
@@ -293,7 +296,8 @@ gettabvar({nr}, {varname} [, {def}])
 gettabwinvar({tabnr}, {winnr}, {name} [, {def}])
 				任意	タブページ{tabnr}の{winnr}の{name}
 gettagstack([{nr}])		辞書	ウィンドウ{nr}のタグスタックを取得
-gettext({text})			文字列	{text} の翻訳の検索
+gettext({text} [, {package}])
+				文字列	{text} の翻訳の検索
 getwininfo([{winid}])		リスト	各ウィンドウに関する情報のリスト
 getwinpos([{timeout}])		リスト	Vim ウィンドウのピクセルでの X および
 					Y 座標
@@ -469,6 +473,8 @@ popup_move({id}, {options})	なし	ポップアップウィンドウ {id} の位
 					セットする
 popup_notification({what}, {options})
 				数値	ポップアップウィンドウの通知を作成する
+popup_setbuf({id}, {buf})	真偽値	ポップアップウィンドウ {id} のバッファ
+					を設定する
 popup_setoptions({id}, {options})
 				なし	ポップアップウィンドウ {id} のオプショ
 					ンを設定する
@@ -572,8 +578,8 @@ searchpos({pattern} [, {flags} [, {stopline} [, {timeout} [, {skip}]]]])
 server2client({clientid}, {string})
 				数値	返信文字列を送信する
 serverlist()			文字列	利用可能なサーバーのリストを取得
-setbufline({expr}, {lnum}, {text})
-				数値	バッファ {expr} の {lnum} 行目に {text}
+setbufline({buf}, {lnum}, {text})
+				数値	バッファ {buf} の {lnum} 行目に {text}
 					を設定する
 setbufvar({buf}, {varname}, {val})	バッファ{buf}内の変数{varname}に{val}を
 					セット
@@ -1284,6 +1290,12 @@ balloon_split({msg})					*balloon_split()*
 
 		戻り値の型: list<any> または list<string>
 
+bindtextdomain({package}, {path})			*bindtextdomain()*
+		特定の {package} を {path} にバインドし、|gettext()| 関数を使っ
+		てパッケージの言語固有の翻訳を取得できるようにする。{path} は
+		翻訳のディレクトリ名である。|package-create| を参照。
+
+		戻り値の型: なし
 
 blob2list({blob})					*blob2list()*
 		Blob {blob} の各バイトを数値として保持するリストを返す。例: >
@@ -2597,7 +2609,7 @@ execute({command} [, {silent}])					*execute()*
 		|method| としても使用できる: >
 			GetCommand()->execute()
 <
-		戻り値の型: |Number|
+		戻り値の型: |String|
 
 
 exepath({expr})						*exepath()*
@@ -4944,7 +4956,7 @@ gettagstack([{winnr}])					*gettagstack()*
 		戻り値の型: dict<any>
 
 
-gettext({text})						*gettext()*
+gettext({text} [, {package}])				*gettext()*
 		可能であれば文字列 {text} を翻訳する。
 		これは主に配布する Vim script で使う。
 		メッセージの翻訳を生成するときに {text} が xgettext によって抽
@@ -4952,6 +4964,9 @@ gettext({text})						*gettext()*
 		Vim は gettext() が呼ばれた時に翻訳を検索する。
 		{text} はダブルクォートの文字列が望しい、なぜなら xgettext は
 		シングルクォートの文字列でのエスケープを理解しないため。
+		{package} が指定されると、その特定のパッケージの翻訳が検索され
+		る。|bindtextdomain()| 関数を使用して翻訳を検索するパスを指定
+		する必要がある。
 
 		戻り値の型: |String|
 
