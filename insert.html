@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'insert'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="insert.html" name="insert.txt">insert.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 Jan 04<br>
+<a class="Constant" href="insert.html" name="insert.txt">insert.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 Jul 25<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -1124,6 +1124,11 @@ C++ 用の最初のバージョンが存在する。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;user_data&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; この要素に関連付けられた&nbsp;<a class="Identifier" href="eval.html#v:completed_item">v:completed_item</a>&nbsp;で使用可能<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;なカスタムデータ。任意の型が使用できる。既定は空文字<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;列。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hl_group&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;追加のハイライトグループを指定して、ポップアップメ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ニューの補完項目に追加の属性を適用できる。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="syntax.html#hl-PmenuSel">hl-PmenuSel</a>&nbsp;および<a class="Identifier" href="syntax.html#hl-Pmenu">hl-Pmenu</a>&nbsp;のハイライト属性と組み<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;合わせて、取り消し線などの cterm および GUI プロパティ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を補完項目に適用する。<br>
 <br>
 これらのうち &quot;icase&quot;, &quot;equal&quot;, &quot;dup&quot; および &quot;empty&quot; 以外は文字列でなければなら<br>
 ない。これらの要件が満たされない場合はエラーメッセージが表示され、リスト中のそ<br>
@@ -1910,13 +1915,26 @@ O&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 待ちつづける。バックスラッシュで始まる行には警戒すべし。<a class="Identifier" href="repeat.html#line-continuation">line-continuation</a>参<br>
 照。<br>
 <br>
-Ex モード (<a class="Identifier" href="starting.html#-e">-e</a>&nbsp;参照) では行末にバックスラッシュを置くことで NUL 文字を挿入で<br>
-きる。行末にバックスラッシュを挿入したいときはバックスラッシュを2重にすること。<br>
-バックスラッシュが行末にある場合は実際に挿入される数は半分になる。<br>
+&quot;|&quot; コマンド区切り文字の後に入力されたテキストが最初に使用される。したがって、<br>
+ex モードの以下のコマンドは:&nbsp;&gt;<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:a|one<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;two<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:visual</div>
+カーソル行の後に以下のテキストを追加する:&nbsp;&gt;<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;one<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;two</div>
+&lt;<br>
+<a class="Identifier" href="intro.html#Ex-mode">Ex-mode</a>&nbsp;では、これらのコマンドが&nbsp;<a class="Identifier" href="repeat.html#:global">:global</a>&nbsp;または&nbsp;<a class="Identifier" href="repeat.html#:vglobal">:vglobal</a>&nbsp;とともに使用さ<br>
+れると、行はコマンドに続くテキストから取得される。行はバックスラッシュでエス<br>
+ケープされた NL で区切る:&nbsp;&gt;<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:global/abc/insert\<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;one line\<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;another line</div>
+その場合、最後の &quot;.&quot; は必要ない。<br>
 <br>
-<span class="Todo">NOTE</span>: これらのコマンドは&nbsp;<a class="Identifier" href="repeat.html#:global">:global</a>&nbsp;または&nbsp;<a class="Identifier" href="repeat.html#:vglobal">:vglobal</a>&nbsp;と組み合わせて使うことは<br>
-できない。&quot;:append&quot; と &quot;:insert&quot; は &quot;:if&quot; と &quot;:endif&quot;、&quot;:for&quot; と &quot;:endfor&quot;、<br>
-&quot;:while&quot; と &quot;:endwhile&quot; の間では機能しない。<br>
+<span class="Todo">NOTE</span>: &quot;:append&quot; と &quot;:insert&quot; は、&quot;:if&quot; と &quot;:endif&quot;、&quot;:for&quot; と &quot;:endfor&quot;、<br>
+&quot;:while&quot; と &quot;:endwhile&quot; の間では正しく動作しない。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="insert.html#:start" name=":start">:start</a>&nbsp;<a class="Constant" href="insert.html#:startinsert" name=":startinsert">:startinsert</a><br>
 :star[tinsert][!]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; このコマンドの実行直後に挿入モードを開始する。ノーマル<br>
