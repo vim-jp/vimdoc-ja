@@ -1,4 +1,4 @@
-*autocmd.txt*   For Vim バージョン 9.1.  Last change: 2024 Jun 21
+*autocmd.txt*   For Vim バージョン 9.1.  Last change: 2024 Jul 17
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -53,20 +53,20 @@
   する。
 
 Vim9 script での例: >
-   autocmd_add({replace: true,
+   autocmd_add([{replace: true,
 		group:   'DemoGroup',
 		event:   'BufEnter',
 		pattern: '*.txt',
 		cmd:     'call DemoBufEnter()'
-		})
+		}])
 
 旧来のスクリプトの例: >
-   call autocmd_add(#{replace: v:true,
+   call autocmd_add([#{replace: v:true,
 		    \ group: 'DemoGroup',
 		    \ event: 'BufEnter',
 		    \ pattern: '*.txt',
 		    \ cmd: 'call DemoBufEnter()'
-		    \ })
+		    \ }])
 
 ==============================================================================
 2. 自動コマンドの定義					*autocmd-define*
@@ -442,6 +442,8 @@ Vimは以下のイベントを認識する。イベント名が大文字か小�
 |CompleteDonePre|	挿入モード補完が完了したとき、情報がクリアされる前
 |CompleteDone|		挿入モード補完が完了したとき、情報がクリアされた後
 
+|KeyInputPre|		キーが処理される前
+
 |User|			":doautocmd" との組合せで使われる
 |SigUSR1|		SIGUSER1シグナルを受けとった後
 
@@ -751,10 +753,9 @@ CursorMoved			ノーマルモードかビジュアルモードでカーソルが
 				が予期しないことや時間のかかる処理は行わないこ
 				と。
 							*CursorMovedC*
-CursorMovedC			コマンドラインのテキストが変更されていない状態
-				の時に、コマンドラインでカーソルを移動した後。
-				コマンドラインをぐちゃぐちゃにすると Vim がロッ
-				ク状態になる可能性があるので注意。
+CursorMovedC			コマンドラインでカーソルを移動した後。コマンド
+				ラインをぐちゃぐちゃにすると Vim がロック状態
+				になる可能性があるので注意。
 				<afile> には、コマンドラインの種類を示す単一の
 				文字が設定される。|cmdwin-char|
 							*CursorMovedI*
@@ -905,11 +906,13 @@ FilterWritePre			フィルタコマンド用のファイルを書き込んだり
 							*FocusGained*
 FocusGained			Vimが入力フォーカスを得たとき。GUI版と、入力
 				フォーカスを認識できるいくつかのコンソール版で
-				のみ有効。
+				のみ有効。|xterm-focus-event|
 							*FocusLost*
 FocusLost			Vimが入力フォーカスを失ったとき。GUI版と、入力
 				フォーカスを認識できるいくつかのコンソール版で
-				のみ有効。
+				のみ有効。|xterm-focus-event|
+				ダイアログがポップアップした時にも発生する可能
+				性がある。
 							*FuncUndefined*
 FuncUndefined			ユーザー定義関数が使われたが、定義されていなかっ
 				たとき。必要なときのみ関数を定義するのに便利で
@@ -962,6 +965,22 @@ InsertLeavePre			挿入モードを抜ける前。CTRL-O |i_CTRL-O| を使っ
 InsertLeave			挿入モードを抜けた直後。CTRL-O |i_CTRL-O| を
 				使ったときにも発生する。|i_CTRL-C| のときは発
 				生しない。
+							*KeyInputPre*
+KeyInputPre			マッピングが適用されてキーが処理される前。パ
+				ターンは、現在のモードを示す文字列と照合され
+				る。これは、`mode(1)` によって返されるものと同
+				じである。
+				|v:char| 変数は入力されたキーを示し、イベント
+				中に変更して別のキーを処理することができ
+				る。|v:char| が単一の文字または特殊キーでない
+				場合は、最初の文字が使用される。
+				The following values of |v:event| are set:
+				|v:event| には以下の値が設定される:
+				   typed	キーがタイプされたか否か。
+				   typedchar	(実際に) タイプされたキー。
+				テキスト |textlock| または現在のモードを変更す
+				ることはできない。
+				{+eval 機能が有効な場合のみ}
 							*MenuPopup*
 MenuPopup			(マウス右ボタンで)ポップアップメニューを表示す
 				る直前。カーソル下やマウスポインタの下にあるも
