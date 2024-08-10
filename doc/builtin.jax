@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2024 Jun 23
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2024 Jul 28
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -296,8 +296,7 @@ gettabvar({nr}, {varname} [, {def}])
 gettabwinvar({tabnr}, {winnr}, {name} [, {def}])
 				任意	タブページ{tabnr}の{winnr}の{name}
 gettagstack([{nr}])		辞書	ウィンドウ{nr}のタグスタックを取得
-gettext({text} [, {package}])
-				文字列	{text} の翻訳の検索
+gettext({text} [, {package}])	文字列	{text} の翻訳の検索
 getwininfo([{winid}])		リスト	各ウィンドウに関する情報のリスト
 getwinpos([{timeout}])		リスト	Vim ウィンドウのピクセルでの X および
 					Y 座標
@@ -328,6 +327,7 @@ hlget([{name} [, {resolve}]])	リスト	highlight group の属性を取得
 hlset({list})			数値	highlight group の属性を設定
 hostname()			文字列	vimが動作しているマシンの名前
 iconv({expr}, {from}, {to})	文字列	{expr}のエンコーディングを変換する
+id({item})			文字列	一意の ID 文字列を取得
 indent({lnum})			文字列	行{lnum}のインデントを取得
 index({object}, {expr} [, {start} [, {ic}]])
 				数値	{object}中に{expr}が現れる位置
@@ -1295,7 +1295,10 @@ bindtextdomain({package}, {path})			*bindtextdomain()*
 		てパッケージの言語固有の翻訳を取得できるようにする。{path} は
 		翻訳のディレクトリ名である。|package-create| を参照。
 
-		戻り値の型: なし
+		成功した場合は v:true を返し、失敗した場合 (メモリ不足) は
+		v:false を返す。
+
+		戻り値の型: |vim9-boolean|
 
 blob2list({blob})					*blob2list()*
 		Blob {blob} の各バイトを数値として保持するリストを返す。例: >
@@ -3578,18 +3581,18 @@ garbagecollect([{atexit}])				*garbagecollect()*
 		る。
 
 		省略可能な引数 {atexit} に 1 を指定すると、Vim を終了するとき
-		にもガーベッジコレクションが行われる。これはメモリリークを発見
-		するのに役に立つ。
+		にもガベージコレクションが行われる。これはメモリリークを発見す
+		るのに役に立つ。
 
-		ガーベッジコレクションはすぐには実行されず、安全な場合のみ実行
-		される。これはユーザーが文字を入力するのを待っているときであ
-		る。ガーベッジコレクションを強制するには、すぐに
-		|test_garbagecollect_now()|を使用すること。
+		ガベージコレクションはすぐには実行されず、安全な場合のみ実行さ
+		れる。これはユーザーが文字を入力するのを待っているときである。
+		ガベージコレクションを強制するには、すぐに
+		|test_garbagecollect_now()| を使用すること。
 
 		戻り値の型: |String|
 
 
-get({list}, {idx} [, {default}])			*get()*
+get({list}, {idx} [, {default}])			*get()* *get()-list*
 		リスト|List| {list}から{idx}番目の要素を取得する。この要素を取
 		得できないときは{default}を返す。{default}が省略されたときは0
 		を返す。
@@ -3598,7 +3601,7 @@ get({list}, {idx} [, {default}])			*get()*
 <
 		戻り値の型: any。{list} による
 
-get({blob}, {idx} [, {default}])
+get({blob}, {idx} [, {default}])			*get()-blob*
 		|Blob| {blob}から{idx}番目のバイトを取得する。このバイトを取得
 		できないときは{default}を返す。{default}が省略されたときは -1
 		を返す。
@@ -3607,7 +3610,7 @@ get({blob}, {idx} [, {default}])
 <
 		戻り値の型: |Number|
 
-get({dict}, {key} [, {default}])
+get({dict}, {key} [, {default}])			*get()-dict*
 		辞書|Dictionary| {dict}からキー{key}に関連づけられた値を取得す
 		る。この要素を取得できないときは{default}を返す。{default}が省
 		略されたときは0を返す。便利な例: >
@@ -3619,17 +3622,31 @@ get({dict}, {key} [, {default}])
 <
 		戻り値の型: any。{dict} による
 
-get({func}, {what})
-		Funcref {func} から項目 {what} を取得する。{what}の可能な値は:
-			"name"	関数名
-			"func"	関数
-			"dict"	辞書
-			"args"	引数リスト
+get({func}, {what})					*get()-func*
+		|Funcref| {func} から項目 {what} を取得する。{what} の可能な値
+		は:
+		  "name"    関数名
+		  "func"    関数
+		  "dict"    辞書
+		  "args"    引数リスト
+		  "arity"   関数が受け入れる引数の数（{arglist} を除く）に関す
+			    る情報を含む辞書。次のフィールドが含まれる:
+				required    位置引数の数
+				optional    必須引数に加え、オプション引数の
+					    数
+				varargs     関数が可変数の引数 |...| を受け入
+					    れる場合、|TRUE|
+
+				Note: Funcref の {arglist} に Funcref が期待す
+				る以上の引数が含まれている場合、検証はされず、
+				エラーは発生しない。
+
 		エラー時はゼロを返す。
+
 		|method| として使用したいなら: >
 			myfunc->get(what)
 <
-		戻り値の型: any。{func} による
+		戻り値の型: any。{func} および {what} による
 
 							*getbufinfo()*
 getbufinfo([{buf}])
@@ -4041,6 +4058,7 @@ getcompletion({pat}, {type} [, {filtered}])		*getcompletion()*
 		customlist,{func} {func} で定義されたカスタム補完
 		diff_buffer     |:diffget| と |:diffput| の補完
 		dir		ディレクトリ名
+		dir_in_path	|'cdpath'| 内のディレクトリ名
 		environment	環境変数名
 		event		自動コマンドのイベント
 		expression	Vim式
@@ -4758,6 +4776,8 @@ getregion({pos1}, {pos2} [, {opts}])			*getregion()*
 <
 		|method| としても使用できる: >
 			getpos('.')->getregion(getpos("'a"))
+<
+		戻り値の型: list<string>
 
 <
 getregionpos({pos1}, {pos2} [, {opts}])            *getregionpos()*
@@ -4795,7 +4815,7 @@ getregionpos({pos1}, {pos2} [, {opts}])            *getregionpos()*
 		|method| としても使用できる: >
 			getpos('.')->getregionpos(getpos("'a"))
 <
-		戻り値の型: list<string>
+		戻り値の型: list<list<list<number>>>
 
 
 getregtype([{regname}])					*getregtype()*
@@ -4962,11 +4982,19 @@ gettext({text} [, {package}])				*gettext()*
 		メッセージの翻訳を生成するときに {text} が xgettext によって抽
 		出され、翻訳者が .po ファイルで翻訳済みメッセージを追加でき
 		Vim は gettext() が呼ばれた時に翻訳を検索する。
-		{text} はダブルクォートの文字列が望しい、なぜなら xgettext は
-		シングルクォートの文字列でのエスケープを理解しないため。
+
+		これは Vim script で使用するためのものである。メッセージの翻訳
+		を生成するときに、{text} は `xgettext` によって抽出され、翻訳
+		者は翻訳されたメッセージを .po ファイルに追加することができ、
+		Vim は gettext() が呼び出されたときに翻訳を検索する。
+		{text} にはダブルクォートの文字列が望ましい。なぜなら、
+		`xgettext` がシングルクォートのエスケープされたテキストをサポー
+		トしていないためである。
+
 		{package} が指定されると、その特定のパッケージの翻訳が検索され
-		る。|bindtextdomain()| 関数を使用して翻訳を検索するパスを指定
-		する必要がある。
+		る。これは主にサードパーティの Vim script で必要である。
+		gettext() 関数を使用する前に、|bindtextdomain()| 関数で翻訳へ
+		のパスを指定する必要がある。
 
 		戻り値の型: |String|
 
@@ -5546,6 +5574,34 @@ iconv({string}, {from}, {to})				*iconv()*
 
 		|method| としても使用できる: >
 			GetText()->iconv('latin1', 'utf-8')
+<
+		戻り値の型: |String|
+
+
+id({item})							    *id()*
+		結果は、{item} に関連付けられた一意の文字列であり、{item} の内
+		容に関連付けられたものではない。{item} が存在し参照されている
+		間のみ有効である。結果を生成する vim のインスタンスでのみ有効
+		である。全体的な考え方は、{item} の内容が変わっても
+		`id({item})` は変わらないということである。これは、等価に基づ
+		くものよりもむしろ、ID 辞書を作成するための `key` として役立
+		つ。
+
+		この操作は {item} を参照せず、`id` を {item} に変換する関数は
+		ない。`id` を {item} にマップすると便利かもしれない。以下のよ
+		うに >
+		    var referenceMap: dict<any>
+		    var id = item->id()
+		    referenceMap[id] = item
+<		{item} がガベージコレクションされるのを防ぎ、`id` から {item}
+		を取得する方法を提供する。
+
+		{item} は、リスト、辞書、オブジェクト、ジョブ、チャネルまたは
+		Blob になる。アイテムが許可された型でない場合または null 値の
+		場合は、空の文字列が返される。
+
+		|method| としても使用できる: >
+			GetItem()->id()
 <
 		戻り値の型: |String|
 
@@ -9323,7 +9379,7 @@ setline({lnum}, {text})					*setline()*
 		は |append()| を使う。別のバッファの行を変更したい場合は
 		|setbufline()| を使う。
 		{lnum}内のテキストプロパティはすべて消去される。
-		|text-prop-cleared|.
+		|text-prop-cleared| を参照。
 
 		{lnum}は|getline()|のときと同じように解釈される。
 		{lnum}が最後の行の次の行の場合、最後の行の下に{text}が追加され
