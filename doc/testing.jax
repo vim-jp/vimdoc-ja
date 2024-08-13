@@ -1,4 +1,4 @@
-*testing.txt*	For Vim バージョン 9.1.  Last change: 2024 Jun 17
+*testing.txt*	For Vim バージョン 9.1.  Last change: 2024 Jul 18
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -507,15 +507,16 @@ assert_equal({expected}, {actual} [, {msg}])
 		ージを追加し、1 が返る。そうでなければ 0 が返る。
 		|assert-return|
 		エラーは "Expected {expected} but got {actual}" という形式で
-		ある。{msg} が存在する場合は、その前に置かれる。
+		ある。{msg} が存在する場合、スクリプトから実行される時にアサー
+		トの場所と共に、その前に付加される。
 
 		暗黙的な変換は行われないため、文字列 "4" は数値 4 とは異なる。
 		同様に、数値 4 は浮動小数点数 4.0 と異なる。ここでは
 		'ignorecase' の値は使われず、大文字小文字は常に区別される。
 		例: >
-	assert_equal('foo', 'bar')
-<		以下の結果が|v:errors|に追加される:
-	test.vim line 12: Expected 'foo' but got 'bar' ~
+			call assert_equal('foo', 'bar', 'baz')
+<		|v:errors| に以下を追加する:
+			test.vim line 12: baz: Expected 'foo' but got 'bar' ~
 
 		|method| としても使用でき、ベースは第2引数として渡される: >
 			mylist->assert_equal([1, 2, 3])
@@ -559,12 +560,12 @@ assert_fails({cmd} [, {error} [, {msg} [, {lnum} [, {context}]]]])
 		{error}が文字列である場合、最初に報告されたエラーの中から文字
 		通り見つからなければならない。例えば、"E123:" の場合、多くの場
 		合、これはコロンを含むエラーコードになる: >
-			assert_fails('bad cmd', 'E987:')
+			call assert_fails('bad cmd', 'E987:')
 <
 		{error}が1つまたは2つの文字列をもつ |List| の場合、これらをパ
 		ターンとして利用する。最初のパターンは、最初に報告されたエラー
 		と照合される: >
-			assert_fails('cmd', ['E987:.*expected bool'])
+			call assert_fails('cmd', ['E987:.*expected bool'])
 <
 		2番目のパターンが存在する場合、最後に報告されたエラーと照合さ
 		れる。
@@ -572,7 +573,7 @@ assert_fails({cmd} [, {error} [, {msg} [, {lnum} [, {context}]]]])
 		これを使用して、エラーが1つしかないことをチェックできる。
 		最後のエラーのみにマッチさせるには、最初のエラーに空文字列を使
 		用する: >
-			assert_fails('cmd', ['', 'E987:'])
+			call assert_fails('cmd', ['', 'E987:'])
 <
 		{msg} が空の場合は利用されない。引数 {lnum} を渡す時にデフォル
 		トメッセージを取得するにはこれを使うこと。
@@ -597,7 +598,8 @@ assert_false({actual} [, {msg}])			*assert_false()*
 		|assert_equal()|と同様に、{actual}がfalseでない場合、|v:errors|
 		にエラーメッセージを追加する。
 		エラーは "Expected false but got {actual}" という形式である。
-		{msg} が存在する場合は、その前に置かれる。
+		{msg} が存在する場合、スクリプトから実行される時にアサートの場
+		所と共に、その前に付加される。
 		|assert-return| も参照。
 
 		ゼロである時、その値はfalseである。{actual}が数値でない場合、
@@ -622,7 +624,8 @@ assert_match({pattern}, {actual} [, {msg}])
 		{pattern}が{actual}と一致しない場合、|v:errors|にエラーメッセー
 		ジが追加される。|assert-return| も参照。
 		エラーは "Pattern {pattern} does not match {actual}" という形
-		式である。{msg} が存在する場合は、その前に置かれる。
+		式である。{msg} が存在する場合、スクリプトから実行される時にア
+		サートの場所と共に、その前に付加される。
 
 		|=~|と同じように{pattern}が使われる: マッチングは 'magic' や
 		'cpoptions' の実際の値に関係なく、'magic' が設定され、
@@ -634,9 +637,9 @@ assert_match({pattern}, {actual} [, {msg}])
 		部分一致で判定が行われる。}
 
 		例: >
-	assert_match('^f.*o$', 'foobar')
-<		これは |v:errors| に文字列が追加されることになる:
-	test.vim line 12: Pattern '^f.*o$' does not match 'foobar' ~
+			call assert_match('^f.*o$', 'foobar')
+<		結果は |v:errors| に追加される文字列になる:
+			test.vim line 12: Pattern '^f.*o$' does not match 'foobar' ~
 
 		|method| としても使用できる: >
 			getFile()->assert_match('foo.*')
@@ -691,7 +694,8 @@ assert_true({actual} [, {msg}])				*assert_true()*
 		|assert-return| も参照。
 		非ゼロである時、その値はTRUEである。{actual}が数値でない場合、
 		テストが失敗する。
-		{msg} が指定されると、デフォルトのメッセージの前に置かれる。
+		{msg} が指定されると、スクリプトから実行される時にアサートの場
+		所と共に、デフォルトのメッセージの前に付加される。
 
 		|method| としても使用できる: >
 			GetResult()->assert_true()
