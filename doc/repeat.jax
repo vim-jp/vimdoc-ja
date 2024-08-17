@@ -1,4 +1,4 @@
-*repeat.txt*    For Vim バージョン 9.1.  Last change: 2023 May 26
+*repeat.txt*    For Vim バージョン 9.1.  Last change: 2024 Aug 12
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -717,39 +717,352 @@ Filetype プラグインはファイルタイプに複数のプラグインが�
 "git" のようなプログラムが必要である。github ではリリースを作成すると自動的に
 アーカイブが作られるので、あなたは両方を同時に行うことができる。
 
-ディレクトリ構成は次のようになる。 >
+ディレクトリ構成は次のようになる:
    start/foobar/plugin/foo.vim		" 常にロードされ、コマンドを定義する
    start/foobar/plugin/bar.vim		" 常にロードされ、コマンドを定義する
    start/foobar/autoload/foo.vim	" fooコマンドを使用した時に読み込む
    start/foobar/doc/foo.txt		" foo.vimのヘルプ
    start/foobar/doc/tags		" ヘルプタグ
+   start/foobar/lang/<lang_id>/LC_MESSAGES/foobar.mo
+					" <lang_id> 言語でのプラグインのメッ
+					" セージ。これらのファイルは任意。
    opt/fooextra/plugin/extra.vim	" オプションのプラグイン、コマンド定義
    opt/fooextra/autoload/extra.vim	" extraコマンドを使用した時に読み込む
    opt/fooextra/doc/extra.txt		" extra.vimのヘルプ
    opt/fooextra/doc/tags		" ヘルプタグ
 
-これにより、ユーザーは次の操作を行うことができる。 >
+これにより、ユーザーは次の操作を行うことができる: >
 	mkdir ~/.vim/pack
 	cd ~/.vim/pack
 	git clone https://github.com/you/foobar.git myfoobar
-
+<
 ここで "myfoobar" はユーザーが選択できる名前だが、唯一の条件は他のパッケージと
 は異なることである。
 
 ドキュメントでは、プラグインの機能について説明し、オプションのプラグインをロー
 ドする方法をユーザーに伝える。 >
 	:packadd! fooextra
-
+<
 このpackaddコマンドをプラグインの1つに追加して、オプションのプラグインが必要な
 ときに実行することができる。
 
+					*package-doc* *package-documentation*
 `:helptags` コマンドを実行して、doc/tags ファイルを生成する。この生成されたファ
 イルをパッケージに含めるということは、パッケージディレクトリにパッケージを落と
 すことができ、ヘルプコマンドがすぐに動作することを意味する。プラグインヘルプを
 変更した後にコマンドを再実行することを忘れないでほしい。 >
 	:helptags path/start/foobar/doc
 	:helptags path/opt/fooextra/doc
+<
+							*package-translation*
+プラグインが翻訳されたメッセージを表示するには、いくつかの手順が必要である。
+メッセージを翻訳したいプラグインの作者は、|bindtextdomain()| 関数を使用して、
+パッケージの名前と翻訳が見つかるディレクトリの場所を定義する必要がある: >
+	:call bindtextdomain("foobar",
+	\ fnamemodify(expand("<script>"), ':p:h') .. '/../lang/')
+<
+ここで:
+  "foobar"	|gettext()| 関数が後でこのプラグインの翻訳文字列を検索する際に
+		使用する一意のパッケージ識別子。
+  "lang/"	翻訳ファイルが配置されているディレクトリ構造への相対パスまたは
+		絶対パス。
 
+メッセージ翻訳ファイルを配置するディレクトリ構造は、(パッケージの最上位ディレ
+クトリから):
+"lang/<lang_id>/LC_MESSAGES" である。<lang_id> の形式については、|multi-lang|
+を参照。この関数は、プラグインの初期化中に 1 回だけ呼び出す必要がある。
+これが完了すると、|gettext()| 関数を使用して翻訳されたメッセージを取得できる: >
+	:echo gettext("Hello", "foobar")
+<
+ここで:
+  "Hello"	メッセージ "Hello" がユーザーの言語に翻訳される |:lang|
+  "foobar"	前もって |bindtextdomain()| 関数を使用して定義されたパッケージ
+		識別子。
+
+その後、翻訳用のテンプレートファイルを作成する必要がある - POT-ファイル。
+これを行うには、次のコマンドを実行する (Vim リポジトリを使用): >
+	cd ~/forkvim/src/po
+	make -f Makefile "PLUGPACKAGE={package}" \
+	"PO_PLUG_INPUTLIST={path/to/scripts-that-need-translations.vim}" \
+	["POT_PLUGPACKAGE_PATH={path/where/to/write/{package}.pot}" \]
+	["VIMPROG={path/to/vim} \]
+	{package}.pot
+<
+ここで:
+PLUGPACKAGE		|bindtextdomain()| および |gettext()| 関数で指定した
+			パッケージの名前を含む変数。例えば、"foobar"。
+PO_PLUG_INPUTLIST	翻訳する文字列を含むスクリプトを含む変数、つまり
+			|gettext()| 関数を指定した場所。スクリプトは絶対パスま
+			たは相対パスで指定される。
+			例: start/foobar/plugin/bar.vim では、スクリプトを区切
+			るために空白を使用する。
+POT_PLUGPACKAGE_PATH	準備された POT ファイルが保存されるディレクトリを含む
+			変数。これは必須の変数ではない。ディレクトリが指定され
+			ていない場合、POT ファイルは "src/po" ディレクトリに配
+			置される。
+VIMPROG			動作する Vim のディレクトリを含む変数。Vim エディタが
+			すでにビルドおよびインストールされていて、$PATH 環境変
+			数に含まれている場合は、vim 実行可能ファイルの名前だけ
+			を指定できる。
+{package}.pot		これはターゲットである。パッケージ名として指定される。
+			例えば、"foobar" に .pot 拡張子を付けたもの。
+POT ファイルが作成されると、その内容は、翻訳が準備される言語ごとに個別の PO
+ファイルにコピーされる。
+
+翻訳が完了した場合、PO ファイルをバイナリ MO ファイル形式に変換し、これらの MO
+ファイルを、先ほど作成した構造の "lang/" ディレクトリに配置する必要がある。
+これを行うには、以下のコマンドを実行する:
+>
+	cd ~/forkvim/src/po
+	make -f Makefile "PLUGPACKAGE={package}" \
+	"PO_PLUGPACKAGE={path/to/{lang}.po}" \
+	["MO_PLUGPACKAGE_PATH={path/to/lang/<lang_id>/LC_MESSAGES}" \]
+	{package}.mo
+<
+ここで:
+PLUGPACKAGE		|bindtextdomain()| および |gettext()| 関数で指定した
+			パッケージの名前を含む変数。例えば、"foobar"。
+PO_PLUGPACKAGE		PO ファイルを含む変数。ファイルは絶対パスまたは相対パ
+			スで指定される。例えば、"~/myproject/translate/en.po"
+MO_PLUGPACKAGE_PATH	"lang/" ディレクトリの構造を含む変数。このディレクトリ
+			には、翻訳ファイルが配置される。例えば、"foobar.mo"。
+			これは必須の変数ではない。ディレクトリが指定されていな
+			い場合、MO ファイルは "src/po" ディレクトリに保存され
+			る。
+{package}.mo		これはターゲットである。パッケージの名前として指定され
+			る。例えば、"foobar" に .mo 拡張子を付けたもの。
+
+						*package-translate_example*
+具体的な例ですべてを示し、"ftplugin/aap.vim" ファイルをロシア語とドイツ語に翻
+訳してみよう。
+
+まず、"aap.vim" ファイルを準備し、その中で |bindtextdomain()| と |gettext()|
+関数呼び出しを指定する。
+>
+ " このバッファに対して未完了の場合にのみこれを実行
+ if exists("b:did_ftplugin")
+     finish
+ endif
+
+ " このバッファに別のプラグインを読み込まない
+ let b:did_ftplugin = 1
+ call bindtextdomain("aap", fnamemodify(expand("<script>"), ':p:h') .. '/../lang/')
+
+ " このプラグインを元に戻すため、'formatoptions'、'comments'、'commentstring'
+ " および 'expandtab' をリセットする。
+ let b:undo_ftplugin = "setl fo< com< cms< et<"
+
+ " 'formatoptions' を設定して、コメント行は分割されるが、他の行は分割されない
+ " ようにし、また、<CR> を押すか "o" を使用すると、コメントリーダーが挿入され
+ " るようにする。
+ setlocal fo-=t fo+=croql
+
+ " 'comments' を設定して、コメント内の破線リストをフォーマットする。
+ setlocal comments=s:#\ -,m:#\ \ ,e:#,n:#,fb:-
+ setlocal commentstring=#\ %s
+
+ " トラブルを避けるためにタブをスペースに展開する。
+ setlocal expandtab
+
+ if (has("gui_win32") || has("gui_gtk")) && !exists("b:browsefilter")
+ let b:browsefilter = gettext("Aap Recipe Files (*.aap)\t*.aap\n", "aap")
+ if has("win32")
+     let b:browsefilter ..= gettext("All Files (*.*)\t*\n", "aap")
+ else
+     let b:browsefilter ..= gettext("All Files (*)\t*\n", "aap")
+ endif
+ let b:undo_ftplugin ..= " | unlet! b:browsefilter"
+ endif
+<
+次に、POT ファイルを作成しよう (例では Windows パスを使用)。
+>
+	cd /d f:\forkvim\src\po
+ (以下のコマンドは 1 行で入力する必要があるが、ここでは例のため区切られている)
+	nmake.exe -f Make_mvc.mak "PLUGPACKAGE=aap"
+		    "PO_PLUG_INPUTLIST=d:\Programs\vim\vim91\ftplugin\aap.vim"
+		    "POT_PLUGPACKAGE_PATH=e:\project\translate\plugins"
+		    "VIMPROG=d:\Programs\vim\vim91\vim.exe"
+		    aap.pot
+<
+パッケージの POT ファイルが作成された後、保存したディレクトリに移動して翻訳を
+実施する。
+>
+	cd /d e:\project\translate\plugins
+	copy aap.pot ru.po
+	copy aap.pot de.po
+<
+ロシア語への翻訳を含む PO ファイルを用意:
+    # Test plugins translate ~
+    # ~
+    msgid "" ~
+    msgstr "" ~
+    "Project-Id-Version: aap\n" ~
+    "Report-Msgid-Bugs-To: \n" ~
+    "POT-Creation-Date: 2024-06-23 14:58+0300\n" ~
+    "PO-Revision-Date: 2024-06-23 14:58+0300\n" ~
+    "Last-Translator: Restorer\n" ~
+    "Language-Team: RuVim\n" ~
+    "Language: ru\n" ~
+    "MIME-Version: 1.0\n" ~
+    "Content-Type: text/plain; charset=UTF-8\n" ~
+    "Content-Transfer-Encoding: 8bit\n" ~
+
+    #: ../../runtime/ftplugin/aap.vim:32 ~
+    msgid "Aap Recipe Files (*.aap)\t*.aap\n" ~
+    msgstr "Файлы инструкций Aap (*.aap)\t*.aap\n" ~
+
+    #: ../../runtime/ftplugin/aap.vim:34 ~
+    msgid "All Files (*.*)\t*\n" ~
+    msgstr "Все файлы (*.*)\t*\n" ~
+
+    #: ../../runtime/ftplugin/aap.vim:36 ~
+    msgid "All Files (*)\t*\n" ~
+    msgstr "Все файлы (*)\t*\n" ~
+
+そして、ドイツ語の PO ファイル:
+    # Test plugins translate~
+    #~
+    msgid ""~
+    msgstr ""~
+    "Project-Id-Version: aap\n"~
+    "Report-Msgid-Bugs-To: \n"~
+    "POT-Creation-Date: 2024-06-23 14:58+0300\n"~
+    "PO-Revision-Date: 2024-06-24 13:11+0300\n"~
+    "Last-Translator: Restorer\n"~
+    "Language-Team: German\n"~
+    "Language: de\n"~
+    "MIME-Version: 1.0\n"~
+    "Content-Type: text/plain; charset=UTF-8\n"~
+    "Content-Transfer-Encoding: 8bit\n"~
+
+    #: ../../runtime/ftplugin/aap.vim:32~
+    msgid "Aap Recipe Files (*.aap)\t*.aap\n"~
+    msgstr "Aap-Rezeptdateien (*.aap)\t*.aap\n"~
+
+    #: ../../runtime/ftplugin/aap.vim:34~
+    msgid "All Files (*.*)\t*\n"~
+    msgstr "Alle Dateien (*.*)\t*.*\n"~
+
+    #: ../../runtime/ftplugin/aap.vim:36~
+    msgid "All Files (*)\t*\n"~
+    msgstr "Alle Dateien (*)\t*\n"~
+
+ここで、これらのファイルを MO ファイルに変換し、|gettext()| がメッセージの翻訳
+を表示できるようにする。Note これは特殊なプラグインパッケージではないため、MO
+ファイルを Vim エディタの "lang/" ディレクトリに配置することに注意。
+以下のコマンドを入力:
+>
+	cd /d f:\forkvim\src\po
+ (以下のコマンドは 1 行で入力する必要があるが、ここでは例のため区切られている)
+ ロシア語:
+	nmake.exe -f Make_mvc.mak "PLUGPACKAGE=aap"
+	"PO_PLUGPACKAGE=e:\project\translate\plugins\ru.po"
+	"MO_PLUGPACKAGE_PATH=d:\Programs\vim\vim91\lang\ru\LC_MESSAGES"
+	aap.mo
+ ドイツ語:
+	nmake.exe -f Make_mvc.mak "PLUGPACKAGE=aap"
+	"PO_PLUGPACKAGE=e:\project\translate\plugins\de.po"
+	"MO_PLUGPACKAGE_PATH=d:\Programs\vim\vim91\lang\de\LC_MESSAGES"
+	aap.mo
+<
+これで翻訳が完了し、プラグインのメッセージを母国語で表示できるようになる。
+
+プラグインパッケージの翻訳も試してみよう。例えば、パッケージに翻訳が必要な文字
+列を含むスクリプトが複数含まれている場合である。例えば、"netrw" パッケージを日
+本語に翻訳してみよう。
+この例では、このパッケージから数行だけを翻訳する。
+メッセージ文字列を翻訳する必要があるスクリプトを準備しよう。
+
+ファイル "autoload\netrw.vim":
+>
+ " 一度読み込む:
+ if &cp || exists("g:loaded_netrw")
+   finish
+ endif
+ call bindtextdomain("netrw", fnamemodify(expand("<script>"), ':p:h') .. '/../lang/')
+
+ " vim が netrw に必要なパッチがあるか確認する。
+ " Patches needed for v7.4: 1557, and 213.
+ " v7.4: 1557, および 213 パッチが必要。
+ " (netrw も vim のパッチ #656 の恩恵を受けるだろう)
+ let s:needspatches=[1557,213]
+ if exists("s:needspatches")
+  for ptch in s:needspatches
+   if v:version < 704 || (v:version == 704 && !has("patch".ptch))
+    if !exists("s:needpatch{ptch}")
+     unsilent echomsg gettext("***sorry*** this version of netrw requires vim v7.4 with patch#", "netrw") .. ptch
+    endif
+    let s:needpatch{ptch}= 1
+    finish
+   endif
+  endfor
+ endif
+<
+ファイル "autoload\netrwSettings.vim":
+>
+ " 一度読み込む:
+ if exists("g:loaded_netrwSettings") || &cp
+   finish
+ endif
+ call bindtextdomain("netrw", fnamemodify(expand("<script>"), ':p:h') .. '/../lang/')
+ let g:loaded_netrwSettings = "v18"
+ if v:version < 700
+  echohl WarningMsg
+  echo gettext("***warning*** this version of netrwSettings needs vim 7.0", "netrw")
+  echohl Normal
+  finish
+ endif
+<
+次に、メッセージのさらなる翻訳のために POT ファイルを準備する。
+以下のコマンドを実行:
+>
+	cd ~/forkvim/src/po
+	make -f Makefile "VIMPROG=/usr/local/bin/vim" "PLUGPACKAGE=netrw" \
+	"POT_PLUGPACKAGE_PATH=~/project/translate/plugins" \
+	"PO_PLUG_INPUTLIST=../../runtime/autoload/netrw.vim
+	../../runtime/autoload/netrwSettings.vim" \
+	netrw.pot
+<
+POT ファイルのあるディレクトリに移動し、翻訳を行う。
+>
+	cd ~/project/translate/plugins
+	cp ./netrw.pot ja.po
+<
+"ja.po" ファイルに翻訳が準備できたら:
+    # Test plugins translate ~
+    # ~
+    msgid "" ~
+    msgstr "" ~
+    "Project-Id-Version: netrw\n" ~
+    "Report-Msgid-Bugs-To: \n" ~
+    "POT-Creation-Date: 2024-06-23 17:14+0300\n" ~
+    "PO-Revision-Date: 2024-06-23 17:14+0300\n" ~
+    "Last-Translator: Restorer\n" ~
+    "Language-Team: Japanese\n" ~
+    "Language: ja\n" ~
+    "MIME-Version: 1.0\n" ~
+    "Content-Type: text/plain; charset=UTF-8\n" ~
+    "Content-Transfer-Encoding: 8bit\n" ~
+
+    #: ../../runtime/autoload/netrw.vim:51 ~
+    msgid "***sorry*** this version of netrw requires vim v7.4 with patch#" ~
+    msgstr "" ~
+    "***申し訳ありません***このバージョンのnetrwには、パッチ付きのvim v7.4が必要です#" ~
+
+    #: ../../runtime/autoload/netrwSettings.vim:28 ~
+    msgid "***warning*** this version of netrwSettings needs vim 7.0" ~
+    msgstr "***警告***このバージョンのnetrwSettingsにはvim7.0が必要です" ~
+
+ja.po を MO ファイルに変換する:
+>
+	cd ~/forkvim/src/po
+	make -f Makefile "PLUGPACKAGE=netrw" \
+	"PO_PLUGPACKAGE=~/project/translate/plugins/ja.po" \
+	"MO_PLUGPACKAGE_PATH=/usr/local/share/vim/vim91/lang/ja/LC_MESSAGES" \
+	netrw.mo
+<
+これらの手順を実行すると、サードパーティのプラグインパッケージの翻訳を取得でき
+るようになる。
 
 プラグイン間の依存関係 ~
 							*packload-two-steps*
