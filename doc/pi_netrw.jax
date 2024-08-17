@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim バージョン 9.1.  Last change: 2023 May 14
+*pi_netrw.txt*  For Vim バージョン 9.1.  Last change: 2024 Jul 13
 
 	    ------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell
@@ -15,7 +15,7 @@ Copyright: Copyright (C) 2017 Charles E Campbell    *netrw-copyright*
 	merchantability.  No guarantees of suitability for any purpose.  By
 	using this plugin, you agree that in no event will the copyright
 	holder be liable for any damages resulting from the use of this
-	software. Use at your own risk!
+	software. Use at your own risk!  For bug reports, see |bugs|.
 
 
 		*netrw*
@@ -445,10 +445,6 @@ Netrw にはたくさんの変数が用意されていて、好きなように�
 			      れたメッセージを確認できないことがあるかもしれま
 			      せんが、ウィンドウを閉じる必要がありません。
 
- *g:netrw_win95ftp*	=1 Win95 で、OS 付属の ftp が出力の末尾に書き出す四行
-			   の空行を削除する。
-			=0 普通に ftp を使用する (末尾の行を削除しない)
-
  *g:netrw_cygwin* 	=1 windows で cygwin 付属の scp を想定する。また、ネッ
 			   トワークブラウジングで ls を使った時間とサイズによ
 			   るソートを可能にする (windowsでの初期設定)。
@@ -768,7 +764,7 @@ SCP をパスワードフリーで使うには: |netrw-ssh-hack| を参照。
 		(関連: |netrw-userpass|)
 
 :NetrwSettings  このコマンドは |netrw-settings| で説明します。netrw の設定を表
-                示し、netrw の動作を変更するために使用されます。
+		示し、netrw の動作を変更するために使用されます。
 
 
 ==============================================================================
@@ -809,8 +805,6 @@ SCP をパスワードフリーで使うには: |netrw-ssh-hack| を参照。
         g:netrw_uid             ftp の現在の user-id を保持する
         g:netrw_use_nt_rcp      =0 WinNT/2K/XP の rcp を使わない (初期設定)
                                 =1 WinNT/2K/XP の rcp を binary mode で使う
-        g:netrw_win95ftp        =0 win95/98/ME/etc で unix-style ftp を使う
-                                =1 標準の ftp を使う >
 	-----------------------------------------------------------------------
 <
 						*netrw-internal-variables*
@@ -935,20 +929,8 @@ netrw は生成したテキストを次のようなコマンドでフィルタ�
     endfunction
 >
 NetReadFixup() 関数は定義するだけで呼び出されるようになります。これにより読み
-込みの処理をカスタマイズできます。例えば、<netrw.vim> の中では Windows 95 ftp
-の問題を回避するために、この関数が定義されています。なぜか Windows 95 の ftp
-は転送ファイルの末尾に 4 行の空行を出力するので、それを取り除いています。
-<netrw.vim> のコードは次のようなものです:
->
-    if has("win95") && g:netrw_win95ftp
-     fun! NetReadFixup(method, line1, line2)
-       if method == 3   " ftp (no <.netrc>)
-        let fourblanklines= line2 - 3
-        silent fourblanklines .. "," .. line2 .. "g/^\s*/d"
-       endif
-     endfunction
-    endif
->
+込みの処理をカスタマイズできます。
+
 (関連項目: |ftp| |netrw-userpass| |netrw-start|)
 
 ==============================================================================
@@ -1589,10 +1571,8 @@ gx マッピングはすべてのバッファに適用できます。カーソ�
       入力したパターンにマッチしたファイルがマークされるので、それから "D" を
       押す。
 
-Vim が 7.4 で patch#1107 が含まれていれば、|g:netrw_localrmdir| はディレクトリ
-を削除するのにはもう使用されません。代わりに Vim の |delete()| が "d" オプショ
-ン付きで使用されます。"D" マップでは空のディレクトリのみが削除されることに注意
-してください。通常のファイルも同様に |delete()| で削除されます。
+Note "D" マップでは空のディレクトリのみが削除されることに注意してください。通
+常のファイルも同様に |delete()| で削除されます。
 
 リモートのファイルとディレクトリの削除には、|g:netrw_rm_cmd|、
 |g:netrw_rmf_cmd|、|g:netrw_rmdir_cmd| 変数が使われます。|g:netrw_rm_cmd| は
@@ -1610,8 +1590,7 @@ g:netrw_rmdir_cmd によるディレクトリの削除が失敗した場合は�
 	|g:netrw_rmf_cmd|: ssh HOSTNAME rm -f
 
 関連項目: |netrw-d|
-関連設定: |g:netrw_localrmdir| |g:netrw_rm_cmd|
-          |g:netrw_rmdir_cmd|   |g:netrw_ssh_cmd|
+関連設定: |g:netrw_rm_cmd| |g:netrw_ssh_cmd|
 
 
 *netrw-explore*  *netrw-hexplore* *netrw-nexplore* *netrw-pexplore*
@@ -1654,7 +1633,11 @@ g:netrw_rmdir_cmd によるディレクトリの削除が失敗した場合は�
 	  す。つまりファイルを開くときには 2 番目のウィンドウが使われるようにな
 	  ります。
 
-	  [N] は新しい :Lexplore ウィンドウの |g:netrw_winsize| を示します。
+	  [N] は新しい :Lexplore ウィンドウの |g:netrw_winsize| を示します。つ
+	  まり、
+	    if [N] < 0 : Lexplore ウィンドウには |N| カラムを使用する
+	    if [N] = 0 : 通常の分割が行われる
+	    if [N] > 0 : カレントウィンドウの N% が新しいウィンドウに使用される
 
 	  この方法を好む人達はしばしばツリービューも好むでしょう。
 	  |g:netrw_liststyle|参照。
@@ -2005,11 +1988,8 @@ Kingston Fung 氏がパスワードを省略する別の方法について書い
     scp を使うたびにパスワードを入力しなくてもよくするには、ドキュメントにある
     ハックで空パスワードの ssh アカウントを作成する方法もあるが、もっといい方
     法がある。この方法では通常のパスワード付き ssh アカウントを使い、パスワー
-    ドなしで操作を行える。これはセキュアかつ便利だ。方法としては、ssh パブリッ
-    クキー認証と ssh-agent を使う。詳しくはリンク先を見て欲しい。
-
-    http://www.ibm.com/developerworks/library/l-keyc2/
-    http://sial.org/howto/openssh/publickey-auth/
+    ドなしで操作を行える。これはセキュアかつ便利だ。ssh パブリックキー認証 +
+    ssh-agent、これを実施してみたところ、うまくいきました！
 
 
     Ssh ヒント:
@@ -2794,14 +2774,6 @@ netrw ブラウザーの各種設定は変数で管理されていて、それ�
 				=" /c move"                     Windows
 				|g:netrw_localmovecmd| 用のオプション
 
-  *g:netrw_localrmdir*		="rmdir"        Linux/Unix/MacOS/Cygwin
-				=expand("$COMSPEC")             Windows
-				ディレクトリ削除コマンド (rmdir)
-				この変数は、Vim が 7.4 よりも古い場合、もしく
-				は patch#1107 を含んでいない場合のみに使用され
-				る。それ以外の場合は、|delete()| が "d" オプ
-				ション付きで使用される。
-
   *g:netrw_maxfilenamelen*	初期設定は 32。long スタイルでの表示を 80 カ
 				    ラムのディスプレイに収められるような値。
 				大きい画面を使っているか、32 バイトより長い名
@@ -3340,15 +3312,7 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 	(何かフィードバックがあればこの項に追加していきます)
 	(|netrw-debug| も参照)
 								*netrw-p1*
-	P1. Windows 95 を使っています。ftp が読み込みのたびに末尾に四行の空行  {{{2
-	    を出力します。
-
-		|netrw-fixup| を見て、次の設定を <.vimrc> に加えてください:
-
-			let g:netrw_win95ftp= 1
-
-								*netrw-p2*
-	P2. Windows を使っています。ftp を使ったブラウジングで時間やサイズで   {{{2
+	P1. Windows を使っています。ftp を使ったブラウジングで時間やサイズで   {{{2
 	    ソートできません。- あるいは - リモートシステムが Windows サーバー
 	    なんですが、時間やサイズでソートできません。
 
@@ -3373,8 +3337,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 		設定しても、リモートシステムは期待した動作をしないでしょう。
 
 
-								*netrw-p3*
-	P3. rcp://user@host/ (あるいは他の ftp 以外のプロトコル) を指定したの  {{{2
+								*netrw-p2*
+	P2. rcp://user@host/ (あるいは他の ftp 以外のプロトコル) を指定したの  {{{2
 	    に netrw は ssh を使おうとする。
 
 		Netrw はリモートディレクトリを表示する方法として ssh と ftp を
@@ -3382,8 +3346,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 		ル一覧取得ではなく) ファイルをダウンロードするときに、指定され
 		たプロトコルが使われます。
 
-								*netrw-p4*
-	P4. ファイル一覧の表示スタイルを long をデフォルトにしたい。           {{{2
+								*netrw-p3*
+	P3. ファイル一覧の表示スタイルを long をデフォルトにしたい。           {{{2
 
 		|.vimrc| に次のコマンドを書いてください: >
 
@@ -3392,8 +3356,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 		他にもいろいろカスタマイズできます。|netrw-browser-var| を参照
 		してください。
 
-								*netrw-p5*
-	P5. ローカルブラウザーでの時間の表示がおかしい                         {{{2
+								*netrw-p4*
+	P4. ローカルブラウザーでの時間の表示がおかしい                         {{{2
 
 		あなたのシステムの strftime() は "%c" を指定したときに "Sun
 		Apr 27 11:49:23 1997" のような出力を返しますか？ そうでない場
@@ -3402,15 +3366,15 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 
 			let g:netrw_timefmt= "%X"  (X は調べたオプション)
 <
-								*netrw-p6*
-	P6. ブラウザーで移動するごとにカレントディレクトリを設定したい。       {{{2
+								*netrw-p5*
+	P5. ブラウザーで移動するごとにカレントディレクトリを設定したい。       {{{2
 
 	    次の設定を |.vimrc| に書いてください:
 >
 		let g:netrw_keepdir= 0
 <
-								*netrw-p7*
-	P7. ファイル名に中国語 (などの非 ascii) の文字が使われていると、netrw  {{{2
+								*netrw-p6*
+	P6. ファイル名に中国語 (などの非 ascii) の文字が使われていると、netrw  {{{2
 	    (Explore, Sexplore, Hexplore, etc) でそれが表示されない。
 
 		(Vim メーリングリストでの Wu Yongwei 氏による回答)
@@ -3423,8 +3387,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 
 		(こういうのが utf-8 が推奨される理由の 1 つです)
 
-								*netrw-p8*
-	P8. "ssh is not executable on your system" (ssh という実行可能ファイル {{{2
+								*netrw-p7*
+	P7. "ssh is not executable on your system" (ssh という実行可能ファイル {{{2
 	    がない) って表示されるんだけど、どうすればいいの？
 
 		(Dudley Fox) 私の知る限りほとんどの windows ユーザーは ssh と
@@ -3504,8 +3468,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 		最初の変数 (|g:netrw_ssh_cmd|) が一番重要です。他の変数は
 		g:netrw_ssh_cmd の文字列を使って初期値が設定されます。
 
-						*netrw-p9* *netrw-ml_get*
-	P9. ブラウザーでディレクトリを変更するとなんか変になる。ml_get エラー  {{{2
+						*netrw-p8* *netrw-ml_get*
+	P8. ブラウザーでディレクトリを変更するとなんか変になる。ml_get エラー  {{{2
 	    が表示されて、vim を kill するしかなくなる。どうすればいいの？
 
 		Netrw ではディレクトリを表示しているバッファに対してスワップ
@@ -3514,8 +3478,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 		|g:netrw_use_noswf| を 0 に設定してみてください: >
 			let g:netrw_use_noswf= 0
 <
-								*netrw-p10*
-	P10. "[something] is a directory" と表示されて "Press ENTER or type    {{{2
+								*netrw-p9*
+	P9. "[something] is a directory" と表示されて "Press ENTER or type    {{{2
 	     command to continue" というプロンプトが出るのがいやなんだけど...
 
 		"[something] is a directory" プロンプトは (netrw ではなく) Vim
@@ -3525,8 +3489,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 		でください。|'cmdheight'| を 2 (かそれ以上) に設定するといいか
 		もしれません。
 
-								*netrw-p11*
-	P11. ウィンドウを二分割して、左の細いウィンドウをブラウザー表示に、右  {{{2
+								*netrw-p10*
+	P10. ウィンドウを二分割して、左の細いウィンドウをブラウザー表示に、右  {{{2
 	     のウィンドウをファイル編集用にしたいんだけど、どうすればいいの？
 
 	     おそらく netrw を横のウィンドウで表示させたいのではないでしょう
@@ -3548,8 +3512,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 		  gvim を使っている場合はブラウザーウィンドウで <leftmouse> 押
 		  してから開きたいファイルを <middlemouse> で選択する。
 
-								*netrw-p12*
-	P12. ディレクトリが正しくソートされない、一覧のファイル名になんか変な  {{{2
+								*netrw-p11*
+	P11. ディレクトリが正しくソートされない、一覧のファイル名になんか変な  {{{2
 	     文字が付く、wide 表示でファイルが正しく整列されない、...。
 
 	     おそらくエンコーディングの問題です。私は普段 utf-8 を使っています
@@ -3558,8 +3522,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 	     のバイトで表現します。|g:netrw_sepchr| や |g:netrw_xstrlen| の設
 	     定を変更してみてください。
 
-								*netrw-p13*
-	P13. Windows + putty + ssh を使っています。ブラウズするときにディレク  {{{2
+								*netrw-p12*
+	P12. Windows + putty + ssh を使っています。ブラウズするときにディレク  {{{2
 	     トリの末尾に "/" が付いていないため、netrw はそれをファイルとして
 	     転送しようとするので、サブディレクトリをブラウズできません。なん
 	     とかなりませんか？
@@ -3579,8 +3543,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 	    "let g:netrw_sftp_cmd = "d:\\dev\\putty\\PSFTP.exe"
 	    "let g:netrw_scp_cmd = "d:\\dev\\putty\\PSCP.exe"
 <
-								*netrw-p14*
-	P14. scp/ssh 接続で Nwrite の速度をスピードアップしたいんだけど？      {{{2
+								*netrw-p13*
+	P13. scp/ssh 接続で Nwrite の速度をスピードアップしたいんだけど？      {{{2
 	     (Thomer M. Gil)
 
 	     ssh の ControlMaster と ControlPath を試してみてください
@@ -3606,8 +3570,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 
 		vim scp://host.domain.com//home/user/.bashrc
 <
-								*netrw-p15*
-	P15. ファイルやディレクトリを開くのにシングルクリックじゃなくてダブル  {{{2
+								*netrw-p14*
+	P14. ファイルやディレクトリを開くのにシングルクリックじゃなくてダブル  {{{2
 	     クリックを使うようにするにはどうすればいいの？  (Ben Fritz)
 
 	     まず、netrw のマップを無効化します >
@@ -3619,8 +3583,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 	     く、netrw のマウス関連のマップはすべて無効化されます。
 	     (|g:netrw_mousemaps| 参照)
 
-								*netrw-p16*
-	P16. リモートファイルを開くと (例: :e ftp://hostname/path/file)、      {{{2
+								*netrw-p15*
+	P15. リモートファイルを開くと (例: :e ftp://hostname/path/file)、      {{{2
 	     Windows では |E303| メッセージが出てスワップファイルが開けないと
 	     言われる。
 
@@ -3628,8 +3592,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 	     か。$HOME やその他の書き込み可能なディレクトリで Vim を起動してく
 	     ださい。
 
-								*netrw-p17*
-	P17. Netrw が自身のバッファを閉じてしまう。                            {{{2
+								*netrw-p16*
+	P16. Netrw が自身のバッファを閉じてしまう。                            {{{2
 	     どうやって問題を再現させればいいの？
 		1. :Explore する、ディレクトリを歩く、ファイルを開く
 		2. :Explore する、別のファイルを開く
@@ -3645,16 +3609,16 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 		    ":ls!" するとそれらの閉じられていないバッファが
 		    表示されます (":ls" では表示されません)。
 
-								*netrw-P18*
-	P18. ssh でのみ到達可能なサーバー上のファイルを                        {{{2
+								*netrw-P17*
+	P17. ssh でのみ到達可能なサーバー上のファイルを                        {{{2
 	     ローカルで編集するにはどうしたらいいの？
 	     以下を参照してください。
 	     http://stackoverflow.com/questions/12469645/
 	     "Using Vim to Remotely Edit A File on ServerB Only
 	      Accessible From ServerA"
 
-								*netrw-P19*
-	P19. ディレクトリのファイル一覧表示の際に行番号を表示するには          {{{2
+								*netrw-P18*
+	P18. ディレクトリのファイル一覧表示の際に行番号を表示するには          {{{2
 	     どうしたらいいの？
 		|g:netrw_bufsettings| によって netrw バッファの設定を
 		制御できます。以下を .vimrc に書いてみてください。 >
@@ -3663,8 +3627,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 		試してください。 >
 		  let g:netrw_bufsettings="noma nomod nonu nobl nowrap ro rnu"
 <
-								*netrw-P20*
-	P20. ディレクトリのファイル一覧を表示して gvim を起動できますか？      {{{2
+								*netrw-P19*
+	P19. ディレクトリのファイル一覧を表示して gvim を起動できますか？      {{{2
 		次のコードを .vimrc に書いてみてください: >
 		    augroup VimStartup
 		      au!
@@ -3676,8 +3640,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 		のコードは client-server が有効化されているのを仮定しています
 		(例えば "huge" バージョンの vim)。
 
-								*netrw-P21*
-	P21. アクセント記号付き文字を含んだディレクトリ (またはファイル)を作成 {{{2
+								*netrw-P20*
+	P20. アクセント記号付き文字を含んだディレクトリ (またはファイル)を作成 {{{2
 		したけど、netrw でそのディレクトリに入ったり、そのファイルを読
 		み込んだりできません:
 
@@ -3689,8 +3653,8 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 
 			au FileType netrw set enc=latin1
 <
-								*netrw-P22*
-	P22. ファイルをコピーもしくは移動させようとするとエラーが出ます:       {{{2
+								*netrw-P21*
+	P21. ファイルをコピーもしくは移動させようとするとエラーが出ます:       {{{2
 
 		**error** (netrw) tried using g:netrw_localcopycmd<cp>; it doesn't work!
 
@@ -3700,7 +3664,7 @@ netrw#Call("funcname"[,args])        netrw の内部関数を指定の引数で
 	     持っています (次を参照
 
 		 |g:netrw_localcopycmd|, |g:netrw_localmovecmd|,
-		 |g:netrw_localrmdir|, |g:netrw_mkdir_cmd|)。
+		 |g:netrw_mkdir_cmd|)。
 
 	    もしかしたら .vimrc でそれらを適切に設定して、デフォルトのコマンド
 	    を 1 つかそれ以上調整する必要があるかもしれません。またその他に問
@@ -3815,17 +3779,17 @@ netrw かあるいは関与している他のプラグインと衝突してい�
 	   バッグ出力のどの部分がどのコマンドに対応するかを関連付けるのが簡単
 	   になります。
 
-	   その情報を <netrw.vim> のメンテナーに送ってください。あなたが使用し
-	   ている OS や Vim のバージョン情報も一緒に添えてください。
-	   (|:version| 参照) (まず埋め込まれた NOSPAM を削除してください) >
-
-		NcampObell@SdrPchip.AorgM-NOSPAM
-<
+	   バグレポートについては、|bugs| を参照してください。
 ==============================================================================
 12. 変更履歴						*netrw-history* {{{1
 
-	v172:	Apr 22, 2023	* removed g:netrw_localrmdiropt
-				  removed g:netrw_localrmdir
+	v172:	Sep 02, 2021	* (Bram Moolenaar) Changed "l:go" to "go"
+				* (Bram Moolenaar) no need for "b" in
+				  netrw-safe guioptions
+		Nov 15, 2021	* removed netrw_localrm and netrw_localrmdir
+				  references
+		Aug 18, 2022	* (Miguel Barro) improving compatability with
+				  powershell
 	v171:	Oct 09, 2020	* included code in s:NetrwOptionsSafe()
 				  to allow |'bh'| to be set to delete when
 				  rather than hide when g:netrw_fastbrowse
@@ -3913,7 +3877,6 @@ netrw かあるいは関与している他のプラグインと衝突してい�
 				  |g:netrw_localcopydircmdopt|
 				  |g:netrw_localmkdiropt|
 				  |g:netrw_localmovecmdopt|
-				  g:netrw_localrmdiropt
 		Nov 21, 2016	* (mattn) provided a patch for preview; swapped
 				  winwidth() with winheight()
 		Nov 22, 2016	* (glacambre) reported that files containing
@@ -3973,7 +3936,7 @@ netrw かあるいは関与している他のプラグインと衝突してい�
 				  refreshes.  However, inside a |:map-<expr>|,
 				  tab and window changes are disallowed.  Fixed.
 				  (affects netrw's s:LocalBrowseRefresh())
-				* |g:netrw_localrmdir| not used any more, but
+				* g:netrw_localrmdir not used any more, but
 				  the relevant patch that causes |delete()| to
 				  take over was #1107 (not #1109).
 				* |expand()| is now used on |g:netrw_home|;
