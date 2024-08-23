@@ -1,4 +1,4 @@
-*syntax.txt*	For Vim バージョン 9.1.  Last change: 2024 Jun 17
+*syntax.txt*	For Vim バージョン 9.1.  Last change: 2024 Aug 13
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -934,6 +934,25 @@ Visual Basicを使用するなら次のように設定する: >
 	:let g:filetype_asa = "aspvbs"
 	:let g:filetype_asp = "aspvbs"
 
+ASYMPTOTE					*asy.vim* *ft-asy-syntax*
+
+デフォルトでは、基本的な Asymptote キーワードのみがハイライトされる。拡張ジ
+オメトリキーワードをハイライトするには: >
+
+	:let g:asy_syn_plain = 1
+
+そして、3D 構造に関連するキーワードをハイライトするには: >
+
+	:let g:asy_syn_three = 1
+
+デフォルトでは、Asymptote で定義された色 (例: lightblue) がハイライトされる。
+TeX で定義された色 (例: BlueViolet) をハイライトするには: >
+
+	:let g:asy_syn_texcolors = 1
+
+または、Xorg カラー (例: AliceBlue): >
+
+	:let g:asy_syn_x11colors = 1
 
 BAAN						    *baan.vim* *baan-syntax*
 
@@ -1193,6 +1212,20 @@ tcshを使うには: >
 持つスクリプトはすべてtcshファイル形式とされる。他のtcsh/cshスクリプトは、
 "filetype_csh" 変数が存在しない限り、すべてtcshとみなされる。変数
 "filetype_csh" が存在するならファイル形式はその値にセットされる。
+
+CSV							*ft-csv-syntax*
+
+CSV ファイルの区切り文字を変更すると、構文ハイライトは変更されたファイルの内容
+と一致しなくなる。次の変数を unlet する必要がある: >
+
+	:unlet b:csv_delimiter
+
+そして、ファイルを保存して再読み込みする: >
+
+	:w
+	:e
+
+これで、構文エンジンは新しく変更された CSV 区切り文字を判断するはずだ。
 
 
 CYNLIB						*cynlib.vim* *ft-cynlib-syntax*
@@ -1820,6 +1853,10 @@ http://www.fleiner.com/vim/download.html
 次の行をvimrcに加えればこの描画を無効にできる: >
 	:let html_no_rendering=1
 
+デフォルトでは、Vim は最初の表示行の 250 行前に構文を同期する。これは以下のよ
+うに設定できる: >
+	:let html_minlines = 500
+<
 HTMLコメントはむしろ特別で(詳細はHTMLリファレンスドキュメントを参照)、すべての
 エラーをハイライトする。しかしその間違ったスタイル(<!--で始まり-->で終わる)を
 使いたいならこれを定義する >
@@ -1932,96 +1969,131 @@ idlsyntax_showerror_soft	エラーに対してデフォルトでよりソフト�
 
 JAVA						*java.vim* *ft-java-syntax*
 
-java.vim構文ハイライトファイルはいくつかのオプションを提供している:
+java.vim構文ハイライトファイルはいくつかのオプションを提供している。
 
-Java 1.0.2では丸括弧の内側に波括弧が入ることは絶対になかったため、これはエラー
-と判断された。Java1.1以降では(無名クラスとともに)これが可能になったため、エ
-ラーと判断されなくなった。もし以前のようにしたいなら、vimの初期化ファイルに次
-の行を加えること: >
-	:let java_mark_braces_in_parens_as_errors=1
+Java 1.0.2では、丸括弧の内側に波括弧が入ることは絶対になかったため、これはエ
+ラーと判断された。Java1.1以降では、(無名クラスとともに) これが可能になったた
+め、エラーと判断されなくなった。もし以前のようにしたい場合、Vim の初期化ファイ
+ルに次の行を加えること: >
+	:let g:java_mark_braces_in_parens_as_errors = 1
 
-java.lang.*中の全ての識別子は常に全てのクラスから見える。これらをハイライトす
-るには >
-	:let java_highlight_java_lang_ids=1
-とする。
+`java.lang` で宣言されたすべての (エクスポートされた) パブリック型は常に自動的
+にインポートされ、単純な名前として使用できる。これらをハイライトするには、以下
+を使用する: >
+	:let g:java_highlight_java_lang_ids = 1
 
-http://www.fleiner.com/vim/download.html にあるスクリプトjavaid.vimをダウンロー
-ドすれば、ほとんどのJava標準パッケージの識別子をハイライトすることもできる。
-java.ioなど特定のパッケージの識別子だけをハイライトしたいならばこうする: >
-	:let java_highlight_java_io=1
-対応している全パッケージのリストはjavaid.vimを参照のこと。
+http://www.fleiner.com/vim/download.html で javaid.vim スクリプトをダウンロー
+ドすると、ほとんどの標準 Java パッケージの型をハイライトすることもできる。特定
+のパッケージ (例えば、`java.io`) の型のみをハイライトしたい場合は、以下のよう
+にする: >
+	:let g:java_highlight_java_io = 1
+対応している全パッケージのリストは、javaid.vim を参照。
 
-関数を認識する方法はJavaコードの書き方に依存するため、関数名はハイライトされな
-い。構文ファイルは関数をハイライトする方法を2つ備えている:
+インデントされた関数宣言のヘッダーは (ラムダ式やメソッド参照式の一部とともに)
+ハイライトできるが、これは Java コードの記述方法によって異なる。認識される形式
+は 2 つある:
 
-関数宣言をタブ、または、8 つまでのスペース文字で一貫してインデントして記述す
-る場合は、以下のように設定する >
-	:let java_highlight_functions="indent"
-	:let java_highlight_functions="indent1"
-	:let java_highlight_functions="indent2"
-	:let java_highlight_functions="indent3"
-	:let java_highlight_functions="indent4"
-	:let java_highlight_functions="indent5"
-	:let java_highlight_functions="indent6"
-	:let java_highlight_functions="indent7"
-	:let java_highlight_functions="indent8"
+1) 関数宣言をタブ、または、8 つまでのスペース文字で一貫してインデントして記述
+する場合は、以下のいずれか設定する >
+	:let g:java_highlight_functions = "indent"
+	:let g:java_highlight_functions = "indent1"
+	:let g:java_highlight_functions = "indent2"
+	:let g:java_highlight_functions = "indent3"
+	:let g:java_highlight_functions = "indent4"
+	:let g:java_highlight_functions = "indent5"
+	:let g:java_highlight_functions = "indent6"
+	:let g:java_highlight_functions = "indent7"
+	:let g:java_highlight_functions = "indent8"
 Note 'shiftwidth' に関しては、これがインデントの一番左のステップであることに注
-意すること。
-ただし、関数とクラスの命名方法 (大文字と小文字を考慮) に関する Java ガイドライ
-ンに従っていて、インデントがある場合は、以下のように設定することをお勧めする >
-	:let java_highlight_functions="style"
-どちらの設定もうまくいかないが、それでも関数宣言をハイライトしたい場合は、
-java.vim の定義を変更するか、元の定義を組み込んだ独自の java.vim を作成してか
-ら関数をハイライトするコードを追加して、独自の定義を作成すること。
+意。
 
-Java 1.1では、System.out.println()とSystem.err.println()はデバッグのためだけに
-使われるものだった。そのためデバッグ用の文を区別してハイライトすることができ
-る。それには次の定義を初期化ファイルに加える: >
-	:let java_highlight_debug=1
-するとデバッグ用の文が 'Special' の文字としてハイライトされるだろう。これらを
-別の色でハイライトさせるには、以下のグループに対して新しいハイライトを定義する
-こと:
-    Debug, DebugSpecial, DebugString, DebugBoolean, DebugType
-これらはそれぞれ、文、デバッグ文字列に使われる特別な文字、文字列、ブール型定
-数、型(this, super)に使われる。私はこれらの文に異なる背景色をつけることにして
-いる。
+2) しかし、関数や型の名前の付け方 (大文字小文字の区別) に関する Java ガイドラ
+インに従っており、インデントがある場合は、以下のように設定するとよいかもしれな
+い >
+	:let g:java_highlight_functions = "style"
 
-JavadocはJavaプログラム中から特別なコメントを抜き出してHTMLページを作成するプ
-ログラムである。標準の設定ではこれらのHTMLコードをHTMLファイル(|html.vim|を参
-照)と同様にハイライトする。さらにこのコードの中にjavascriptとCSSを書くこともで
-きる(後述)。しかし4つの違いがある:
-  1. タイトル(その後にホワイトスペースが続く最初の '.' まで、または最初の '@'
-     までのすべての文字)は異なる色でハイライトされる(この色を変更するには
-     CommentTitleを変えること)。
-  2. テキストは 'Comment' としてハイライトされる。
-  3. HTMLコメントは 'Special' としてハイライトされる。
-  4. 特別なJavadocタグ(@see, @param, ...)はSpecialとして、(@see, @param,
-     @exceptionなどの)引数はFunctionとしてハイライトされる。
-この機能をオフにするには初期化ファイルに次の行を加えること: >
-	:let java_ignore_javadoc=1
+さらに、"g:java_highlight_functions" の任意の値を以下と組み合わせて、 >
+	:let g:java_highlight_signature = 1
+引数リストの括弧が付いた関数名を、その型パラメータ、戻り値の型、および仮引数か
+ら区別してハイライトしたり、矢印が付いたラムダ式の引数リストの括弧を、その仮引
+数または識別子から区別してハイライトしたりすることができる。
 
-以上のjavadocコメントを使う場合、javascript、visual basicスクリプト、埋め込み
-CSS(スタイルシート)のハイライトをすることもできる。これは実際にjavascriptや埋
-め込みCSSを含むjavadocコメントがあるときだけ意味がある。これらを有効化するため
-のオプションは次の通り >
-	:let java_javascript=1
-	:let java_css=1
-	:let java_vb=1
+もし、どちらの設定も機能せず、それでも関数宣言のヘッダーをハイライトしたい場合
+は、現在の構文定義を変更するか、新しい構文定義を作成すること。
 
-ネストした丸括弧に異なる色をつけるには、javaParen、javaParen1、javaParen2に異
-なる色を定義する。例えば >
+高階関数型は目視で解析するのが難しいため、一部のコンポーネントを統一的にトーン
+ダウンすると効果的かもしれない。このような型名が Java 命名ガイドラインに準拠し
+ている限り、以下で並べ替えることができる >
+	:let g:java_highlight_generics = 1
+
+Java 1.1 では、関数 `System.out.println()` と `System.err.println()` はデバッ
+グのためだけに使用すべきである。スタートアップファイルに以下の定義を追加するこ
+とを検討するとよい: >
+	:let g:java_highlight_debug = 1
+これらの文の大部分を次のように色分けする
+	*Debug		debugging statements,
+さらに、独自の項目のいくつかをグループ化してリンクする:
+	*Special	as DebugSpecial,
+	*String		as DebugString,
+	*Boolean	as DebugBoolean,
+	*Type		as DebugType,
+これらはそれぞれ、文字列内に表示される特殊文字、文字列自体、真偽値リテラル、お
+よび特殊なインスタンス参照 (`super`、`this`、`null`) に使用される。
+
+Javadoc は、Java プログラムファイルから特別なコメントを取り出し、HTML ページを
+作成するプログラムである。標準設定では、この HTML コードは HTML ファイルと同様
+にハイライトされる (|html.vim| を参照)。このコード内に JavaScript と CSS を追
+加することもできる (以下を参照)。HTML レンダリングは次のように分岐する。
+  1. 最初の文 (後ろに空白文字または行末文字が続く最初のピリオド `.` までのすべ
+     ての文字、または最初のブロックタグまでのすべての文字。例: `@param`、
+     `@return`) は以下として色付けされる
+	*SpecialComment	special comments.
+  2. テキストは以下として色付けされる
+	*Comment	comments.
+  3. HTML コメントは以下として色付けされる
+	*Special	special symbols.
+  4. 標準の Javadoc タグ (`@code`、`@see` 等) は以下として色付けされる
+	*Special	special symbols
+     そして、それらの引数の一部は以下として色付けされる
+	*Function	function names.
+この機能をオフにするには、スタートアップファイルに以下の行を追加する: >
+	:let g:java_ignore_javadoc = 1
+
+上で説明した特別な Javadoc コメントのハイライトを使用する場合、JavaScript、
+Visual Basic スクリプト、埋め込み CSS (スタイルシート) の特別なハイライトもオ
+ンにすることができる。これは、これらの言語のいずれかが実際に Javadoc コメント
+に現れる場合にのみ意味がある。使用する変数は以下: >
+	:let g:java_javascript = 1
+	:let g:java_css = 1
+	:let g:java_vb = 1
+Note これら 3 つの変数は HTML 構文ファイルで維持されることに注意。
+
+数字と文字列は、以下で Javadoc 以外のコメントでも認識される >
+	:let g:java_comment_strings = 1
+
+末尾の空白文字またはタブ文字の前の連続したスペース文字は、以下でエラーとして
+マークされる >
+	:let g:java_space_errors = 1
+ただし、以下のいずれかを定義することで、どちらの種類のエラーも抑制できる >
+	:let g:java_no_trail_space_error = 1
+	:let g:java_no_tab_space_error = 1
+
+ネストされた括弧を異なる色でハイライトするには、`javaParen`、`javaParen1`、
+`javaParen2` の色を定義する。例えば、 >
 	:hi link javaParen Comment
 あるいは >
 	:hi javaParen ctermfg=blue guifg=#0000ff
 
-上方向にスクロールしていてハイライトがおかしくなった場合(CTRL-Lで再描画すると
-直る)、内部変数 "java_minlines" を大きくしてみるとよい: >
-	:let java_minlines = 50
-こうすると表示行の50行前から構文シンクロナイズが始まるようになる。デフォルト値
-は10である。大きな値にすることの不利点は、再描画が遅くなることである。
+後方スクロール中に CTRL-L で再描画すると修正されるハイライトエラーが発生する
+場合は、"g:java_minlines" 変数をより大きな数値に設定してみて欲しい: >
+	:let g:java_minlines = 50
+これにより、最初の表示行の 50 行前から構文の同期が開始される。デフォルト値は
+10 である。大きな数値を使用すると、再描画が遅くなる可能性があるという欠点があ
+る。
 
 
-JSON						*json.vim* *ft-json-syntax*
+JSON			*json.vim* *ft-json-syntax* *g:vim_json_conceal*
+					       *g:vim_json_warnings*
 
 json構文ファイルは、標準で conceal サポート付きのシンタックスハイライトを提供
 する。conceal を無効にするには: >
@@ -2160,7 +2232,7 @@ Vimは ']', '}', '|', '>' で始まる行または '>' が続く単語を引用�
 遅いマシンを使っていて、一般的に短いヘッダーのemailを扱っているなら、これをよ
 り小さい値に変えることができる: >
 
-    :let mail_minlines = 30
+	:let mail_minlines = 30
 
 
 MAKE						*make.vim* *ft-make-syntax*
@@ -2169,6 +2241,16 @@ Makefileではエラーを見つけやすくするためにコマンドがハイ
 これは色が多すぎるかもしれない。この機能をオフにするにはこうする: >
 
 	:let make_no_commands = 1
+
+コメントもデフォルトでハイライトされる。これをオフにするには: >
+
+	:let make_no_comments = 1
+
+Microsoft Makefile は変数の展開とコメントを異なる方法で処理する (エスケープに
+バックスラッシュは使用されない)。このために間違ったハイライトが表示される場合
+は、以下を試すこと: >
+
+	:let make_microsoft = 1
 
 
 MAPLE						*maple.vim* *ft-maple-syntax*
@@ -2196,7 +2278,8 @@ V release 4で供給される標準的なパッケージセットの関数がユ
   mv_finance	 mv_logic	mv_powseries
 
 
-MARKDOWN						*ft-markdown-syntax*
+MARKDOWN			*ft-markdown-syntax* *g:markdown_minlines*
+		 *g:markdown_fenced_languages* *g:markdown_syntax_conceal*
 
 長い領域がある場合、間違ったハイライトがおこなわれる可能性がある。表示を遅くす
 る代償として、エンジンに領域の開始を同期するためにもっと後方を見るようにするこ
@@ -2220,6 +2303,17 @@ MATHEMATICA		*mma.vim* *ft-mma-syntax* *ft-mathematica-syntax*
 
 	let filetype_m = "mma"
 
+MEDIAWIKI					*ft-mediawiki-syntax*
+
+デフォルトでは、構文のハイライトにはスタイルやヘッダーなどの基本的な HTML タグ
+が含まれる |html.vim|。厳密な Mediawiki 構文のハイライトは以下: >
+
+	let g:html_no_rendering = 1
+
+HTML のハイライトが必要な場合は、以下によって太字や斜体などの端末ベースのテキ
+スト書式設定が可能: >
+
+	let g:html_style_rendering = 1
 
 MODULA2					*modula2.vim* *ft-modula2-syntax*
 
@@ -2425,9 +2519,9 @@ PANDOC						*ft-pandoc-syntax*
 
 デフォルトでは、markdown ファイルはファイルタイプ "markdown" として検出される。
 あるいは、代わりにファイルタイプ "pandoc" として検出されるようにすることもで
-る。これを行うには、以下のように設定する: >
+る。これを行うには、*g:filetype_md* 変数を設定する:
 
-	:let g:markdown_md = 'pandoc'
+	:let g:filetype_md = 'pandoc'
 
 Pandoc 構文プラグインは、きれいにハイライトするために |conceal| を使用する。デ
 フォルトは 1 >
@@ -3667,6 +3761,15 @@ TypeScript 構文のハイライトを制御する 1 つのオプションがあ
 <
 デフォルト値は 1 である。
 
+TYPST						    *ft-typst-syntax*
+
+						*g:typst_embedded_languages*
+Typst ファイルでは、|g:typst_embedded_languages| 変数を設定することで、他の言
+語の構文強調表示を埋め込むことができる。この変数は、構文定義が Typst ファイル
+に含まれる言語名のリストである。例: >
+
+    let g:typst_embedded_languages = ['python', 'r']
+
 VIM						*vim.vim* *ft-vim-syntax*
 			*g:vimsyn_minlines*	*g:vimsyn_maxlines*
 正確な構文ハイライトと画面更新速度はトレードオフの問題である。正確さを向上させ
@@ -4867,7 +4970,7 @@ Note: "*/" を含む文字列で行をまたぐものがあると、Cコメン�
 - シンクロナイズパターンとのマッチが見つかると、その行(または継続された一連の
   行)の残りから再びマッチが探される。最後のマッチが使われる。
   これはリージョンの開始と終了が同一行内にあるとき使われる
-  (例: /* this */のようなCコメントでは、最後の "*/" が使われる)。
+  (例: /* this */ のようなCコメントでは、最後の "*/" が使われる)。
 
 シンクロナイズパターンとのマッチは2通りの使い方がある。
 1. 再描画を始める場所(シンクロナイズパターンの検索が始まる場所でもある)から強
