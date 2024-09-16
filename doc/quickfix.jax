@@ -1,4 +1,4 @@
-*quickfix.txt*  For Vim バージョン 9.1.  Last change: 2024 Aug 20
+*quickfix.txt*  For Vim バージョン 9.1.  Last change: 2024 Sep 10
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1227,6 +1227,8 @@ Vimの古いバージョンをサポートするために、それらのプラ�
 
 コンパイラプラグインを書くためには|write-compiler-plugin|を参照せよ。
 
+コンパイラプラグインの効果を元に戻すには、|compiler-make| プラグインを使用す
+る。
 
 DOTNET							*compiler-dotnet*
 
@@ -1242,7 +1244,6 @@ g:dotnet_errors_only に |v:true| を設定することで、出力がエラー�
 	let dotnet_show_project_file = v:false
 	compiler dotnet
 <
-
 GCC					*quickfix-gcc*	*compiler-gcc*
 
 GCC用に設定できる変数は1つある:
@@ -1253,7 +1254,6 @@ g:compiler_gcc_ignore_unmatched_lines
 				のせいで誤検出 (false positive) が発生してしま
 				うときに有用である。
 
-
 JAVAC							*compiler-javac*
 
 よく使用されるコンパイラオプションは、g:javac_makeprg_params 変数を設定するこ
@@ -1261,6 +1261,12 @@ JAVAC							*compiler-javac*
 
 	let g:javac_makeprg_params = "-Xlint:all -encoding utf-8"
 <
+GNU MAKE						*compiler-make*
+
+デフォルトの make プログラムは "make" であるため、make のコンパイラプラグイ
+ン :compiler make は、'makeprg' および 'errorformat' オプションをデフォルト値
+にリセットし、以前のコンパイラプラグインによって設定された可能性のある変数をす
+べて解除する。
 
 MANX AZTEC C				*quickfix-manx* *compiler-manx*
 
@@ -1284,6 +1290,18 @@ Vimがコンパイラから起動された場合、:shやいくつかの:!コマ
 がコンパイラと同じプロセスの中で動いているため、標準出力が利用できないからで
 ある。
 
+GROFF					*quickfix-groff* *compiler-groff*
+
+GROFF コンパイラプラグインは、mom マクロセット (groff_mom マニュアルページに記
+載) を入力として使用し、出力ファイルタイプ拡張子が make に渡されることを想定し
+ている。:make html や :make pdf 等。
+
+追加の引数は、`b:groff_compiler_args` または `g:groff_compiler_args` に設定す
+ることで groff に渡すことができる。groff に渡される `language` 引数は
+'spelllang' を使用して設定されるが、`b:groff_compiler_lang` を設定することで上
+書きできる。デフォルトのエンコードは `UTF-8` で、`b:groff_compiler_encoding`
+または `g:groff_compiler_encoding` を設定することで変更できる。
+
 PANDOC					*quickfix-pandoc* *compiler-pandoc*
 
 Pandoc コンパイラプラグインは、:make html や :make pdf のように、出力ファイル
@@ -1297,8 +1315,7 @@ Pandoc コンパイラプラグインは、:make html や :make pdf のように
 
 `--from` 引数はバッファのファイルタイプを使用した推測である。
 これは、`b:pandoc_compiler_from` を設定することで上書きできる。
-同様に、`--metadata lang` 引数は `&spelllang` を使って設定される。
-これは、`b:pandoc_compiler_lang` を設定することで上書きできる。
+`--metadata lang` 引数は 'spelllang' を使って設定される。
 `--from=markdown` が想定されており、タイトルヘッダや YAML ブロックにタイトルが
 設定されていない場合は、ファイル名 (拡張子なし) がタイトルとして使用される。
 
