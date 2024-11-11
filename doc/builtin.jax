@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2024 Nov 01
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2024 Nov 10
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -513,9 +513,9 @@ prop_type_list([{props}])	リスト	プロパティタイプ一覧を取得
 pum_getpos()			辞書	ポップアップメニューが表示されている場
 					合、位置とサイズを取得
 pumvisible()			数値	ポップアップメニューが表示されているか
-py3eval({expr})			任意	|python3| の式を評価する
-pyeval({expr})			任意	|Python| の式を評価する
-pyxeval({expr})			任意	|python_x| の式を評価する
+py3eval({expr} [, {locals}])	任意	|python3| の式を評価する
+pyeval({expr} [, {locals}])	任意	|Python| の式を評価する
+pyxeval({expr} [, {locals}])	任意	|python_x| の式を評価する
 rand([{expr}])			数値	疑似乱数を取得する
 range({expr} [, {max} [, {stride}]])
 				リスト	{expr}から{max}までの要素のリスト
@@ -5157,7 +5157,7 @@ glob({expr} [, {nosuf} [, {list} [, {alllinks}]]])		*glob()*
 		{list} による
 
 
-glob2regpat({string})					 *glob2regpat()*
+glob2regpat({string})					*glob2regpat()*
 		glob()に使われるファイルパターンを検索パターンに変換する。
 		結果はファイル名の文字列とのマッチに使用できる。例えば、 >
 			if filename =~ glob2regpat('Make*.mak')
@@ -5593,7 +5593,7 @@ iconv({string}, {from}, {to})				*iconv()*
 		戻り値の型: |String|
 
 
-id({item})							    *id()*
+id({item})							*id()*
 		結果は、{item} に関連付けられた一意の文字列であり、{item} の内
 		容に関連付けられたものではない。{item} が存在し参照されている
 		間のみ有効である。結果を生成する vim のインスタンスでのみ有効
@@ -6978,7 +6978,7 @@ matchbufline({buf}, {pat}, {lnum}, {end}, [, {dict}])
 		戻り値の型: list<dict<any>> または list<any>
 
 
-matchdelete({id}, [, {win}])		       *matchdelete()* *E802* *E803*
+matchdelete({id} [, {win})			*matchdelete()* *E802* *E803*
 		|matchadd()| または |:match| で定義したマッチの中で ID が {id}
 		であるものを削除する。成功したときは 0、失敗したときは
 		-1 を返す。|matchadd()| の例を参照。すべてのマッチを削除するの
@@ -7982,9 +7982,14 @@ pumvisible()						*pumvisible()*
 		戻り値の型: |Number|
 
 
-py3eval({expr})						*py3eval()*
+py3eval({expr} [, {locals}])				*py3eval()*
 		Python の式 {expr} を評価して、結果を Vim のデータ形式にして返
 		す。
+		{locals} |Dictionary| が指定されている場合は、式で使用できる
+		ローカル変数のセットを定義する。キーは変数名で、値は変数の値で
+		ある。|Dictionary| と |List| の値は参照され、式によって
+		(|python-bindeval| が使用されたかのように) 更新される場合があ
+		る。
 		数値と文字列はそのまま返る (ただし文字列はコピーされ、Unicode
 		から 'encoding' に変換される)。
 		リストは Vim の |List| 型に変換される。
@@ -7994,15 +7999,17 @@ py3eval({expr})						*py3eval()*
 
 		|method| としても使用できる: >
 			GetExpr()->py3eval()
+			'b",".join(l)'->py3eval({'l': ['a', 'b', 'c']})
 <
 		戻り値の型: any。{expr} による
 
 		{|+python3| 機能付きでコンパイルされたときのみ利用可能}
 
 							*E858* *E859*
-pyeval({expr})						*pyeval()*
+pyeval({expr} [, {locals}])				*pyeval()*
 		Python の式 {expr} を評価して、結果を Vim のデータ形式にして返
 		す。
+		{locals} については |py3eval()| を参照。
 		数値と文字列はそのまま返る (ただし文字列はコピーされる)。
 		リストは Vim の |List| 型に変換される。
 		辞書は Vim の |Dictionary| 型に変換される。文字列ではない辞書
@@ -8016,9 +8023,10 @@ pyeval({expr})						*pyeval()*
 
 		{|+python| 機能付きでコンパイルされたときのみ利用可能}
 
-pyxeval({expr})						*pyxeval()*
+pyxeval({expr} [, {locals}])				*pyxeval()*
 		Python の式 {expr} を評価して、結果を Vim のデータ形式にして返
 		す。
+		{locals} については |py3eval()| を参照。
 		Python 2 または 3 を使用する。|python_x| と 'pyxversion' を参
 		照。
 		|pyeval()|, |py3eval()| も参照。

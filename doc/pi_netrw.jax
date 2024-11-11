@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim バージョン 9.1.  Last change: 2024 Oct 21
+*pi_netrw.txt*  For Vim バージョン 9.1.  Last change: 2024 Nov 09
 
 	    ------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell
@@ -8,7 +8,7 @@ Author:  Charles E. Campbell  <NcampObell@SdrPchip.AorgM-NOSPAM>
 
 Copyright: Copyright (C) 2017 Charles E Campbell    *netrw-copyright*
 	The VIM LICENSE applies to the files in this package, including
-	netrw.vim, pi_netrw.txt, netrwFileHandlers.vim, netrwSettings.vim, and
+        netrw.vim, pi_netrw.txt, netrwSettings.vim, and
 	syntax/netrw.vim.  Like anything else that's free, netrw.vim and its
 	associated files are provided *as is* and comes with no warranty of
 	any kind, either expressed or implied.  No guarantees of
@@ -55,9 +55,10 @@ Copyright: Copyright (C) 2017 Charles E Campbell    *netrw-copyright*
       水平分割ウィンドウを使ったブラウジング..............|netrw-o|
       タブを使ったブラウジング............................|netrw-t|
       垂直分割ウィンドウを使ったブラウジング..............|netrw-v|
-      ファイルの権限を変更................................|netrw-gp|
       一覧表示スタイル変更 (thin wide long tree)..........|netrw-i|
       ブックマークしたディレクトリに移動..................|netrw-gb|
+      ドットファイルのクイック表示/非表示.................|netrw-gh|
+      ローカルのみのファイル権限の変更....................|netrw-gp|
       前方のディレクトリに移動............................|netrw-u|
       後方のディレクトリに移動............................|netrw-U|
       特殊ハンドラでブラウジングをカスタマイズ............|netrw-x|
@@ -1434,49 +1435,106 @@ NETRW CLEAN					*netrw-clean* *:NetrwClean* {{{2
 どちらのコマンドも、本当に削除していいかどうかを確認するダイアログが最初に表示
 されます。ファイルを削除する権限がない場合はエラーメッセージが表示されます。
 
-						*netrw-gx*
 ☆特殊ハンドラでブラウジングをカスタマイズ	*netrw-x* *netrw-handler* {{{2
 
 html, gif, jpeg, (word/office) doc などのファイルは専用ハンドラ (コンピュータ
 にあらかじめ備わっているようなツール) で処理するのが一番です。Netrw ではそのよ
-うな専用ハンドラの呼び出しをサポートしています: >
+うな専用ハンドラの呼び出しをサポートしています:
 
-	* ファイル一覧表示中に "x" キーを押す
-	* ファイルを開いているときに、ファイル名の上で gx を押す
-<	  (後ろは |g:netrw_nogx| が設定されている場合は使えません)
+	* ファイルパスの上にあるカーソルで gx を押すか、netrw バッファで x を
+	  押す。前者は |g:netrw_nogx| 変数を定義することで無効にできます。
+	* コマンド ラインで、:Open <path> と入力します。下記 |:Open| を参照。
 
-Netrw は次の方法で専用ハンドラを決定します:
+ビジュアルモード (|visual-start| を参照) を使用して、特殊ハンドラが使用するテ
+キストを選択することもできます。通常、gx はカーソルの下のテキストを取得するた
+めに近くの URL またはファイル名をチェックします。|expand()| が使用するテキスト
+は、|g:netrw_gx| 変数 (オプションには "<cword>"、"<cWORD>" が含まれます) を介
+して変更できます。Note expand("<cfile>") は、|'isfname'| の設定に依存すること
+に注意してください。または、ビジュアル選択 (|visual-block| を参照) を行ってか
+ら gx を押すことで、gx が使用するテキストを選択することもできます。
 
-  * |g:netrw_browsex_viewer| が設定されているときは、それを使ってファイルを開
-    きます。例えば次のような設定が便利です (<.vimrc>で設定する): >
+選択関数は、関数 `Netrw_get_URL_<filetype>` を追加することで各ファイルタイプに
+適応できます。<filetype> は 'filetype' で指定します。
+この関数は、gx が使用する URL またはファイル名を返す必要があり、空の文字列を返
+す場合はデフォルトの動作に戻ります。
+例えば、Markdown と HTML のリンク用の特別なハンドラは、
+>
+" 正確なカーソル位置に関係なく、gx が concealed なリンクで動作するようにする: >
 
-	:let g:netrw_browsex_viewer= "kfmclient exec"
-<   or >
-	:let g:netrw_browsex_viewer= "xdg-open"
+  function Netrw_get_URL_markdown()
+    " 次のような markdown URL [link text](http://ya.ru 'yandex search')
+    try
+      let save_view = winsaveview()
+      if searchpair('\[.\{-}\](', '', ')\zs', 'cbW', '', line('.')) > 0
+        return matchstr(getline('.')[col('.')-1:],
+          \ '\[.\{-}\](\zs' .. g:netrw_regex_url .. '\ze\(\s\+.\{-}\)\?)')
+      endif
+    finally
+      call winrestview(save_view)
+      return ''
+    endtry
+  endfunction
+
+  function Netrw_get_URL_html()
+    " 次のような HTML URL <a href='http://www.python.org'>Python is here</a>
+    "                     <a href="http://www.python.org"/>
+    try
+      let save_view = winsaveview()
+      if searchpair('<a\s\+href=', '', '\%(</a>\|/>\)\zs', 'cbW', '', line('.')) > 0
+        return matchstr(getline('.')[col('.') - 1 : ],
+          \ 'href=["'.."'"..']\?\zs\S\{-}\ze["'.."'"..']\?/\?>')
+      endif
+    finally
+      call winrestview(save_view)
+      return ''
+    endtry
+  endfunction
 <
-    もし、使いたいビューアがリモートURLディレクトリの処理をサポートしていない場合は、
-    |g:netrw_browsex_support_remote| を 0 に設定してください。
-  * Windows 32 or 64 では、URL と FileProtocolHandler dll が使われます。
-  * Gnome (with gnome-open): gnome-open が使われます。
-  * KDE (with kfmclient)   : kfmclient が使われます。
-  * Mac OS X               : open が使われます。
+ファイルパス以外に、カーソルの下のテキストが URL である場合もあります。Netrw
+は、デフォルトで次の正規表現を使用して、カーソルの下のテキストが URL であるか
+どうかを判断します。
+>
+  :let g:netrw_regex_url = '\%(\%(http\|ftp\|irc\)s\?\|file\)://\S\{-}'
+<
+関連する設定変数:
+	|g:netrw_gx|	gx がカーソルの下のテキストを取得する方法を制御する
+	|g:netrw_nogx|	編集中に gx マップを防止する
+	|g:netrw_suppress_gx_mesg| gx のブラウザーメッセージの抑制を制御する
 
-gx マッピングはすべてのバッファに適用できます。カーソル位置の単語に "gx" を適
-用すると、それに対し netrw は特別な処置を行います (ちょうど "x" が netrw バッ
-ファに対して行うように)。特別な処置を行うテキストをビジュアルモード
-(|visual-start| 参照) により選択することもできます。通常 gx はカーソル位置のテ
-キストを取得するのに expand("<cfile>") を使用しますが、|g:netrw_gx| 変数で
-|expand()| が使用する引数を変えることができます ("<cword>", "<cWORD>" を含むオ
-プション)。Note: expand("<cfile>") は |'isfname'| の設定に依存します。また、代
-わりに gx で使用するテキストをビジュアル選択を行っておき (|visual-block| 参
-照)、その後 gx を押す方法でもよいです。
+☆ファイルを開いてアプリを起動する	*netrw-gx* *:Open* *:Launch* {{{2
 
-関連設定:
-	|g:netrw_gx|	gx がどのようにカーソル位置のテキストを取得するか制御
-			する
-	|g:netrw_nogx|	編集中 gx マップを無効にする
-	|g:netrw_suppress_gx_mesg| gx がブラウザーの出力を抑制するか制御する
+Netrw は、次の方法で特殊ハンドラを決定します:
 
+  * |g:netrw_browsex_viewer| が存在する場合、それを使用してファイルを表示しよ
+    うとします。
+    使用したいビューアがリモート URL ディレクトリの処理をサポートしていない場
+    合は、|g:netrw_browsex_support_remote| を 0 に設定します。
+  * 上記以外:
+
+    * Windows では			: explorer.exe が使用されます
+    * Mac OS X では			: open が使用されます
+    * Linux では			: xdg-open が使用されます
+
+適切なハンドラでパス (または URL)  <path> を開くには、以下を入力します。 >
+
+    :Open <path>
+<
+シェルでも Vim のコマンドラインでもエスケープは必要ありません。
+
+特定のアプリケーションを起動するには、<app> <args>、多くの場合、<args> は
+<path> です >
+
+    :Launch <app> <args>.
+
+<<args> は作為的に複雑になる可能性があり、特に多くのファイルパスが含まれる場
+合、エスケープはユーザーに任されます。
+
+g:loaded_netrwPlugin を設定して netrw プラグインを無効にした場合
+(|netrw-noload| を参照) は、以下が使用できます >
+
+    :call netrw#Launch('<app> <args>')
+    :call netrw#Open('<path>')
+<
 							*netrw-curdir*
 ☆ブックマークを削除する				*netrw-mB* {{{2
 
