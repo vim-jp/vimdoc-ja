@@ -1,4 +1,4 @@
-*develop.txt*   For Vim バージョン 9.1.  Last change: 2024 May 11
+*develop.txt*   For Vim バージョン 9.1.  Last change: 2024 Oct 31
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -159,6 +159,7 @@ Vimは、そのユーザーに特定の作業パターンを強いるよりは�
   よくしようとする装飾的なGUIエディタではない。しかし、機能的なGUI特性は歓迎さ
   れる。
 
+
 ==============================================================================
 2. コーディングスタイル					*coding-style*
 
@@ -173,18 +174,20 @@ Vimのソースコードに変更を加える際、守るべきルールがあ�
 コードに変更を加える基本的なステップは:
 1. GitHub からコードを取得する。これによりあなたが変更したコードをメインのコー
    ドベースに同期するのがより簡単になる (あなたの変更がメインのコードベースに
-   含まれるようになるまで少しかかるかもしれない) 。いくらか時間を費やして git
-   について学ぶ必要がある。git はあまりユーザーフレンドリーなツールではない。
+   含まれるようになるまで少しかかるかもしれない) 。
 2. ドキュメントを調整する。最初にこれをやることで、あなたの行う変更がユーザー
    に与える影響について、おおまかな印象をもつことができる。
 3. ソースコードに変更を加える。
 4. 変更がリストされた項目に影響を与えていないか、../doc/todo.txtをチェックす
    る。
-5. "git diff" でパッチを作成する。GitHub でプルリクエストを作成しても良いが、
-   重要なのはその diff である。
-6. 何が変更されたかのノートを作成する。問題点とその解決策について書かれている
-   のが望ましい。|vim-dev| のメーリングリストに説明と diff を含めたメールを送
-   るか GitHub でプルリクエストを作成する。
+5. 新しい動作を検証し、将来的に問題が発生しないことを確認するために、
+   src/testdir にテストを追加する。
+6. "git diff" でパッチを作成する。
+7. 変更点について付記し、できれば問題と解決策についても記載すること。説明と差
+   分を添えて、|vim-dev| メーリングリストにメールを送信する。
+
+些細な変更でない場合は、必ず github でプルリクエストを作成すること。これによ
+り、テストスイートがトリガーされる。
 
 
 ☆Cコンパイラ				*style-compiler* *ANSI-C* *C89* *C99*
@@ -194,54 +197,234 @@ Vimのソースコードに変更を加える際、守るべきルールがあ�
 も 100% サポートされているわけではない。したがって、C99 機能の一部のみを使用
 し、一部を明示的に禁止する (これは時間の経過とともに徐々に調整される)。
 
-現存するパッチに対してマージの問題を引き起こすため、C99の機能を使う変更を至る
-所に入れてはいけない。新しくコードを書く場合、もしくは既存のコードを書き直す場
-合に限り使用してもよい。
+使用してはいけない機能 ~
 
-コメント ~
-
-慣習的に Vim では /* コメント */ を使用する。ファイルや関数のヘッダ、コードの
-大きめなブロックに関してはこれを維持するつもりである。例:
-	/*
-	 * The "foo" argument does something useful.
-	 * Return OK or FAIL.
-	 */
-新しいコードもしくは変更するコードの行については、// コメント を使うことが好ま
-れる。特にコードの後ろに続くコメントなど:
-	int some_var;  // single line comment useful here
-
-列挙型 (Enums) ~
-
-列挙型の末尾の要素にコンマ (trailing comma) が付いていてもよい。C89 では認めら
-れていなかった。
-
-型 (Types) ~
-
-"long long" は使用してもよく、64 bit を想定している。printf では %lld を使用す
-ること。同じように "long long unsigned" では %llu を使用する。
-
-宣言 ~
-
-現在、サポートされている最小限のコンパイラは MSVC 2015 であり、宣言はブロック
-の先頭にある必要はない。しかし、多くの場合、とにかくこれを実施することを推奨す
-る。
-
-for ループ変数のループ内宣言を推奨する:
-	for (int i = 0; i < len; ++i)
-これは明確な利点なので、より頻繁に使用することになる。
-
-
-使用してはいけないもの ~
-
-これらの C99 の機能は、コンパイラのサポートが不十分なため使用してはいけない。
+これらの C99 の機能は、コンパイラのサポートが不十分なため使用してはいけない:
 - 可変長配列 (C11 でもこれはオプショナルな機能である)。
-- _Bool 型と _Complex 型。
+- C99 の _Bool 型と _Complex 型。
 - "inline" (ほとんど必要ない、コンパイラに最適化させよう。)
 - フレキシブル配列メンバ: HP-UX C コンパイラはサポートしていない。(John
   Marriott)
 
 
-☆共通関数を使う					*style-functions*
+☆コメント					       *style-comments*
+
+関数本体内に複数行のコメントを入れないようにすること。関数が非常に複雑で、一部
+を個別にコメントする必要がある場合は、関数の構造を再検討する必要がある。
+
+ファイルヘッダーと関数の説明には以下を使用: >
+    /*
+     * Description
+     */
+<
+その他すべてには以下を使用: >
+    // comment
+<
+
+
+☆インデント					      *style-indentation*
+
+コードのインデントには 4 つのスペースを使用する。Vim を使用してソースを編集し
+ている場合は、|modeline| があるため何もする必要はない。
+
+他のエディタの場合は、リポジトリのルートに `.editorconfig` が提供される。
+
+
+☆宣言		                                     *style-declarations*
+
+可能であれば、ガード内で `for` ループ変数を宣言する:
+OK: >
+    for (int i = 0; i < len; ++i)
+<
+間違い: >
+    int i;
+    for (i = 0; i < len; ++i)
+<
+常にデフォルト値を持つ変数を宣言する:
+OK: >
+    int n = 0;
+    int *ptr = NULL;
+<
+間違い: >
+    int n;
+    int *ptr;
+<
+
+
+☆括弧							   *style-braces*
+
+すべての波括弧は改行しなければならない:
+OK: >
+    if (cond)
+    {
+       cmd;
+       cmd;
+    }
+    else
+    {
+       cmd;
+       cmd;
+    }
+<
+間違い: >
+    if (cond) {
+       cmd;
+       cmd;
+    } else {
+       cmd;
+       cmd;
+    }
+<
+OK: >
+    while (cond)
+    {
+	cmd;
+    }
+<
+間違い: >
+    while (cond) {
+	cmd;
+    }
+<
+ブロックがコメントを含めて 1 行の場合は、波括弧は省略できる。
+OK: >
+    if (cond)
+	cmd;
+    else
+	cmd;
+<
+間違い: >
+    if (cond)
+	/*
+	 * comment
+	 */
+	cmd;
+    else
+	cmd;
+<
+`if`/`else` の一方のブロックに波括弧がある場合は、もう一方のブロックにも波括弧
+が必要である。
+OK: >
+    if (cond)
+    {
+	cmd;
+    }
+    else
+    {
+	cmd;
+	cmd;
+    }
+<
+間違い: >
+    if (cond)
+	cmd;
+    else
+    {
+	cmd;
+	cmd;
+    }
+
+    if (cond)
+    {
+	cmd;
+	cmd;
+    }
+    else
+	cmd;
+<
+OK: >
+    while (cond)
+	cmd;
+<
+間違い:
+>
+    while (cond)
+	if (cond)
+	    cmd;
+<
+
+
+☆型							    *style-types*
+
+記述的な型を使用すること。それらのリストは src/structs.h ファイル内、またはお
+そらく作業中のファイルの typedef 内にある。
+
+Note すべてのカスタム型には「_T」という接尾辞が付けられることに注意
+
+OK: >
+    int is_valid_line_number(linenr_T lnum);
+<
+間違い: >
+    int is_valid_line_number(unsigned long lnum);
+<
+
+
+☆空白と句読法						   *style-spaces*
+
+関数名と括弧の間に空白はない:
+
+OK:	func(arg);
+間違い: func (arg);
+
+`if`, `while`, `switch` 等の後には空白を入れること。
+
+OK:	if (arg)	for (;;)
+間違い:	if(arg)		for(;;)
+
+コンマまたはセミコロンの後に空白を入れる:
+
+OK:	func(arg1, arg2);	for (i = 0; i < 2; ++i)
+間違い: func(arg1,arg2);	for (i = 0;i < 2;++i)
+
+'=', '+', '/' 等の前後に空白を入れる。
+
+間違い:	var=a*5;
+OK:	var = a * 5;
+
+似たような動作をグループ化するには、空行を使う。
+
+OK: >
+    msg_puts_title(_("\n--- Signs ---"));
+    msg_putchar('\n');
+
+    if (rbuf == NULL)
+	buf = firstbuf;
+    else
+	buf = rbuf;
+
+    while (buf != NULL && !got_int)
+<
+間違い: >
+    msg_puts_title(_("\n--- Signs ---"));
+    msg_putchar('\n');
+    if (rbuf == NULL)
+	buf = firstbuf;
+    else
+	buf = rbuf;
+    while (buf != NULL && !got_int)
+<
+
+
+☆関数						*style-functions*
+
+関数宣言は、戻り値の型を別のインデントされた行に記述して使用する:
+
+OK: >
+    int
+    function_name(int arg1, int arg2)
+    {
+    }
+<
+間違い: >
+    int function_name(int arg1, int arg2)
+    {
+    }
+<
+
+関数パラメータに意味のある名前を付ける。
+
+
+☆共通関数を使う				 *style-common-functions*
 
 よく使われる関数のうち、特別なVimバージョンを持つものがある。これらは理由あっ
 て導入されたものなので、常にVimバージョンを使うように意識すること。
@@ -315,27 +498,30 @@ get_env_value()	Linux システム関数
 
 ☆その他						*style-various*
 
-型の定義に使う名前は最後を "_T" にする: >
-    typedef int some_T;
 マクロ定義はすべて大文字にする: >
     #define SOME_THING
+<
+
 機能に関する定義は "FEAT_" で始める: >
     #define FEAT_FOO
+<
 
 '\"' を使わない、あるコンパイラはこれを扱えない。'"' はうまく機能する。
 
-次を使ってはならない:
+以下を使ってはならない: >
     #if HAVE_SOME
+<
 あるコンパイラはこれを扱えず、"HAVE_SOME" が定義されていないと訴える。
-次を使う
+以下を使う >
     #ifdef HAVE_SOME
-または
+<
+または >
     #if defined(HAVE_SOME)
-
+<
 
 ☆スタイル						*style-examples*
 
-一般的なルール: １行に１つのステートメント。
+１行に１つのステートメント。
 
 間違い:	    if (cond) a = 1;
 
@@ -353,105 +539,6 @@ OK:	    do
 		a = 1;
 	    while (cond);
 
-間違い:	    if (cond) {
-               cmd;
-               cmd;
-	    } else {
-               cmd;
-               cmd;
-	    }
-
-OK:	    if (cond)
-            {
-               cmd;
-               cmd;
-	    }
-	    else
-	    {
-               cmd;
-               cmd;
-	    }
-
-ブロックが1行の場合は、波括弧を省くことができる。if/else の1つのブロックに波括
-弧がある場合、他のブロックにも波括弧があると、通常は見栄えが良くなる:
-OK:	    if (cond)
-	       cmd;
-	    else
-               cmd;
-
-OK:	    if (cond)
-	    {
-	       cmd;
-	    }
-	    else
-	    {
-               cmd;
-               cmd;
-	    }
-
-関数宣言には ANSI スタイルを使い、戻り値の型は独立した行にインデントをつけて書
-くこと。
-
-間違い:	int function_name(int arg1, int arg2)
-
-OK:	/*
-	 * Explanation of what this function is used for.
-	 * この関数が何に使われるかの説明。
-	 *
-	 * Return value explanation.
-	 * 戻り値の説明。
-	 */
-	    int
-	function_name(
-	    int		arg1,		// short comment about arg1
-	    int		arg2)		// short comment about arg2
-	{
-	    int		local;		// comment about local
-
-	    local = arg1 * arg2;
-
-
-
-☆空白と区切り						*style-spaces*
-
-関数名とブラケットの間にスペースを入れないこと:
-
-間違い:	func (arg);
-OK:	func(arg);
-
-if、while、switchなどの後には、スペースを入れること。
-
-間違い:	if(arg)		for(;;)
-OK:	if (arg)	for (;;)
-
-コンマ、セミコロンの後にはスペースを入れること:
-
-間違い:	func(arg1,arg2);	for (i = 0;i < 2;++i)
-OK:	func(arg1, arg2);	for (i = 0; i < 2; ++i)
-
-'='、'+'、'/' などの前と後には、スペースを入れること。
-
-間違い:	var=a*5;
-OK:	var = a * 5;
-
-一般的なこと: コードの行をグループ分けするために、空行を使う。行グループのす
-ぐ上にコメントを入れる。こうすることによって、何が行われるのかをより簡単に知
-ることができる。
-
-OK:	/* Prepare for building the table. */
-	/* テーブルの作成の準備 */
-	get_first_item();
-	table_idx = 0;
-
-	/* Build the table */
-	/* テーブルの作成 */
-	while (has_item())
-	    table[table_idx++] = next_item();
-
-	/* Finish up. */
-	/* 仕上げ */
-	cleanup_items();
-	generate_hash(table);
 
 ==============================================================================
 3. 決定事項						*design-decisions*
