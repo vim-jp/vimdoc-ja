@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'develop'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="develop.html" name="develop.txt">develop.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 May 11<br>
+<a class="Constant" href="develop.html" name="develop.txt">develop.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 Oct 31<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -164,6 +164,7 @@ Vimは、そのユーザーに特定の作業パターンを強いるよりは�
 &nbsp;&nbsp;よくしようとする装飾的なGUIエディタではない。しかし、機能的なGUI特性は歓迎さ<br>
 &nbsp;&nbsp;れる。<br>
 <br>
+<br>
 <span class="PreProc">==============================================================================</span><br>
 2. コーディングスタイル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#coding-style" name="coding-style">coding-style</a><br>
 <br>
@@ -178,18 +179,20 @@ Vimのソースコードに変更を加える際、守るべきルールがあ�
 コードに変更を加える基本的なステップは:<br>
 1. GitHub からコードを取得する。これによりあなたが変更したコードをメインのコー<br>
 &nbsp;&nbsp; ドベースに同期するのがより簡単になる (あなたの変更がメインのコードベースに<br>
-&nbsp;&nbsp; 含まれるようになるまで少しかかるかもしれない) 。いくらか時間を費やして git<br>
-&nbsp;&nbsp; について学ぶ必要がある。git はあまりユーザーフレンドリーなツールではない。<br>
+&nbsp;&nbsp; 含まれるようになるまで少しかかるかもしれない) 。<br>
 2. ドキュメントを調整する。最初にこれをやることで、あなたの行う変更がユーザー<br>
 &nbsp;&nbsp; に与える影響について、おおまかな印象をもつことができる。<br>
 3. ソースコードに変更を加える。<br>
 4. 変更がリストされた項目に影響を与えていないか、../doc/todo.txtをチェックす<br>
 &nbsp;&nbsp; る。<br>
-5. &quot;git diff&quot; でパッチを作成する。GitHub でプルリクエストを作成しても良いが、<br>
-&nbsp;&nbsp; 重要なのはその diff である。<br>
-6. 何が変更されたかのノートを作成する。問題点とその解決策について書かれている<br>
-&nbsp;&nbsp; のが望ましい。<a class="Identifier" href="intro.html#vim-dev">vim-dev</a>&nbsp;のメーリングリストに説明と diff を含めたメールを送<br>
-&nbsp;&nbsp; るか GitHub でプルリクエストを作成する。<br>
+5. 新しい動作を検証し、将来的に問題が発生しないことを確認するために、<br>
+&nbsp;&nbsp; src/testdir にテストを追加する。<br>
+6. &quot;git diff&quot; でパッチを作成する。<br>
+7. 変更点について付記し、できれば問題と解決策についても記載すること。説明と差<br>
+&nbsp;&nbsp; 分を添えて、<a class="Identifier" href="intro.html#vim-dev">vim-dev</a>&nbsp;メーリングリストにメールを送信する。<br>
+<br>
+些細な変更でない場合は、必ず github でプルリクエストを作成すること。これによ<br>
+り、テストスイートがトリガーされる。<br>
 <br>
 <br>
 <span class="Statement">Cコンパイラ</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-compiler" name="style-compiler">style-compiler</a>&nbsp;<a class="Constant" href="develop.html#ANSI-C" name="ANSI-C">ANSI-C</a>&nbsp;<a class="Constant" href="develop.html#C89" name="C89">C89</a>&nbsp;<a class="Constant" href="develop.html#C99" name="C99">C99</a><br>
@@ -199,54 +202,234 @@ Vimのソースコードに変更を加える際、守るべきルールがあ�
 も 100% サポートされているわけではない。したがって、C99 機能の一部のみを使用<br>
 し、一部を明示的に禁止する (これは時間の経過とともに徐々に調整される)。<br>
 <br>
-現存するパッチに対してマージの問題を引き起こすため、C99の機能を使う変更を至る<br>
-所に入れてはいけない。新しくコードを書く場合、もしくは既存のコードを書き直す場<br>
-合に限り使用してもよい。<br>
+<span class="PreProc">使用してはいけない機能</span><br>
 <br>
-<span class="PreProc">コメント</span><br>
-<br>
-慣習的に Vim では /* コメント */ を使用する。ファイルや関数のヘッダ、コードの<br>
-大きめなブロックに関してはこれを維持するつもりである。例:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/*<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * The &quot;foo&quot; argument does something useful.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * Return OK or FAIL.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; */<br>
-新しいコードもしくは変更するコードの行については、// コメント を使うことが好ま<br>
-れる。特にコードの後ろに続くコメントなど:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int some_var;&nbsp;&nbsp;// single line comment useful here<br>
-<br>
-<span class="PreProc">列挙型 (Enums)</span><br>
-<br>
-列挙型の末尾の要素にコンマ (trailing comma) が付いていてもよい。C89 では認めら<br>
-れていなかった。<br>
-<br>
-<span class="PreProc">型 (Types)</span><br>
-<br>
-&quot;long long&quot; は使用してもよく、64 bit を想定している。printf では %lld を使用す<br>
-ること。同じように &quot;long long unsigned&quot; では %llu を使用する。<br>
-<br>
-<span class="PreProc">宣言</span><br>
-<br>
-現在、サポートされている最小限のコンパイラは MSVC 2015 であり、宣言はブロック<br>
-の先頭にある必要はない。しかし、多くの場合、とにかくこれを実施することを推奨す<br>
-る。<br>
-<br>
-for ループ変数のループ内宣言を推奨する:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (int i = 0; i &lt; len; ++i)<br>
-これは明確な利点なので、より頻繁に使用することになる。<br>
-<br>
-<br>
-<span class="PreProc">使用してはいけないもの</span><br>
-<br>
-これらの C99 の機能は、コンパイラのサポートが不十分なため使用してはいけない。<br>
+これらの C99 の機能は、コンパイラのサポートが不十分なため使用してはいけない:<br>
 - 可変長配列 (C11 でもこれはオプショナルな機能である)。<br>
-- _Bool 型と _Complex 型。<br>
+- C99 の _Bool 型と _Complex 型。<br>
 - &quot;inline&quot; (ほとんど必要ない、コンパイラに最適化させよう。)<br>
 - フレキシブル配列メンバ: HP-UX C コンパイラはサポートしていない。(John<br>
 &nbsp;&nbsp;Marriott)<br>
 <br>
 <br>
-<span class="Statement">共通関数を使う</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-functions" name="style-functions">style-functions</a><br>
+<span class="Statement">コメント</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-comments" name="style-comments">style-comments</a><br>
+<br>
+関数本体内に複数行のコメントを入れないようにすること。関数が非常に複雑で、一部<br>
+を個別にコメントする必要がある場合は、関数の構造を再検討する必要がある。<br>
+<br>
+ファイルヘッダーと関数の説明には以下を使用:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;/*<br>
+&nbsp;&nbsp;&nbsp;&nbsp; * Description<br>
+&nbsp;&nbsp;&nbsp;&nbsp; */</div>
+<br>
+その他すべてには以下を使用:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;// comment</div>
+<br>
+<br>
+<br>
+<span class="Statement">インデント</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-indentation" name="style-indentation">style-indentation</a><br>
+<br>
+コードのインデントには 4 つのスペースを使用する。Vim を使用してソースを編集し<br>
+ている場合は、<a class="Identifier" href="options.html#modeline">modeline</a>&nbsp;があるため何もする必要はない。<br>
+<br>
+他のエディタの場合は、リポジトリのルートに&nbsp;<span class="Comment">.editorconfig</span>&nbsp;が提供される。<br>
+<br>
+<br>
+<span class="Statement">宣言</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-declarations" name="style-declarations">style-declarations</a><br>
+<br>
+可能であれば、ガード内で&nbsp;<a class="Comment" href="eval.html#:for">for</a>&nbsp;ループ変数を宣言する:<br>
+OK:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;for (int i = 0; i &lt; len; ++i)</div>
+<br>
+間違い:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;int i;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for (i = 0; i &lt; len; ++i)</div>
+<br>
+常にデフォルト値を持つ変数を宣言する:<br>
+OK:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;int n = 0;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;int *ptr = NULL;</div>
+<br>
+間違い:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;int n;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;int *ptr;</div>
+<br>
+<br>
+<br>
+<span class="Statement">括弧</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-braces" name="style-braces">style-braces</a><br>
+<br>
+すべての波括弧は改行しなければならない:<br>
+OK:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;if (cond)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+間違い:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;if (cond) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+OK:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;while (cond)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+間違い:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;while (cond) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+ブロックがコメントを含めて 1 行の場合は、波括弧は省略できる。<br>
+OK:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;if (cond)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;</div>
+<br>
+間違い:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;if (cond)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/*<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * comment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;</div>
+<br>
+<a class="Comment" href="eval.html#:if">if</a>/<a class="Comment" href="eval.html#:else">else</a>&nbsp;の一方のブロックに波括弧がある場合は、もう一方のブロックにも波括弧<br>
+が必要である。<br>
+OK:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;if (cond)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+間違い:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;if (cond)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;if (cond)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;</div>
+<br>
+OK:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;while (cond)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;</div>
+<br>
+間違い:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;while (cond)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (cond)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd;</div>
+<br>
+<br>
+<br>
+<span class="Statement">型</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-types" name="style-types">style-types</a><br>
+<br>
+記述的な型を使用すること。それらのリストは src/structs.h ファイル内、またはお<br>
+そらく作業中のファイルの typedef 内にある。<br>
+<br>
+<span class="Todo">Note</span>&nbsp;すべてのカスタム型には「_T」という接尾辞が付けられることに注意<br>
+<br>
+OK:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;int is_valid_line_number(linenr_T lnum);</div>
+<br>
+間違い:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;int is_valid_line_number(unsigned long lnum);</div>
+<br>
+<br>
+<br>
+<span class="Statement">空白と句読法</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-spaces" name="style-spaces">style-spaces</a><br>
+<br>
+関数名と括弧の間に空白はない:<br>
+<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp; func(arg);<br>
+間違い: func (arg);<br>
+<br>
+<a class="Comment" href="eval.html#:if">if</a>,&nbsp;<a class="Comment" href="eval.html#:while">while</a>,&nbsp;<span class="Comment">switch</span>&nbsp;等の後には空白を入れること。<br>
+<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp; if (arg)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (;;)<br>
+間違い: if(arg)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for(;;)<br>
+<br>
+コンマまたはセミコロンの後に空白を入れる:<br>
+<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp; func(arg1, arg2);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for (i = 0; i &lt; 2; ++i)<br>
+間違い: func(arg1,arg2);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (i = 0;i &lt; 2;++i)<br>
+<br>
+'=', '+', '/' 等の前後に空白を入れる。<br>
+<br>
+間違い: var=a*5;<br>
+OK:&nbsp;&nbsp;&nbsp;&nbsp; var = a * 5;<br>
+<br>
+似たような動作をグループ化するには、空行を使う。<br>
+<br>
+OK:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;msg_puts_title(_(&quot;\n--- Signs ---&quot;));<br>
+&nbsp;&nbsp;&nbsp;&nbsp;msg_putchar('\n');</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;if (rbuf == NULL)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buf = firstbuf;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buf = rbuf;</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;while (buf != NULL &amp;&amp; !got_int)</div>
+<br>
+間違い:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;msg_puts_title(_(&quot;\n--- Signs ---&quot;));<br>
+&nbsp;&nbsp;&nbsp;&nbsp;msg_putchar('\n');<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if (rbuf == NULL)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buf = firstbuf;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buf = rbuf;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;while (buf != NULL &amp;&amp; !got_int)</div>
+<br>
+<br>
+<br>
+<span class="Statement">関数</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-functions" name="style-functions">style-functions</a><br>
+<br>
+関数宣言は、戻り値の型を別のインデントされた行に記述して使用する:<br>
+<br>
+OK:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;int<br>
+&nbsp;&nbsp;&nbsp;&nbsp;function_name(int arg1, int arg2)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+間違い:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;int function_name(int arg1, int arg2)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<br>
+<br>
+関数パラメータに意味のある名前を付ける。<br>
+<br>
+<br>
+<span class="Statement">共通関数を使う</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-common-functions" name="style-common-functions">style-common-functions</a><br>
 <br>
 よく使われる関数のうち、特別なVimバージョンを持つものがある。これらは理由あっ<br>
 て導入されたものなので、常にVimバージョンを使うように意識すること。<br>
@@ -320,27 +503,30 @@ get_env_value() Linux システム関数<br>
 <br>
 <span class="Statement">その他</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-various" name="style-various">style-various</a><br>
 <br>
-型の定義に使う名前は最後を &quot;_T&quot; にする:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;typedef int some_T;</div>
 マクロ定義はすべて大文字にする:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;#define SOME_THING</div>
+<br>
+<br>
 機能に関する定義は &quot;FEAT_&quot; で始める:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;#define FEAT_FOO</div>
 <br>
+<br>
 '\&quot;' を使わない、あるコンパイラはこれを扱えない。'&quot;' はうまく機能する。<br>
 <br>
-次を使ってはならない:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;#if HAVE_SOME<br>
+以下を使ってはならない:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;#if HAVE_SOME</div>
+<br>
 あるコンパイラはこれを扱えず、&quot;HAVE_SOME&quot; が定義されていないと訴える。<br>
-次を使う<br>
-&nbsp;&nbsp;&nbsp;&nbsp;#ifdef HAVE_SOME<br>
+以下を使う<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;#ifdef HAVE_SOME</div>
+<br>
 または<br>
-&nbsp;&nbsp;&nbsp;&nbsp;#if defined(HAVE_SOME)<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;#if defined(HAVE_SOME)</div>
 <br>
 <br>
 <span class="Statement">スタイル</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-examples" name="style-examples">style-examples</a><br>
 <br>
-一般的なルール: １行に１つのステートメント。<br>
+１行に１つのステートメント。<br>
 <br>
 間違い:&nbsp;&nbsp;&nbsp;&nbsp; if (cond) a = 1;<br>
 <br>
@@ -358,105 +544,6 @@ OK:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; do<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a = 1;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (cond);<br>
 <br>
-間違い:&nbsp;&nbsp;&nbsp;&nbsp; if (cond) {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
-<br>
-OK:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (cond)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
-<br>
-ブロックが1行の場合は、波括弧を省くことができる。if/else の1つのブロックに波括<br>
-弧がある場合、他のブロックにも波括弧があると、通常は見栄えが良くなる:<br>
-OK:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (cond)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-<br>
-OK:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (cond)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cmd;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
-<br>
-関数宣言には ANSI スタイルを使い、戻り値の型は独立した行にインデントをつけて書<br>
-くこと。<br>
-<br>
-間違い: int function_name(int arg1, int arg2)<br>
-<br>
-OK:&nbsp;&nbsp;&nbsp;&nbsp; /*<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * Explanation of what this function is used for.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * この関数が何に使われるかの説明。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * Return value explanation.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * 戻り値の説明。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; */<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function_name(<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; arg1,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // short comment about arg1<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; arg2)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // short comment about arg2<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; local;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// comment about local<br>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local = arg1 * arg2;<br>
-<br>
-<br>
-<br>
-<span class="Statement">空白と区切り</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#style-spaces" name="style-spaces">style-spaces</a><br>
-<br>
-関数名とブラケットの間にスペースを入れないこと:<br>
-<br>
-間違い: func (arg);<br>
-OK:&nbsp;&nbsp;&nbsp;&nbsp; func(arg);<br>
-<br>
-if、while、switchなどの後には、スペースを入れること。<br>
-<br>
-間違い: if(arg)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for(;;)<br>
-OK:&nbsp;&nbsp;&nbsp;&nbsp; if (arg)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (;;)<br>
-<br>
-コンマ、セミコロンの後にはスペースを入れること:<br>
-<br>
-間違い: func(arg1,arg2);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (i = 0;i &lt; 2;++i)<br>
-OK:&nbsp;&nbsp;&nbsp;&nbsp; func(arg1, arg2);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for (i = 0; i &lt; 2; ++i)<br>
-<br>
-'='、'+'、'/' などの前と後には、スペースを入れること。<br>
-<br>
-間違い: var=a*5;<br>
-OK:&nbsp;&nbsp;&nbsp;&nbsp; var = a * 5;<br>
-<br>
-一般的なこと: コードの行をグループ分けするために、空行を使う。行グループのす<br>
-ぐ上にコメントを入れる。こうすることによって、何が行われるのかをより簡単に知<br>
-ることができる。<br>
-<br>
-OK:&nbsp;&nbsp;&nbsp;&nbsp; /* Prepare for building the table. */<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/* テーブルの作成の準備 */<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get_first_item();<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;table_idx = 0;<br>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/* Build the table */<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/* テーブルの作成 */<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (has_item())<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;table[table_idx++] = next_item();<br>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/* Finish up. */<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/* 仕上げ */<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cleanup_items();<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;generate_hash(table);<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 3. 決定事項&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="develop.html#design-decisions" name="design-decisions">design-decisions</a><br>
