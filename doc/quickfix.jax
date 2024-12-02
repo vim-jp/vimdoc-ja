@@ -1,4 +1,4 @@
-*quickfix.txt*  For Vim バージョン 9.1.  Last change: 2024 Nov 12
+*quickfix.txt*  For Vim バージョン 9.1.  Last change: 2024 Nov 28
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1282,11 +1282,117 @@ g:compiler_gcc_ignore_unmatched_lines
 
 JAVAC							*compiler-javac*
 
-よく使用されるコンパイラオプションは、g:javac_makeprg_params 変数を設定するこ
-とで 'makeprg' に追加できる。例: >
+よく使用されるコンパイラオプションは、b/g:javac_makeprg_params 変数を設定する
+ことで 'makeprg' に追加できる。例: >
 
 	let g:javac_makeprg_params = "-Xlint:all -encoding utf-8"
-<
+
+MAVEN							*compiler-maven*
+
+よく使用されるコンパイラオプションは、b/g:maven_makeprg_params 変数を設定する
+ことで 'makeprg' に追加できる。例: >
+
+	let g:maven_makeprg_params = "-DskipTests -U -X"
+
+SPOTBUGS						*compiler-spotbugs*
+
+SpotBugs は、Java のバグを見つけるために使用できる静的解析ツールである。現在開
+いているバッファ内のすべてのクラスの Java バイトコードをスキャンする。(したがっ
+て、`:compiler! spotbugs` はサポートされていない。)
+
+よく使用されるコンパイラオプションは、"b:" または "g:spotbugs_makeprg_params"
+変数を設定することで 'makeprg' に追加できる。例: >
+
+	let b:spotbugs_makeprg_params = "-longBugCodes -effort:max -low"
+
+グローバルのデフォルトは "-workHard -experimental" である。
+
+デフォルトでは、クラスファイルはソースファイルが配置されているディレクトリで検
+索される。ただし、一般的な Java プロジェクトでは、ソースファイルとクラスファイ
+ルに別々のディレクトリを使用する。両方を SpotBugs に認識させるには、それらのパ
+ス (共通のルートディレクトリに対して異なる相対パス) を次のプロパティに割り当て
+る (一般的な Maven プロジェクトの例を使用): >
+
+	let g:spotbugs_properties = {
+		\ 'sourceDirPath':	'src/main/java',
+		\ 'classDirPath':	'target/classes',
+		\ 'testSourceDirPath':	'src/test/java',
+		\ 'testClassDirPath':	'target/test-classes',
+	\ }
+
+Note パスのキー値は、SpotBugs がファイルを検索する場所のみを記述することに注
+意。詳細については、特定のコンパイラプラグインのドキュメントを参照。
+
+Ant、Maven、および Javac コンパイラプラグインには、デフォルトのプリコンパイラ
+アクションとポストコンパイラアクションが用意されており、コンパイラプラグインの
+名前を "compiler" キーに割り当てることで選択できる: >
+
+	let g:spotbugs_properties = {
+		\ 'compiler':		'maven',
+	\ }
+
+この単一の設定は、基本的に以下のすべての設定と同等だが、"PreCompilerAction" お
+よび "PreCompilerTestAction" の値は例外である。リストされている |Funcref| は
+no-op 実装を取得するが、"compiler" キーの暗黙的な Funcref は、使用可能な場合は
+要求されたデフォルトを取得する。 >
+
+	let g:spotbugs_properties = {
+		\ 'PreCompilerAction':
+			\ function('spotbugs#DefaultPreCompilerAction'),
+		\ 'PreCompilerTestAction':
+			\ function('spotbugs#DefaultPreCompilerTestAction'),
+		\ 'PostCompilerAction':
+			\ function('spotbugs#DefaultPostCompilerAction'),
+		\ 'sourceDirPath':	'src/main/java',
+		\ 'classDirPath':	'target/classes',
+		\ 'testSourceDirPath':	'src/test/java',
+		\ 'testClassDirPath':	'target/test-classes',
+	\ }
+
+デフォルトのアクションでは、選択されたコンパイラは Java 構文ファイルがロードさ
+れるとすぐにバッファのクラスファイル (おそらくプロジェクト全体) を再構築しよう
+とする。次に、`spotbugs` はバッファのコンパイルユニットの品質を分析しようとす
+る。
+
+デフォルトのアクションが目的のワークフローに適していない場合は、任意の関数を自
+分で作成し、その |Funcref| をサポートされているキー "PreCompilerAction"、
+"PreCompilerTestAction"、および "PostCompilerAction" と一致させることを検討す
+ること。
+
+次の例では、Maven プロジェクトのデフォルトのプリコンパイラアクションを再実装
+し、"compiler" エントリを使用して他のデフォルトの Maven 設定を要求する: >
+
+	function! MavenPreCompilerAction() abort
+		call spotbugs#DeleteClassFiles()
+		compiler maven
+		make compile
+	endfunction
+
+	function! MavenPreCompilerTestAction() abort
+		call spotbugs#DeleteClassFiles()
+		compiler maven
+		make test-compile
+	endfunction
+
+	let g:spotbugs_properties = {
+		\ 'compiler':		'maven',
+		\ 'PreCompilerAction':
+			\ function('MavenPreCompilerAction'),
+		\ 'PreCompilerTestAction':
+			\ function('MavenPreCompilerTestAction'),
+	\ }
+
+Note 入力されたすべてのカスタム設定は、"g:spotbugs_properties" 内の一致するデ
+フォルト設定よりも優先されることに注意。
+
+"g:spotbugs_properties" 変数は、Java ファイルタイププラグイン
+(|ft-java-plugin|) によって参照され、説明されている自動化を調整する。したがっ
+て、Java ソースファイルがロードされたバッファに対して |FileType| イベントが発
+生する前に定義する必要がある。例えば、[0] によってロードされるプロジェクトロー
+カルの |vimrc| で設定できる。
+
+[0] https://github.com/MarcWeber/vim-addon-local-vimrc/
+
 GNU MAKE						*compiler-make*
 
 デフォルトの make プログラムは "make" であるため、make のコンパイラプラグイ
