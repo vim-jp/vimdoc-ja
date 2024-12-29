@@ -1,4 +1,4 @@
-*quickfix.txt*  For Vim バージョン 9.1.  Last change: 2024 Nov 28
+*quickfix.txt*  For Vim バージョン 9.1.  Last change: 2024 Dec 16
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1301,7 +1301,7 @@ SpotBugs は、Java のバグを見つけるために使用できる静的解析
 て、`:compiler! spotbugs` はサポートされていない。)
 
 よく使用されるコンパイラオプションは、"b:" または "g:spotbugs_makeprg_params"
-変数を設定することで 'makeprg' に追加できる。例: >
+変数を設定することで 'makeprg' に追加できる。例: >vim
 
 	let b:spotbugs_makeprg_params = "-longBugCodes -effort:max -low"
 
@@ -1311,22 +1311,25 @@ SpotBugs は、Java のバグを見つけるために使用できる静的解析
 索される。ただし、一般的な Java プロジェクトでは、ソースファイルとクラスファイ
 ルに別々のディレクトリを使用する。両方を SpotBugs に認識させるには、それらのパ
 ス (共通のルートディレクトリに対して異なる相対パス) を次のプロパティに割り当て
-る (一般的な Maven プロジェクトの例を使用): >
+る (一般的な Maven プロジェクトの例を使用): >vim
 
 	let g:spotbugs_properties = {
-		\ 'sourceDirPath':	'src/main/java',
-		\ 'classDirPath':	'target/classes',
-		\ 'testSourceDirPath':	'src/test/java',
-		\ 'testClassDirPath':	'target/test-classes',
+		\ 'sourceDirPath':	['src/main/java'],
+		\ 'classDirPath':	['target/classes'],
+		\ 'testSourceDirPath':	['src/test/java'],
+		\ 'testClassDirPath':	['target/test-classes'],
 	\ }
 
+Note ソースパスエントリとクラスパスエントリはペアで指定する必要があることに注
+意。少なくとも 1 つを検討する場合は、"sourceDirPath" と "classDirPath" の両方
+を定義し、"testSourceDirPath" と "testClassDirPath" に同じロジックを適用する。
 Note パスのキー値は、SpotBugs がファイルを検索する場所のみを記述することに注
 意。詳細については、特定のコンパイラプラグインのドキュメントを参照。
 
 Ant、Maven、および Javac コンパイラプラグインには、デフォルトのプリコンパイラ
 アクションとポストコンパイラアクションが用意されており、コンパイラプラグインの
-名前を "compiler" キーに割り当てることで選択できる: >
-
+名前 (`ant`, `maven`, `javac`) を "compiler" キーに割り当てることで選択できる:
+>vim
 	let g:spotbugs_properties = {
 		\ 'compiler':		'maven',
 	\ }
@@ -1334,7 +1337,7 @@ Ant、Maven、および Javac コンパイラプラグインには、デフォ�
 この単一の設定は、基本的に以下のすべての設定と同等だが、"PreCompilerAction" お
 よび "PreCompilerTestAction" の値は例外である。リストされている |Funcref| は
 no-op 実装を取得するが、"compiler" キーの暗黙的な Funcref は、使用可能な場合は
-要求されたデフォルトを取得する。 >
+要求されたデフォルトを取得する。 >vim
 
 	let g:spotbugs_properties = {
 		\ 'PreCompilerAction':
@@ -1343,10 +1346,10 @@ no-op 実装を取得するが、"compiler" キーの暗黙的な Funcref は、
 			\ function('spotbugs#DefaultPreCompilerTestAction'),
 		\ 'PostCompilerAction':
 			\ function('spotbugs#DefaultPostCompilerAction'),
-		\ 'sourceDirPath':	'src/main/java',
-		\ 'classDirPath':	'target/classes',
-		\ 'testSourceDirPath':	'src/test/java',
-		\ 'testClassDirPath':	'target/test-classes',
+		\ 'sourceDirPath':	['src/main/java'],
+		\ 'classDirPath':	['target/classes'],
+		\ 'testSourceDirPath':	['src/test/java'],
+		\ 'testClassDirPath':	['target/test-classes'],
 	\ }
 
 デフォルトのアクションでは、選択されたコンパイラは Java 構文ファイルがロードさ
@@ -1354,24 +1357,42 @@ no-op 実装を取得するが、"compiler" キーの暗黙的な Funcref は、
 とする。次に、`spotbugs` はバッファのコンパイルユニットの品質を分析しようとす
 る。
 
+Vim コマンドは 'makeprg' [0] に習熟していると、デフォルトアクションで構成でき
+る。まず、サポートされているキー "DefaultPreCompilerCommand"、
+"DefaultPreCompilerTestCommand"、または "DefaultPostCompilerCommand" のどれに
+対して実装を記述する必要があるかを検討し、これらの各キーが特定の "*Action" キー
+に対応していることを確認する。次に、常に文字列型の唯一のパラメーターを宣言し、
+|:make| と同等のコマンドを使用する新しい関数を定義し、その |Funcref| を選択し
+たキーに割り当てる。例:
+>vim
+	function! GenericPostCompilerCommand(arguments) abort
+		execute 'make ' . a:arguments
+	endfunction
+
+	let g:spotbugs_properties = {
+		\ 'DefaultPostCompilerCommand':
+			\ function('GenericPostCompilerCommand'),
+	\ }
+
 デフォルトのアクションが目的のワークフローに適していない場合は、任意の関数を自
-分で作成し、その |Funcref| をサポートされているキー "PreCompilerAction"、
-"PreCompilerTestAction"、および "PostCompilerAction" と一致させることを検討す
-ること。
+分で記述し、その Funcref をサポートされているキー "PreCompilerAction"、
+"PreCompilerTestAction"、および "PostCompilerAction" に一致させて続行する。
 
 次の例では、Maven プロジェクトのデフォルトのプリコンパイラアクションを再実装
-し、"compiler" エントリを使用して他のデフォルトの Maven 設定を要求する: >
+し、"compiler" エントリを使用して他のデフォルトの Maven 設定を要求する: >vim
 
 	function! MavenPreCompilerAction() abort
 		call spotbugs#DeleteClassFiles()
 		compiler maven
 		make compile
+		cc
 	endfunction
 
 	function! MavenPreCompilerTestAction() abort
 		call spotbugs#DeleteClassFiles()
 		compiler maven
 		make test-compile
+		cc
 	endfunction
 
 	let g:spotbugs_properties = {
@@ -1384,14 +1405,46 @@ no-op 実装を取得するが、"compiler" キーの暗黙的な Funcref は、
 
 Note 入力されたすべてのカスタム設定は、"g:spotbugs_properties" 内の一致するデ
 フォルト設定よりも優先されることに注意。
+Note さらに作業を進める前に、プリコンパイラアクションの結果をプラグインに通知
+する必要があることに注意。アクションの最後のコマンドとして、|:make| の後に
+|:cc| (または |:lmake| の後に |:ll|) を使用することがこのような通信のサポート
+されている手段である。
+
+バッファローカル自動コマンドのアクションを切り替えるために、
+"SpotBugsRemoveBufferAutocmd" と "SpotBugsDefineBufferAutocmd" という 2 つのコ
+マンドが用意されてる。例えば、|BufWritePost| および |SigUSR1| イベントでもアク
+ションを実行するには、次の行を `~/.vim/after/ftplugin/java.vim` に追加する:
+>vim
+	if exists(':SpotBugsDefineBufferAutocmd') == 2
+		SpotBugsDefineBufferAutocmd BufWritePost SigUSR1
+	endif
+
+それ以外の場合は、いつでも `:doautocmd java_spotbugs User` にアクセスできる。
 
 "g:spotbugs_properties" 変数は、Java ファイルタイププラグイン
 (|ft-java-plugin|) によって参照され、説明されている自動化を調整する。したがっ
 て、Java ソースファイルがロードされたバッファに対して |FileType| イベントが発
-生する前に定義する必要がある。例えば、[0] によってロードされるプロジェクトロー
+生する前に定義する必要がある。例えば、[1] によってロードされるプロジェクトロー
 カルの |vimrc| で設定できる。
 
-[0] https://github.com/MarcWeber/vim-addon-local-vimrc/
+"g:spotbugs_properties" と "b:spotbugs_properties" は両方とも認識され、変更可
+能である必要がある (|:unlockvar|)。"*Command" エントリは常に、すべての Java
+バッファ間で共有されるグローバル関数として扱われる。
+
+SpotBugs Java ライブラリと、その拡張として配布されたシェルスクリプトは
+`-textui` モードでは、空白文字を含むディレクトリファイル名を持つパス名をサポー
+トしていない [2]。この制限を回避するには、名前に空白文字を含まないディレクトリ
+からそのようなディレクトリへのシンボリックリンクを作成し、この情報を SpotBugs
+に渡すことを検討する: >vim
+
+	let g:spotbugs_alternative_path = {
+		\ 'fromPath':	'path/to/dir_without_blanks',
+		\ 'toPath':	'path/to/dir with blanks',
+	\ }
+
+[0] https://github.com/Konfekt/vim-compilers
+[1] https://github.com/MarcWeber/vim-addon-local-vimrc
+[2] https://github.com/spotbugs/spotbugs/issues/909
 
 GNU MAKE						*compiler-make*
 
