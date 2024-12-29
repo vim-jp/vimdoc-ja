@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'quickfix'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="quickfix.html" name="quickfix.txt">quickfix.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 Nov 28<br>
+<a class="Constant" href="quickfix.html" name="quickfix.txt">quickfix.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 Dec 16<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -1306,9 +1306,9 @@ SpotBugs は、Java のバグを見つけるために使用できる静的解析
 て、<span class="Comment">:compiler! spotbugs</span>&nbsp;はサポートされていない。)<br>
 <br>
 よく使用されるコンパイラオプションは、&quot;b:&quot; または &quot;g:spotbugs_makeprg_params&quot;<br>
-変数を設定することで&nbsp;<a class="Type" href="options.html#'makeprg'">'makeprg'</a>&nbsp;に追加できる。例:<br>
+変数を設定することで&nbsp;<a class="Type" href="options.html#'makeprg'">'makeprg'</a>&nbsp;に追加できる。例: &gt;vim<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let b:spotbugs_makeprg_params = &quot;-longBugCodes -effort:max -low&quot;</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let b:spotbugs_makeprg_params = &quot;-longBugCodes -effort:max -low&quot;<br>
 <br>
 グローバルのデフォルトは &quot;-workHard -experimental&quot; である。<br>
 <br>
@@ -1316,87 +1316,140 @@ SpotBugs は、Java のバグを見つけるために使用できる静的解析
 索される。ただし、一般的な Java プロジェクトでは、ソースファイルとクラスファイ<br>
 ルに別々のディレクトリを使用する。両方を SpotBugs に認識させるには、それらのパ<br>
 ス (共通のルートディレクトリに対して異なる相対パス) を次のプロパティに割り当て<br>
-る (一般的な Maven プロジェクトの例を使用):<br>
+る (一般的な Maven プロジェクトの例を使用): &gt;vim<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:spotbugs_properties = {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'sourceDirPath':&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'src/main/java',<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'classDirPath':&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 'target/classes',<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'testSourceDirPath':&nbsp;&nbsp;'src/test/java',<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'testClassDirPath':&nbsp;&nbsp; 'target/test-classes',<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ }</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:spotbugs_properties = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'sourceDirPath':&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;['src/main/java'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'classDirPath':&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ['target/classes'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'testSourceDirPath':&nbsp;&nbsp;['src/test/java'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'testClassDirPath':&nbsp;&nbsp; ['target/test-classes'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ }<br>
 <br>
+<span class="Todo">Note</span>&nbsp;ソースパスエントリとクラスパスエントリはペアで指定する必要があることに注<br>
+意。少なくとも 1 つを検討する場合は、&quot;sourceDirPath&quot; と &quot;classDirPath&quot; の両方<br>
+を定義し、&quot;testSourceDirPath&quot; と &quot;testClassDirPath&quot; に同じロジックを適用する。<br>
 <span class="Todo">Note</span>&nbsp;パスのキー値は、SpotBugs がファイルを検索する場所のみを記述することに注<br>
 意。詳細については、特定のコンパイラプラグインのドキュメントを参照。<br>
 <br>
 Ant、Maven、および Javac コンパイラプラグインには、デフォルトのプリコンパイラ<br>
 アクションとポストコンパイラアクションが用意されており、コンパイラプラグインの<br>
-名前を &quot;compiler&quot; キーに割り当てることで選択できる:<br>
-<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:spotbugs_properties = {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'compiler':&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 'maven',<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ }</div>
+名前 (<span class="Comment">ant</span>,&nbsp;<span class="Comment">maven</span>,&nbsp;<span class="Comment">javac</span>) を &quot;compiler&quot; キーに割り当てることで選択できる:<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:spotbugs_properties = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;<span class="MissingTag">'compiler'</span>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="MissingTag">'maven'</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ }<br>
 <br>
 この単一の設定は、基本的に以下のすべての設定と同等だが、&quot;PreCompilerAction&quot; お<br>
 よび &quot;PreCompilerTestAction&quot; の値は例外である。リストされている&nbsp;<a class="Identifier" href="eval.html#Funcref">Funcref</a>&nbsp;は<br>
 no-op 実装を取得するが、&quot;compiler&quot; キーの暗黙的な Funcref は、使用可能な場合は<br>
-要求されたデフォルトを取得する。<br>
+要求されたデフォルトを取得する。 &gt;vim<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:spotbugs_properties = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:spotbugs_properties = {<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'PreCompilerAction':<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ function('spotbugs#DefaultPreCompilerAction'),<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'PreCompilerTestAction':<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ function('spotbugs#DefaultPreCompilerTestAction'),<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'PostCompilerAction':<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ function('spotbugs#DefaultPostCompilerAction'),<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'sourceDirPath':&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'src/main/java',<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'classDirPath':&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 'target/classes',<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'testSourceDirPath':&nbsp;&nbsp;'src/test/java',<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'testClassDirPath':&nbsp;&nbsp; 'target/test-classes',<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ }</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'sourceDirPath':&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;['src/main/java'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'classDirPath':&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ['target/classes'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'testSourceDirPath':&nbsp;&nbsp;['src/test/java'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'testClassDirPath':&nbsp;&nbsp; ['target/test-classes'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ }<br>
 <br>
 デフォルトのアクションでは、選択されたコンパイラは Java 構文ファイルがロードさ<br>
 れるとすぐにバッファのクラスファイル (おそらくプロジェクト全体) を再構築しよう<br>
 とする。次に、<span class="Comment">spotbugs</span>&nbsp;はバッファのコンパイルユニットの品質を分析しようとす<br>
 る。<br>
 <br>
+Vim コマンドは&nbsp;<a class="Type" href="options.html#'makeprg'">'makeprg'</a>&nbsp;[0] に習熟していると、デフォルトアクションで構成でき<br>
+る。まず、サポートされているキー &quot;DefaultPreCompilerCommand&quot;、<br>
+&quot;DefaultPreCompilerTestCommand&quot;、または &quot;DefaultPostCompilerCommand&quot; のどれに<br>
+対して実装を記述する必要があるかを検討し、これらの各キーが特定の &quot;*Action&quot; キー<br>
+に対応していることを確認する。次に、常に文字列型の唯一のパラメーターを宣言し、<br>
+<a class="Identifier" href="quickfix.html#:make">:make</a>&nbsp;と同等のコマンドを使用する新しい関数を定義し、その&nbsp;<a class="Identifier" href="eval.html#Funcref">Funcref</a>&nbsp;を選択し<br>
+たキーに割り当てる。例:<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function! GenericPostCompilerCommand(arguments) abort<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;execute 'make ' . a:arguments<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:spotbugs_properties = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'DefaultPostCompilerCommand':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ function('GenericPostCompilerCommand'),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ }<br>
+<br>
 デフォルトのアクションが目的のワークフローに適していない場合は、任意の関数を自<br>
-分で作成し、その&nbsp;<a class="Identifier" href="eval.html#Funcref">Funcref</a>&nbsp;をサポートされているキー &quot;PreCompilerAction&quot;、<br>
-&quot;PreCompilerTestAction&quot;、および &quot;PostCompilerAction&quot; と一致させることを検討す<br>
-ること。<br>
+分で記述し、その Funcref をサポートされているキー &quot;PreCompilerAction&quot;、<br>
+&quot;PreCompilerTestAction&quot;、および &quot;PostCompilerAction&quot; に一致させて続行する。<br>
 <br>
 次の例では、Maven プロジェクトのデフォルトのプリコンパイラアクションを再実装<br>
-し、&quot;compiler&quot; エントリを使用して他のデフォルトの Maven 設定を要求する:<br>
+し、&quot;compiler&quot; エントリを使用して他のデフォルトの Maven 設定を要求する: &gt;vim<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function! MavenPreCompilerAction() abort<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function! MavenPreCompilerAction() abort<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call spotbugs#DeleteClassFiles()<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compiler maven<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make compile<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cc<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function! MavenPreCompilerTestAction() abort<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function! MavenPreCompilerTestAction() abort<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call spotbugs#DeleteClassFiles()<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compiler maven<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make test-compile<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cc<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:spotbugs_properties = {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'compiler':&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 'maven',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:spotbugs_properties = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;<span class="MissingTag">'compiler'</span>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="MissingTag">'maven'</span>,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'PreCompilerAction':<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ function('MavenPreCompilerAction'),<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'PreCompilerTestAction':<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ function('MavenPreCompilerTestAction'),<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ }</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ }<br>
 <br>
 <span class="Todo">Note</span>&nbsp;入力されたすべてのカスタム設定は、&quot;g:spotbugs_properties&quot; 内の一致するデ<br>
 フォルト設定よりも優先されることに注意。<br>
+<span class="Todo">Note</span>&nbsp;さらに作業を進める前に、プリコンパイラアクションの結果をプラグインに通知<br>
+する必要があることに注意。アクションの最後のコマンドとして、<a class="Identifier" href="quickfix.html#:make">:make</a>&nbsp;の後に<br>
+<a class="Identifier" href="quickfix.html#:cc">:cc</a>&nbsp;(または&nbsp;<a class="Identifier" href="quickfix.html#:lmake">:lmake</a>&nbsp;の後に&nbsp;<a class="Identifier" href="quickfix.html#:ll">:ll</a>) を使用することがこのような通信のサポート<br>
+されている手段である。<br>
+<br>
+バッファローカル自動コマンドのアクションを切り替えるために、<br>
+&quot;SpotBugsRemoveBufferAutocmd&quot; と &quot;SpotBugsDefineBufferAutocmd&quot; という 2 つのコ<br>
+マンドが用意されてる。例えば、<a class="Identifier" href="autocmd.html#BufWritePost">BufWritePost</a>&nbsp;および&nbsp;<a class="Identifier" href="autocmd.html#SigUSR1">SigUSR1</a>&nbsp;イベントでもアク<br>
+ションを実行するには、次の行を&nbsp;<span class="Comment">~/.vim/after/ftplugin/java.vim</span>&nbsp;に追加する:<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if exists(':SpotBugsDefineBufferAutocmd') == 2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SpotBugsDefineBufferAutocmd BufWritePost SigUSR1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
+<br>
+それ以外の場合は、いつでも&nbsp;<span class="Comment">:doautocmd java_spotbugs User</span>&nbsp;にアクセスできる。<br>
 <br>
 &quot;g:spotbugs_properties&quot; 変数は、Java ファイルタイププラグイン<br>
 (<a class="Identifier" href="filetype.html#ft-java-plugin">ft-java-plugin</a>) によって参照され、説明されている自動化を調整する。したがっ<br>
 て、Java ソースファイルがロードされたバッファに対して&nbsp;<a class="Identifier" href="autocmd.html#FileType">FileType</a>&nbsp;イベントが発<br>
-生する前に定義する必要がある。例えば、[0] によってロードされるプロジェクトロー<br>
+生する前に定義する必要がある。例えば、[1] によってロードされるプロジェクトロー<br>
 カルの&nbsp;<a class="Identifier" href="starting.html#vimrc">vimrc</a>&nbsp;で設定できる。<br>
 <br>
-[0]&nbsp;<span class="Constant"><a href="https://github.com/MarcWeber/vim-addon-local-vimrc/">https://github.com/MarcWeber/vim-addon-local-vimrc/</a></span><br>
+&quot;g:spotbugs_properties&quot; と &quot;b:spotbugs_properties&quot; は両方とも認識され、変更可<br>
+能である必要がある (<a class="Identifier" href="eval.html#:unlockvar">:unlockvar</a>)。&quot;*Command&quot; エントリは常に、すべての Java<br>
+バッファ間で共有されるグローバル関数として扱われる。<br>
+<br>
+SpotBugs Java ライブラリと、その拡張として配布されたシェルスクリプトは<br>
+<span class="Comment">-textui</span>&nbsp;モードでは、空白文字を含むディレクトリファイル名を持つパス名をサポー<br>
+トしていない [2]。この制限を回避するには、名前に空白文字を含まないディレクトリ<br>
+からそのようなディレクトリへのシンボリックリンクを作成し、この情報を SpotBugs<br>
+に渡すことを検討する: &gt;vim<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let g:spotbugs_alternative_path = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'fromPath':&nbsp;&nbsp; 'path/to/dir_without_blanks',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'toPath':&nbsp;&nbsp;&nbsp;&nbsp; 'path/to/dir with blanks',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ }<br>
+<br>
+[0]&nbsp;<span class="Constant"><a href="https://github.com/Konfekt/vim-compilers">https://github.com/Konfekt/vim-compilers</a></span><br>
+[1]&nbsp;<span class="Constant"><a href="https://github.com/MarcWeber/vim-addon-local-vimrc">https://github.com/MarcWeber/vim-addon-local-vimrc</a></span><br>
+[2]&nbsp;<span class="Constant"><a href="https://github.com/spotbugs/spotbugs/issues/909">https://github.com/spotbugs/spotbugs/issues/909</a></span><br>
 <br>
 <span class="Statement">GNU MAKE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="quickfix.html#compiler-make" name="compiler-make">compiler-make</a><br>
 <br>

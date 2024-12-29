@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'fold'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="fold.html" name="fold.txt">fold.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2023 Mar 24<br>
+<a class="Constant" href="fold.html" name="fold.txt">fold.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 Dec 17<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -82,18 +82,20 @@ helpname: 'fold'
 同じ事(「段落」を折り畳みに)をする別の表現:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;:set foldexpr=getline(v:lnum-1)=~'^\\s*$'&amp;&amp;getline(v:lnum)=~'\\S'?'&gt;1':1</div>
 <br>
-バックスラッシュ(日本では \ 記号)が &quot;:set&quot; の流儀で、通常とは異なるキャラクタ<br>
-(空白文字、バックスラッシュ、ダブルクォート、その他、詳細は<a class="Identifier" href="options.html#option-backslash">option-backslash</a><br>
-参照)をエスケープしていることに注意。<br>
+<span class="Todo">Note</span>&nbsp;バックスラッシュ (日本では \ 記号) が &quot;:set&quot; の流儀で、通常とは異なるキャ<br>
+ラクタ (空白文字、バックスラッシュ、ダブルクォート、その他、詳細は<br>
+<a class="Identifier" href="options.html#option-backslash">option-backslash</a>&nbsp;参照) をエスケープしていることに注意。<br>
 <br>
 最も効果的なのはコンパイル済み関数を引数なしで呼ぶ:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set foldexpr=MyFoldLevel()</div>
 関数は v:lnum を使用しなくてはいけない。<a class="Identifier" href="vim9.html#expr-option-function">expr-option-function</a>&nbsp;を参照。<br>
 <br>
 式が評価される際の前提条件は以下の通り:<br>
+<br>
 - その行について現在のバッファとウィンドウが常に存在している。<br>
 - 変数 &quot;v:lnum&quot; には評価対象となる行番号が設定されている。<br>
-- 式の結果(戻り値)は以下の形式で折り畳みレベルを示す:<br>
+<br>
+foldexpr の結果によって、以下のように折り畳みレベルが決定される:<br>
 &nbsp;&nbsp;<span class="PreProc">値&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;意味</span><br>
 &nbsp;&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 対象行は折り畳みに含まれない<br>
 &nbsp;&nbsp;1, 2, ..&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;対象行はこのレベルの折り畳みに含まれる<br>
@@ -107,6 +109,8 @@ helpname: 'fold'
 &nbsp;&nbsp;&quot;&lt;1&quot;, &quot;&lt;2&quot;, ..&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;指定したレベルの折り畳みを対象行で終了する<br>
 &nbsp;&nbsp;&quot;&gt;1&quot;, &quot;&gt;2&quot;, ..&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;指定したレベルの折り畳みを対象行から開始する<br>
 <br>
+結果の値 &quot;=&quot;、&quot;s&quot; および &quot;a&quot; はより高価である。<a class="Identifier" href="fold.html#fold-expr-slow">fold-expr-slow</a>&nbsp;を参照。<br>
+<br>
 折り畳みは直前の行の折り畳みレベルより高い(低い)行から開始(終了)されるので、折<br>
 り畳みの開始 (終了)マーク &quot;&gt;1&quot; (&quot;&lt;1&quot;) は明示的に指定する必要は無い。<br>
 <br>
@@ -117,13 +121,6 @@ helpname: 'fold'
 式にエラーがあるか、結果が認識できない時には、何のエラーメッセージも表示せずに<br>
 折り畳みレベルは0に設定される。<a class="Type" href="options.html#'debug'">'debug'</a>&nbsp;オプションに &quot;msg&quot; を設定すれば、エラー<br>
 メッセージが表示されるようになるので、デバッグに利用できる。<br>
-<br>
-<span class="Todo">NOTE</span>: 各行について式評価が実行されるので、この折り畳み方式は非常に動作が遅くな<br>
-る可能性がある!<br>
-<br>
-&quot;=&quot;, &quot;a&quot;, そして &quot;s&quot; は極力避けるようにする。なぜならVimはそれらが使われると、<br>
-折り畳みレベルが定義された行が見つかるまで戻って、幾度も検索を行わなければなら<br>
-ないからだ。これは動作が遅くなることがある。<br>
 <br>
 <a class="Type" href="options.html#'foldexpr'">'foldexpr'</a>&nbsp;の式が s: か&nbsp;<a class="Identifier" href="map.html#<SID>">&lt;SID&gt;</a>&nbsp;で始まる場合、スクリプトID(<a class="Identifier" href="userfunc.html#local-function">local-function</a>)<br>
 に置き換えられる。例:<br>
@@ -149,6 +146,37 @@ helpname: 'fold'
 折り畳みが適切に更新されない場合がある。その場合は&nbsp;<a class="Identifier" href="fold.html#zx">zx</a>&nbsp;か&nbsp;<a class="Identifier" href="fold.html#zX">zX</a>&nbsp;を使って強制的<br>
 に更新すること。<br>
 <br>
+<span class="Statement">計算コストの最小化</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="fold.html#fold-expr-slow" name="fold-expr-slow">fold-expr-slow</a><br>
+<br>
+この折り畳み方式は計算コストが高いため、特にすべての行の折り畳みレベルを最初に<br>
+計算する必要がある場合、Vim が応答しなくなる可能性がある。<br>
+その後、各変更の後に Vim は折り畳みレベルの計算を折り畳みレベルが影響を受けた<br>
+行に制限する (他のすべての行の既知の折り畳みレベルを再利用する)。<br>
+<br>
+したがって、折り畳み式は特定の行の計算に必要な依存行の数を最小限に抑えるように<br>
+努める必要がある。例えば、独立した折り畳みレベルが見つかるまで前の行の折り畳み<br>
+レベルの評価が必要になるため、&quot;=&quot;、&quot;a&quot; および &quot;s&quot; の戻り値を避けるようにするこ<br>
+と。<br>
+<br>
+これが難しい場合は、次善策として&nbsp;<a class="Identifier" href="eval.html#b:changedtick">b:changedtick</a>&nbsp;でのみ更新されるバッファロー<br>
+カル変数 (b:foldlevels) にすべての折り畳みレベルをキャッシュすることが考えられ<br>
+る:<br>
+&gt;vim<br>
+&nbsp;&nbsp;vim9script<br>
+&nbsp;&nbsp;def MyFoldFunc(): number<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if b:lasttick == b:changedtick<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return b:foldlevels[v:lnum - 1]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
+&nbsp;&nbsp;&nbsp;&nbsp;b:lasttick = b:changedtick<br>
+&nbsp;&nbsp;&nbsp;&nbsp;b:foldlevels = []<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# compute foldlevels ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return b:foldlevels[v:lnum - 1]<br>
+&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;set foldexpr=s:MyFoldFunc()<br>
+&lt;<br>
+上記の例では、プリコンパイルされた引数なしの Vim9 script 関数を使用することで、<br>
+さらに高速化された (それでも v:lnum を使用する必要がある)。<br>
+<a class="Identifier" href="vim9.html#expr-option-function">expr-option-function</a>&nbsp;を参照。<br>
 <br>
 <span class="Statement">構文</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="fold.html#fold-syntax" name="fold-syntax">fold-syntax</a><br>
 <br>
@@ -451,7 +479,7 @@ zk&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <br>
 <span class="PreProc">折り畳みに対してコマンドを実行する</span><br>
 <br>
-:<span class="Special">[range]</span>foldd[oopen]&nbsp;<span class="Special">{cmd}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="fold.html#:foldd" name=":foldd">:foldd</a>&nbsp;<a class="Constant" href="fold.html#:folddo" name=":folddo">:folddo</a>&nbsp;<a class="Constant" href="fold.html#:folddoopen" name=":folddoopen">:folddoopen</a><br>
+:<span class="Special">[range]</span>foldd[oopen]&nbsp;<span class="Special">{cmd}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="fold.html#:foldd" name=":foldd">:foldd</a>&nbsp;<a class="Constant" href="fold.html#:folddo" name=":folddo">:folddo</a>&nbsp;<a class="Constant" href="fold.html#:folddoopen" name=":folddoopen">:folddoopen</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;閉じた折り畳みの中以外の全ての行に対して<span class="Special">{cmd}</span>を実行する。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">[range]</span>が与えられた時は、その範囲だけが対象となる。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コマンドが各行に対して実行される時にはカーソルはその対象となる<br>
