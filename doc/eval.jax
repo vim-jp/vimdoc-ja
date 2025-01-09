@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 9.1.  Last change: 2024 Dec 23
+*eval.txt*	For Vim バージョン 9.1.  Last change: 2025 Jan 02
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1898,7 +1898,8 @@ Note これはつまり、ファイルタイププラグインはバッファご
 
 ☆Vimの定義済変数				*vim-variable* *v:var* *v:*
 							*E963* *E1063*
-一部の変数はユーザーが設定できるが、型を変更することはできない。
+ほとんどの変数は読み取り専用である。ユーザーが設定できる変数については、以下の
+変数の説明に記載されている。型は変更できない。
 
 					*v:argv* *argv-variable*
 v:argv		Vimの起動に使用したコマンドライン引数。これは文字列のリストで
@@ -2111,7 +2112,7 @@ v:event		現在の |autocommand| に関する情報を含む辞書。辞書に�
 <
 					*v:exception* *exception-variable*
 v:exception	最も直近に捕捉され、まだ終了していない例外の値。
-		|v:throwpoint|と|throw-variables|を参照。
+		|v:stacktrace|、|v:throwpoint|、|throw-variables| も参照。
 		例: >
 	:try
 	:  throw "oops"
@@ -2481,6 +2482,11 @@ v:sizeofpointer	ポインタのバイト数。Vimがどのようにコンパイ�
 		る。これは、テストで期待通りの結果が得られるかどうかを判断する
 		場合にのみ役立つ。
 
+					*v:stacktrace* *stacktrace-variable*
+v:stacktrace	最後にキャッチされて終了していない例外のスタックトレース。ス
+		タックトレースの構造については、|getstacktrace()| を参照。
+		|v:exception|、|v:throwpoint|、|throw-variables| も参照。
+
 					*v:statusmsg* *statusmsg-variable*
 v:statusmsg	最後に表示されたステータスメッセージ。この変数は代入すること
 		が許されている。
@@ -2609,8 +2615,8 @@ v:this_session	最後にロードされたか、セーブされたセッショ�
 
 					*v:throwpoint* *throwpoint-variable*
 v:throwpoint	最も直近に捕捉されてまだ終了していない例外が発生した位置。キー
-		ボードから入力されたコマンドは記録されていない。|v:exception|
-		と|throw-variables|も参照。
+		ボードから入力されたコマンドは記録されていない。|v:exception|、
+		|v:stacktrace|、|throw-variables| も参照。
 		例: >
 	:try
 	:  throw "oops"
@@ -3731,9 +3737,10 @@ thrown" を表示する。例外は、順番に ":catch" コマンドに照合�
 	:  catch /^\d\+$/
 	:    echo "Number thrown.  Value is" v:exception
 
-また、どこで例外が発生したかも知りたいだろう。これは|v:throwpoint|に保持されて
-いる。Note "v:exception" と "v:throwpoint" は最も直近に捕捉された例外に対し、
-それが終了するまで有効である。
+例外がどこでスローされたかにも興味があるかもしれない。これは |v:throwpoint| に
+保存される。また、スタックトレースは |v:stacktrace| から取得できる。
+Note "v:exception"、"v:stacktrace" および "v:throwpoint" は最も直近に捕捉され
+た例外に対し、それが終了するまで有効であることに注意。
    例: >
 
 	:function! Caught()
