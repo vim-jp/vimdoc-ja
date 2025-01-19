@@ -1,4 +1,4 @@
-*quickfix.txt*  For Vim バージョン 9.1.  Last change: 2024 Dec 16
+*quickfix.txt*  For Vim バージョン 9.1.  Last change: 2024 Dec 27
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1373,6 +1373,70 @@ Vim コマンドは 'makeprg' [0] に習熟していると、デフォルトア�
 		\ 'DefaultPostCompilerCommand':
 			\ function('GenericPostCompilerCommand'),
 	\ }
+
+"PostCompilerAction" が利用可能な場合、"PostCompilerActionExecutor" もサポート
+される。その値は、常に文字列型の単一のパラメータを宣言し、|:cc| (または |:ll|)
+の現在のステータスを確認した後、保留中のポストコンパイラアクションを含む
+|:execute| をその引数にディスパッチできるかどうかを決定する関数を指す Funcref
+である必要がある: >vim
+
+	function! GenericPostCompilerActionExecutor(action) abort
+		try
+			cc
+		catch /\<E42:/
+			execute a:action
+		endtry
+	endfunction
+
+補足として、利用可能な "Pre*Action" (または "*Pre*Command") の一部またはすべて
+は |:make| (または同等のもの) の前に実装内で `:doautocmd java_spotbugs_post
+User` を実行して、一度だけ実行される |ShellCmdPost| `:autocmd` を定義し、
+"PostCompilerActionExecutor" が呼び出されるように手配する。その後、このイベン
+トを使用するために `:doautocmd java_spotbugs_post ShellCmdPost` を実行する:
+>vim
+	function! GenericPreCompilerCommand(arguments) abort
+		if !exists('g:spotbugs_compilation_done')
+			doautocmd java_spotbugs_post User
+			execute 'make ' . a:arguments
+			" :make が同期している場合にのみ doautocmd を実行する。
+			" 下記の注記を参照
+			doautocmd java_spotbugs_post ShellCmdPost " XXX: (a)
+			let g:spotbugs_compilation_done = 1
+		else
+			cc
+		endif
+	endfunction
+
+	function! GenericPreCompilerTestCommand(arguments) abort
+		if !exists('g:spotbugs_test_compilation_done')
+			doautocmd java_spotbugs_post User
+			execute 'make ' . a:arguments
+			" :make が同期している場合にのみ doautocmd を実行する。
+			" 下記の注記を参照
+			doautocmd java_spotbugs_post ShellCmdPost " XXX: (b)
+			let g:spotbugs_test_compilation_done = 1
+		else
+			cc
+		endif
+	endfunction
+
+	let g:spotbugs_properties = {
+		\ 'compiler':		'maven',
+		\ 'DefaultPreCompilerCommand':
+			\ function('GenericPreCompilerCommand'),
+		\ 'DefaultPreCompilerTestCommand':
+			\ function('GenericPreCompilerTestCommand'),
+		\ 'PostCompilerActionExecutor':
+			\ function('GenericPostCompilerActionExecutor'),
+	\ }
+
+`:make` に相当するコマンドが非同期実行が可能で `ShellCmdPost` イベントを消費で
+きる場合、非ブロッキング実行の順序を維持するために
+`:doautocmd java_spotbugs_post ShellCmdPost` をそのような "*Action" (または
+"*Command") 実装 (つまり、リストされている例の `(a)` と `(b)` の行) から削除
+し、通知 (以下を参照) を抑制する必要がある。
+`ShellCmdPost` `:autocmd` は、その名前を "augroupForPostCompilerAction" キーに
+割り当てることで、任意の |:augroup| に関連付けることができる。
 
 デフォルトのアクションが目的のワークフローに適していない場合は、任意の関数を自
 分で記述し、その Funcref をサポートされているキー "PreCompilerAction"、
