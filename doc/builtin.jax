@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Jan 02
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Jan 17
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -79,6 +79,7 @@ bindtextdomain({package}, {path})
 				なし	指定されたパスにテキストドメインをバイ
 					ンドする
 blob2list({blob})		リスト	{blob} を数値のリストに変換する
+blob2str({blob} [, {options}])	リスト	{blob} を文字列のリストに変換する
 browse({save}, {title}, {initdir}, {default})
 				文字列	ファイル選択ダイアログを表示
 browsedir({title}, {initdir})	文字列	ディレクトリ選択ダイアログを表示
@@ -664,6 +665,8 @@ split({expr} [, {pat} [, {keepempty}]])
 sqrt({expr})			浮動小数点数	{expr} の平方根
 srand([{expr}])			リスト	|rand()| 用の種を取得する
 state([{what}])			文字列	Vimの現在の状態
+str2blob({list} [, {options}])
+				Blob	文字列のリストを Blob に変換する
 str2float({expr} [, {quoted}])	浮動小数点数	文字列を浮動小数点数に変換する
 str2list({expr} [, {utf8}])	リスト	{expr}の各文字をASCII/UTF-8値に変換する
 str2nr({expr} [, {base} [, {quoted}]])
@@ -1311,7 +1314,7 @@ base64_decode({string})					*base64_decode()*
 		    " デコードされた内容をバイナリファイルに書き込む
 		    call writefile(base64_decode(s), 'tools.bmp')
 		    " Base64でエンコードされた文字列をデコードする
-		    echo list2str(blob2list(base64_decode(encodedstr)))
+		    echo blob2str(base64_decode(encodedstr))
 <
 		|method| としても使用できる: >
 			GetEncodedString()->base64_decode()
@@ -1327,7 +1330,7 @@ base64_encode({blob})					*base64_encode()*
 		    " バイナリファイルの内容をエンコードする
 		    echo base64_encode(readblob('somefile.bin'))
 		    " 文字列をエンコードする
-		    echo base64_encode(list2blob(str2list(somestr)))
+		    echo base64_encode(str2blob([somestr]))
 <
 		|method| としても使用できる: >
 			GetBinaryData()->base64_encode()
@@ -1355,6 +1358,42 @@ blob2list({blob})					*blob2list()*
 			GetBlob()->blob2list()
 <
 		戻り値の型: list<any> または list<number>
+
+
+blob2str({blob} [, {options}])				*blob2str()*
+		{blob} 内のバイト列を文字に変換した現在の 'encoding' の文字列
+		のリストを返す。
+
+		blob 内の各 <NL> バイトは文字列の末尾として解釈され、新しいリ
+		スト項目が追加される。blob 内の各 <NUL> バイトは <NL> 文字に変
+		換される。
+
+		{options} が指定されていない場合、現在の 'encoding' 値を使用し
+		て {blob} 内のバイトがデコードされる。
+
+		引数 {options} は |Dict| であり、次の項目をサポートする:
+		    encoding	このエンコーディングを使用して {blob} 内のバイ
+				ト列をデコードする。値は |String| である。サ
+				ポートされている値については |encoding-names|
+				を参照。
+							*E1515*
+		{blob} で無効なバイトシーケンスが検出された場合はエラーが発生
+		し、空のリストが返される。
+
+		blob が空の場合は空のリストが返される。
+
+		|str2blob()| も参照
+
+		例: >
+			blob2str(0z6162)	returns ["ab"]
+			blob2str(0zC2ABC2BB)	returns ["束損"]
+			blob2str(0zABBB, {'encoding': 'latin1'}) returns ["束損"]
+<
+		|method| としても使用できる: >
+			GetBlob()->blob2str()
+<
+		戻り値の型: list<string>
+
 
 							*browse()*
 browse({save}, {title}, {initdir}, {default})
@@ -1955,6 +1994,8 @@ complete_info([{what}])				*complete_info()*
 				や <Down> キーを利用した最後の補完後に選択しな
 				かった場合)。
 		   inserted	入力された文字列。[現時点では未実装]
+		   completed	現在選択されているインデックス項目のエントリを
+				含む辞書を返す。
 
 							*complete_info_mode*
 		mode の値は:
@@ -4964,11 +5005,11 @@ getstacktrace()						*getstacktrace()*
 		スタックトレースは |List| で、各項目は次の項目を含む
 		|Dictionary| である。
 		    funcref	スタックが関数にある場合は funcref、そうでない
-				場合はこの項目は存在しない。
+				場合はこの項目は省略される。
 		    event	スタックが autocmd イベントの場合、イベント説
-				明の文字列。それ以外の場合、この項目は存在しな
-				い。
-		    lnum	スタック上のスクリプトの行番号。
+				明の文字列。それ以外の場合、この項目は省略され
+				る。
+		    lnum	スタック上のスクリプト内の行番号。
 		    filepath	スタック上のスクリプトのファイルパス。
 
 		戻り値の型: list<dict<any>>
@@ -10340,6 +10381,40 @@ state([{what}])						*state()*
 
 		戻り値の型: |String|
 
+
+str2blob({list} [, {options}])					*str2blob()*
+		{list} 内の文字列リスト内の文字をバイト列に変換して Blob を返
+		す。
+
+		各リスト項目の後に <NL> バイトが blob に追加される。文字列内の
+		改行文字は、blob 内で <NUL> バイトに変換される。
+
+		{options} が指定されていない場合は、現在の 'encoding' 値を使用
+		して文字をバイト列に変換する。
+
+		引数 {options} は |Dict| であり、次の項目をサポートする:
+		    encoding	このエンコーディングを使用して文字をエンコード
+				する。値は |String| である。サポートされている
+				値については|encoding-names| を参照。
+
+		文字エンコードが失敗した場合はエラーが発生し、空の blob が返さ
+		れる。
+
+		{list} が空の場合、空の Blob を返す。
+
+		|blob2str()| も参照
+
+		例: >
+		    str2blob(["ab"])	returns 0z6162
+		    str2blob(["束損"])	returns 0zC2ABC2BB
+		    str2blob(["a\nb"])	returns 0z610A62
+		    str2blob(readfile('myfile.txt'))
+		    str2blob(["束損"], {'encoding': 'latin1'}) returns 0zABBB
+<
+		|method| としても使用できる: >
+			GetListOfStrings()->str2blob()
+<
+		戻り値の型: |Blob|
 
 str2float({string} [, {quoted}])				*str2float()*
 		文字列 {string} を浮動小数点数に変換する。これは式の中で浮動小
