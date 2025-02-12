@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Feb 01
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Feb 06
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -247,11 +247,12 @@ getbufvar({buf}, {varname} [, {def}])
 getcellpixels()			リスト	文字のセルのピクセルサイズを取得する
 getcellwidths()			リスト	文字のセル幅の上書き設定を取得
 getchangelist([{buf}])		リスト	変更リスト要素のリスト
-getchar([{expr}])		数値/文字列	ユーザーから1文字を取得する
+getchar([{expr} [, {opts}]])	数値/文字列
+					ユーザーから1文字を取得する
 getcharmod()			数値	修飾キーの状態を表す数値を取得
 getcharpos({expr})		リスト	カーソル、マーク、その他のカーソル位置
 getcharsearch()			辞書	最後の文字検索を取得
-getcharstr([{expr}])		文字列	ユーザーから1文字を取得する
+getcharstr([{expr} [, {opts}]])	文字列	ユーザーから1文字を取得する
 getcmdcomplpat()		文字列	現在のコマンドライン補完の補完パターン
 					を返す
 getcmdcompltype()		文字列	現在のコマンドライン補完のタイプを返す
@@ -3915,15 +3916,17 @@ getchangelist([{buf}])					*getchangelist()*
 		戻り値の型: list<any>
 
 
-getchar([{expr}])					*getchar()*
+getchar([{expr} [, {opts}]])				*getchar()*
 		ユーザーまたは入力ストリームから1文字を取得する。
-		{expr} が省略された場合、1文字を取得できるまで待つ。
+		{expr} が省略されているか -1 の場合は、1文字を取得できるまで待
+			つ。
 		{expr} が0の場合、1文字を取得できる時だけ取得する。取得できな
 			い時は0を返す。
 		{expr} が1の場合は、1文字を取得できるかを判定するだけである。
 			入力は消費されない。取得できないと判定された時は0を返
 			す。
-		常に文字列として取得したい場合は |getcharstr()| を使用する。
+		常に文字列として取得したい場合は |getcharstr()| を使用するか、
+		{opts} で "number" に |FALSE| を指定する。
 
 		{expr} が省略されたときや {expr} が0のときは、文字全体または特
 		殊キーを返す。それが1文字なら戻り値は数値である。これを文字列
@@ -3932,6 +3935,8 @@ getchar([{expr}])					*getchar()*
 		特殊キーとは0x80(10進数で128)で始まるバイト列からなる文字列で
 		ある。これは文字列 "\<Key>" と同じ値である(例: "\<Left>")。戻
 		り値は文字列であり、修飾キー(shift, control, alt)は含まれない。
+		|keytrans()| は、返された文字列を読み取り可能な形式に変換する
+		ためにも使用できる。
 
 		{expr} が0や Esc が入力された場合は、これがエスケープシーケン
 		スの始まりであるかどうかをVimが知るために待つ間、短い遅延があ
@@ -3942,6 +3947,29 @@ getchar([{expr}])					*getchar()*
 		にはnr2char()を使う。
 
 		修飾キーを取得するには getcharmod() を使う。
+
+		オプション引数 {opts} は Dict であり、次の項目をサポートする:
+
+			cursor		文字を待機するときのカーソルの動作を指
+					定する文字列。
+					"hide": カーソルを非表示にする。
+					"keep": 現在のカーソルを変更しない。
+					"msg": カーソルをメッセージ領域に移動
+						する。
+					(デフォルト: "msg")
+
+			number		|TRUE| の場合、単一文字を取得するとき
+					に数値を返す。
+					|FALSE| の場合、戻り値は常に文字列に変
+					換され、文字が利用できない場合は (0 で
+					はなく) 空の文字列が返される。
+					(デフォルト: |TRUE|)
+
+			simplify	|TRUE| の場合、可能であれば文字に修飾
+					子を含める。例えば、CTRL-I と <Tab> に
+					同じ値を返す。|FALSE| の場合、文字に修
+					飾子を含めない。
+					(デフォルト: |TRUE|)
 
 		ユーザーがマウスをクリックしたときはマウスイベントを返す。クリッ
 		クした位置は|v:mouse_col|, |v:mouse_lnum|, |v:mouse_winid|,
@@ -4053,16 +4081,9 @@ getcharsearch()						*getcharsearch()*
 		戻り値の型: dict<any>
 
 
-getcharstr([{expr}])					*getcharstr()*
-		ユーザーまたは入力ストリームから1文字を文字列として取得する。
-		{expr} が省略された場合、1文字を取得できるまで待つ。
-		{expr} が0もしくは偽の場合、1文字を取得できる時だけ取得する。
-			取得できない時は空文字列を返す。
-		{expr} が1もしくは真の場合は、1文字を取得できるかを判定するだ
-			けである。入力は消費されない。取得できないと判定された
-			時は空文字列を返す。
-		結果の数値が文字列に変換される以外は |getchar()| と同様に動作
-		する。
+getcharstr([{expr} [, {opts}]])				*getcharstr()*
+		|getchar()| と同じだが、常に文字列を返し、{opts} では "number"
+		は許可されない。
 
 		戻り値の型: |String|
 
@@ -12454,6 +12475,7 @@ gui_win32s		Win32sのGUIが有効である (Windows 3.1)
 haiku			Haikuバージョン
 hangul_input		ハングル入力サポート
 hpux			HP-UXバージョン
+hurd			GNU/Hurd バージョン
 iconv			iconv()をサポート
 insert_expand		挿入モード時にCTRL-Xの展開がサポートされる (常に true)
 job			|channel| プロセス間通信と |job| ジョブをサポート
