@@ -1,4 +1,4 @@
-*vim9.txt*	For Vim バージョン 9.1.  Last change: 2025 Mar 06
+*vim9.txt*	For Vim バージョン 9.1.  Last change: 2025 Mar 23
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
 
@@ -1006,9 +1006,10 @@ falsy か truthy として評価されます。これは JavaScript とほぼ同
 	number		非0
 	float		非0
 	string		空文字列以外
-	blob		空ブロブ以外
-	list		空リスト以外 (JavaScript とは異なります)
-	dictionary	空辞書以外 (JavaScript とは異なります)
+	blob		空 blob 以外
+	list		空リスト以外 (JavaScript とは異なる)
+	tuple		空 tuple 以外 (JavaScript とは異なる)
+	dictionary	空辞書以外 (JavaScript とは異なる)
 	func		関数名があるとき
 	special		true または v:true
 	job		非 NULL
@@ -1055,6 +1056,7 @@ Vim9 script では以下の定義済みの値が使えます: >
 	null_function
 	null_job
 	null_list
+	null_tuple
 	null_object
 	null_partial
 	null_string
@@ -1480,14 +1482,15 @@ Note スクリプトレベルにおいて、ループ変数はループの後で
 	dict<{type}>
 	job
 	channel
+	tuple<{type}>
+	tuple<{type}, {type}, ...>
+	tuple<...list<{type}>>
+	tuple<{type}, ...list<{type}>>
 	func
 	func: {type}
 	func({type}, ...)
 	func({type}, ...): {type}
 	void
-
-まだサポートされていません:
-	tuple<a: {type}, b: {type}, ...>
 
 これらの型は宣言において使えますが、いかなる単純値も実際に "void" 型を持つこと
 はありません。void (例えば、戻り値のない関数) を使おうとするとエラーがでます。
@@ -1495,6 +1498,30 @@ Note スクリプトレベルにおいて、ループ変数はループの後で
 
 配列型はありません。代わりに list<{type}> を使ってください。不変のリストに
 対しては大量の細かいメモリを割り当てするのを避ける効率的な実装が使われます。
+							*tuple-type*
+tuple 型は、多かれ少なかれ具体的な方法で宣言できる:
+tuple<number>			|Number| 型の項目を 1 つ含む tuple
+tuple<number, string>		|Number| と |String| の 2 つの項目を含む tuple
+tuple<number, float, bool>	|Number|、|Float| および |Boolean| 型の 3 つの
+				項目を含む tuple
+tuple<...list<number>>		|Number| 型の 0 個以上の項目を持つ可変長 tuple
+tuple<number, ...list<string>>	|Number| 型の項目とそれに続く 0 個以上の
+				|String| 型の項目を含む tuple
+
+例: >
+    var myTuple: tuple<number> = (20,)
+    var myTuple: tuple<number, string> = (30, 'vim')
+    var myTuple: tuple<number, float, bool> = (40, 1.1, true)
+    var myTuple: tuple<...list<string>> = ('a', 'b', 'c')
+    var myTuple: tuple<number, ...list<string>> = (3, 'a', 'b', 'c')
+<
+						*variadic-tuple* *E1539*
+可変長 tuple には、同じ型の 0 個以上の項目が含まれる。可変長 tuple の型はリス
+ト型で終わる必要がある。例: >
+    var myTuple: tuple<...list<number>> = (1, 2, 3)
+    var myTuple: tuple<...list<string>> = ('a', 'b', 'c')
+    var myTuple: tuple<...list<bool>> = ()
+<
 				    *vim9-func-declaration* *E1005* *E1007*
 部分適用と関数は幾らかの方法で宣言することができます:
 func				任意の種類の関数参照。引数や戻り値への型チェッ
@@ -1708,14 +1735,15 @@ Vim9 script ではこれは厳格にされています。使われている値�
 			 *E1211* *E1217* *E1218* *E1219* *E1220* *E1221*
 			 *E1222* *E1223* *E1224* *E1225* *E1226* *E1227*
 			 *E1228* *E1238* *E1250* *E1251* *E1252* *E1256*
-			 *E1297* *E1298* *E1301*
+			 *E1297* *E1298* *E1301* *E1528* *E1529* *E1530*
+			 *E1531* *E1534*
 間違いを発見しやすくするために、ほとんどの組み込み関数で型がチェックされます。
 
 変数のカテゴリー、デフォルトおよび null の扱い ~
 				*variable-categories* *null-variables*
 変数には次のカテゴリがあります:
 	プリミティブ	number, float, boolean
-	コンテナ	string, blob, list, dict
+	コンテナ	string, blob, list, tuple, dict
 	特殊		function, job, channel, user-defined-object
 
 初期化子を使用せずに変数を宣言する場合は、明示的に型を指定する必要があります。
@@ -1847,6 +1875,7 @@ null_<type> に初期化された変数はすべて、null_<type> と等しく�
 	var s: string		s == null
 	var b: blob		b != null   ***
 	var l: list<any>	l != null   ***
+	var t: tuple<any>	t != null   ***
 	var d: dict<any>	d != null   ***
 	var f: func		f == null
 	var j: job		j == null
@@ -1857,6 +1886,7 @@ null_<type> に初期化された変数はすべて、null_<type> と等しく�
 	var s2: string = ""	  == null_string	!= null
 	var b2: blob = 0z	  == null_blob		!= null
 	var l2: list<any> = []	  == null_list		!= null
+	var t2: tuple<any> = ()	  == null_tuple		!= null
 	var d2: dict<any> = {}	  == null_dict		!= null
 
 NOTE: ジョブなどの特殊な変数はデフォルトで null 値になり、対応する空の値はあり
