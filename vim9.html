@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'vim9'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="vim9.html" name="vim9.txt">vim9.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2025 Mar 06<br>
+<a class="Constant" href="vim9.html" name="vim9.txt">vim9.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2025 Mar 23<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
 <br>
@@ -1011,9 +1011,10 @@ falsy か truthy として評価されます。これは JavaScript とほぼ同
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;非0<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;float&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 非0<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;空文字列以外<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;blob&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;空ブロブ以外<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;list&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;空リスト以外 (JavaScript とは異なります)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dictionary&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;空辞書以外 (JavaScript とは異なります)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;blob&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;空 blob 以外<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;list&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;空リスト以外 (JavaScript とは異なる)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tuple&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 空 tuple 以外 (JavaScript とは異なる)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dictionary&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;空辞書以外 (JavaScript とは異なる)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;関数名があるとき<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;special&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; true または v:true<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;job&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 非 NULL<br>
@@ -1060,6 +1061,7 @@ Vim9 script では以下の定義済みの値が使えます:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;null_function<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;null_job<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;null_list<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;null_tuple<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;null_object<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;null_partial<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;null_string</div>
@@ -1485,14 +1487,15 @@ Vim9 関数はすべてコンパイルされます:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dict&lt;<span class="Special">{type}</span>&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;job<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;channel<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tuple&lt;<span class="Special">{type}</span>&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tuple&lt;<span class="Special">{type}</span>,&nbsp;<span class="Special">{type}</span>, ...&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tuple&lt;...list&lt;<span class="Special">{type}</span>&gt;&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tuple&lt;<span class="Special">{type}</span>, ...list&lt;<span class="Special">{type}</span>&gt;&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func:&nbsp;<span class="Special">{type}</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func(<span class="Special">{type}</span>, ...)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func(<span class="Special">{type}</span>, ...):&nbsp;<span class="Special">{type}</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void<br>
-<br>
-まだサポートされていません:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tuple&lt;a:&nbsp;<span class="Special">{type}</span>, b:&nbsp;<span class="Special">{type}</span>, ...&gt;<br>
 <br>
 これらの型は宣言において使えますが、いかなる単純値も実際に &quot;void&quot; 型を持つこと<br>
 はありません。void (例えば、戻り値のない関数) を使おうとするとエラーがでます。<br>
@@ -1500,6 +1503,30 @@ Vim9 関数はすべてコンパイルされます:<br>
 <br>
 配列型はありません。代わりに list&lt;<span class="Special">{type}</span>&gt; を使ってください。不変のリストに<br>
 対しては大量の細かいメモリを割り当てするのを避ける効率的な実装が使われます。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#tuple-type" name="tuple-type">tuple-type</a><br>
+tuple 型は、多かれ少なかれ具体的な方法で宣言できる:<br>
+tuple<span class="Special">&lt;number&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#Number">Number</a>&nbsp;型の項目を 1 つ含む tuple<br>
+tuple&lt;number, string&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#Number">Number</a>&nbsp;と&nbsp;<a class="Identifier" href="eval.html#String">String</a>&nbsp;の 2 つの項目を含む tuple<br>
+tuple&lt;number, float, bool&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#Number">Number</a>、<a class="Identifier" href="eval.html#Float">Float</a>&nbsp;および&nbsp;<a class="Identifier" href="eval.html#Boolean">Boolean</a>&nbsp;型の 3 つの<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;項目を含む tuple<br>
+tuple&lt;...list<span class="Special">&lt;number&gt;</span>&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#Number">Number</a>&nbsp;型の 0 個以上の項目を持つ可変長 tuple<br>
+tuple&lt;number, ...list<span class="Special">&lt;string&gt;</span>&gt;&nbsp;&nbsp;<a class="Identifier" href="eval.html#Number">Number</a>&nbsp;型の項目とそれに続く 0 個以上の<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#String">String</a>&nbsp;型の項目を含む tuple<br>
+<br>
+例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;var myTuple: tuple&lt;number&gt; = (20,)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var myTuple: tuple&lt;number, string&gt; = (30, 'vim')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var myTuple: tuple&lt;number, float, bool&gt; = (40, 1.1, true)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var myTuple: tuple&lt;...list&lt;string&gt;&gt; = ('a', 'b', 'c')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var myTuple: tuple&lt;number, ...list&lt;string&gt;&gt; = (3, 'a', 'b', 'c')</div>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#variadic-tuple" name="variadic-tuple">variadic-tuple</a>&nbsp;<a class="Constant" href="vim9.html#E1539" name="E1539">E1539</a><br>
+可変長 tuple には、同じ型の 0 個以上の項目が含まれる。可変長 tuple の型はリス<br>
+ト型で終わる必要がある。例:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;var myTuple: tuple&lt;...list&lt;number&gt;&gt; = (1, 2, 3)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var myTuple: tuple&lt;...list&lt;string&gt;&gt; = ('a', 'b', 'c')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var myTuple: tuple&lt;...list&lt;bool&gt;&gt; = ()</div>
+<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#vim9-func-declaration" name="vim9-func-declaration">vim9-func-declaration</a>&nbsp;<a class="Constant" href="vim9.html#E1005" name="E1005">E1005</a>&nbsp;<a class="Constant" href="vim9.html#E1007" name="E1007">E1007</a><br>
 部分適用と関数は幾らかの方法で宣言することができます:<br>
 func&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;任意の種類の関数参照。引数や戻り値への型チェッ<br>
@@ -1713,14 +1740,15 @@ Vim9 script ではこれは厳格にされています。使われている値�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1211" name="E1211">E1211</a>&nbsp;<a class="Constant" href="vim9.html#E1217" name="E1217">E1217</a>&nbsp;<a class="Constant" href="vim9.html#E1218" name="E1218">E1218</a>&nbsp;<a class="Constant" href="vim9.html#E1219" name="E1219">E1219</a>&nbsp;<a class="Constant" href="vim9.html#E1220" name="E1220">E1220</a>&nbsp;<a class="Constant" href="vim9.html#E1221" name="E1221">E1221</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1222" name="E1222">E1222</a>&nbsp;<a class="Constant" href="vim9.html#E1223" name="E1223">E1223</a>&nbsp;<a class="Constant" href="vim9.html#E1224" name="E1224">E1224</a>&nbsp;<a class="Constant" href="vim9.html#E1225" name="E1225">E1225</a>&nbsp;<a class="Constant" href="vim9.html#E1226" name="E1226">E1226</a>&nbsp;<a class="Constant" href="vim9.html#E1227" name="E1227">E1227</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1228" name="E1228">E1228</a>&nbsp;<a class="Constant" href="vim9.html#E1238" name="E1238">E1238</a>&nbsp;<a class="Constant" href="vim9.html#E1250" name="E1250">E1250</a>&nbsp;<a class="Constant" href="vim9.html#E1251" name="E1251">E1251</a>&nbsp;<a class="Constant" href="vim9.html#E1252" name="E1252">E1252</a>&nbsp;<a class="Constant" href="vim9.html#E1256" name="E1256">E1256</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1297" name="E1297">E1297</a>&nbsp;<a class="Constant" href="vim9.html#E1298" name="E1298">E1298</a>&nbsp;<a class="Constant" href="vim9.html#E1301" name="E1301">E1301</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1297" name="E1297">E1297</a>&nbsp;<a class="Constant" href="vim9.html#E1298" name="E1298">E1298</a>&nbsp;<a class="Constant" href="vim9.html#E1301" name="E1301">E1301</a>&nbsp;<a class="Constant" href="vim9.html#E1528" name="E1528">E1528</a>&nbsp;<a class="Constant" href="vim9.html#E1529" name="E1529">E1529</a>&nbsp;<a class="Constant" href="vim9.html#E1530" name="E1530">E1530</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#E1531" name="E1531">E1531</a>&nbsp;<a class="Constant" href="vim9.html#E1534" name="E1534">E1534</a><br>
 間違いを発見しやすくするために、ほとんどの組み込み関数で型がチェックされます。<br>
 <br>
 <span class="PreProc">変数のカテゴリー、デフォルトおよび null の扱い</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="vim9.html#variable-categories" name="variable-categories">variable-categories</a>&nbsp;<a class="Constant" href="vim9.html#null-variables" name="null-variables">null-variables</a><br>
 変数には次のカテゴリがあります:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;プリミティブ&nbsp;&nbsp;&nbsp;&nbsp;number, float, boolean<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コンテナ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string, blob, list, dict<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;コンテナ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string, blob, list, tuple, dict<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;特殊&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function, job, channel, user-defined-object<br>
 <br>
 初期化子を使用せずに変数を宣言する場合は、明示的に型を指定する必要があります。<br>
@@ -1852,6 +1880,7 @@ null_<span class="Special">&lt;type&gt;</span>&nbsp;に初期化された変数�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var s: string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; s == null<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var b: blob&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; b != null&nbsp;&nbsp; ***<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var l: list<span class="Special">&lt;any&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;l != null&nbsp;&nbsp; ***<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var t: tuple<span class="Special">&lt;any&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; t != null&nbsp;&nbsp; ***<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var d: dict<span class="Special">&lt;any&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d != null&nbsp;&nbsp; ***<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var f: func&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f == null<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var j: job&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j == null<br>
@@ -1862,6 +1891,7 @@ null_<span class="Special">&lt;type&gt;</span>&nbsp;に初期化された変数�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var s2: string = &quot;&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; == null_string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!= null<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var b2: blob = 0z&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; == null_blob&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!= null<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var l2: list<span class="Special">&lt;any&gt;</span>&nbsp;= []&nbsp;&nbsp;&nbsp;&nbsp;== null_list&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!= null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var t2: tuple<span class="Special">&lt;any&gt;</span>&nbsp;= ()&nbsp;&nbsp; == null_tuple&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; != null<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var d2: dict<span class="Special">&lt;any&gt;</span>&nbsp;= {}&nbsp;&nbsp;&nbsp;&nbsp;== null_dict&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!= null<br>
 <br>
 <span class="Todo">NOTE</span>: ジョブなどの特殊な変数はデフォルトで null 値になり、対応する空の値はあり<br>
