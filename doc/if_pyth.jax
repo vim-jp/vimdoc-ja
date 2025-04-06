@@ -1,4 +1,4 @@
-*if_pyth.txt*   For Vim バージョン 9.1.  Last change: 2024 Nov 09
+*if_pyth.txt*   For Vim バージョン 9.1.  Last change: 2025 Mar 26
 
 
 		  VIMリファレンスマニュアル    by Paul Moore
@@ -174,12 +174,13 @@ vim.command(str)					*python-command*
 	    :py vim.command("python print 'Hello again Python'")
 
 vim.eval(str)						*python-eval*
-	vim内の式評価を使って、式を評価します(|expression|を参照)。戻り値は、
+	vim 内の式評価を使って、式を評価します (|expression|を参照)。戻り値は、
 	次の通り:
-	- Vimの式を評価した結果が文字列か数値ならば文字列
-	- Vimの式を評価した結果がリストならばリスト
-	- Vimの式を評価した結果がVimの辞書ならば辞書
-	辞書とリストは再帰的に展開されます。
+	- Vim の式を評価した結果が文字列か数値ならば文字列
+	- Vim の式を評価した結果がリストならばリスト
+	- Vim の式を評価した結果が Vim の tuple ならば tuple
+	- Vim の式を評価した結果が Vim の辞書ならば辞書
+	辞書、リストおよび tuple は再帰的に展開されます。
 	例: >
 	    :" 'textwidth' オプションの値
 	    :py text_width = vim.eval("&tw")
@@ -190,7 +191,9 @@ vim.eval(str)						*python-eval*
 	    :" 結果は文字列であることに注意！数値に変換するには、string.atoi()
 	    :" を使うこと。
 	    :py str = vim.eval("12+12")
-
+	    :
+	    :py tuple = vim.eval('(1, 2, 3)')
+	    :
 	    :py tagList = vim.eval('taglist("eval_expr")')
 <	最後のコマンドはPython辞書のPythonリストを返します。例:
 	[{'cmd': '/^eval_expr(arg, nextcmd)$/', 'static': 0, 'name': ~
@@ -201,10 +204,10 @@ vim.eval(str)						*python-eval*
 	出すときに {locals} 辞書を使用します。
 
 vim.bindeval(str)					*python-bindeval*
-	|python-eval| と似ていますが、特殊なオブジェクトを返します
-	(|python-bindeval-objects| 参照)。これを使うと Vim のリスト (|List|)
-	や辞書 (|Dictionary|) を変更したり、Vim の関数 (|Funcref|) を呼び出し
-	たりできます。
+	|python-eval| と似ていますが、|python-bindeval-objects| で説明されてい
+	る特別なオブジェクトを返します。これらの Python オブジェクトを使用する
+	と、vim オブジェクトを変更 (|List|、|Tuple| または |Dictionary|) した
+	り、呼び出し (|Funcref|) たりできます。
 
 vim.strwidth(str)					*python-strwidth*
 	|strwidth()| と同じ。str の画面上の幅を数値で返す。タブ文字は 1 幅とし
@@ -675,6 +678,23 @@ vim.List オブジェクト				*python-List*
         for i in l:			# イテレーション
         print isinstance(l, vim.List)	# True
         class List(vim.List):		# サブクラス化
+
+vim.Tuple オブジェクト				*python-Tuple*
+    vim |Tuple| 型へのアクセスを提供するシーケンスのようなオブジェクト。
+    `.locked` 属性をサポートします。|python-.locked| を参照。次のメソッドもサ
+    ポートします:
+        メソッド        説明 ~
+        __new__(), __new__(iterable)
+			`vim.Tuple()` を使用して新しい vim tuple を作成できま
+			す。引数がない場合、空のリストが構築されます。
+
+    例: >
+        t = vim.Tuple("abc")		# コンストラクタ。結果: ('a', 'b', 'c')
+        print t[1:]			# スライス
+        print t[0]			# アイテム取得
+        for i in t:			# イテレーション
+        print isinstance(t, vim.Tuple)	# True
+        class Tuple(vim.Tuple):		# サブクラス化
 
 vim.Function オブジェクト			*python-Function*
     Vim の関数参照 (|Funcref|) と似た動作をする関数系オブジェクト。
