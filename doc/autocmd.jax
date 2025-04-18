@@ -1,4 +1,4 @@
-*autocmd.txt*   For Vim バージョン 9.1.  Last change: 2025 Mar 12
+*autocmd.txt*   For Vim バージョン 9.1.  Last change: 2025 Apr 04
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -596,9 +596,10 @@ BufWriteCmd			バッファ全体をファイルに書き込む前。ファイル
 				の書き込みの役目を負い、成功したときはオプショ
 				ン 'modified' をオフにする。バッファの内容を変
 				更すべきではない。
-				'modified' をオフにすると、以前の undo 状態が
-				'modified' (変更あり) になるように undo 情報が
-				調整される (|:write| と同様)。
+				コマンドが 'modified' をリセットすると、
+				|:write| と同様に、古い undo 状態を'modified'
+				としてマークするように undo 情報が調整される。
+				行の範囲には |'[| と |']| マークを使用する。
 				|Cmd-event|
 							*BufWritePost*
 BufWritePost			バッファ全体をファイルに書き込んだ後 (イベント
@@ -882,13 +883,15 @@ FileType			オプション 'filetype' が設定されたとき。
 							*FileWriteCmd*
 FileWriteCmd			バッファ全体を書き込まない場合の、ファイルに書
 				き込む前。ファイルへの書き込みの役目を負う。バッ
-				ファを変更すべきではない。 |Cmd-event|
+				ファを変更すべきではない。行の範囲には |'[| と
+				|']| マークを使用する。 |Cmd-event|
 							*FileWritePost*
 FileWritePost			バッファ全体を書き込まない場合の、ファイルに書
 				き込んだ後。
 							*FileWritePre*
 FileWritePre			バッファ全体を書き込まない場合の、ファイルに書
-				き込む前。
+				き込む前。行の範囲には |'[| と |']| マークを使
+				用する。
 							*FilterReadPost*
 FilterReadPost			フィルタコマンドからファイルを読み込んだ後。
 				Vimは FilterReadPre と同様に、現在のバッファの
@@ -1456,6 +1459,12 @@ WinScrolled			カレントのタブページのウィンドウでテキストが
 				(水平または垂直)スクロールされるか、幅または高
 				さが変更された後。|win-scrolled-resized| を参
 				照。
+
+				Note: これは、Vim がメインループに戻ったときに
+				通常のコマンドを処理した後でトリガーされるた
+				め、`:noautocmd` ではスキップできない。これを
+				無効にしたい場合は、代わりに 'eventignore' オ
+				プションを設定することを検討すること。
 
 				パターンは、スクロールかリサイズされた最初の
 				ウィンドウの |window-ID| に対してマッチングさ
