@@ -1,4 +1,4 @@
-*usr_05.txt*	For Vim バージョン 9.1.  Last change: 2025 Mar 22
+*usr_05.txt*	For Vim バージョン 9.1.  Last change: 2025 Apr 10
 
 		     VIM USER MANUAL - by Bram Moolenaar
 
@@ -314,24 +314,28 @@ CTRL-U でアンドゥすることができます。":iunmap <C-U>" で元に戻
    |:filetype-indent-on| と 'indentexpr' 参照。
 
 
-				*restore-cursor* *last-position-jump*  >
+				*restore-cursor* *last-position-jump*  >vim
     augroup RestoreCursor
       autocmd!
       autocmd BufReadPost *
         \ let line = line("'\"")
         \ | if line >= 1 && line <= line("$") && &filetype !~# 'commit'
         \      && index(['xxd', 'gitrebase'], &filetype) == -1
+        \      && !&diff
         \ |   execute "normal! g`\""
         \ | endif
     augroup END
 
 自動コマンドをもう一つ。ファイルを読み込んだ直後に実行される自動コマンドを定義
 しています。後ろのごちゃごちゃした部分は「'" マークが定義されているかどうかを
-チェックし、定義があればそこにジャンプする」という意味です。コミットやリベース
-メッセージの場合は、前回とは違うメッセージになる可能性が高く、また、xxd(1) を
-使ってバイナリファイルをフィルタリングして編集を行う場合は、入力ファイルを行っ
-たり来たり変換して、いわば二面性を持っているため、このようなことは行いません。
-|using-xxd| も参照してください。
+チェックし、定義があればそこにジャンプする」という意味です。以下の場合にはこの
+処理は実行されません:
+ - コミットやリベースメッセージの場合は、前回とは違うメッセージになる可能性が
+   高い
+ - xxd(1) を使ってバイナリファイルをフィルタリングして編集を行う場合は、入力
+   ファイルを行ったり来たり変換して、いわば二面性を持っているため (|using-xxd|
+   も参照)
+ - Vim が diff モードになっている
 
 コマンドを複数行に分けて書くために、行頭に "\" を書いています。行がやたらと長
 くなるのを防ぐためです。|line-continuation| 参照。"\" は Vim script 内でのみ使

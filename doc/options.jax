@@ -1,4 +1,4 @@
-*options.txt*	For Vim バージョン 9.1.  Last change: 2025 Mar 14
+*options.txt*	For Vim バージョン 9.1.  Last change: 2025 Apr 08
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -1625,7 +1625,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	るというのがあり、もしファイルが他のプログラムに変更されても認識されな
 	い。
 
-	"quickfix" バッファはエラーリストとロケーションリストにのみ使われる。
+	"quickfix" バッファはエラーリストと location リストにのみ使われる。
 	この値はコマンド|:cwindow| と|:lwindow|で設定され、ユーザーが変更するこ
 	とはないはずである。
 
@@ -1764,6 +1764,17 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 
 	セキュリティ上の理由から、このオプションを |modeline| または |sandbox|
 	内で設定することはできない。
+
+						*'chistory'* *'chi'*
+'chistory' 'chi'	数値	(既定では 10)
+			グローバル
+			{|+quickfix| 機能付きでコンパイルされたときのみ有効}
+	quickfix スタックに記憶する quickfix リストの数。1 から 100 の間で指定
+	する必要がある。このオプションが quickfix リストスタック内のエントリ数
+	よりも小さい値に設定された場合、エントリは最も古いものから削除される。
+	現在の quickfix リストが削除された場合、スタックの先頭 (最も最近作成さ
+	れたもの) の quickfix リストが代わりに使用される。詳細については、
+	|quickfix-stack| を参照。
 
 				   *'cindent'* *'cin'* *'nocindent'* *'nocin'*
 'cindent' 'cin'		切替	(既定ではオフ)
@@ -2934,7 +2945,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	内で設定することはできない。
 
 						*'dip'* *'diffopt'*
-'diffopt' 'dip'		文字列 (既定では "internal,filler,closeoff")
+'diffopt' 'dip'		文字列 (既定では
+				 "internal,filler,closeoff,inline:simple")
 			グローバル
 			{|+diff| 機能付きでコンパイルされたときのみ有効}
 	差分モード用のオプション設定。以下の項目で構成できる。すべてオプション
@@ -2996,6 +3008,23 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		indent-heuristic
 				内部 diff ライブラリのインデントヒューリスティ
 				ックを使用する。
+
+		inline:{text}	変更内のインライン diff をハイライトする。
+				|view-diffs| を参照。サポートされている値は次
+				のとおり:
+
+				none    インラインハイライトを実行しない。
+				simple  各行の最初の異なる文字から最後の文字ま
+					でをハイライトする。`inline:` 値が設定
+					されていない場合はこれがデフォルトであ
+					る。
+				char    内部 diff を使用して文字ごとの diff を
+					実行し、違いをハイライトする。
+				word    内部 diff を使用して |word| 単位の
+					diff を実行し、違いをハイライトする。
+					絵文字や CJK 文字などの英数字以外のマ
+					ルチバイト文字は、個別の単語として扱わ
+					れる。
 
 		internal	内部 diff ライブラリを使用する。'diffexpr' が
 				設定されている場合は無視される。 *E960*
@@ -3596,9 +3625,10 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 						*'fillchars'* *'fcs'*
 'fillchars' 'fcs'	文字列	(既定では "vert:|,fold:-,eob:~,lastline:@")
 			グローバル／ウィンドウについてローカル |global-local|
-	ウィンドウのステータス行、垂直分割の区切り、特殊行を埋める文字。
-	これはコンマで区切られた項目のリストである。各項目には、名前、コロン、
-	およびその項目の値がある: |E1511|
+	ウィンドウのステータス行、垂直分割の区切り、特殊行、および
+	|ins-completion-menu| 内の切り捨てられたテキストを埋めるための文字。こ
+	れはコンマで区切られた項目のリストである。各項目には、名前、コロン、お
+	よびその項目の値がある: |E1511|
 
 	  キーワード	既定値		変更の対象 ~
 	  stl		' '		カレントウィンドウのステータス行
@@ -3611,6 +3641,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	  diff		'-'		'diff' での削除された行
 	  eob		'~'		バッファ終端以降の空行
 	  lastline	'@'		'display' が含む最終行/切り捨て
+	  trunc		'>'		|ins-completion-menu| 内の切り捨てられ
+					たテキスト
 
 	指定されなかったキーワードについては、既定値が使われる。
 
@@ -3621,15 +3653,20 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	トおよびマルチバイトの文字をサポートしている。しかし全角文字幅の文字は
 	サポートしていない。|E1512|
 
-	強調表示が行われるものおよびその属するグループ:
+	ハイライトが行われるものおよびその属するグループ:
 	  項目名	ハイライトグループ ~
 	  stl		StatusLine		|hl-StatusLine|
 	  stlnc		StatusLineNC		|hl-StatusLineNC|
 	  vert		VertSplit		|hl-VertSplit|
 	  fold		Folded			|hl-Folded|
+	  foldopen	FoldColumn		|hl-FoldColumn|
+	  foldclose	FoldColumn		|hl-FoldColumn|
+	  foldsep	FoldColumn		|hl-FoldColumn|
 	  diff		DiffDelete		|hl-DiffDelete|
 	  eob		EndOfBuffer		|hl-EndOfBuffer|
 	  lastline	NonText			|hl-NonText|
+	  trunc		|hl-PmenuSel| のような多くのポップアップメニューハイラ
+			イトグループの 1 つ。
 
 						*'findfunc'* *'ffu'* *E1514*
 'findfunc' 'ffu'	文字列 (既定では "")
@@ -4424,10 +4461,10 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 				     v:Visual,V:VisualNOS,w:WarningMsg,
 				     W:WildMenu,f:Folded,F:FoldColumn,
 				     A:DiffAdd,C:DiffChange,D:DiffDelete,
-				     T:DiffText,>:SignColumn,-:Conceal,
-				     B:SpellBad,P:SpellCap,R:SpellRare,
-				     L:SpellLocal,+:Pmenu,=:PmenuSel,
-				     k:PmenuMatch,<:PmenuMatchSel,
+				     T:DiffText,E:DiffTextAdd,>:SignColumn,
+				     -:Conceal,B:SpellBad,P:SpellCap,
+				     R:SpellRare, L:SpellLocal,+:Pmenu,
+				     =:PmenuSel, k:PmenuMatch,<:PmenuMatchSel,
 				     [:PmenuKind,]:PmenuKindSel,
 				     {:PmenuExtra,}:PmenuExtraSel,
 				     x:PmenuSbar,X:PmenuThumb,*:TabLine,
@@ -4483,7 +4520,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	|hl-DiffAdd|	 A  差分モードで追加された行
 	|hl-DiffChange|	 C  差分モードで変更された行
 	|hl-DiffDelete|	 D  差分モードで削除された行
-	|hl-DiffText|	 T  差分モードで挿入されたテキスト
+	|hl-DiffText|	 T  差分モードで変更されたテキスト
+	|hl-DiffTextAdd|   E  差分モードで挿入されたテキスト
 	|hl-SignColumn|	 >  |signs| に使われる桁
 	|hl-Conceal|	 -  Conceal テキストの代替表示 ('conceallevel' 参照)
 	|hl-SpellBad|	 B  スペルミスの単語 |spell|
@@ -5347,6 +5385,17 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	ド |:redraw| を使うこと。
 	これにより表示エラーとなることがある。再描画によってちらつきや速度低下
 	になる場合にのみ一時的に設定することを目的としてる。
+
+						*'lhistory'* *'lhi'*
+'lhistory' 'lhi'	数値	(既定では 10)
+			ウィンドウについてローカル
+			{|+quickfix| 機能付きでコンパイルされたときのみ有効}
+	'chistory' と同様だが、ウィンドウに関連付けられた location リストスタッ
+	クを対象としている。 location リストウィンドウ自体、または location リ
+	ストスタックに関連付けられたウィンドウのいずれかでオプションが変更され
+	た場合、新しい値はもう一方のウィンドウにも適用される。つまりこの値は、
+	特定の location リストウィンドウとそれに対応するウィンドウで常に同じに
+	なる。詳細については |quickfix-stack| を参照。
 
 			*'linebreak'* *'lbr'* *'nolinebreak'* *'nolbr'*
 'linebreak' 'lbr'	切替	(既定ではオフ)
@@ -6495,6 +6544,17 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	0 のときはスペースの許す限り多く表示される。
 	|ins-completion-menu|
 
+						*'pummaxwidth'* *'pmw'*
+'pummaxwidth' 'pmw'	数値	(既定では 0)
+			グローバル
+	補完用のポップアップメニューに使用する最大幅を決定する。ゼロの場合、最
+	大幅の制限はない。それ以外の場合、ポップアップメニューはこの値より広く
+	なることはない。切り捨てられたテキストは、'fillchars' オプションの
+	"trunc" 値によって表示される。
+
+	このオプションは 'pumwidth' よりも優先される。
+	|ins-completion-menu|。
+
 						*'pumwidth'* *'pw'*
 'pumwidth' 'pw'		数値	(既定では 15)
 			グローバル
@@ -6574,10 +6634,10 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 'quickfixtextfunc' 'qftf'	文字列	(既定では "")
 			グローバル
 			{|+quickfix| 機能付きでコンパイルされたときのみ有効}
-	このオプションはクイックフィックスもしくはロケーションリストで表示する
-	テキストを取得するのに利用される関数を指定する。クイックフィックスもし
-	くはロケーションリストでの情報を各表示項目に付随する情報をカスタマイズ
-	して表示するときに利用できる。関数の書き方と例については
+	このオプションは quickfix もしくは location リストで表示するテキストを
+	取得するのに利用される関数を指定する。クイックフィックスもしくは
+	location リストでの情報を各表示項目に付随する情報をカスタマイズして表
+	示するときに利用できる。関数の書き方と例については
 	|quickfix-window-function| を参照。値として関数名、|lambda|、|Funcref|
 	が使える。詳細は |option-value-function| を参照。
 
