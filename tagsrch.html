@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'tagsrch'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="tagsrch.html" name="tagsrch.txt">tagsrch.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2025 Apr 26<br>
+<a class="Constant" href="tagsrch.html" name="tagsrch.txt">tagsrch.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2025 Apr 30<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -890,8 +890,9 @@ Cプログラム用の &quot;\^#\s*include&quot; である。<span class="Todo">
 <span class="PreProc">==============================================================================</span><br>
 7.&nbsp;<a class="Type" href="options.html#'tagfunc'">'tagfunc'</a>&nbsp;を使う&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="tagsrch.html#tag-function" name="tag-function">tag-function</a><br>
 <br>
-<a class="Identifier" href="tagsrch.html#:tag">:tag</a>、<a class="Identifier" href="tagsrch.html#:tselect">:tselect</a>&nbsp;のようなコマンド、および&nbsp;<a class="Identifier" href="tagsrch.html#CTRL-]">CTRL-]</a>&nbsp;のようなノーマルモードタ<br>
-グコマンドに使われるタグのリストを生成する関数をVimに提供することが可能である。<br>
+<a class="Identifier" href="tagsrch.html#:tag">:tag</a>、<a class="Identifier" href="tagsrch.html#:tselect">:tselect</a>&nbsp;のようなコマンド、<a class="Identifier" href="tagsrch.html#CTRL-]">CTRL-]</a>&nbsp;のようなノーマルモードのタグコマ<br>
+ンド、および&nbsp;<a class="Identifier" href="builtin.html#taglist()">taglist()</a>&nbsp;関数に使用されるタグのリストを生成する関数を Vim に提<br>
+供することができる。<br>
 <br>
 タグリストの生成に使用される関数は、<a class="Type" href="options.html#'tagfunc'">'tagfunc'</a>&nbsp;オプションを設定することによって<br>
 指定される。関数は3つの引数で呼び出される:<br>
@@ -943,22 +944,22 @@ Cプログラム用の &quot;\^#\s*include&quot; である。<span class="Todo">
 <br>
 以下は、<a class="Type" href="options.html#'tagfunc'">'tagfunc'</a>&nbsp;に使用される関数の仮定の例である。結果(ファイル名の逆順のタ<br>
 グのリスト)を生成するために&nbsp;<a class="Identifier" href="builtin.html#taglist()">taglist()</a>&nbsp;の出力を使用している。<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function CompareFilenames(item1, item2)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let f1 = a:item1[<span class="MissingTag">'filename'</span>]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let f2 = a:item2[<span class="MissingTag">'filename'</span>]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return f1 &gt;=# f2 ? -1 : f1 &lt;=# f2 ? 1 : 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function TagFunc(pattern, flags, info)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function CompareFilenames(item1, item2)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let f1 = a:item1['filename']<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let f2 = a:item2['filename']<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return f1 &gt;=# f2 ?<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ -1 : f1 &lt;=# f2 ? 1 : 0<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function TagFunc(pattern, flags, info)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = taglist(a:pattern)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call sort(result, &quot;CompareFilenames&quot;)<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = taglist(a:pattern)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call sort(result, &quot;CompareFilenames&quot;)</div>
-<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set tagfunc=TagFunc</div>
-<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set tagfunc=TagFunc<br>
+&lt;<br>
+<span class="Todo">Note</span>:&nbsp;<a class="Identifier" href="builtin.html#taglist()">taglist()</a>&nbsp;を実行すると、<a class="Type" href="options.html#'tagfunc'">'tagfunc'</a>&nbsp;関数は再帰的に呼び出されない。<br>
 <br>
 &nbsp;vim:tw=78:ts=8:noet:ft=help:norl:<br>
 </div>
