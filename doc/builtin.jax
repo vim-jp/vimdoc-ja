@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Apr 18
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Apr 27
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -142,12 +142,14 @@ charidx({string}, {idx} [, {countcc} [, {utf16}]])
 chdir({dir})			文字列	現在の作業ディレクトリを変更する
 cindent({lnum})			数値	{lnum}行目のCインデント量
 clearmatches([{win}])		なし	全マッチをクリアする
+cmdcomplete_info()		辞書	現在のコマンドライン補完の情報を取得
 col({expr} [, {winid}])		数値	カーソルかマークのカラムバイトインデッ
 					クス
 complete({startcol}, {matches})	なし	挿入モード補完を設定する
 complete_add({expr})		数値	補完候補を追加する
 complete_check()		数値	補完中に押されたキーをチェックする
 complete_info([{what}])		辞書	現在の補完情報を取得
+complete_match([{lnum}, {col}])	リスト	補完のカラムとトリガー文字列を取得
 confirm({msg} [, {choices} [, {default} [, {type}]]])
 				数値	ユーザーへの選択肢と番号
 copy({expr})			任意	{expr}の浅いコピーを作る
@@ -1881,6 +1883,30 @@ clearmatches([{win}])					*clearmatches()*
 		戻り値の型: |Number|
 
 
+cmdcomplete_info()					*cmdcomplete_info()*
+		コマンドライン補完に関する情報を含む |Dictionary| を返す。
+		|cmdline-completion| を参照。
+		項目は以下:
+		   cmdline_orig	補完が始まる前の元のコマンドライン文字列。
+		   pum_visible	ポップアップメニューが表示されている場合は
+				|TRUE|。
+				|pumvisible()| を参照。
+		   matches	すべての補完候補のリスト。各項目は文字列であ
+				る。
+		   selected	選択された項目のインデックス。最初のインデック
+				スは 0 である。項目が選択されていない場合、イ
+				ンデックスは -1 になる (入力されたテキストの
+				み、または <Up> キーまたは <Down> キーを使用し
+				た場合は、項目が選択されていない状態で最後に補
+				完された項目が表示される)
+
+		補完が試行されなかった場合、候補が 1 つしかなくそれが完全に補
+		完された場合、またはエラーが発生した場合は、空の |Dictionary|
+		を返す。
+
+		戻り値の型: dict<any>
+
+
 col({expr} [, {winid}])					*col()*
 		戻り値は数値で、{expr} で与えられる位置の桁番号(バイトインデッ
 		クス)。
@@ -2049,6 +2075,50 @@ complete_info([{what}])				*complete_info()*
 			GetItems()->complete_info()
 <
 		戻り値の型: dict<any>
+
+complete_match([{lnum}, {col}])			*complete_match()*
+		指定された位置から後方に検索し、'isexpand' オプションに従って
+		マッチした文字列のリストを返す。引数が指定されていない場合は、
+		現在のカーソル位置を使用する。
+
+		各マッチは、[startcol, trigger_text] を含むリストとして表され
+		る:
+		- startcol: 補完を開始する桁位置。トリガー位置が見つからない場
+		  合は -1 を返す。複数文字のトリガーの場合は、最初の文字の桁を
+		  返す。
+		- trigger_text: 'isexpand' からのマッチするトリガー文字列、ま
+		  たはマッチするものが見つからなかったか、デフォルトの
+		  'iskeyword' パターンを使用している場合は空の文字列。
+
+		'isexpand' が空の場合、'iskeyword' のパターン "\k\+$" を使用し
+		て現在のキーワードの開始位置を検索する。
+
+		例: >
+	set isexpand=.,->,/,/*,abc
+	func CustomComplete()
+	  let res = complete_match()
+	  if res->len() == 0 | return | endif
+	  let [col, trigger] = res[0]
+	  let items = []
+	  if trigger == '/*'
+	    let items = ['/** */']
+	  elseif trigger == '/'
+	    let items = ['/*! */', '// TODO:', '// fixme:']
+	  elseif trigger == '.'
+	    let items = ['length()']
+	  elseif trigger =~ '^\->'
+	    let items = ['map()', 'reduce()']
+	  elseif trigger =~ '^\abc'
+	    let items = ['def', 'ghk']
+	  endif
+	  if items->len() > 0
+	    let startcol = trigger =~ '^/' ? col : col + len(trigger)
+	    call complete(startcol, items)
+	  endif
+	endfunc
+	inoremap <Tab> <Cmd>call CustomComplete()<CR>
+<
+		戻り値の型: list<list<any>>
 
 							*confirm()*
 confirm({msg} [, {choices} [, {default} [, {type}]]])
@@ -3244,7 +3314,8 @@ finddir({name} [, {path} [, {count}]])				*finddir()*
 		|method| としても使用できる: >
 			GetName()->finddir()
 <
-		戻り値の型: |String|
+		戻り値の型: {count} が負の場合は list<string>、それ以外の場合
+		は |String| 。
 
 
 findfile({name} [, {path} [, {count}]])				*findfile()*
@@ -3258,7 +3329,8 @@ findfile({name} [, {path} [, {count}]])				*findfile()*
 		|method| としても使用できる: >
 			GetName()->findfile()
 <
-		戻り値の型: |String|
+		戻り値の型: {count} が負の場合は list<string>、それ以外の場合
+		は |String| 。
 
 
 flatten({list} [, {maxdepth}])					*flatten()*
@@ -4229,6 +4301,7 @@ getcompletion({pat}, {type} [, {filtered}])		*getcompletion()*
 		file		ファイルおよびディレクトリ名
 		file_in_path	|'path'|のファイルおよびディレクトリ名
 		filetype	ファイルタイプ名 |'filetype'|
+		filetypecmd	|:filetype| サブオプション
 		function	関数名
 		help		ヘルプ項目
 		highlight	ハイライトグループ
