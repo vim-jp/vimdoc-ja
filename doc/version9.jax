@@ -1,4 +1,4 @@
-*version9.txt*  For Vim バージョン 9.1.  Last change: 2025 May 08
+*version9.txt*  For Vim バージョン 9.1.  Last change: 2025 May 28
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -41573,6 +41573,10 @@ XDG デスクトップ仕様 |xdg-base-dir| のサポート
 
 Vim script および Vim9 script での |Tuple| データ型のサポート。
 
+'tabline' に似た垂直の |tabpanel| ウィンドウをサポート。
+
+新しい挿入モード補完: |i_CTRL-X_CTRL-R| でレジスタから単語を補完する。
+
 							*changed-9.2*
 変更点~
 ------
@@ -41608,8 +41612,8 @@ Vim script および Vim9 script での |Tuple| データ型のサポート。
 - 'wildmode' の新しいオプション値:
 	"noselect"	- wildmenu のエントリを自動選択しない
 - 'complete' の新しいフラグ:
-	"f{func}"	- 与えられた関数を使って補完する
-	"f"		- 'completefunc' を使って補完する
+	"F{func}"	- 与えられた関数を使って補完する
+	"F"		- 'completefunc' を使って補完する
 	"o"		- 'omnifunc' を使って補完する
 - "{flag}^<limit>" 表記を使用して、 'complete' のソースのマッチ数を制限できる
   ようにする
@@ -41621,18 +41625,19 @@ Vim script および Vim9 script での |Tuple| データ型のサポート。
 - 'commentstring' のデフォルトには、自動コメントの見栄えを良くするための空白の
   パディングを含んでいる |comment-install|
 - 'completeopt' は |global-local| オプションになった。
-- 'nrformats' は、マイナス記号の前の空白に基づいて符号付きか符号なしの数値かを
-  決定する新しい "blank" サブオプションを受け付ける。
 - いくつかの (伝統的な) vi の動作/不整合を無効にするために、'cpoptions' にフラ
   グ "z" |cpo-z| を追加する (|d-special| および |cw| を参照)。
-- 'rulerformat' は |stl-%!| 項目をサポートするようになった
-- ページ単位のスクロールには CTRL-F / CTRL-B で、また、半ページ単位のスクロー
-  ルには CTRL-D / CTRL-U で 'smoothscroll' ロジックを使用する。
-- 'pummaxwidth' 補完ポップアップメニューの最大幅
 - 'fillchars' の新しいオプション値:
 	"trunc"		- 切り詰め表示を設定する、'pummaxwidth'
 	"truncrl"	- "trunc" に似ているが 'rl' モード用 'pummaxwidth'
+	"tpl_vert"	- 'tabpanel' のセパレーター
+- 'grepformat' は |global-local| オプションになった。
 - GTK3 でマウスカーソルの一部が表示されない問題を修正 'mouseshape'
+- 'nrformats' は、マイナス記号の前の空白に基づいて符号付きか符号なしの数値かを
+  決定する新しい "blank" サブオプションを受け付ける。
+- 'rulerformat' は |stl-%!| 項目をサポートするようになった
+- ページ単位のスクロールには CTRL-F / CTRL-B で、また、半ページ単位のスクロー
+  ルには CTRL-D / CTRL-U で 'smoothscroll' ロジックを使用する。
 
 Ex コマンド: ~
 - 新しい目印を定義するときに優先順位を指定できるようにする |:sign-define|
@@ -41668,6 +41673,8 @@ Ex コマンド: ~
   |netrw| から切り離す
 - ".=" を使用した新しいダイグラフ "APPROACHES THE LIMIT"
 - |CTRL-C| は常にアクティブな |popup-window| を閉じる。
+- configure スクリプトは、GUI ツールキットを自動検出するときに、GTK2 よりも
+  GTK3 の使用を優先する。
 
 							*added-9.2*
 追加要素 ~
@@ -41722,6 +41729,9 @@ Ex コマンド: ~
 |hl-PmenuMatch|		ポップアップメニュー: マッチしたテキストのハイライト
 |hl-PmenuMatchSel|	ポップアップメニュー: 選択された行のマッチしたテキスト
 			のハイライト
+|hl-TabPanel|		|tabpanel|: アクティブではないタブページラベル
+|hl-TabPanelFill|	|tabpanel|: 詰め用スペース
+|hl-TabPanelSel|	|tabpanel|: アクティブなタブページラベル
 
 コマンド: ~
 
@@ -41732,6 +41742,7 @@ Ex コマンド: ~
 |:iput|			|:put| と似ているが、インデントを調整する
 |:pbuffer|		バッファリストからバッファ [N] をプレビューウィンドウ
 			で編集する
+|:redrawtabpanel|	'tabpanel' を強制的に更新する。
 
 オプション: ~
 
@@ -41745,8 +41756,11 @@ Ex コマンド: ~
 'lhistory'		location リストスタックのサイズ |quickfix-stack|
 'messagesopt'		|:messages| と |hit-enter| プロンプトを設定する
 'pummaxwidth'		補完ポップアップメニューの最大幅
-'winfixbuf'		ウィンドウ内でバッファをフォーカスしたままにする
+'showtabpanel'		|tabpanel| をいつ表示するか
 'tabclose'		タブページを閉じた後にフォーカスするタブページ
+'tabpanel'		タブページを表示するためのオプションの垂直パネル
+			|tabpanel|
+'tabpanelopt'		|tabpanel| のオプション設定
 't_xo'			端末は XON/XOFF ハンドシェイクを使用する (例: vt420)
 't_CF'			代替フォントハイライトの端末コードのサポート
 'winfixbuf'		ウィンドウ内でバッファをフォーカスしたままにする
