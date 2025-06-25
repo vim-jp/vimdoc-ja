@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'usr_30'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="usr_30.html" name="usr_30.txt">usr_30.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 Apr 29<br>
+<a class="Constant" href="usr_30.html" name="usr_30.txt">usr_30.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2025 Jun 10<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; VIM USER MANUAL - by Bram Moolenaar<br>
 <br>
@@ -403,102 +403,199 @@ Vim が使っている名前を確認できます:<br>
 <span class="PreProc">==============================================================================</span><br>
 <a class="Constant" href="usr_30.html#30.5" name="30.5">30.5</a>&nbsp;&nbsp;タブとスペース<br>
 <br>
-<a class="Type" href="options.html#'tabstop'">'tabstop'</a>&nbsp;の初期設定は 8 です。変更することはできますが、それはトラブルの元に<br>
-なります。他のプログラムはあなたが使用しているタブ幅を知ることができません。そ<br>
-のようなプログラムでは、恐らくタブの幅は 8 であると仮定されているので、テキス<br>
-トが崩れて表示されてしまいます。また、ほとんどのプリンタはタブ幅を 8 で固定し<br>
-ています。したがって、<a class="Type" href="options.html#'tabstop'">'tabstop'</a>&nbsp;を変更するのはお勧めしません。(他のタブ幅設定<br>
-で書かれたテキストを修正したい場合は&nbsp;<a class="Identifier" href="usr_25.html#25.3">25.3</a>&nbsp;を参照してください。)<br>
-プログラムをインデントする場合、8 桁単位でインデントするとすぐに画面が埋まって<br>
-しまいます。しかしスペースが一つだけではインデントが目立ちません。多くのプログ<br>
-ラマは (折衷して) 4 桁を好んで使います。<br>
-<span class="Special">&lt;Tab&gt;</span>&nbsp;の幅は 8 桁で、インデントを 4 桁にしたいということは、<span class="Special">&lt;Tab&gt;</span>&nbsp;文字を使って<br>
-インデントすることはできないということです。そのようなインデントには二つの方法<br>
-があります:<br>
+<span class="Statement">タブ導入の背景の簡単な歴史</span><br>
 <br>
-1.&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;とスペースを混在させる。<span class="Special">&lt;Tab&gt;</span>&nbsp;は 1 つでスペース 8 個分の幅になるので<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ファイルサイズの節約になります。スペース 8 個より&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;の方が入力も削除も<br>
-&nbsp;&nbsp;&nbsp;&nbsp;簡単です。<br>
+(Vim の祖先である)&nbsp;<a class="Comment" href="intro.html#vi">vi</a>&nbsp;は Bill Joy によって開発されました。当時、彼はメモリと<br>
+I/O 操作能力が限られた PDP-11 を使用していました。当時は、次のようなトリックを<br>
+使ってソースコードのサイズを最適化するのが一般的でした。<br>
+&nbsp;&nbsp;ASCII テーブルは、もともとテレプリンターを遠隔制御するために設計されました。<br>
+制御文字 9 (水平タブ、キャレット表記: ^I) をテレプリンターに送信すると、キャ<br>
+リッジは次のタブストップに移動します。タブストップが 8 桁 (一般的な標準) で区<br>
+切られていると仮定すると、1 つの制御文字で最大 8 つのスペース文字と同じ視覚効<br>
+果を生み出すことができます。例えば、次の 2 行は同じように表示されます<br>
 <br>
-2.&nbsp;&nbsp;スペースだけを使う。違うタブ幅を使う他のプログラムでもトラブルが起きませ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ん。<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1234^I9<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1234&nbsp;&nbsp;&nbsp;&nbsp;9</div>
 <br>
-Vim はどちらの方法もサポートしています。<br>
+<span class="Special">&lt;Tab&gt;</span>&nbsp;キーを使用する方が、<span class="Special">&lt;Space&gt;</span>&nbsp;キーを複数回入力するよりも高速でした。<span class="Special">&lt;BS&gt;</span><br>
+キーの場合も同様です。<br>
 <br>
 <br>
-<span class="Statement">タブとスペースを混在させる</span><br>
+<span class="Statement">タブとインデントの問題</span><br>
 <br>
-タブとスペースを混在させる場合は特別な設定は必要ありません。初期設定でうまくい<br>
-きます。<br>
-<a class="Type" href="options.html#'softtabstop'">'softtabstop'</a>&nbsp;オプションを設定すると編集が少し楽になります。このオプションが設<br>
-定されると、タブ幅が&nbsp;<a class="Type" href="options.html#'softtabstop'">'softtabstop'</a>&nbsp;の値に設定されたかのように、<span class="Special">&lt;Tab&gt;</span>&nbsp;キーが動<br>
-作します。しかし実際にはタブとスペースが混在して使われます。<br>
-次のコマンドを実行すると、<span class="Special">&lt;Tab&gt;</span>&nbsp;キーでカーソルが 4 桁ごとに進むようになります:<br>
+Vim では、2 つの (仮想的な) 水平タブストップ間の列数は&nbsp;<a class="Type" href="options.html#'tabstop'">'tabstop'</a>&nbsp;で制御され、<br>
+デフォルトでは 8 に設定されています。この値は変更できますが、後ですぐに問題に<br>
+遭遇します。他のプログラムは、あなたが設定したタブストップ値を認識できないから<br>
+です。おそらくデフォルト値の 8 が使用されるため、テキストの見た目が突然大きく<br>
+変わってしまいます。また、ほとんどのプリンタは固定のタブストップ値 8 を使用し<br>
+ます。したがって、<a class="Type" href="options.html#'tabstop'">'tabstop'</a>&nbsp;はそのままにしておくのが最善です。異なるタブストッ<br>
+プ設定で作成されたファイルを編集する場合は、<a class="Identifier" href="usr_25.html#25.3">25.3</a>&nbsp;を参照して修正してください。<br>
+&nbsp;&nbsp; プログラム内の行をインデントする場合、8 桁の倍数を使用するとすぐにウィンド<br>
+ウの右端にぶつかってしまいます。スペース 1 つでは見た目の違いが十分に出ません。<br>
+多くの人は、妥協案として 4 桁のスペースを使うことを好みます。<br>
+&nbsp;&nbsp; 行の先頭のタブ文字は視覚的に 8 つのスペースとして表され、4 つのスペースのイ<br>
+ンデントを使用したいので、タブ文字を使用してインデントを作成することはできませ<br>
+ん。<br>
+&nbsp;&nbsp;これを改善するために、<a class="Comment" href="intro.html#vi">vi</a>&nbsp;には&nbsp;<a class="Type" href="options.html#'shiftwidth'">'shiftwidth'</a>&nbsp;オプションがありました。これを<br>
+4 に設定すると、挿入モードで新しい行に&nbsp;<span class="Special">&lt;C-t&gt;</span>&nbsp;を押すと行が 4 スペース分インデン<br>
+トされます。これは、<span class="Special">&lt;Tab&gt;</span>&nbsp;キーと&nbsp;<a class="Type" href="options.html#'tabstop'">'tabstop'</a>&nbsp;を 8 に設定しただけでは実現できない<br>
+結果です。<br>
+&nbsp;スペースを最適化するために、<a class="Comment" href="intro.html#vi">vi</a>&nbsp;は暗黙的にスペースの塊を削除し、タブ文字に置<br>
+き換えます。以下は、<span class="Special">&lt;C-t&gt;</span>&nbsp;を数回押したときに何が起こるかを示しています。<br>
+&nbsp;&nbsp;&quot;.&quot; はスペース文字を表し、&quot;-------&gt;&quot; はタブ文字を表します。<br>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set softtabstop=4</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">入力&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;結果</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;C-t&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ....<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;C-t&gt;&lt;C-t&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-------&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;C-t&gt;&lt;C-t&gt;&lt;C-t&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -------&gt;....<br>
 <br>
-行頭で&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;を押すと、スペースが 4 個挿入されます。次に&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;を押すと、最初<br>
-のスペース 4 個が削除されて&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;文字が挿入されます (つまりカーソルは 8 列<br>
-目)。このように、スペースは可能な限り&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;文字で置き換えられます。<br>
-バックスペースはその反対の動作になります。<span class="Special">&lt;BS&gt;</span>&nbsp;を押すと、<a class="Type" href="options.html#'softtabstop'">'softtabstop'</a>&nbsp;の幅だ<br>
-け削除されます。可能な限り&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;が使われ、余りはスペースになります。<br>
-次の図は、<span class="Special">&lt;Tab&gt;</span>&nbsp;をいくつか入力してから&nbsp;<span class="Special">&lt;BS&gt;</span>&nbsp;を使ったときの様子を示しています。<br>
-&quot;.&quot; はスペースで &quot;-------&gt;&quot; は&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;です。<br>
+&nbsp;&nbsp;同様に、挿入モードで&nbsp;<span class="Special">&lt;C-d&gt;</span>&nbsp;を押すとインデントが減ります。したがって、<br>
+<span class="Comment">set tabstop=8 shiftwidth=2</span>&nbsp;とすると、以下のようになります<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">入力&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;結果</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ....<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;&lt;Tab&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-------&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;&lt;Tab&gt;&lt;Tab&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -------&gt;....<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;&lt;Tab&gt;&lt;Tab&gt;&lt;BS&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -------&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;&lt;Tab&gt;&lt;Tab&gt;&lt;BS&gt;&lt;BS&gt;</span>&nbsp;&nbsp; ....<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">入力&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;結果</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;C-t&gt;&lt;Tab&gt;&lt;C-t&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ..-----&gt;..<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;C-t&gt;&lt;Tab&gt;&lt;C-t&gt;&lt;C-d&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-------&gt;<br>
 <br>
-同様の動作は&nbsp;<a class="Type" href="options.html#'smarttab'">'smarttab'</a>&nbsp;オプションを使っても実現できます。このオプションを設定<br>
-した場合、インデントの入力のために&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;を押すと&nbsp;<a class="Type" href="options.html#'shiftwidth'">'shiftwidth'</a>&nbsp;の幅が使われ、<br>
-何かの文字より後ろでは実際の&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;文字が使われます。ただし、<span class="Special">&lt;BS&gt;</span>&nbsp;の動作は<br>
-<a class="Type" href="options.html#'softtabstop'">'softtabstop'</a>&nbsp;のときと同様にはなりません。<br>
+&nbsp;&nbsp;<a class="Comment" href="intro.html#vi">vi</a>&nbsp;で設定できる 3 つ目のオプションは&nbsp;<a class="Type" href="options.html#'autoindent'">'autoindent'</a>&nbsp;です。これは前の行のイン<br>
+デントレベルをコピーします<br>
 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">入力&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;結果</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Space&gt;&lt;Tab&gt;</span>hello&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .------&gt;hello<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Space&gt;&lt;Tab&gt;</span>hello<span class="Special">&lt;Enter&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.------&gt;hello<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-------&gt;<br>
 <br>
-<span class="Statement">スペースだけを使う</span><br>
-<br>
-Tab 文字を一切使いたくない場合は&nbsp;<a class="Type" href="options.html#'expandtab'">'expandtab'</a>&nbsp;オプションを設定してください:<br>
-<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set expandtab</div>
-<br>
-このオプションをオンにすると、<span class="Special">&lt;Tab&gt;</span>&nbsp;キーでスペースが入力されるようになります。<br>
-つまり、<span class="Special">&lt;Tab&gt;</span>&nbsp;文字と同じ量のスペースが挿入され、<span class="Special">&lt;Tab&gt;</span>&nbsp;文字は使われません。<br>
-バックスペースキーはスペースを一つずつ削除するので、<span class="Special">&lt;Tab&gt;</span>&nbsp;を押した後でそれを削<br>
-除するには&nbsp;<span class="Special">&lt;BS&gt;</span>&nbsp;を 8 回押さなければなりません。インデントの削除は&nbsp;<span class="Special">CTRL-D</span>&nbsp;を使<br>
-うと簡単です。<br>
+ただし、新しい行は、使用される文字数を最適化することによって生成されます。<br>
 <br>
 <br>
-<span class="Statement">タブをスペースに変換する (あるいはその逆)</span><br>
+<span class="Statement">スペースだけ</span><br>
 <br>
-<a class="Type" href="options.html#'expandtab'">'expandtab'</a>&nbsp;を設定しても、それ以前に入力されたタブ文字は影響を受けません。つま<br>
-り、文章中のタブ文字はタブ文字のままです。タブ文字をスペースに変換したい場合<br>
-は、&quot;:retab&quot; コマンドを使ってください。次のように使います:<br>
+しかし、タブストップを 8 桁で区切るという方法は普遍的ではありませんでした。IBM<br>
+では 10 桁が標準であり、今日では Go 開発者の中には&nbsp;<span class="Comment">tabstop=4</span>&nbsp;でコードを記述<br>
+する人もいます。テキストが毎回異なる&nbsp;<a class="Type" href="options.html#'tabstop'">'tabstop'</a>&nbsp;値で表示されると、特にファイル<br>
+を共有して別のマシンで開いた場合、テキストの位置がずれる危険性があります。<br>
+&nbsp;&nbsp;その間にコンピュータの性能は飛躍的に向上し、タブ文字の使用によって節約された<br>
+数オクテットはもはや実質的な効果を持たなくなっていました。スペースのみを使用す<br>
+ることで、どこでも同じ結果のテキストを保証できるようになりました。しかし、<a class="Comment" href="intro.html#vi">vi</a><br>
+では機能を犠牲にすることなくスペースのみを使用することは不可能でし<br>
+た。<a class="Type" href="options.html#'autoindent'">'autoindent'</a>&nbsp;は、可能な場合はタブ文字を体系的に入力しようとしていたことを<br>
+思い出してください。<br>
+&nbsp;&nbsp;Vim 4.0 では、<a class="Type" href="options.html#'expandtab'">'expandtab'</a>&nbsp;オプションが導入され、スペースのみの操作がタブのみ<br>
+(またはタブとスペースの混合) の操作と同じくらい便利になりました。このオプショ<br>
+ンを有効にすると、Vim は通常挿入する水平タブ文字を同数のスペースに置き換え、視<br>
+覚効果を同じにします。<span class="Special">&lt;BS&gt;</span>&nbsp;は、これまでと同様に一度に 1 文字のみを削除します。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">入力&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;結果</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ........<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;&lt;BS&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .......<br>
+<br>
+<br>
+<span class="Statement">タブをスペースに変換 (およびその逆)</span><br>
+<br>
+<a class="Type" href="options.html#'expandtab'">'expandtab'</a>&nbsp;を設定しても、既存のタブ文字にはすぐには影響しません。ファイル内の<br>
+水平タブ文字をすべて削除するには、Vim 5.3 で&nbsp;<a class="Identifier" href="change.html#:retab">:retab</a>&nbsp;コマンドが導入されまし<br>
+た。以下のコマンドを使用してください:<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set expandtab<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:%retab</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:retab</div>
 <br>
-すべてのインデントがスペースに変換されます。ただし、何かの文字より後ろにある<br>
-(インデント以外の) タブ文字はそのままです。それらのタブ文字も変換したい場合は<br>
-コマンドに ! を付けます:<br>
-<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:%retab!</div>
-<br>
-これは少し注意が必要です。なぜなら、文字列の中のタブ文字も変換されてしまうから<br>
-です。文字列の中でタブ文字が使われているかどうかは、次の検索パターンで確認でき<br>
-ます:<br>
+これは少し危険です。文字列内のタブも変更されてしまう可能性があるからです。その<br>
+ようなタブが存在するかどうかを確認するには、次のようにします:<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&quot;[^&quot;\t]*\t[^&quot;]*&quot;</div>
 <br>
-文字列の中でタブ文字を使うのはお勧めしません。トラブルを避けるためにも &quot;\t&quot; を<br>
-使ってください。<br>
+文字列内でタブ文字そのものを使用することは推奨されません。問題を回避するには、<br>
+タブ文字を &quot;\t&quot; に置き換えてください。<br>
 <br>
-同様に、スペースをタブ文字に変換できます:<br>
+&nbsp;&nbsp;逆の場合も同様に機能します:<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set noexpandtab<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:%retab!</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:retab!</div>
+<br>
+<br>
+<span class="Statement">ソフトタブストップ</span><br>
+<br>
+スペースだけを使用する場合、またはスペースと水平タブを組み合わせて使用する場<br>
+合、タブ文字だけを使用する場合のように、<span class="Special">&lt;Tab&gt;</span>&nbsp;キーと<span class="Special">&lt;BS&gt;</span>&nbsp;キーが対称的に動作し<br>
+ないという不快な感覚を覚えます。<br>
+&nbsp;&nbsp;Vim 5.4 では&nbsp;<a class="Type" href="options.html#'softtabstop'">'softtabstop'</a>&nbsp;オプションが導入されました。テキスト内の水平タブ<br>
+文字を表示するために使われる (ハード) タブストップに加え、Vim はカーソル専用の<br>
+ソフトタブストップを追加します。<a class="Type" href="options.html#'softtabstop'">'softtabstop'</a>&nbsp;が正の値に設定されている場合、<br>
+<span class="Special">&lt;Tab&gt;</span>&nbsp;キーを押すとカーソルが次のソフトタブストップに移動します。Vim はタブ文字<br>
+とスペースの適切な組み合わせを挿入し、視覚的な効果を実現します。同様に&nbsp;<span class="Special">&lt;BS&gt;</span><br>
+キーを押すと、カーソルは最も近いソフトタブストップに到達しようとします。以下の<br>
+例では、<span class="Comment">:set softtabstop=4</span>&nbsp;を使用しています。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">入力&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;結果</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ....<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;&lt;Tab&gt;</span>a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -------&gt;a<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;&lt;Tab&gt;</span>a<span class="Special">&lt;Tab&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-------&gt;a...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;&lt;Tab&gt;</span>a<span class="Special">&lt;Tab&gt;&lt;BS&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;-------&gt;a<br>
+<br>
+&nbsp;&nbsp;全体的な一貫性を維持するために、<span class="Comment">:set softtabstop=-1</span>&nbsp;を設定し<br>
+て、<a class="Type" href="options.html#'shiftwidth'">'shiftwidth'</a>&nbsp;の値を 2 つのソフトタブストップ間の桁数として使用するようにす<br>
+ることができます。<br>
+<br>
+&nbsp;&nbsp;<a class="Type" href="options.html#'shiftwidth'">'shiftwidth'</a>&nbsp;と&nbsp;<a class="Type" href="options.html#'softtabstop'">'softtabstop'</a>&nbsp;に異なる値を設定したい場合でも、<a class="Type" href="options.html#'shiftwidth'">'shiftwidth'</a><br>
+でインデントするには&nbsp;<span class="Special">&lt;C-t&gt;</span>&nbsp;を使用できます。または、<a class="Type" href="options.html#'smarttab'">'smarttab'</a>&nbsp;オプションを使用<br>
+して、さまざまな状況で何を行うかを認識する統合された&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;キーを有効にするこ<br>
+ともできます。<br>
+<br>
+<br>
+<span class="Statement">可変タブストップ</span><br>
+<br>
+前述の通り、ASCII テーブルはテレプリンターを遠隔制御するために設計されました。<br>
+特定のテレプリンターでは、物理的なタブストップの間隔を可変に設定できます。結局<br>
+のところ、制御文字 ^I は次のタブストップがどこであっても次のタブストップへ移動<br>
+するという指示を出すだけだったのです。<br>
+&nbsp;&nbsp;Vim 7.3 では、同じ機能をエミュレートする&nbsp;<a class="Type" href="options.html#'vartabstop'">'vartabstop'</a>&nbsp;が導入されました。例え<br>
+ば、Vim を&nbsp;<a class="Comment" href="various.html#+vartabs">+vartabs</a>&nbsp;でコンパイルし、<span class="Comment">:set vartabstop=2,4</span>&nbsp;とすると、以下のよ<br>
+うになります<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">実際の文字&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;結果</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^I&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^I^I&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt;---&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^I^I^I&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt;---&gt;---&gt;<br>
+<br>
+&nbsp;&nbsp;同様に、可変間隔のソフトタブストップを設定するための&nbsp;<a class="Type" href="options.html#'varsofttabstop'">'varsofttabstop'</a>&nbsp;も導入<br>
+されました。<span class="Comment">:set varsofttabstop=2,4</span>&nbsp;とすると、以下のようになります。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="PreProc">入力&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;結果</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ..<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;&lt;Tab&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;......<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">&lt;Tab&gt;&lt;Tab&gt;&lt;Tab&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -------&gt;....<br>
+<br>
+<br>
+<span class="Statement">構成例</span><br>
+<br>
+デフォルトでは、Vim はタブのみを使用するように設定されています:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set tabstop=8<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set shiftwidth=8<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set noexpandtab<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set softtabstop=0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set nosmarttab</div>
+<br>
+&nbsp;&nbsp;C コードを Python のように記述したい場合 (スペースのみ、インデントは 4 スペー<br>
+ス)、以下のように記述します:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set shiftwidth=4<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set softtabstop=-1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set expandtab</div>
+<br>
+&nbsp;&nbsp;同じ動作をしたいが、配置をより適切に制御したい場合 (例えば、パラメータまたは<br>
+コメントを 2 の倍数のスペースで整列させる) は、以下のようにします:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set shiftwidth=4<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set softtabstop=2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set expandtab<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set smarttab</div>
+<br>
+&nbsp;&nbsp;代わりに、Bram Moolenaar のような C コード (タブとスペースの組み合わせを使用)<br>
+を記述したい場合は、以下のようにします<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set shiftwidth=4<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:set softtabstop=-1</div>
+<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 <a class="Constant" href="usr_30.html#30.6" name="30.6">30.6</a>&nbsp;&nbsp;コメントの整形<br>
