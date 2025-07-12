@@ -1,4 +1,4 @@
-*version9.txt*  For Vim バージョン 9.1.  Last change: 2025 Jul 05
+*version9.txt*  For Vim バージョン 9.1.  Last change: 2025 Jul 10
 
 
 		  VIMリファレンスマニュアル	  by Bram Moolenaar
@@ -41545,7 +41545,11 @@ Vim9 script の列挙型サポート |:enum|
 
 protected _new() メソッドのサポート
 
+|:defcompile| を使用した Vim9 クラスのすべてのメソッドのコンパイルのサポート。
+
 変数データ型として object<{type}> のサポートを追加 |vim9-types|
+
+Vim script および Vim9 script での |Tuple| データ型のサポート。
 
 差分モード~
 -----------
@@ -41555,27 +41559,67 @@ protected _new() メソッドのサポート
 行内の変更の差分ハイライトを改善する。'diffopt' 設定の "inline" サブオプション
 値を使用して構成可能で、"inline:simple" がデフォルトの "diffopt" 値に追加され
 る (ただし、これは差分モードの動作を変更しない)。
+
+補完~
+----
+- 新しい挿入モード補完: |i_CTRL-X_CTRL-R| でレジスタから単語を補完する。
+- 'wildchar' は、|/|、|?|、|:g|、|:v|、|:vimgrep| コマンドを使用した検索コンテ
+  キストでの補完を有効にする
+- |getcompletion()| に "filetypecmd" 補完タイプを追加
+- ":filetype" コマンド補完と |getcompletion()| の "filetypecmd" 補完タイプが追
+  加された。
+- 'keymap' オプション値のコマンドライン補完のサポート。
+- 'completeopt' 設定の "fuzzy" 値を使用した |ins-completion| 時の
+  |fuzzy-matching| をサポート
+- |:command-complete| と |getcmdcomplpat()| を使った新しい shellcmdline 補完タ
+  イプを使用して、シェルコマンドとファイルを補完できるようにする
+- 'wildmode' の新しいオプション値:
+	"noselect"	- wildmenu のエントリを自動選択しない
+	"exacttext"	- 検索補完で、wildmenu に完全一致の候補を表示する
+- 'complete' の新しいフラグ:
+	"F{func}"	- 与えられた関数を使って補完する
+	"F"		- 'completefunc' を使って補完する
+	"o"		- 'omnifunc' を使って補完する
+- 'completeopt' の新しいオプション値:
+	"nosort"	- 補完結果をソートしない
+	"preinsert"	- 挿入する値をハイライトする
+	"nearest"	- カーソルまでの距離で補完結果をソートする
+
+プラットフォーム固有~
+--------------------
+- Wayland UI のサポートと Wayland クリップボードのサポートが追加された。
+
+- XDG デスクトップ仕様 |xdg-base-dir| のサポートが追加され、環境変数
+  |$MYVIMDIR|は、ユーザーの個人ランタイムディレクトリ (Linux では$HOME/.vim ま
+  たは$HOME/.config/vim、Windows では $HOME/vimfiles) に設定される。
+
+- OpenVMS での Python3 のサポート。
+
+- Win32 GUI には、より優れたツールバーアイコンが付属している。
+
 							*new-other-9.2*
 その他の新機能 ~
 --------------
-新しいパッケージ |package-comment|、|package-nohlsearch| および
-|package-hlyank| を同梱。
+- <D-Key> を使用した GTK でのスーパーキーマッピングのサポート。
 
-Wayland UI のサポートと Wayland クリップボードのサポート
+- 新しいパッケージ |package-comment|、|package-nohlsearch| および
+  |package-hlyank| を同梱。
 
-XDG デスクトップ仕様 |xdg-base-dir| のサポート
+- 対話型チュータープラグイン |vim-tutor-mode| が含まれており、|:Tutor| から起
+  動できる。
 
-|gettext()| および |bindtextdomain()| 関数を使用して Vim script プラグインで
-メッセージを翻訳するためのサポート。
+- |gettext()| および |bindtextdomain()| 関数を使用して Vim script プラグインで
+  メッセージを翻訳するためのサポートが追加された。
 
-|ins-completion-menu| で、挿入モード補完とコマンドライン補完の一致したテキスト
-と補完の種類のハイライトをサポートする。|complete-items| を参照
+- |ins-completion-menu| で、挿入モード補完とコマンドライン補完の一致したテキス
+  トと補完の種類のハイライトをサポートする。|complete-items| を参照。
 
-Vim script および Vim9 script での |Tuple| データ型のサポート。
+- 垂直の 'tabline' である新しい垂直の |tabpanel| ウィンドウが追加された。
 
-'tabline' に似た垂直の |tabpanel| ウィンドウをサポート。
+- |dist#vim9#Launch()| および |dist#vim9#Open()| 関数が |vim-script-library|
+  に追加され、|netrw| から分離された。
 
-新しい挿入モード補完: |i_CTRL-X_CTRL-R| でレジスタから単語を補完する。
+- ".=" を使用した新しいダイグラフ "APPROACHES THE LIMIT" が追加された。
 
 							*changed-9.2*
 変更点~
@@ -41590,38 +41634,23 @@ Vim script および Vim9 script での |Tuple| データ型のサポート。
   の高 dpi モニターに対応するために 12pt に増やされた。
 - 'keyprotocol' オプションのデフォルト値は、ghostty 端末エミュレータ (kitty プ
   ロトコルを使用) のサポートにより更新された
+- ビジュアルモードのハイライトの改善 |hl-Visual|
 
 補完: ~
 - |:cd| や同様のコマンドで 'cdpath' からディレクトリを補完できるように、
   |:command-complete| や |getcompletion()| 等に "cd_in_path" 補完タイプを追加
   する
-- |:command-complete| と |getcmdcomplpat()| を使った新しい shellcmdline 補完タ
-  イプを使用して、シェルコマンドとファイルを補完できるようにする
 - 補完メニューで追加の属性を指定できるようにする (LSP サーバーから非推奨の属性
   をマークできるようにする) |complete-items|
 - |CompleteDone| 自動コマンドを処理するとき、|v:event| 辞書に補完した単語と補
   完のタイプが提供される。
 - |complete_info()| は、"matches" キーを介してポップアップメニューに表示される
   マッチのリストを返す
-- 'completeopt' の新しいオプション値:
-	"nosort"	- 補完結果をソートしない
-	"preinsert"	- 挿入する値をハイライトする
-	"nearest"	- カーソルまでの距離で補完結果をソートする
 - 複数行の補完項目を期待通りに処理する
 - |:hi| コマンドのコマンドライン補完が改善された
-- 'wildmode' の新しいオプション値:
-	"noselect"	- wildmenu のエントリを自動選択しない
-- 'complete' の新しいフラグ:
-	"F{func}"	- 与えられた関数を使って補完する
-	"F"		- 'completefunc' を使って補完する
-	"o"		- 'omnifunc' を使って補完する
 - "{flag}^<limit>" 表記を使用して、 'complete' のソースのマッチ数を制限できる
   ようにする
-- ":filetype" コマンドの補完を追加
-- |getcompletion()| に "filetypecmd" 補完タイプを追加
 - 'smartcase' は補完のフィルタリングに適用される
-- 'wildchar' は、|/|、|?|、|:g|、|:v|、|:vimgrep| コマンドを使用した検索コンテ
-  キストでの補完を有効にする
 
 オプション: ~
 - 'commentstring' のデフォルトには、自動コメントの見栄えを良くするための空白の
@@ -41668,14 +41697,7 @@ Ex コマンド: ~
   る (適切な大文字小文字の変換を適用する)
 - putty 端末は |defaults.vim| の |TermResponse| 自動コマンドを使用して検出さ
   れ、Vim は暗い背景に切り替わる
-- ドキュメントのナビゲーションを容易にするために、|help-TOC| パッケージが含ま
-  れている。
-- 対話型 tutor プラグイン |vim-tutor-mode| が追加された。|:Tutor| から起動でき
-  る。
 - |vimtutor| を改良し、より高度なヒントを記載した第 2 章を追加する。
-- |dist#vim9#Launch()| と |dist#vim9#Open()| を |vim-script-library| に追加し、
-  |netrw| から切り離す
-- ".=" を使用した新しいダイグラフ "APPROACHES THE LIMIT"
 - |CTRL-C| は常にアクティブな |popup-window| を閉じる。
 - configure スクリプトは、GUI ツールキットを自動検出するときに、GTK2 よりも
   GTK3 の使用を優先する。
@@ -41761,6 +41783,7 @@ Ex コマンド: ~
 'findfunc'		|:find| コマンドの結果を取得するための Vim の関数
 'isexpand'		補完のトリガーを定義する
 'lhistory'		location リストスタックのサイズ |quickfix-stack|
+'maxsearchcount'	検索ステータスの最大数を設定する |shm-S|
 'messagesopt'		|:messages| と |hit-enter| プロンプトを設定する
 'pummaxwidth'		補完ポップアップメニューの最大幅
 'showtabpanel'		|tabpanel| をいつ表示するか
@@ -41772,30 +41795,15 @@ Ex コマンド: ~
 't_CF'			代替フォントハイライトの端末コードのサポート
 'winfixbuf'		ウィンドウ内でバッファをフォーカスしたままにする
 
+Vim 引数: ~
+|-Y|			Wayland コンポジタに接続しない。
+
+
 ==============================================================================
 ☆非互換な変更						*incompatible-9.2*
 
 改良された/異なる MS-Windows マッピングのサポート
 |w32-experimental-keycode-trans-strategy|
-
-==============================================================================
-☆改善点						*improvements-9.2*
-
-'keymap' オプション値のコマンドライン補完のサポート。
-
-|:defcompile| を使用した Vim9 クラスのすべてのメソッドのコンパイルのサポート。
-
-<D-Key> を使用した GTK でのスーパーキーマッピングのサポート。
-
-ビジュアルモード選択時のハイライトの改善。
-
-OpenVMS での Python3 のサポート。
-
-'completeopt' 設定の "fuzzy" 値を使用した |ins-completion| 時の
-|fuzzy-matching| をサポート
-
-環境変数 |$MYVIMDIR| は、ユーザーの個人ランタイムディレクトリ (Linux では
-$HOME/.vim または $HOME/.config/vim、Windows では $HOME/vimfiles) に設定される
 
 ==============================================================================
 ☆コンパイル時の変更					*compile-changes-9.2*
