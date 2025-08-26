@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Aug 12
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Aug 24
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -368,7 +368,8 @@ isinf({expr})			数値	{expr}が無限大の値(正または負)かどうか
 					を判定する
 islocked({expr})		数値	{expr}がロックされているなら|TRUE|
 isnan({expr})			数値	{expr}がNaNならば|TRUE|
-items({dict})			リスト	{dict}のキーと値のペアを取得
+items({expr})			リスト	{expr} のキーとインデックス値のペアを
+					取得
 job_getchannel({job})		チャネル  {job}のチャネルハンドルを取得
 job_info([{job}])		辞書	{job}についての情報を取得
 job_setoptions({job}, {options}) なし	{job}のオプションを設定する
@@ -814,6 +815,8 @@ undofile({name})		文字列	{name}に対するアンドゥファイルの名前
 undotree([{buf}])		リスト	バッファ {buf} のアンドゥファイルツリー
 uniq({list} [, {func} [, {dict}]])
 				リスト	リストから隣接した重複を削除
+uri_decode({string})		文字列	文字列を URI デコードする
+uri_encode({string})		文字列	文字列を URI エンコードする
 utf16idx({string}, {idx} [, {countcc} [, {charidx}]])
 				数値	{string} のバイト {idx} の UTF-16 イン
 					デックス
@@ -6240,19 +6243,31 @@ isnan({expr})						*isnan()*
 		戻り値の型: |Number|
 
 
-items({dict})						*items()*
-		{dict}の全要素のキー・値のペアからなるリストを返す。戻り値の各
+items({expr})						*items()*
+		{expr} の全要素のキー・値のペアからなるリストを返す。戻り値の各
 		要素はリストであり、キーと値の2個の要素を持つ。戻り値のリスト
 		の要素の順序は不定である。|keys()| と |values()| も参照。
-		例: >
-			for [key, value] in items(mydict)
-			   echo key .. ': ' .. value
-			endfor
-<
-		 |List|、|Tuple| または |String| 引数もサポートされている。こ
-		 のようなケースでは、items() はインデックスとインデックスの値
-		 を含むリストを返す。
 
+		{expr} のすべてのキー/インデックスと値のペアを含む |List| を返
+		す。各 |List| の項目は 2 つの項目を持つリストである。
+		- |Dict| の場合: キーと値
+		- |List|、|Tuple|、|Blob| または |String| の場合: インデックス
+		  と値
+		返される |List| は、|Dict| の場合は任意の順序で返されるが、そ
+		れ以外の場合はインデックスの昇順になる。
+
+		|keys()| および |values()| も参照。
+
+		例: >
+			let mydict = #{a: 'red', b: 'blue'}
+			for [key, value] in items(mydict)
+			   echo $"{key} = {value}"
+			endfor
+			echo items([1, 2, 3])
+			echo items(('a', 'b', 'c'))
+			echo items("foobar")
+			echo items(0z0102)
+<
 		|method| としても使用できる: >
 			mydict->items()
 <
@@ -7508,7 +7523,7 @@ max({expr})							*max()*
 		|method| としても使用できる: >
 			mylist->max()
 <
-		戻り値の型: |Number|
+		戻り値の型: any。{expr} による
 
 
 menu_info({name} [, {mode}])				*menu_info()*
@@ -7599,7 +7614,7 @@ min({expr})							*min()*
 		|method| としても使用できる: >
 			mylist->min()
 <
-		戻り値の型: |Number|
+		戻り値の型: any。{expr} による
 
 
 mkdir({name} [, {flags} [, {prot}]])			*mkdir()* *E739*
@@ -11925,6 +11940,58 @@ uniq({list} [, {func} [, {dict}]])			*uniq()* *E882*
 		戻り値の型: list<{type}>
 
 
+uri_decode({string})					*uri_decode()*
+		パーセントエンコーディングを逆にして、{string} の URI デコード
+		形式を返す ("%3D" のようなシーケンスを対応する文字に戻す)。
+
+		デコードは標準のパーセントデコードルールに従う:
+		    - "%HH" は 16 進数値 HH の文字に置き換えられる。
+		    - デコードされたバイトが有効な UTF-8 を形成する場合、対応
+		      する文字に結合される。それ以外の場合、バイトはそのまま保
+		      持される。
+		    - 無効または不完全なエンコーディング (例："%GZ"、"%3"、末
+		      尾の "%") は変更されない。
+
+		{string} が空の場合、空の文字列を返す。
+
+		例: >
+			:echo uri_decode('c%3A%5Cmy%5Cdir%5Cfoo%20bar')
+			c:\my\dir\foo bar
+			:echo uri_decode('%CE%B1%CE%B2%CE%B3')
+			αβγ
+<
+		|method| としても使用できる: >
+			mystr->uri_decode()
+<
+		戻り値の型: |String|
+
+uri_encode({string})					*uri_encode()*
+		{string} の URI エンコード形式を返す。URI エンコードでは、安全
+		でない文字や予約文字がパーセントエンコードされたシーケンスに置
+		き換えられる。
+
+		エンコーディングは標準のパーセントエンコーディングルールに従
+		う。
+		    - 英数字 [0-9A-Za-z] は変更されない。
+		    - 文字 "-"、"_"、"." および "~" も変更されない。
+		    - その他の文字はすべて "%HH" に置き換えられる。HH は 2 桁
+		      の大文字の 16 進数値である。
+		    - 既存のパーセントエンコードされたシーケンスは変更されな
+		      い。
+
+		{string} が空の場合、空の文字列を返す。
+
+		例: >
+			:echo uri_encode('c:\my\dir\foo bar')
+			c%3A%5Cmy%5Cdir%5Cfoo%20bar
+			:echo uri_encode('key=value&name=αβγ')
+			key%3Dvalue%26name%3D%CE%B1%CE%B2%CE%B3
+<
+		|method| としても使用できる: >
+			mystr->uri_encode()
+<
+		戻り値の型: |String|
+
 							*utf16idx()*
 utf16idx({string}, {idx} [, {countcc} [, {charidx}]])
 		|charidx()| と同じだが、{string} の {idx} にあるバイトの
@@ -12769,6 +12836,8 @@ scrollbind		'scrollbind' をサポート (常に true)
 showcmd			'showcmd' をサポート
 signs			|:sign|をサポート
 smartindent		'smartindent' をサポート。(常に true)
+socketserver		ソケットサーバー機能付きでコンパイルされている。(Unix
+			のみ)
 sodium			libsodium ライブラリによるより良い暗号のサポート
 sound			サウンド再生をサポート。例えば、`sound_playevent()`
 spell			スペルチェックをサポート |spell|
