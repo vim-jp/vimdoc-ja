@@ -1,4 +1,4 @@
-*autocmd.txt*   For Vim バージョン 9.1.  Last change: 2025 Jun 19
+*autocmd.txt*   For Vim バージョン 9.1.  Last change: 2025 Sep 02
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -550,6 +550,7 @@ BufUnload			バッファを解放する前。これは、バッファ内のテ�
 				ときは、"%" で表されるカレントバッファと
 				"<afile>" で表される解放されるバッファとは異な
 				るかもしれないことに注意。
+								*E1546*
 				他のバッファやウィンドウに切り替えないこと。問
 				題が発生するだろう。
 				終了時に v:dying が 2 以上のときはこのイベント
@@ -648,8 +649,9 @@ CmdlineLeave			カーソルがコマンドラインを離れる前、非イン�
 				コマンドの結果がエラーとなる場合は、コマンドラ
 				インは引き続き実行中となる。
 				<afile> はコマンドラインの種類を示す 1 文字に
-				設定される。
-				|cmdwin-char|
+				設定される。|cmdwin-char|
+				|v:char| をコマンドラインを終了したキーに設定
+				する (例: <CR>、<CTRL-C>、<Esc>)。
 							*CmdlineLeavePre*
 CmdlineLeavePre			コマンドラインを抜ける直前、かつ
 				|CmdlineLeave| の前に発生する。補完情報は
@@ -662,6 +664,7 @@ CmdlineLeavePre			コマンドラインを抜ける直前、かつ
 				る。<afile> には、コマンドラインの種類を示す 1
 				文字が設定される。
 				詳細は |cmdwin-char| を参照。
+				|CmdlineLeave| と同様に |v:char| を設定する。
 							*CmdwinEnter*
 CmdwinEnter			Command-lineウィンドウに入った後。この特殊な
 				ウィンドウに対してのみオプションを設定するのに
@@ -1287,23 +1290,30 @@ TermResponse			|t_RV| に対する応答をターミナルから受け取った
 				行されることがある。特に、ファイル入出力、シェ
 				ルコマンドの実行、時間の掛かる処理など。
 							*TermResponseAll*
-TermResponseAll			|t_RV|, |t_RC|, |t_RS|, |t_RB|, |t_RF|, または
-				|t_u7| に対する応答をターミナルから受信した後。
-				|v:termresponse|, |v:termblinkresp|,
-				|v:termstyleresp|, |v:termrbgresp|,
-				|v:termrfgresp|, および |v:termu7resp| の値を
-				それぞれ使用できる。<amatch> は次のいずれかに
-				設定される。
-				    "version",
-				    "cursorblink",
-				    "cursorshape",
-				    "background",
-				    "foreground",
-				    "ambiguouswidth"
+TermResponseAll			ターミナルから |t_RV|、|t_RC|、|t_RS|、|t_u7|
+				または任意の OSC コマンドの応答を受信した後。
+				|v:termresponse|、|v:termblinkresp|、
+				|v:termstyleresp|、|v:termu7resp|、および
+				|v:termosc| の値がそれぞれ使用できる。<amatch>
+				は以下のいずれかに設定される:
+				    "ambiguouswidth" (|t_u7|),
+				    "cursorblink" (|t_RC|),
+				    "cursorshape" (|t_RS|),
+				    "da1",
+				    "osc",
+				    "version" (|t_RV|)
 				Note このイベントは、特にファイル I/O、シェル
 				コマンド、またはその他の時間の掛かるものが関係
 				する場合、別のイベントの実行途中でトリガーされ
 				る可能性があることに注意。
+				Note: 従来、TermResponseAll は "foreground" お
+				よび "background" パターンにも使用されていた。
+				これらは現在、"osc" 値の一部として処理される。
+				後方互換性のため、
+				$VIMRUNTIME/plugin/colorresp.vim プラグインは
+				"foreground" および "background" 値に遭遇する
+				と、"osc" イベントを処理し、TermResponseAll 自
+				動コマンドイベントを発行する。
 							*TextChanged*
 TextChanged			ノーマルモードでカレントバッファのテキストが変
 				更されたとき。つまり |b:changedtick| が更新さ
