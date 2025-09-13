@@ -1,4 +1,4 @@
-*cmdline.txt*   For Vim バージョン 9.1.  Last change: 2025 Aug 08
+*cmdline.txt*   For Vim バージョン 9.1.  Last change: 2025 Sep 10
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -19,6 +19,7 @@
 5. Exコマンドラインのフラグ	|ex-flags|
 6. Exコマンド用の特別な文字	|cmdline-special|
 7. コマンドラインウィンドウ	|cmdline-window|
+8. コマンドラインの自動補完	|cmdline-autocompletion|
 
 ==============================================================================
 1. コマンドラインの編集					*cmdline-editing*
@@ -385,6 +386,9 @@ CTRL-]		文字を挿入することなく短縮入力を展開する。
 マッチするヘルプ項目の個数には上限がある(現在のところは 300)。非常に多くのマッ
 チがあったとき、遅くなるのを避けるためである。
 
+(<Tab> 等のキーを押さずに) 入力時に自動補完を行う場合、
+|cmdline-autocompletion| を参照。
+
 補完に使えるコマンドは以下の通り。
 
 							*c_CTRL-D*
@@ -447,8 +451,6 @@ CTRL-T		'incsearch' が設定され "/" や "?" にパターンを入力して�
 オプション 'wildchar' の既定値は <Tab> である (Vi互換モードの場合は CTRL-E で
 ある。以前のバージョンでは <Esc> が使われていた)。パターンがファイル名に対して
 適用されるときは標準の |wildcards| が使用できる。
-
-|wildtrigger()| も参照。
 
 'wildchar' または CTRL-N を繰り返すとマッチしたものの始めから終わりまでを循環
 して、最終的には入力されたものに戻る。最初のマッチが望むものでないなら、入力し
@@ -1283,5 +1285,83 @@ Note: これは |file-pattern| なので、"?" をエスケープする必要が
 	=	Expressionレジスタ "= 用の expression |expr-register|
 	@	関数 |input()| に対して入力する文字列
 	-	コマンド |:insert| や |:append| に対して入力する文字列
+
+==============================================================================
+8. コマンドラインの自動補完			 *cmdline-autocompletion*
+
+自動補完は、入力中に検索 (/ または ?) やコマンド入力 (:) の際に自動的に候補の
+ポップアップメニューを表示することで、コマンドラインの操作をより効率的かつ簡単
+にする。
+
+基本的な設定: >
+	autocmd CmdlineChanged [:\/\?] call wildtrigger()
+	set wildmode=noselect:lastused,full
+	set wildoptions=pum
+
+この設定では、すぐに候補が表示され、<Tab> キーまたは矢印キーを使用して候補間を
+移動できる。
+
+<Up>/<Down> による通常のコマンドライン履歴ナビゲーションを維持するには: >
+	cnoremap <expr> <Up>   wildmenumode() ? "\<C-E>\<Up>"   : "\<Up>"
+	cnoremap <expr> <Down> wildmenumode() ? "\<C-E>\<Down>" : "\<Down>"
+
+オプションは特定のコマンドラインにのみ適用することもできる。例えば、検索時のみ
+ポップアップメニューの高さを低くするには: >
+	autocmd CmdlineEnter [\/\?] set pumheight=8
+	autocmd CmdlineLeave [\/\?] set pumheight&
+
+☆おまけ				*fuzzy-file-picker* *live-grep*
+
+コマンドラインの自動補完は、高度な用途向けに拡張することもでる。
+例えば、ネイティブの |:find| コマンドを、あいまい検索が可能な対話型ファイルピッ
+カーに変えることができる: >
+
+	set findfunc=Find
+	func Find(arg, _)
+	  if get(s:, 'filescache', []) == []
+	    let s:filescache = systemlist(
+		\ 'find . -path "*/.git" -prune -o -type f -print')
+	  endif
+	  return a:arg == '' ? s:filescache : matchfuzzy(s:filescache, a:arg)
+	endfunc
+	autocmd CmdlineEnter : let s:filescache = []
+
+`:Grep` コマンドは、パターンにマッチする行を検索し、入力すると結果を動的に更新
+する (2 文字後にトリガーされる。note: 次のセクションの `CmdlineLeavePre` 自動
+コマンドが必要である): >
+
+	command! -nargs=+ -complete=customlist,<SID>Grep
+		\ Grep call <SID>VisitFile()
+
+	func s:Grep(arglead, cmdline, cursorpos)
+	  let cmd = $'grep -REIHns "{a:arglead}" --exclude-dir=.git
+		\ --exclude=".*"'
+	  return len(a:arglead) > 1 ? systemlist(cmd) : []
+	endfunc
+
+	func s:VisitFile()
+	  let item = getqflist(#{lines: [s:selected]}).items[0]
+	  let pos  = '[0,\ item.lnum,\ item.col,\ 0]'
+	  exe $':b +call\ setpos(".",\ {pos}) {item.bufnr}'
+	  call setbufvar(item.bufnr, '&buflisted', 1)
+	endfunc
+
+コマンドラインを終了するときに補完リストの最初の項目を自動的に選択し、`:Grep`
+の場合は入力したパターンをコマンドライン履歴に追加する: >
+
+	autocmd CmdlineLeavePre :
+	      \ if get(cmdcomplete_info(), 'matches', []) != [] |
+	      \   let s:info = cmdcomplete_info() |
+	      \   if getcmdline() =~ '^\s*fin\%[d]\s' && s:info.selected == -1 |
+	      \     call setcmdline($'find {s:info.matches[0]}') |
+	      \   endif |
+	      \   if getcmdline() =~ '^\s*Grep\s' |
+	      \     let s:selected = s:info.selected != -1
+	      \         ? s:info.matches[s:info.selected] : s:info.matches[0] |
+	      \     call setcmdline(s:info.cmdline_orig) |
+	      \   endif |
+	      \ endif
+
+挿入モードでの自動補完については、|ins-autocompletion| を参照。
 
  vim:tw=78:ts=8:noet:ft=help:norl:

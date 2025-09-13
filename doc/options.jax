@@ -1,4 +1,4 @@
-*options.txt*	For Vim バージョン 9.1.  Last change: 2025 Sep 02
+*options.txt*	For Vim バージョン 9.1.  Last change: 2025 Sep 11
 
 
 		  VIMリファレンスマニュアル    by Bram Moolenaar
@@ -2167,10 +2167,10 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 						*'complete'* *'cpt'* *E535*
 'complete' 'cpt'	文字列	(既定では: ".,w,b,u,t,i")
 			バッファについてローカル
-	コマンド CTRL-P や CTRL-N によるキーワード補完 |ins-completion| の動作
-	を指定する。このオプションは行全体の補完 |i_CTRL-X_CTRL-L| にも適用さ
-	れる。このオプションは補完の方法と、キーワード検索の対象となる場所を示
-	す、コンマ区切りのフラグのリストである。
+	このオプションは、CTRL-P、CTRL-N、または |ins-autocompletion| を使用し
+	た場合の補完 |ins-completion| の動作を制御する。また、行全体補完
+	|i_CTRL-X_CTRL-L| にも使用される。補完の種類とスキャンする場所を指定す
+	る。以下のフラグをコンマ区切りで指定する:
 	.	カレントバッファから検索 ('wrapscan' の値は無視)
 	w	別のウィンドウ内のバッファから検索
 	b	バッファリスト内の、現在読み込まれている別のバッファから検索
@@ -2206,8 +2206,9 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		に |ins-autocompletion| において重要である。
 	F	'completefunc' オプションから取得した関数を使って "F{func}" を
 		使用するのと同じである。
-	o	'omnifunc' オプションから取得した関数を使って "F{func}" を使用
-		するのと同じである。
+	o	"F{func}" と同等だが、{func} は 'omnifunc' オプションから取得
+		される。プラグイン (LSP クライアント等) が 'omnifunc' を定義し
+		ている場合は、このフラグを介して使用できる。
 
 	読み込まれていないバッファでは、何しろ読み込まれていないのだから、
 	|:autocmd| は実行されていない。そのため、ある種のファイルからは思いも
@@ -2223,9 +2224,10 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	   5. タグ
 	   6. インクルードされるファイル
 
-	CTRL-N と CTRL-P は 'iskeyword' を利用した全てのファイル名展開で使用で
-	きる (つまり辞書 |i_CTRL-X_CTRL-K|、インクルードされるパターン
-	|i_CTRL-X_CTRL-I|、タグ |i_CTRL-X_CTRL-]| および通常の展開)。
+	CTRL-N、CTRL-P および |ins-autocompletion| は、'iskeyword' ベースの補完
+	(辞書 |i_CTRL-X_CTRL-K|、包含パターン |i_CTRL-X_CTRL-I|、タグ
+	|i_CTRL-X_CTRL-]|、および通常の展開) に使用できる。'complete' に "F"
+	および "o" フラグを指定すると、キーワード以外の単語も補完できる。
 
 	補完ソースのフラグにキャレット ("^") と {count} を付加することで、補完
 	ソースに任意のマッチ数制限を指定できる。
@@ -2344,17 +2346,24 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 		    {|+textprop| 機能付きでコンパイルされたときのみ有効}
 
 	   preinsert
-		    現在の補完リーダーの一部ではない最初の候補単語の部分を事前
-		    に挿入し、|hl-ComplMatchIns| ハイライトグループを使用する。
-		    これを機能させるには、"fuzzy" を設定せずに、"menuone" を設
-		    定する必要がある。
+		    'autocomplete' がアクティブでない場合、最初の候補単語のう
+		    ち、|hl-PreInsert| でハイライト表示されている現在の補完リー
+		    ダーの後ろの部分を挿入する。カーソルは移動しない。'fuzzy'
+		    が未設定で、'completeopt' に "menuone" が指定されている必
+		    要がある。
+
+		    'autocomplete' がアクティブな場合、(表示されているすべての
+		    項目、または現在のバッファ項目から) マッチした単語の中で最
+		    長の共通プリフィックスを挿入する。これは、メニュー項目が選
+		    択されていない場合にのみ実行される。確定するには Ctrl-Y を
+		    押す。
 
 	   preview  現在選択されている候補についての付加的な情報をプレビュー
 		    ウィンドウに表示する。"menu" または "menuone" と組み合わせ
 		    たときのみ有効。
 
-	'autocomplete' が有効な場合、"fuzzy"、"popup"、"popuphidden" および
-	"preview" のみ効果がある。
+	'autocomplete' が有効な場合、"fuzzy"、"popup"、"popuphidden"、
+	"preinsert" および "preview" のみ効果がある。
 
 	このオプションは |cmdline-completion| には適用されない。詳細については
 	'wildoptions' を参照。
@@ -3081,8 +3090,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	内で設定することはできない。
 
 						*'dip'* *'diffopt'*
-'diffopt' 'dip'		文字列 (既定では
-				 "internal,filler,closeoff,inline:simple")
+'diffopt' 'dip'		文字列 (既定では "internal,filler,closeoff,
+						indent-heuristic,inline:char")
 			グローバル
 			{|+diff| 機能付きでコンパイルされたときのみ有効}
 	差分モード用のオプション設定。以下の項目で構成できる。すべてオプション
@@ -4687,7 +4696,7 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 				     #:TabLineSel,_:TabLineFill,!:CursorColumn,
 				     .:CursorLine,o:ColorColumn,q:QuickFixLine,
 				     z:StatusLineTerm,Z:StatusLineTermNC,
-				     g:MsgArea,h:ComplMatchIns")
+				     g:MsgArea,h:ComplMatchIns,I:PreInsert")
 			グローバル
 	このオプションは、様々な対象に対する強調表示モードを設定する。文字の組
 	をコンマ区切りのリストとして指定する。1番目の文字は適用される対象を指
@@ -4752,6 +4761,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	|hl-PmenuMatch|	 k  ポップアップメニューのマッチしたテキスト
 	|hl-PmenuMatchSel| <  ポップアップメニューの選択された行のマッチしたテ
 			    キスト
+	|hl-PreInsert|	 I  "preinsert" が 'completeopt' にあるときに挿入され
+			    るテキスト
 
 	表示モードは以下の通りである。
 		r	反転		(termcapの項目 "mr" と "me")
@@ -5125,8 +5136,8 @@ Note 1番目の形式では、行全体がオプション指定に使われる�
 	したい場合、autocmd で 'hlsearch' をオン/オフできる。例: >
 		augroup vimrc-incsearch-highlight
 		  autocmd!
-		  autocmd CmdlineEnter /,\? :set hlsearch
-		  autocmd CmdlineLeave /,\? :set nohlsearch
+		  autocmd CmdlineEnter [\/\?] :set hlsearch
+		  autocmd CmdlineLeave [\/\?] :set nohlsearch
 		augroup END
 <
 	CTRL-L を押すと、現在マッチしているテキストの後からコマンドラインへ1文
