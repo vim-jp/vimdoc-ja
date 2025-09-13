@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'cmdline'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="cmdline.html" name="cmdline.txt">cmdline.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2025 Aug 08<br>
+<a class="Constant" href="cmdline.html" name="cmdline.txt">cmdline.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2025 Sep 10<br>
 <br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Identifier">VIMリファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -24,6 +24,7 @@ helpname: 'cmdline'
 5. Exコマンドラインのフラグ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="cmdline.html#ex-flags">ex-flags</a><br>
 6. Exコマンド用の特別な文字&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="cmdline.html#cmdline-special">cmdline-special</a><br>
 7. コマンドラインウィンドウ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="cmdline.html#cmdline-window">cmdline-window</a><br>
+8. コマンドラインの自動補完&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="cmdline.html#cmdline-autocompletion">cmdline-autocompletion</a><br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 1. コマンドラインの編集&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#cmdline-editing" name="cmdline-editing">cmdline-editing</a><br>
@@ -390,6 +391,9 @@ helpname: 'cmdline'
 マッチするヘルプ項目の個数には上限がある(現在のところは 300)。非常に多くのマッ<br>
 チがあったとき、遅くなるのを避けるためである。<br>
 <br>
+(<span class="Special">&lt;Tab&gt;</span>&nbsp;等のキーを押さずに) 入力時に自動補完を行う場合、<br>
+<a class="Identifier" href="cmdline.html#cmdline-autocompletion">cmdline-autocompletion</a>&nbsp;を参照。<br>
+<br>
 補完に使えるコマンドは以下の通り。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#c_CTRL-D" name="c_CTRL-D">c_CTRL-D</a><br>
@@ -452,8 +456,6 @@ helpname: 'cmdline'
 オプション&nbsp;<a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;の既定値は&nbsp;<span class="Special">&lt;Tab&gt;</span>&nbsp;である (Vi互換モードの場合は&nbsp;<span class="Special">CTRL-E</span>&nbsp;で<br>
 ある。以前のバージョンでは&nbsp;<span class="Special">&lt;Esc&gt;</span>&nbsp;が使われていた)。パターンがファイル名に対して<br>
 適用されるときは標準の&nbsp;<a class="Identifier" href="editing.html#wildcards">wildcards</a>&nbsp;が使用できる。<br>
-<br>
-<a class="Identifier" href="builtin.html#wildtrigger()">wildtrigger()</a>&nbsp;も参照。<br>
 <br>
 <a class="Type" href="options.html#'wildchar'">'wildchar'</a>&nbsp;または&nbsp;<span class="Special">CTRL-N</span>&nbsp;を繰り返すとマッチしたものの始めから終わりまでを循環<br>
 して、最終的には入力されたものに戻る。最初のマッチが望むものでないなら、入力し<br>
@@ -1277,7 +1279,7 @@ Cmdwin イベントを使用してコマンドラインウィンドウ専用の�
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:au CmdwinEnter [/\?]&nbsp;&nbsp;startinsert</div>
 こうすれば、コマンドラインウィンドウではVimは挿入モードに移る。<br>
 <span class="Todo">Note</span>: これは&nbsp;<a class="Identifier" href="autocmd.html#file-pattern">file-pattern</a>&nbsp;なので、&quot;?&quot; をエスケープする必要がある。<br>
-<span class="MissingTag">cmdline-autocompletion</span>&nbsp;も参照。<br>
+<a class="Identifier" href="cmdline.html#cmdline-autocompletion">cmdline-autocompletion</a>&nbsp;も参照。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#cmdwin-char" name="cmdwin-char">cmdwin-char</a><br>
 パターンに使われる文字は、コマンドラインの種類を表す。<br>
@@ -1288,6 +1290,84 @@ Cmdwin イベントを使用してコマンドラインウィンドウ専用の�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Expressionレジスタ &quot;= 用の expression&nbsp;<a class="Identifier" href="eval.html#expr-register">expr-register</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 関数&nbsp;<a class="Identifier" href="builtin.html#input()">input()</a>&nbsp;に対して入力する文字列<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; コマンド&nbsp;<a class="Identifier" href="insert.html#:insert">:insert</a>&nbsp;や&nbsp;<a class="Identifier" href="insert.html#:append">:append</a>&nbsp;に対して入力する文字列<br>
+<br>
+<span class="PreProc">==============================================================================</span><br>
+8. コマンドラインの自動補完&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#cmdline-autocompletion" name="cmdline-autocompletion">cmdline-autocompletion</a><br>
+<br>
+自動補完は、入力中に検索 (/ または ?) やコマンド入力 (:) の際に自動的に候補の<br>
+ポップアップメニューを表示することで、コマンドラインの操作をより効率的かつ簡単<br>
+にする。<br>
+<br>
+基本的な設定:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;autocmd CmdlineChanged [:\/\?] call wildtrigger()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set wildmode=noselect:lastused,full<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set wildoptions=pum</div>
+<br>
+この設定では、すぐに候補が表示され、<span class="Special">&lt;Tab&gt;</span>&nbsp;キーまたは矢印キーを使用して候補間を<br>
+移動できる。<br>
+<br>
+<span class="Special">&lt;Up&gt;</span>/<span class="Special">&lt;Down&gt;</span>&nbsp;による通常のコマンドライン履歴ナビゲーションを維持するには:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cnoremap &lt;expr&gt; &lt;Up&gt;&nbsp;&nbsp; wildmenumode() ? &quot;\&lt;C-E&gt;\&lt;Up&gt;&quot;&nbsp;&nbsp; : &quot;\&lt;Up&gt;&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cnoremap &lt;expr&gt; &lt;Down&gt; wildmenumode() ? &quot;\&lt;C-E&gt;\&lt;Down&gt;&quot; : &quot;\&lt;Down&gt;&quot;</div>
+<br>
+オプションは特定のコマンドラインにのみ適用することもできる。例えば、検索時のみ<br>
+ポップアップメニューの高さを低くするには:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;autocmd CmdlineEnter [\/\?] set pumheight=8<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;autocmd CmdlineLeave [\/\?] set pumheight&amp;</div>
+<br>
+<span class="Statement">おまけ</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="cmdline.html#fuzzy-file-picker" name="fuzzy-file-picker">fuzzy-file-picker</a>&nbsp;<a class="Constant" href="cmdline.html#live-grep" name="live-grep">live-grep</a><br>
+<br>
+コマンドラインの自動補完は、高度な用途向けに拡張することもでる。<br>
+例えば、ネイティブの&nbsp;<a class="Identifier" href="editing.html#:find">:find</a>&nbsp;コマンドを、あいまい検索が可能な対話型ファイルピッ<br>
+カーに変えることができる:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set findfunc=Find<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func Find(arg, _)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if get(s:, 'filescache', []) == []<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let s:filescache = systemlist(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ 'find . -path &quot;*/.git&quot; -prune -o -type f -print')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return a:arg == '' ? s:filescache : matchfuzzy(s:filescache, a:arg)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;autocmd CmdlineEnter : let s:filescache = []</div>
+<br>
+<span class="Comment">:Grep</span>&nbsp;コマンドは、パターンにマッチする行を検索し、入力すると結果を動的に更新<br>
+する (2 文字後にトリガーされる。<span class="Todo">note</span>: 次のセクションの&nbsp;<a class="Comment" href="autocmd.html#CmdlineLeavePre">CmdlineLeavePre</a>&nbsp;自動<br>
+コマンドが必要である):<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;command! -nargs=+ -complete=customlist,&lt;SID&gt;Grep<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ Grep call &lt;SID&gt;VisitFile()</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func s:Grep(arglead, cmdline, cursorpos)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let cmd = $'grep -REIHns &quot;{a:arglead}&quot; --exclude-dir=.git<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ --exclude=&quot;.*&quot;'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return len(a:arglead) &gt; 1 ? systemlist(cmd) : []<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc</div>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func s:VisitFile()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let item = getqflist(#{lines: [s:selected]}).items[0]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let pos&nbsp;&nbsp;= '[0,\ item.lnum,\ item.col,\ 0]'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exe $':b +call\ setpos(&quot;.&quot;,\ {pos}) {item.bufnr}'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call setbufvar(item.bufnr, '&amp;buflisted', 1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc</div>
+<br>
+コマンドラインを終了するときに補完リストの最初の項目を自動的に選択し、<span class="Comment">:Grep</span><br>
+の場合は入力したパターンをコマンドライン履歴に追加する:<br>
+<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;autocmd CmdlineLeavePre :<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ if get(cmdcomplete_info(), 'matches', []) != [] |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp; let s:info = cmdcomplete_info() |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp; if getcmdline() =~ '^\s*fin\%[d]\s' &amp;&amp; s:info.selected == -1 |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp;&nbsp;&nbsp; call setcmdline($'find {s:info.matches[0]}') |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp; endif |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp; if getcmdline() =~ '^\s*Grep\s' |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp;&nbsp;&nbsp; let s:selected = s:info.selected != -1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ? s:info.matches[s:info.selected] : s:info.matches[0] |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp;&nbsp;&nbsp; call setcmdline(s:info.cmdline_orig) |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp; endif |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ endif</div>
+<br>
+挿入モードでの自動補完については、<a class="Identifier" href="insert.html#ins-autocompletion">ins-autocompletion</a>&nbsp;を参照。<br>
 <br>
 &nbsp;vim:tw=78:ts=8:noet:ft=help:norl:<br>
 </div>
