@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Sep 08
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Sep 18
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -632,7 +632,8 @@ settagstack({nr}, {dict} [, {action}])
 				数値	{dict}を使ってタグスタックを変更
 setwinvar({nr}, {varname}, {val}) なし	ウィンドウ{nr}の変数{varname}に{val}を
 					セット
-sha256({string})		文字列	{string}のSHA256チェックサム
+sha256({expr})			文字列	文字列または Blob の SHA256 チェックサ
+					ム
 shellescape({string} [, {special}])
 				文字列	{string}をシェルコマンド引数として使う
 					ためにエスケープする。
@@ -1965,10 +1966,10 @@ col({expr} [, {winid}])					*col()*
 
 
 complete({startcol}, {matches})			*complete()* *E785*
-		挿入モード補完の候補を設定する。
-		挿入モードでのみ使用できる。CTRL-R = (|i_CTRL-R| を参照)と組み
-		合わせてマッピングを作る必要がある。CTRL-Oの後や、<expr>マッピ
-		ングの中では正しく動作しない。
+		挿入モード補完のマッチを設定する。挿入モードでのみ使用できる。
+		通常は CTRL-R = (|i_CTRL-R| を参照) のマッピングから呼び出され
+		る。ただし、|<Cmd>| または |<ScriptCmd>| マッピングからも呼び
+		出される。CTRL-O の後や式のマッピングでは機能しない。
 		{startcol}は補完すべき単語の開始位置を示す、行内のバイトオフセッ
 		トである。その位置からカーソルまでのテキストが補完すべき単語と
 		なる。
@@ -1981,15 +1982,31 @@ complete({startcol}, {matches})			*complete()* *E785*
 		この関数で設定した候補は普通の挿入モード補完と同じ様にCTRL-Nと
 		CTRL-Pで選択できる。設定されていればポップアップメニューが表示
 		される。|ins-completion-menu|を参照。
-		例: >
-	inoremap <F5> <C-R>=ListMonths()<CR>
 
-	func ListMonths()
-	  call complete(col('.'), ['January', 'February', 'March',
-		\ 'April', 'May', 'June', 'July', 'August', 'September',
-		\ 'October', 'November', 'December'])
-	  return ''
-	endfunc
+		例 (旧来の Vim script を使用): >
+
+		inoremap <F5> <C-R>=ListMonths()<CR>
+
+		func ListMonths()
+		  call complete(col('.'), ['January', 'February', 'March',
+			\ 'April', 'May', 'June', 'July', 'August',
+			\ 'September', \ 'October', 'November', 'December'])
+		  return ''
+		endfunc
+<
+		例 (Vim9 script を使用): >
+
+		vim9script
+		def ListMonths(): string
+		  const months = [ 'January', 'February', 'March', 'April',
+			'May', 'June', 'July', 'September', 'October',
+			'November', 'December']
+		  complete(col('.'), months)
+		  return ''
+		enddef
+
+		inoremap <F5> <ScriptCmd>ListMonths()<CR>
+
 <		この例はそれほど役には立たないが、使い方を示している。Note 0が
 		挿入されてしまわないように空文字列を返していることに注意。
 
@@ -10115,11 +10132,13 @@ setwinvar({winnr}, {varname}, {val})			*setwinvar()*
 		戻り値の型: |Number|
 
 
-sha256({string})						*sha256()*
-		{string}のSHA256チェックサムを64文字の16進文字列で返す。
+sha256({expr})						*sha256()*
+		{expr} のSHA256チェックサムを64文字の16進文字列で返す。
+		{expr} は文字列または Blob である。
 
 		|method| としても使用できる: >
 			GetText()->sha256()
+			GetBlob()->sha256()
 <
 		戻り値の型: |String|
 
