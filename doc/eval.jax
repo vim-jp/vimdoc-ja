@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 9.1.  Last change: 2025 Sep 15
+*eval.txt*	For Vim バージョン 9.1.  Last change: 2025 Sep 25
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -3054,8 +3054,11 @@ Note: |Vim9| script では、`:let` は使用されない。`:var` は変数宣�
 			の環境変数を区別しない。
 
 :let ${env-name} .= {expr1}
+:let ${env-name} ..= {expr1}
 			環境変数{env-name}に{expr1}を付け加える。その環境変数
 			が存在しないときは "=" と同様に働く。
+			`.=` は Vim script バージョン 2 以降ではサポートされて
+			いない。|vimscript-version| を参照。
 
 :let @{reg-name} = {expr1}			*:let-register* *:let-@*
 			式{expr1}の結果をレジスタ{reg-name}に書きこむ。
@@ -3072,8 +3075,11 @@ Note: |Vim9| script では、`:let` は使用されない。`:var` は変数宣�
 			ると、いたるところでマッチする。
 
 :let @{reg-name} .= {expr1}
+:let @{reg-name} ..= {expr1}
 			レジスタ{reg-name}に{expr1}を付け加える。このレジスタ
 			が空のときは、そこに{expr1}をセットする。
+			`.=` は Vim script バージョン 2 以降ではサポートされて
+			いない。|vimscript-version| を参照。
 
 :let &{option-name} = {expr1}			*:let-option* *:let-&*
 			オプション{option-name}に式{expr}の値をセットする。文
@@ -3090,27 +3096,37 @@ Note: |Vim9| script では、`:let` は使用されない。`:var` は変数宣�
 			成され、エラーは発生しない。
 
 :let &{option-name} .= {expr1}
+:let &{option-name} ..= {expr1}
 			文字列のオプションの場合: その値に{expr}を付け加える。
 			|:set+=|とは違い、コンマを挿入しない。
+			`.=` は Vim script バージョン 2 以降ではサポートされて
+			いない。|vimscript-version| を参照。
 
 :let &{option-name} += {expr1}
 :let &{option-name} -= {expr1}
 			数値または切替のオプションの場合: {expr1}を足す・引く。
 
 :let &l:{option-name} = {expr1}
-:let &l:{option-name} .= {expr1}
 :let &l:{option-name} += {expr1}
 :let &l:{option-name} -= {expr1}
+:let &l:{option-name} .= {expr1}
+:let &l:{option-name} ..= {expr1}
 			上と同様だが、オプションのローカルな値だけをセットする
 			(ローカルな値があるならば)。|:setlocal|と同様に働く。
+			`.=` は Vim script バージョン 2 以降ではサポートされて
+			いない。|vimscript-version| を参照。
 
 :let &g:{option-name} = {expr1}
-:let &g:{option-name} .= {expr1}
 :let &g:{option-name} += {expr1}
 :let &g:{option-name} -= {expr1}
+:let &g:{option-name} .= {expr1}
+:let &g:{option-name} ..= {expr1}
 			上と同様だが、オプションのグローバルな値だけをセットす
 			る(グローバルな値があるならば)。|:setglobal|と同様に働
 			く。
+			`.=` は Vim script バージョン 2 以降ではサポートされて
+			いない。|vimscript-version| を参照。
+
 						*E1093* *E1537* *E1538* *E1535*
 :let [{name1}, {name2}, ...] = {expr1}		*:let-unpack* *E687* *E688*
 			{expr1} は |List| または |Tuple| に評価される必要があ
@@ -3137,8 +3153,12 @@ Note: |Vim9| script では、`:let` は使用されない。`:var` は変数宣�
 :let [{name1}, {name2}, ...] *= {expr1}
 :let [{name1}, {name2}, ...] /= {expr1}
 :let [{name1}, {name2}, ...] %= {expr1}
-			上記と同様だが、各 |List| または |Tuple| 項目の値を追
-			加、加算、減算、乗算、除算、または剰余する。
+:let [{name1}, {name2}, ...] .= {expr1}
+:let [{name1}, {name2}, ...] ..= {expr1}
+			上記と同様だが、各 |List| または |Tuple| 項目の値を加
+			算、減算、乗算、除算、剰余、または追加する。
+			`.=` は Vim script バージョン 2 以降ではサポートされて
+			いない。|vimscript-version| を参照。
 
 :let [{name}, ..., ; {lastname}] = {expr1}				*E452*
 			上記の |:let-unpack| と同様だが、|List| または |Tuple|
@@ -3150,11 +3170,13 @@ Note: |Vim9| script では、`:let` は使用されない。`:var` は変数宣�
 				:let [a, b; rest] = ["aval", "bval", 3, 4]
 				:let [a, b; rest] = ("aval", "bval", 3, 4)
 <
-:let [{name}, ..., ; {lastname}] .= {expr1}
 :let [{name}, ..., ; {lastname}] += {expr1}
 :let [{name}, ..., ; {lastname}] -= {expr1}
-			上と同様だが、リスト|List|の各項目に対して連結・足し算
-			・引き算を行う。
+:let [{name}, ..., ; {lastname}] .= {expr1}
+:let [{name}, ..., ; {lastname}] ..= {expr1}
+			上記と同様だが、各 |List| 項目の値を追加/減算/追加する。
+			`.=` は Vim script バージョン 2 以降ではサポートされて
+			いない。|vimscript-version| を参照。
 
 						*:let=<<* *:let-heredoc*
 					*E990* *E991* *E172* *E221* *E1145*
@@ -4008,7 +4030,7 @@ Note "v:exception"、"v:stacktrace" および "v:throwpoint" は最も直近に�
 
 	:function! Caught()
 	:  if v:exception != ""
-	:    echo 'Caught "' . v:exception .. '" in ' .. v:throwpoint
+	:    echo 'Caught "' .. v:exception .. '" in ' .. v:throwpoint
 	:  else
 	:    echo 'Nothing caught'
 	:  endif
