@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Sep 18
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Oct 01
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -394,7 +394,7 @@ lispindent({lnum})		数値	{lnum}行目のLispインデント量を取得
 list2blob({list})		Blob	数値のリスト {list} をBlobに変換する
 list2str({list} [, {utf8}])	文字列	数値のリスト {list} を文字列に変換する
 list2tuple({list})		Tuple	項目の {list} を tuple に変換する
-listener_add({callback} [, {buf}])
+listener_add({callback} [, {buf} [, {unbuffered}]])
 				数値	変更を監視するためのコールバックを追加
 listener_flush([{buf}])		なし	リスナーコールバックを呼び出す
 listener_remove({id})		なし	リスナーコールバックを削除する
@@ -498,9 +498,11 @@ popup_setoptions({id}, {options})
 					ンを設定する
 popup_settext({id}, {text})	なし	ポップアップウィンドウ {id} のテキスト
 					を設定する
-popup_show({id})		なし	ポップアップウィンドウ {id} を再表示す
+popup_show({id})		数値	ポップアップウィンドウ {id} を再表示す
 					る
 pow({x}, {y})			浮動小数点数	{x} の {y} 乗
+preinserted()			数値	カーソルの後ろにテキストが挿入されたか
+					どうか
 prevnonblank({lnum})		数値	{lnum}行目以前の空行でない行の行番号
 printf({fmt}, {expr1}...)	文字列	文字列を組み立てる
 prompt_getprompt({buf})		文字列	プロンプト文字列の取得
@@ -1990,7 +1992,7 @@ complete({startcol}, {matches})			*complete()* *E785*
 		func ListMonths()
 		  call complete(col('.'), ['January', 'February', 'March',
 			\ 'April', 'May', 'June', 'July', 'August',
-			\ 'September', \ 'October', 'November', 'December'])
+			\ 'September', 'October', 'November', 'December'])
 		  return ''
 		endfunc
 <
@@ -3029,6 +3031,9 @@ expand({string} [, {nosuf} [, {list}]])				*expand()*
 			:t		テイル(ファイル名だけ)
 			:r		拡張子が削除される
 			:e		拡張子だけ
+
+		さらに多くの修飾子がサポートされている。完全な一覧について
+		は、|filename-modifiers| を参照。
 
 		例: >
 			:let &tags = expand("%:p:h") .. "/tags"
@@ -5299,12 +5304,14 @@ gettext({text} [, {package}])				*gettext()*
 getwininfo([{winid}])					*getwininfo()*
 		ウィンドウに関する情報を、辞書のリスト |List| として返す。
 
-		{winid}が与えられた場合、そのIDを持つウィンドウに関する情報が
-		リスト |List| として1項目にして返される。ウィンドウが存在しな
-		い場合、結果は空のリストになる。
+		{winid} が指定された場合、その ID を持つウィンドウに関する情報
+		が、1 つの項目を持つ |List| として返される。そのウィンドウが
+		|popup| ウィンドウの場合、そのポップアップウィンドウに関する情
+		報が返される。ウィンドウが存在しない場合、結果は空のリストにな
+		る。
 
-		{winid}がなければすべてのタブページのすべてのウィンドウに関す
-		る情報が返される。
+		{winid} がない場合、すべてのタブページ (|popup| を除く) のすべ
+		てのウィンドウに関する情報が返される。
 
 		リストの各項目は次のエントリを持つ辞書 |Dictionary| である:
 			botline		最下の完全に表示されたバッファ行
@@ -6633,13 +6640,18 @@ list2tuple({list})					*list2tuple()*
 <
 		戻り値の型: tuple<{type}> (指定された |List| による)
 
-listener_add({callback} [, {buf}])			*listener_add()*
+listener_add({callback} [, {buf} [, {unbuffered}]])	*listener_add()*
 		バッファ {buf} に変更が加えられたときに呼び出されるコールバッ
 		ク関数を追加する。
 		{buf} はバッファ名またはバッファ番号を参照する。許容値について
 		は、|bufname()| を参照。{buf}を省略すると、現在のバッファが使
 		用される。
 		|listener_remove()| に渡すことができる一意のIDを返す。
+
+		{buf} にすでにコールバックが登録されている場合は、新しいコール
+		バックが追加される前に >
+		    listener_flush({buf})
+<		と同等の処理が実行される。
 
 		{callback} は 5 つの引数で呼び出される:
 		    bufnr	変更されたバッファ
@@ -6680,18 +6692,34 @@ listener_add({callback} [, {buf}])			*listener_add()*
 		    added	0
 		    col		変更した最初の桁または 1
 
-		エントリは変更が行われた順になっているため、最新の変更は最後に
-		なる。行番号はコールバックが呼び出されたときに有効だが、後の変
-		更はそれらを無効にするかもしれない。したがって、後のためにコ
-		ピーを保持しても機能しないかもしれない。
+		{unbuffered} が |FALSE| であるか指定されていない場合は、
+		{callback} が呼び出される:
 
-		{callback} は、|listener_flush()| が呼び出されたとき、または、
-		行数を変更するような変更が行われ、変更リストの行番号が無効に
-		なったときに、画面が更新される直前に呼び出される。
+		1. 画面が更新される直前。
+		2. |listener_flush()| が呼び出された時。
+		3. 行数を変更する変更が行われ、その結果、変更リスト内の行番号
+		   が無効になる場合。
+
+		エントリは変更が行われた順序で表示されるため、最新の変更は最後
+		に表示される。
+
+		上記のコールバックをトリガーする 3 番目の理由により、コールバッ
+		クに渡される行番号の有効性が保証されない。これが問題となる場合
+		は、{unbuffered} を |TRUE| に設定すること。
+
+		{unbuffered} が |TRUE| の場合、変更ごとに {callback} が呼び出
+		される。変更リストは単一の辞書のみを保持し、辞書内の "start"、
+		"end"、"added" の値は対応するコールバック引数と同じである。行
+		番号はコールバックが呼び出された時点では有効であるが、その後の
+		変更によって無効になる可能性がある。したがって、後で使用するた
+		めにコピーを保持してもうまく機能しない可能性がある。
 
 		{callback} はテキストをロックした状態で呼び出される。
 		|textlock| を参照。バッファを変更する必要がある場合は、後でこ
 		れを実行するためのタイマー |timer_start()| を使用すること。
+
+								    *E1569*
+		{callback} 中に listener_add() を呼び出すことはできない。
 
 		バッファが最初にロードされた時には {callback} は呼び出されな
 		い。|BufReadPost| 自動コマンドイベントを使用して、バッファの初
@@ -7895,6 +7923,15 @@ pow({x}, {y})						*pow()*
 		|method| としても使用できる: >
 			Compute()->pow(3)
 <
+		戻り値の型: |Number|
+
+
+preinserted()						*preinserted()*
+		'completeopt' に "preinsert" が指定されている場合、または
+		'autocomplete' が有効な状態で 'completeopt' に "longest" が指
+		定されている場合、カーソルの後ろにテキストが挿入されていると 0
+		以外の値を返す。それ以外の場合は 0 を返す。
+
 		戻り値の型: |Number|
 
 
@@ -12053,23 +12090,23 @@ values({dict})						*values()*
 
 
 virtcol({expr} [, {list} [, {winid}]])			*virtcol()*
-		結果は数値で、{expr}で与えられるファイルの位置の、スクリーン上
-		での桁の位置を示す。返る値は、指定された位置にある文字の末尾が、
-		スクリーン座標(の桁)でどこに存在するかである。<Tab>(タブ文字)
-		が指定した位置にあった場合には、戻り値はそのタブの最後のカラム
-		(桁)位置になる。具体的に、'ts' が8に設定された状態で第1桁に
-		<Tab>があった場合、戻り値は8になる。|conceal| は無視される。
-		バイト位置については |col()| を使う。
+		結果は数値で、{expr} で与えられるファイルの位置の、スクリーン
+		上での桁の位置を示す。つまり、その位置の文字の終わりまでの行の
+		部分が占める画面セルの合計数である。<Tab> が指定した位置にあっ
+		た場合には、戻り値はそのタブの最後の桁位置になる。具体的に、
+		'ts' が 8 に設定された状態で最初の桁に <Tab> があった場合、戻
+		り値は 8 になる。|conceal| は無視される。バイト位置については
+		|col()| を使う。
 
-		{expr}の解釈の仕方については |getpos()| および |col()| を参照。
+		{expr} の解釈の仕方については |getpos()| および |col()| を参照。
 		{expr} が "$" の場合、カーソル行末を意味するため、結果はカーソ
 		ル行のセル数に 1 を加えた数になる。
 
-		'virtualedit' がオンのときは[lnum, col, off]というリストを指定
-		することもできる。"off" は文字の開始位置からのスクリーン座標で
-		のオフセットである。例えば、<Tab>の中の位置や、行の最後の文字
-		以降の位置を示すために使う。"off" が省略された場合はゼロが使わ
-		れる。
+		'virtualedit' がオンのときは [lnum, col, off] というリストを指
+		定することもできる。"off" は文字の開始位置からのスクリーン座標
+		でのオフセットである。例えば、<Tab> の中の位置や、行の最後の文
+		字以降の位置を示すために使う。"off" が省略された場合はゼロが使
+		われる。
 		現在のモードに対して仮想編集がオンのときは、行末を越えた位置が
 		返ってくることもある。'virtualedit' も参照。
 
@@ -12379,7 +12416,7 @@ winbufnr({nr})	結果は数値で、{nr}番目のウィンドウに関連付け�
 		番号が返る。{nr}で存在しないウィンドウを指定した場合には-1が返
 		る。
 		例: >
-  :echo "The file in the current window is " . bufname(winbufnr(0))
+  :echo "The file in the current window is " .. bufname(winbufnr(0))
 <
 		|method| としても使用できる: >
 			FindWindow()->winbufnr()->bufname()
@@ -12895,7 +12932,8 @@ vreplace		コマンド|gR|と|gr|をサポート (常に true)
 vtp			vcon をサポート |+vtp| (現在のコンソール内で機能するか
 			どうかを調べるには vcon を確認する)
 wayland			Wayland プロトコルをサポート
-wayland_clipboard	Wayland のセレクション/クリップボートのサポート
+wayland_clipboard	Wayland のクリップボートのサポート
+wayland_focus_steal	Wayland のクリップボードのフォーカススティールのサポート
 wildignore		オプション 'wildignore' をサポート
 wildmenu		オプション 'wildmenu' を指定してコンパイル
 win16			MS-Windows 3.1 用の古いバージョン (常に false)
