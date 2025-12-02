@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Nov 09
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Nov 28
 
 
 		  VIM リファレンスマニュアル	by Bram Moolenaar
@@ -149,7 +149,6 @@ complete({startcol}, {matches})	なし	挿入モード補完を設定する
 complete_add({expr})		数値	補完候補を追加する
 complete_check()		数値	補完中に押されたキーをチェックする
 complete_info([{what}])		辞書	現在の補完情報を取得
-complete_match([{lnum}, {col}])	リスト	補完のカラムとトリガー文字列を取得
 confirm({msg} [, {choices} [, {default} [, {type}]]])
 				数値	ユーザーへの選択肢と番号
 copy({expr})			任意	{expr}の浅いコピーを作る
@@ -984,8 +983,8 @@ appendbufline({buf}, {lnum}, {text})			*appendbufline()*
 <		ただし、{text} が空のリストの場合、{lnum} は実際には使用されな
 		いため、無効な {lnum} に対してエラーは発生しない。
 
-		リストの後に |method| としても使用でき、ベースは第2引数として
-		渡される: >
+		リストの後に |method| としても使用でき、ベースは第 3 引数とし
+		て渡される: >
 			mylist->appendbufline(buf, lnum)
 <
 		戻り値の型: |Number|
@@ -2111,50 +2110,6 @@ complete_info([{what}])					*complete_info()*
 			GetItems()->complete_info()
 <
 		戻り値の型: dict<any>
-
-complete_match([{lnum}, {col}])				*complete_match()*
-		指定された位置から後方に検索し、'isexpand' オプションに従って
-		マッチした文字列のリストを返す。引数が指定されていない場合は、
-		現在のカーソル位置を使用する。
-
-		各マッチは、[startcol, trigger_text] を含むリストとして表され
-		る:
-		- startcol: 補完を開始する桁位置。トリガー位置が見つからない場
-		  合は -1 を返す。複数文字のトリガーの場合は、最初の文字の桁を
-		  返す。
-		- trigger_text: 'isexpand' からのマッチするトリガー文字列、ま
-		  たはマッチするものが見つからなかったか、デフォルトの
-		  'iskeyword' パターンを使用している場合は空の文字列。
-
-		'isexpand' が空の場合、'iskeyword' のパターン "\k\+$" を使用し
-		て現在のキーワードの開始位置を検索する。
-
-		例: >
-	set isexpand=.,->,/,/*,abc
-	func CustomComplete()
-	  let res = complete_match()
-	  if res->len() == 0 | return | endif
-	  let [col, trigger] = res[0]
-	  let items = []
-	  if trigger == '/*'
-	    let items = ['/** */']
-	  elseif trigger == '/'
-	    let items = ['/*! */', '// TODO:', '// fixme:']
-	  elseif trigger == '.'
-	    let items = ['length()']
-	  elseif trigger =~ '^\->'
-	    let items = ['map()', 'reduce()']
-	  elseif trigger =~ '^\abc'
-	    let items = ['def', 'ghk']
-	  endif
-	  if items->len() > 0
-	    let startcol = trigger =~ '^/' ? col : col + len(trigger)
-	    call complete(startcol, items)
-	  endif
-	endfunc
-	inoremap <Tab> <Cmd>call CustomComplete()<CR>
-<
-		戻り値の型: list<list<any>>
 
 
 confirm({msg} [, {choices} [, {default} [, {type}]]])	*confirm()*
@@ -6718,8 +6673,9 @@ listener_add({callback} [, {buf} [, {unbuffered}]])	*listener_add()*
 		に表示される。
 
 		上記のコールバックをトリガーする 3 番目の理由により、コールバッ
-		クに渡される行番号の有効性が保証されない。これが問題となる場合
-		は、{unbuffered} を |TRUE| に設定すること。
+		クに渡される行番号の有効性は保証されない。特に、終了値は
+		line('$') + 1 よりも大きくなる可能性がある。これが問題となる場
+		合は、{unbuffered} を |TRUE| に設定すること。
 
 		{unbuffered} が |TRUE| の場合、変更ごとに {callback} が呼び出
 		される。変更リストは単一の辞書のみを保持し、辞書内の "start"、
