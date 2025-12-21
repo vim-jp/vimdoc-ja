@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Dec 11
+*builtin.txt*	For Vim バージョン 9.1.  Last change: 2025 Dec 13
 
 
 		  VIM リファレンスマニュアル	by Bram Moolenaar
@@ -546,6 +546,9 @@ readdirex({dir} [, {expr} [, {dict}]])
 					イル情報を取得
 readfile({fname} [, {type} [, {max}]])
 				リスト	ファイル{fname}から行のリストを取得
+redraw_listener_add({opts})	数値	再描画を監視するためのコールバックを追
+					加する
+redraw_listener_remove({id})	なし	再描画リスナーを削除する
 reduce({object}, {func} [, {initial}])
 				任意	{func} を使って {object} の 畳み込み
 					(reduce) を行う
@@ -8631,6 +8634,46 @@ readfile({fname} [, {type} [, {max}]])			*readfile()*
 			GetFileName()->readfile()
 <
 		戻り値の型: list<string> または list<any>
+
+
+redraw_listener_add({opts})				*redraw_listener_add()*
+		再描画サイクルの特定のタイミングで呼び出されるコールバック関数
+		を保持するリスナーを追加する。{opts} は定義するコールバック関
+		数を含む辞書である。少なくとも 1 つのコールバックを指定する必
+		要がある。 *E1571*
+		|redraw_listener_remove()| に渡すことができる一意の ID を返す。
+
+		{opts} には次のエントリが含まれる:
+
+		    on_start	画面の再描画ごとに最初に呼び出される。引数は取
+				らず、何も返さない。
+		    on_end	各画面の再描画の最後に呼び出される。引数は取ら
+				ず、何も返さない。
+
+		この関数の良い使用例は、unbuffered を TRUE に設定した
+		|listener_add()| コールバックである。これにより、バッファの変
+		更時に状態を変更し、変更があった場合にのみ、次の再描画の直前に
+		その状態をレンダリングできる。バッファの変更ごとにレンダリング
+		または再描画を試行するのはとても非効率的である。
+
+		{opts} で定義されたコールバックの実行中に redraw_listener_add()
+		を呼び出すことはできない。 *E1570*
+
+		|method| としても使用できる: >
+			GetOpts()->redraw_listener_add()
+<
+		戻り値の型: |Number|
+
+
+redraw_listener_remove({id})				*redraw_listener_remove()*
+		|redraw_listener_add()| で以前に追加された再描画リスナーを削除
+		する。{id} が見つからなかった場合は FALSE を返し、{id} が削除
+		された場合は TRUE を返す。
+
+		|method| としても使用できる: >
+			GetRedrawListenerId()->redraw_listener_remove()
+<
+		戻り値の型: |Number|
 
 
 reduce({object}, {func} [, {initial}])			*reduce()* *E998*
