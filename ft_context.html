@@ -3,11 +3,11 @@ layout: vimdoc
 helpname: 'ft_context'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="ft_context.html" name="ft_context.txt">ft_context.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2024 Jan 01<br>
+<a class="Constant" href="ft_context.html" name="ft_context.txt">ft_context.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Jan 10<br>
 <br>
 これは ConTeXt ファイルタイププラグインのドキュメントである。<br>
 <br>
-<span class="Todo">NOTE</span>: このプラグインは +vim9script が必要である。<br>
+<span class="Todo">NOTE</span>: このプラグインは&nbsp;<a class="Identifier" href="various.html#+vim9script">+vim9script</a>&nbsp;が必要である。<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 <span class="Statement">内容</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_context.html#context.vim" name="context.vim">context.vim</a>&nbsp;<a class="Constant" href="ft_context.html#ft-context" name="ft-context">ft-context</a><br>
@@ -24,11 +24,11 @@ helpname: 'ft_context'
 ConTeXt は、LaTeX と同じで、TeX 上に構築されたマクロベースの組版システムである:<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://wiki.contextgarden.net">https://wiki.contextgarden.net</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://wiki.contextgarden.net/Vim">https://wiki.contextgarden.net/Vim</a></div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://wiki.contextgarden.net/Input_and_compilation/Text_editors/Vim">https://wiki.contextgarden.net/Input_and_compilation/Text_editors/Vim</a></div>
 <br>
 ConTeXt プラグインは構文ハイライト、組版した ConTeXt 文章の補完とサポートを提<br>
-供する。文章を組版するのに推奨する方法は&nbsp;<a class="Identifier" href="ft_context.html#:ConTeXt">:ConTeXt</a>&nbsp;を使うことである。これは<br>
-<span class="Comment">$PATH</span>&nbsp;上で見付けた&nbsp;<span class="Comment">mtxrun</span>&nbsp;スクリプトを動作させる。<br>
+供する。文章を組版するための推奨される方法は、$PATH にある&nbsp;<span class="Comment">mtxrun</span>&nbsp;スクリプト<br>
+を呼び出す&nbsp;<a class="Identifier" href="ft_context.html#:ConTeXt">:ConTeXt</a>&nbsp;を使用することである。<br>
 <br>
 コマンドとその環境でよりきめ細かな制御をするには、<span class="Comment">context.Typeset()</span>&nbsp;を直接使<br>
 うことができる (または旧来の Vim script からは&nbsp;<span class="Comment">context#Typeset()</span>)。例えば、<br>
@@ -37,26 +37,31 @@ ConTeXt プラグインは構文ハイライト、組版した ConTeXt 文章の
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import autoload 'context.vim'</div>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def MyConTeXt()<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const env = {'PATH':<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf(&quot;%s/context/tex/texmf-&lt;os&gt;-&lt;arch&gt;/bin:%s&quot;, $HOME, $PATH)}<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;context.Typeset(&quot;%&quot;, env)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var os = &quot;linux&quot;&nbsp;&nbsp;&nbsp;&nbsp;# システムに合わせて更新<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var arch = &quot;arm64&quot;&nbsp;&nbsp;# システムに合わせて更新</div>
 <br>
-このコードは&nbsp;<span class="Comment">~/.vim/after/ftplugin/context.vim</span>&nbsp;に置かれるかもしれない。そし<br>
-て、カスタムコマンドを呼び出すためのマッピングを定義することができる:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def MyConTeXt()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var env = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'PATH': $'{$HOME}/context/tex/texmf-{os}-{arch}/bin:{$PATH}'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;context.Typeset(&quot;%&quot;, env)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nnoremap &lt;silent&gt;&lt;buffer&gt;&lt;leader&gt;t &lt;scriptcmd&gt;MyConTeXt()&lt;cr&gt;</div>
 <br>
+このコードは&nbsp;<span class="Comment">~/.vim/after/ftplugin/context.vim</span>&nbsp;に配置する必要がある。<br>
+<br>
 <span class="Comment">context.Typeset()</span>&nbsp;は、カスタムの組版コマンドを指定するための 3 番目のオプショ<br>
-ナルな引数を受け入れる。これは、パスを受け取り、コマンドをリストとして返す関数<br>
+ナルな引数を受け入れる。これは、パスを受け取り、コマンドを&nbsp;<a class="Identifier" href="eval.html#list">list</a>&nbsp;として返す関数<br>
 でなければならない。例えば:<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def ConTeXtCustomCommand(path: string): list&lt;string&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return ['mtxrun', '--script', 'context', '--nonstopmode', path]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;context.ConTeXtTypeset(&quot;%&quot;, v:none, ConTeXtCustomCommand)</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def MyContext()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;context.Typeset(&quot;%&quot;, v:none, ConTeXtCustomCommand)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
 <br>
 大規模なプロジェクトでは、ルートドキュメントと様々な章ファイルで構成されること<br>
 がよくある。章ファイルを編集する場合、ルートファイルに切り替えることなく、章<br>
@@ -84,7 +89,8 @@ Vim は、カレントバッファの最初の 10 行内にマジック行を検
 -&nbsp;<span class="Comment">context-data-metafun.vim</span>;<br>
 -&nbsp;<span class="Comment">context-data-tex.vim</span>.<br>
 <br>
-同じコマンドを使用して、これらの構文ファイルを更新できる。<br>
+存在する場合、そのようなファイルは構文のハイライトを強化するために自動的に読み<br>
+込まれる。同じコマンドを使用して、これらの構文ファイルを更新できる。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_context.html#ft-context-commands" name="ft-context-commands">ft-context-commands</a><br>
 <span class="PreProc">コマンド</span><br>
@@ -111,8 +117,9 @@ Makefile が存在していても、代わりに&nbsp;<span class="Comment">mtxr
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;g:context_ignore_makefile = 0</div>
 <br>
-<span class="Todo">NOTE</span>:&nbsp;<a class="Identifier" href="quickfix.html#:make">:make</a>&nbsp;を使用する前に、バッファの作業ディレクトリを組版するファイルの<br>
-ディレクトリに設定する。<br>
+<span class="Todo">NOTE</span>:&nbsp;<a class="Identifier" href="quickfix.html#:make">:make</a>&nbsp;を使用する前に、バッファの作業ディレクトリがタイプセットしたい<br>
+ファイルのディレクトリに設定されていることを確認すること。また、<a class="Identifier" href="quickfix.html#:make">:make</a>&nbsp;は<br>
+$PATH 内で&nbsp;<span class="Comment">mtxrun</span>&nbsp;を検索することに注意。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_context.html#'g:context_extra_options'" name="'g:context_extra_options'">'g:context_extra_options'</a><br>
 <span class="Comment">mtxrun</span>&nbsp;に渡す追加のオプションのリスト。<br>
@@ -137,13 +144,14 @@ Makefile が存在していても、代わりに&nbsp;<span class="Comment">mtxr
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="ft_context.html#ft-context-mappings" name="ft-context-mappings">ft-context-mappings</a><br>
 <span class="PreProc">マッピング</span><br>
 <br>
-tp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;reflow TeX paragraph&quot;、TeX での段落を整形する。<br>
+tp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;reflow TeX paragraph&quot;、TeX での段落を整形する。(モー<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ション)<br>
 <br>
 i$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;inside inline math block&quot;、インラインの数式ブロック内<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;部を選択する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;部を選択する。(テキストオブジェクトの選択)<br>
 <br>
 a$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;around inline math block&quot;、インラインの数式ブロックを<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;選択する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;選択する。(テキストオブジェクトの選択)<br>
 <br>
 ]]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">[count]</span>&nbsp;セクションの開始に進む。<br>
 <br>
