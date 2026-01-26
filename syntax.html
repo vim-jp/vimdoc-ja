@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'syntax'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="syntax.html" name="syntax.txt">syntax.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2026 Jan 06<br>
+<a class="Constant" href="syntax.html" name="syntax.txt">syntax.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2026 Jan 23<br>
 <br>
 <br>
 <span class="Identifier">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIM リファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -2635,47 +2635,51 @@ ncf.vimによって認識されない文をエラーとしてハイライトさ�
 <br>
 <span class="Statement">NROFF&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="syntax.html#nroff.vim" name="nroff.vim">nroff.vim</a>&nbsp;<a class="Constant" href="syntax.html#ft-nroff-syntax" name="ft-nroff-syntax">ft-nroff-syntax</a><br>
 <br>
-nroff構文ファイルはそのままでAT&amp;T n/troffに対応している。構文ファイルに含まれ<br>
-ているGNU groff拡張機能を使うには、それを有効化する必要がある。<br>
-<br>
-例えば、LinuxとBSDディストリビューションは、デフォルトではテキスト処理パッケー<br>
-ジとしてgroffを使う。groff用の拡張構文ハイライト機能を有効化するには、ファイル<br>
-を groff (<a class="Identifier" href="syntax.html#ft-groff-syntax">ft-groff-syntax</a>&nbsp;を参照)として認識されるように調整する、あるいは次<br>
-のオプションを初期化ファイルに加える:<br>
+nroff 構文ファイルは、AT&amp;T n/troff でそのまま使用できる。Linux および BSD ディ<br>
+ストリビューションがデフォルトの組版パッケージとして使用している GNU troff<br>
+(groff) をサポートするには、ファイルを groff の入力として認識させるか<br>
+(<a class="Identifier" href="syntax.html#ft-groff-syntax">ft-groff-syntax</a>&nbsp;を参照)、スタートアップファイルに以下のオプションを追加す<br>
+る:<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;:let nroff_is_groff = 1</div>
 <br>
-groffは、Solarisでまだ使われているかもしれない古いAT&amp;T n/troffとは異なる。<br>
-groffのマクロとリクエスト名は2文字以上の長さであってもよく、言語プリミティブに<br>
-拡張がされている。例えば、AT&amp;T troffではリクエスト\(yrを使い、2桁の数で年にア<br>
-クセスする。groffでは互換性のために同じリクエストを使うこともできるし、または<br>
-groffネイティブの構文,\[yr]を使うこともできる。さらに、\[year]として4桁の年を<br>
-直接使うこともできる。マクロリクエストは2文字以上の長さであってもよい。例えば、<br>
-GNU mmはverbatim環境を作るのに &quot;.VERBON&quot; と &quot;.VERBOFF&quot; というリクエストを受け<br>
-つける。<br>
+GNU troff は、*roff 言語構文を拡張することで、古い AT&amp;T n/troff プログラム<br>
+(Solaris や Plan 9 にまだ残っているかもしれない) とは異なる。例えば、AT&amp;T<br>
+troff では、1900 年からの年数にはエスケープシーケンス \(yr でアクセスする。<br>
+groff でも同様にエスケープシーケンス \(yr を使用してアクセスでき、互換性のため<br>
+に認識される。あるいは、groff の拡張構文 \[yr] を使用できる。AT&amp;T troff では、<br>
+yr レジスタは &quot;現在の年の下 2 桁&quot; を格納すると説明されていたが、Y2K 問題があっ<br>
+た。groff では、\[year] でグレゴリオ暦の年を正しくアクセスできる。groff では、<br>
+フォント名、レジスタ名、マクロ名、文字列名、リクエスト名は 2 文字を超えること<br>
+ができる。例えば、groff の mm パッケージでは、制御行 &quot;.VERBON&quot; と&quot;.VERBOFF&quot;<br>
+は、これらの名前のマクロを呼び出して、&quot;verbatim&quot; な内容の表示を囲む。<br>
 <br>
 g/troffによって得られる最良の整形された出力を得るには、スペースと句読点に関す<br>
 るいくつかの単純なルールに従うべきである。<br>
 <br>
-1. 行の末尾に空のスペースを置かないこと<br>
+1. 各文の末尾で改行 (キャリッジリターン) すること。改行の前にスペースを入れな<br>
+&nbsp;&nbsp; いこと。<br>
 <br>
-2. 文末のピリオド、エクスクラメーションマークなどの後にはちょうど1個のスペース<br>
-&nbsp;&nbsp; を置くこと。<br>
+2. 行末にピリオド、疑問符、感嘆符があり、それらが文の終わりを意味しない場合は、<br>
+&nbsp;&nbsp; ダミー文字のエスケープシーケンス \&amp; を続けて使用すること。<br>
 <br>
-3. 後述の理由により、全てのピリオドの後に改行(carriage return)を置くとよい。<br>
+3. マクロパッケージを使用している場合は、段落分けマクロを使用して段落のインデ<br>
+&nbsp;&nbsp; ントと段落間のスペースを確保すること。<br>
 <br>
-これらの妙なtipsの理由は、g/n/troffが改行に、これらのルールに従わないとすぐに<br>
-混乱してしまうアルゴリズムを使っているためである。<br>
+4. 文書の保守を容易にするため、空リクエスト (行に '.' のみ) を自由に使用して、<br>
+&nbsp;&nbsp; 視覚的に要素を区切ること。<br>
 <br>
+これらのヒントの理由は、g/n/troff が文末を検出し、その情報を用いて文間スペース<br>
+を適用できるためである。また、これらのヒントを使用すると、テキストエディタでの<br>
+再入力によってのみ行が変更される diff のサイズも最小限に抑えられる。マクロパッ<br>
+ケージは通常、段落間のスペースとして 1 つの V 字 (入力行が空白の場合に発生する)<br>
+以外の値を使用し、そのスペース値と段落のインデントをユーザーが設定可能なレジス<br>
+タに保存することで、ページのレイアウトを一定に保つ。<br>
 <br>
-troffはTeXと違い、段落ごとでなく行ごとにテキストを書き込む。さらに、glueや<br>
-stretchの概念を持たず、入力に水平、垂直の空白があると全てそのまま出力される。<br>
-<br>
-それゆえ、最終的なドキュメントで意図する以上の空白を文と文の間にはさまないよう<br>
-に注意すること。この理由のため、全ての句読点記号の後すぐに改行を入れるという習<br>
-慣がある。最終的に処理された出力が「一様な」テキストになってほしければ、入力の<br>
-テキストで正しくスペースを置いておく必要がある。行末の空白と句読点の後の2個以<br>
-上の空白をエラーとしてハイライトしたいならこうする:<br>
+TeX とは異なり、troff は段落ごとではなく行ごとにテキストを埋め込む。フォーマッ<br>
+トされた出力で単語間および文間のスペースを一定に保ちたい場合は、入力テキストの<br>
+スペースも一定に保つ必要がある。末尾のスペースと句読点の後の 2 つ以上のスペー<br>
+スの両方をエラーとしてマークするには、以下のようにする:<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;:let nroff_space_errors = 1</div>
 <br>
@@ -2692,11 +2696,11 @@ stretchの概念を持たず、入力に水平、垂直の空白があると全�
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let b:preprocs_as_sections = 1</div>
 <br>
-同様に、構文ファイルはmsパッケージ中の拡張段落マクロ(.XP)用の余分な段落マーカー<br>
-も含んでいる。<br>
+さらに、この構文ファイルは、ms パッケージの XP 段落マクロ (Berkeley および GNU<br>
+の拡張機能) 用の段落マーカーを追加する。<br>
 <br>
-最後に、構文ファイル<a class="Identifier" href="syntax.html#groff.vim">groff.vim</a>が存在する。これはデフォルトでfile basisとグ<br>
-ローバルの両方でgroff構文ハイライトすることができる。<br>
+最後に、groff 構文のハイライトをファイルごとに、またはデフォルトでグローバルに<br>
+有効にするために使用できる&nbsp;<a class="Identifier" href="syntax.html#groff.vim">groff.vim</a>&nbsp;構文ファイルがある。<br>
 <br>
 <br>
 <span class="Statement">OCAML&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="Constant" href="syntax.html#ocaml.vim" name="ocaml.vim">ocaml.vim</a>&nbsp;<a class="Constant" href="syntax.html#ft-ocaml-syntax" name="ft-ocaml-syntax">ft-ocaml-syntax</a><br>
