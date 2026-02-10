@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'version9'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="version9.html" name="version9.txt">version9.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2026 Feb 04<br>
+<a class="Constant" href="version9.html" name="version9.txt">version9.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.1.</span>&nbsp;&nbsp;Last change: 2026 Feb 09<br>
 <br>
 <br>
 <span class="Identifier">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIM リファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -52466,9 +52466,80 @@ Solution: Fix incorrect return value of pagescroll(). Also invert the<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;match comments (zeertzjq).<br>
 <br>
 Patch 9.1.2131<br>
-<br>
 Problem:&nbsp;&nbsp;tests: Test_diff_screen() fails on BSD<br>
 Solution: Use gdiff on BSD systems if available (zeertzjq).<br>
+<br>
+Patch 9.1.2132<br>
+Problem:&nbsp;&nbsp;<span class="Special">[security]</span>: buffer-overflow in&nbsp;<a class="Type" href="options.html#'helpfile'">'helpfile'</a>&nbsp;option handling by<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;using strcpy without bound checks (Rahul Hoysala)<br>
+Solution: Limit strncpy to the length of the buffer (MAXPATHL)<br>
+<br>
+Patch 9.1.2133<br>
+Problem:&nbsp;&nbsp;Another case of buffer overflow with&nbsp;<a class="Type" href="options.html#'helpfile'">'helpfile'</a>.<br>
+Solution: Leave room for &quot;tags&quot; in the buffer (zeertzjq).<br>
+<br>
+Patch 9.1.2134<br>
+Problem:&nbsp;&nbsp;Terminal doesn't handle split UTF-8 sequence after ASCII.<br>
+Solution: Only use one UTF-8 encoding state per vterm state (zeertzjq).<br>
+<br>
+Patch 9.1.2135<br>
+Problem:&nbsp;&nbsp;search() is used to check for the message from tar that<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;indicates leading slashes found in the tar archive, or to<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;check for the leading slashes themselves. However, if<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Type" href="options.html#'nowrapscan'">'nowrapscan'</a>&nbsp;is in effect these searches are limited to the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;last line and don't find any results. This causes the warning<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;message from tar to be seen in the buffer, the &quot;Path Traversal<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Attack Detected&quot; message to be omitted, and editing actions<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;can fail. This can be seen, for example, when editing<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;src/testdir/samples/evil.tar.<br>
+Solution: Use the 'w' flag for search() (Kevin Goodsell)<br>
+<br>
+Patch 9.1.2136<br>
+Problem:&nbsp;&nbsp;:tab sbuffer may close old tabpage if BufLeave autocommand<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;splits window (after 9.1.0143).<br>
+Solution: Only close other windows if the buffer will be unloaded (zeertzjq).<br>
+<br>
+Patch 9.1.2137<br>
+Problem:&nbsp;&nbsp;Some tests are not valid on OpenBSD.<br>
+Solution: Add CheckNotOpenBSD, use it to skip certain tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Kevin Goodsell).<br>
+<br>
+Patch 9.1.2138<br>
+Problem:&nbsp;&nbsp;With&nbsp;<a class="Type" href="options.html#'autochdir'">'autochdir'</a>&nbsp;win_execute() can corrupt the buffer name, causing<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:write to use wrong path.<br>
+Solution: Save and restore b_fname when&nbsp;<a class="Type" href="options.html#'autochdir'">'autochdir'</a>&nbsp;is active (Ingo Karkat).<br>
+<br>
+Patch 9.1.2139<br>
+Problem:&nbsp;&nbsp;Buffer overflow in :wlrestore command, caused by assuming<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wrong buffer length in vwl_log_handler() (Seungyeon Park)<br>
+Solution: Use correct buffer size (512 bytes) in vim_vsnprintf()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to properly truncate long messages.<br>
+<br>
+Patch 9.1.2140<br>
+Problem:&nbsp;&nbsp;tests: Test_wayland_protocol_error_overflow() fails<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(after v9.1.2139)<br>
+Solution: try/catch the expected error<br>
+<br>
+Patch 9.1.2141<br>
+Problem:&nbsp;&nbsp;Truncation when serializing libsodium encryption parameters.<br>
+Solution: Correctly cast to long long type (Yasuhiro Matsumoto).<br>
+<br>
+Patch 9.1.2142<br>
+Problem:&nbsp;&nbsp;MS-Windows: mouse scroll events not handled for popups<br>
+Solution: Do not return early (Mao-Yining)<br>
+<br>
+Patch 9.1.2143<br>
+Problem:&nbsp;&nbsp;When a popup window partially overlaps a wide character<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;it results in truncated or garbage display.<br>
+Solution: When a wide character is partially blocked by a popup, clear both<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cells in the screen buffer to prevent garbage (Yasuhiro Matsumoto).<br>
+<br>
+Patch 9.1.2144<br>
+Problem:&nbsp;&nbsp;When garbage collection runs, the list of recorded buffer<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;changes may be incorrectly freed (Sainnhe Park).&nbsp;<br>
+Solution: In garbage_collect(), iterate through all buffers and call<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_ref_in_list() for b_recorded_changes to ensure the list<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;and its contents are marked as reachable (Paul Ollis).<br>
 <br>
 &nbsp;vim:tw=78:ts=8:noet:ft=help:norl:fdm=manual:nofoldenable<br>
 </div>
