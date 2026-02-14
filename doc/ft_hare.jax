@@ -18,24 +18,33 @@
 
 ☆ファイルタイププラグイン				*ft-hare-plugin*
 
-このプラグインには、動作を微調整するために |vimrc| 内で定義できるいくつかの異
-なる変数がある。
+このプラグインには、動作を調整するために |vimrc| 内で定義できるいくつかの異な
+る変数がある。
 
-さらに、`{ }` ブロックの折り畳みもサポートされている。折り畳みを有効にするに
-は、|after-directory| 内のファイル (例えば、~/.vim/after/ftplugin/hare.vim) に
-以下のコードを追加する: >
+							*hare-folding*
+このプラグインは `{ }` ブロックの折り畳みをサポートしている。折り畳みを有効に
+するには、|after-directory| 内のファイルに以下のコードを追加する (例えば、
+~/.vim/after/ftplugin/hare.vim): >
 
 	setlocal foldmethod=syntax
 
-ブロックベースの折り畳みでは小さな折り畳みが多数作成される傾向があるため、
-'foldminlines' や 'foldnestmax' などの関連するオプションをいくつか設定すること
-を検討すること。
+構文ベースの折り畳みでは小さな折り畳みが多数作成される傾向があるため、
+'foldminlines' または 'foldnestmax' などの関連するオプションをいくつか設定する
+ことを検討すること。
 
+						*hare-symbol-operators*
+ほとんどの記号演算子は、デフォルトではハイライトされない ("?"、"!"、および
+"::" を除く)。すべての演算子をハイライトしたい場合は、|vimrc| 内で、それらを希
+望するハイライトグループにリンクすることができる。例: >
+
+	hi def link hareCast hareSymbolOperator
+	hi def link hareSymbolOperator hareOperator
+<
 						*g:hare_recommended_style*
 Hare の公式スタイルガイドに従って、次のオプションがデフォルトで設定されている:
 >
 	setlocal noexpandtab
-	setlocal shiftwidth=0
+	setlocal shiftwidth=8
 	setlocal softtabstop=0
 	setlocal tabstop=8
 	setlocal textwidth=80
@@ -44,17 +53,10 @@ Hare の公式スタイルガイドに従って、次のオプションがデフ
 
 	let g:hare_recommended_style = 0
 <
-						*g:hare_symbol_operators*
-デフォルトでは、記号演算子は特別な構文ハイライト表示を受けない (`!`、`?`、`::`
-のみ例外)。他のほとんどの演算子の構文ハイライトを有効にするには、|vimrc| に以
-下の行を追加する: >
-
-	let g:hare_symbol_operators = 1
-<
 							*g:hare_space_error*
-デフォルトでは、末尾の空白文字とスペースに続く <Tab> 文字はエラーとしてハイラ
-イト表示される。挿入モードでは、このハイライト表示は自動的に無効になる。このハ
-イライト表示を完全に無効にするには、|vimrc| に以下の行を追加する: >
+デフォルトでは、末尾の空白文字と <Tab> 文字に続くスペースはエラーとしてハイラ
+イトされる。挿入モードでは自動的に無効になる。このハイライトを完全に無効にする
+には、 |vimrc| に以下の行を追加する: >
 
 	let g:hare_space_error = 0
 
@@ -67,26 +69,26 @@ Hare の公式スタイルガイドに従って、次のオプションがデフ
 ソースファイルのみを検索する。
 
 							*g:filetype_haredoc*
-|g:filetype_haredoc| 変数を使用すると、この検索の深さを微調整したり、Hare ド
+`g:filetype_haredoc` 変数を使用すると、この検索の深さを微調整したり、Hare ド
 キュメントファイルの検出を完全にバイパスしたりできる:
 
 	値		効果~
-	0		自動検出なし
+	0		検索無効
 	1		カレントディレクトリのみを検索 (これがデフォルト)
 	2		サブディレクトリの 1 階層を検索
 	3		サブディレクトリの 2 階層を検索
 
-検索の深さは任意の正の整数にすることができるが、ほとんどの場合、 `2` より大き
-い値では目に見える利点が得られない可能性がある。
+検索の深さは任意の正の整数にすることができるが、2 より大きい値では目に見える利
+点が得られず、パフォーマンスに影響を及ぼす可能性がある。
 
 
 ☆インデント設定					*ft-hare-indent*
 
-このプラグインの他のほとんどの設定とは異なり、インデント設定はバッファごとに設
-定でき、既存のグローバル設定を上書きできる。これを行うには、変数の先頭に |g:|
-ではなく |b:| を付ける。
+他の設定とは異なり、インデント設定はバッファごとに設定でき、既存のグローバル設
+定を上書きできる。これを行うには、変数の先頭に |g:| ではなく |b:| を付けるだけ
+である。
 
-						*g:hare_indent_match_switch*
+		*g:hare_indent_match_switch* *b:hare_indent_match_switch*
 デフォルトでは、"match" および "switch" 条件の継続行は 1 レベルだけインデント
 される: >hare
 
@@ -96,38 +98,33 @@ Hare の公式スタイルガイドに従って、次のオプションがデフ
 		yield file;
 	// ...
 
-代わりに 2 レベルインデントして、"if" 条件と "for" 条件に近づけたい場合
-は、|vimrc| に次の行を追加する: >
+2 レベルインデントして、"if" 条件や "for" 条件に近づけたい場合は、次の行を
+|vimrc| に追加する: >
 
 	let g:hare_indent_match_switch = 2
 <
-							*g:hare_indent_case*
-デフォルトでは、"match" 式と "switch" 式の場合の継続行は 2 レベルインデントさ
-れ、case 本体と視覚的に区別される: >hare
+				*g:hare_indent_case* *b:hare_indent_case*
+デフォルトでは、"match" および "switch" case の継続行は、case 本体と視覚的に区
+別するために 2 レベルインデントされる: >hare
 
 	case ltok::I8, ltok::I16, ltok::I32,
 			ltok::I64, ltok::INT =>
 		// ...
 
-インデント量を変更したい場合は、|g:hare_indent_case| を使って調整できる。有効
-な値は `0`、`1`、`2` である。
+インデントのレベルを変更したい場合は、`g:hare_indent_case` を使って調整できる。
+指定できる値は 0、1、2 である。
 
 
 ☆コンパイラサポート					*compiler-hare*
 
-このプラグインは、カレントディレクトリに Makefile が存在することを検出した場
-合、ビルドシステムに `make` を使用することを想定し、'makeprg' はそのまま残す。
-それ以外の場合は、`hare build` が使用される。
+カレントディレクトリに Makefile が検出された場合、このプラグインはビルドシステ
+ムに `make` を使用していると想定し、'makeprg' をそのまま残す。それ以外の場合
+は、`hare build` が使用される。
 
-							*g:hare_makeprg_params*
-`hare build` を使用する場合、|g:hare_makeprg_params| 変数を使って 'makeprg' に
-追加のコンパイラオプションを指定できる。また、バッファごとに設定することも可能
-である (|g:| の代わりに |b:| を使用)。その場合、既存のグローバル設定は上書きさ
-れる。例: >
-
-	let b:hare_makeprg_params = '-lc -t o'
-
-グローバルのデフォルトは "-q" で、ビルド中に標準出力への書き込みを抑制する。
+						*g:hare_makeprg_params*
+"hare build" を使用する場合、`g:hare_makeprg_params` を使って 'makeprg' に追加
+のコンパイラオプションを指定できる。デフォルトは "-q" で、ビルド時に標準出力へ
+の出力を抑制する。
 
 ==============================================================================
  vim:tw=78:ts=8:noet:ft=help:norl:
