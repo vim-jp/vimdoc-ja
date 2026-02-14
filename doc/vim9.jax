@@ -1,4 +1,4 @@
-*vim9.txt*	For Vim バージョン 9.1.  Last change: 2025 Oct 06
+*vim9.txt*	For Vim バージョン 9.2.  Last change: 2026 Feb 14
 
 
 		  VIM リファレンスマニュアル    by Bram Moolenaar
@@ -1073,8 +1073,11 @@ For ループ ~
 	special		true または v:true
 	job		非 NULL
 	channel		非 NULL
-	class		非 NULL
-	object		非 NULL (TODO: isTrue() が true を返すとき)
+	class		該当なし
+	object		非 NULL
+	enum		該当なし
+	enum value	常時
+	typealias	該当なし
 
 真偽値演算子 "||" と "&&" は、値が真偽値、0 または 1 であることを期待する: >
 	1 || false   == true
@@ -2018,322 +2021,785 @@ enumvalue 型 (|v:t_enumvalue|) を持つ。以下の対話型の例は、文字
 
 変数の型と型キャスト	~
 							*variable-types*
-Vim9 script か `:def` で定義される関数内で宣言された変数は明示的に示された型
-か、初期値から推測された型のどちらかの型を持っています。
+Vim9 script 内または `:def` 関数内で宣言された変数には、明示的に指定されるか、
+初期化から推測される型がある。
 
-グローバル、バッファ、ウィンドウ、タブページ変数は特定の型を持たず、値はいつで
-も書き換えられ、そしてそれは型の変更も含み得ます。なので、コンパイルされたコー
-ドでは "any" 型が仮定されます。
+グローバル変数、バッファ変数、ウィンドウ変数、タブページ変数には特定の型がな
+い。そのためこれらの変数の値はいつでも変更される可能性があり、その結果、型も変
+更される可能性がある。そのため、コンパイルされたコードでは "any" 型が想定され
+る。
 
-これは "any" 型が望ましくなく、実際の型が常に同じであると想定されるときに問題
-になり得ます。例えば、リストを宣言したとき: >
-	var l: list<number> = [1, g:two]
-コンパイル時には Vim は "g:two" の型を知らず、式の型は list<any> になります。
-左辺への代入の前にリストの型をチェックするための命令が生成され、少々非効率で
-す。
-						*type-casting* *E1104*
-これを避けるには、型キャストを使ってください: >
-	var l: list<number> = [1, <number>g:two]
-コンパイルされたコードは今度は "g:two" が数値かどうかをチェックするだけで、も
-しそうでないならエラーを与えます。これは型キャストと呼ばれます。
+これは、リストを宣言する場合など、より厳密な型指定が必要な場合に問題になる可能
+性がある: >
+	var l: list<number> = [1, b:two]
+Vimは "b:two" の型を知らないため、式は list<any> となる。実行時チェックでは、
+代入前にリストが宣言された型と一致するかどうかが検証される。
 
-型キャストの文法は: "<" {type} ">" です。"<" の後ろ、あるいは ">" の前にホワイ
-トスペースがあってはいけません (小なりと大なりの演算子との混乱を避けるためで
-す)。
+							*type-casting*
+より具体的な型チェックを行うには、型キャストを使用する。これは、リスト項目が宣
+言された型と一致するかどうかをチェックするのではなく、リストを構築する前に変数
+の型をチェックする。例: >
+	var l: list<number> = [1, <number>b:two]
+<
+したがって、ここでの型キャストは "b:two" が数値であるかどうかをチェックし、そ
+うでない場合はエラーを返す。
 
-意味としては、必要であれば実行時の型チェックが行われます。実際に値が変更される
-ことはありません。もし型を変える必要があるのであれば、例えば文字列に変換するの
-であれば |string()| 関数を使ってください。あるいは文字列を数値に変換するのであ
-れば |str2nr()| 関数を使ってください。
+違いは以下の例で示されている。funcref 変数 "NTC" の場合、Vim は式型
+"[1, b:two]" を list<any> と推論し、次にそれが list<number> の戻り値型に代入可
+能かどうかを検証する。funcref 変数 "TC" の場合、型キャストによって Vim はま
+ず "b:two" が <number> 型であるかどうかを確認する: >vim9
 
-もし想定されない場所で型が与えられた場合、 *E1272* を得るかもしれません。
+	vim9script
+	b:two = '2'
+	const NTC: func = (): list<number> => {
+	    return [1, b:two]
+	    }
+	disassemble NTC  # 3 CHECKTYPE list<number> stack [-1]
+	try
+	    NTC()
+	catch
+	    echo v:exception .. "\n\n"  # expected list<number> but...
+	endtry
+	const TC: func = (): list<number> => {
+	    return [1, <number>b:two]
+	    }
+	disassemble TC  # 2 CHECKTYPE number stack [-1]
+	try
+	    TC()
+	catch
+	    echo v:exception  # expected number but got string
+	endtry
+<
+	  Note: 型チェックがいつ行われるかを示すエラーメッセージがどのように異
+		なるかに注意。
 
-型が不完全な場合、例えば、クラスが不明なオブジェクト (通常は NULL オブジェクト)
-がある場合などは *E1363* になります。
+						*E1104*
+型キャストの構文は "<{type}>" である。開始 "<" (|E121|) または終了 ">" (E1104)
+のいずれかが省略された場合、エラーが発生する。また、"<" の後 (|E15|) と ">" の
+前 (|E1068|) には空白文字を入れることはできない。これは、小なり および 大なり
+演算子との曖昧さを回避するためである。
 
-型インターフェイス ~
+型キャストは明示的な型チェックを強制するが、変数の値や型は変更されない。型を変
+更する必要がある場合、文字列に変換するには |string()| を、文字列を数値に変換す
+るには |str2nr()| などの関数を使用する。
+
+連鎖式に型キャストを適用する場合、最終結果と互換性がある必要がある。例: >vim9
+
+	vim9script
+	# これらの型キャストは動作する
+	echo <list<any>>[3, 2, 1]->extend(['Go!'])
+	echo <string>[3, 2, 1]->extend(['Go!'])->string()
+	echo <tuple<...list<number>>>[3, 2, 1]->list2tuple()
+	# この型キャストは失敗する
+	echo <number>[3, 2, 1]->extend(['Go!'])->string()
+<
+						*E1272*
+型が予期されないコンテキストにて型が使用されると、E1272 が発生する可能性がああ
+る。例: >
+	:vim9cmd echo islocked('x: string')
+<  Note: これは読み込むのではなく、Vim のコマンドラインから実行する必要がある。
+
+						*E1363*
+オブジェクトのクラスが不明な場合など、型が不完全な場合は、E1363 が発生する。例:
+>vim9
+
+	vim9script
+	var E1363 = null_class.member  # E1363: Incomplete type
+<
+もう 1 つの null オブジェクト関連のエラーは |E1360| である: >vim9
+
+	vim9script
+	var obj = null_object
+	var E1360 = obj.MyMethod()  # E1360: Using a null object
+<
+
+型推論 ~
 							*type-inference*
-一般的に: 型が明確な時はいつも型を省略することができます。例えば、変数を宣言
-し、値を与えた時: >
-	var name = 0		# 数値型と推測する
-	var name = 'hello'	# 文字列型と推測する
+型を明示的に宣言すると、対象を絞った型チェックやエラーメッセージの明確化など、
+多くの利点がある。しかし、Vim は型が省略された場合でも、多くの場合自動的に型を
+推論する。例えば、以下の変数の型は推論されており、|type()| と |typename()| は
+推論された型を示している: >vim9
 
-リストと辞書の型は、要素の値の型の共通のものからきます。もしその値が全て同じ型
-をもつなら、その型がリストか辞書に使われます。もし型が混在しているなら、"any"
-型が使われます。 >
-	[1, 2, 3]	list<number>
-	['a', 'b', 'c']	list<string>
-	[1, 'x', 3]	list<any>
+	vim9script
+	echo "\t type()\t typename()"
+	var b = true    | echo $"{b} \t {b->type()} \t {b->typename()}"
+	var f = 4.2     | echo $"{f} \t {f->type()} \t {f->typename()}"
+	var l = [1, 2]  | echo $"{l} \t {l->type()} \t {l->typename()}"
+	var n = 42      | echo $"{n} \t {n->type()} \t {n->typename()}"
+	var s = 'yes'   | echo $"{s} \t {s->type()} \t {s->typename()}"
+	var t = (42, )  | echo $"{t} \t {t->type()} \t {t->typename()}"
+<
+リスト、Tuple、または辞書の型は、その値の共通の型から推論される。値がすべて同
+じ型の場合、その型が使用される。
+複数の型が混在する場合は、"any" 型が使用される。以下の例では、各リテラルに対し
+て表示された |typename()| がこれらのポイントを示している: >vim9
 
-関数参照の共通の型は、もしそれらが全て同じ数の引数をもつのでなければ、引数の
-数が指定されていないことを示すため "(...)" を使います。例: >
-	def Foo(x: bool)
+	vim9script
+	echo [1, 2]->typename()				 # list<number>
+	echo [1, 'x']->typename()			 # list<any>
+	echo {ints: [1, 2], bools: [false]}->typename()	 # dict<list<any>>
+	echo (true, false)->typename()			 # tuple<bool, bool>
+<
+関数参照の一般的な型では、引数の数が異なる場合、"(...)" で示される。これは引数
+の数が不揃いであることを意味する。このスクリプトは "list<func(...): void>" の
+例である: >vim9
+
+	vim9script
+	def Foo(x: bool): void
 	enddef
-	def Bar(x: bool, y: bool)
+	def Bar(x: bool, y: bool): void
 	enddef
 	var funclist = [Foo, Bar]
 	echo funclist->typename()
-結果はこうなります:
-	list<func(...)>
+<
+Vim9 script 内のスクリプトローカル変数は型チェックされる。また、旧来の関数内で
+宣言された変数についても型チェックが行われる。例: >vim9
 
-Vim9 script のスクリプトローカル変数は型がチェックされ、それは変数が旧来の Vim
-script の関数内で宣言されたときでも同様です。
+	vim9script
+	var my_local = (1, 2)
+	function Legacy()
+	    let b:legacy = [1, 2]
+	endfunction
+	Legacy()
+	echo $"{my_local} is type {my_local->type()} ({my_local->typename()})"
+	echo $"{b:legacy} is type {b:legacy->type()} ({b:legacy->typename()})"
+<
+							*E1013*
+リスト、Tuple、または辞書の型が宣言されると、その型が関連付けられる。同様に、
+型が宣言されていない場合は、Vim が推論した型が関連付けられる。どちらの場合も、
+式によって型が変更されると、E1013 が発生する。以下の例では、型が推論され、
+E1013 が発生する: >vim9
 
-型が宣言されたとき、これはリストや辞書に付け加えられます。後のある式がその型を
-変えようとすると、エラーが与えられます: >
-	var ll: list<number> = [1, 2, 3]
-	ll->extend(['x'])  # エラー、'x' は数値ではない
+	vim9script
+	var lb = [true, true]	# 2 つの bool なので Vim は list<bool> 型と推測
+	echo lb->typename()	# list<bool> を表示
+	lb->extend([0])		# E1013 Argument 2: type mismatch, ...
+<
+許容的なリストが必要な場合は、<any> を明示的に使用するか、最初に空のリストを宣
+言する (または両方、つまり `list<any> = []`)。例: >vim9
 
-もし型が宣言されていないのであれば、そのときは変えることは許可されます: >
-	[1, 2, 3]->extend(['x'])  # 結果: [1, 2, 3, 'x']
+	vim9script
+	final la: list<any> = []
+	echo la->extend(['two', 1])
+	final le = []
+	echo le->extend(la)
+<
+許容的な辞書の場合も同様: >vim9
 
-変数の宣言においては、推測された型は重要です: >
-	var ll = [1, 2, 3]
-	ll->extend(['x'])  # エラー、'x' は数値ではない
-これは宣言が数値のリストのように見えるためで、それゆえ以下と等しいからです: >
-	var ll: list<number> = [1, 2, 3]
-もし、もっと寛容なリストが欲しいのであれば、型を宣言する必要があります: >
-	var ll: list<any> = [1, 2, 3]
-	ll->extend(['x'])  # OK
+	vim9script
+	final da: dict<any> = {}
+	echo da->extend({2: 2, 1: 'One'})
+	final de = {}
+	echo de->extend(da)->string()
+<
+また、Tuple 自体は不変だが、"any" または空の Tuple のいずれかを使用して、許容
+的な Tuple の連結を実現できる: >vim9
 
+	vim9script
+	var t_any: tuple<...list<any>> = (3, '2')
+	t_any = t_any + (true, )
+	echo t_any
+	var t_dec_empty = ()
+	t_dec_empty = t_dec_empty + (3, '2', true)
+	echo t_dec_empty
+<
+リストリテラルまたは辞書リテラルが変数にバインドされていない場合、以下の例に示
+すように、その型が変更される場合がある: >vim9
 
-より厳格な型チェック ~
-							*type-checking*
-旧来の Vim script では、数値が予期されるところでは、文字列は自動的に数値に変換
-されます。これは "123" のような実際の数値に対しては便利でしたが、もし文字列が
-数字で始まらないときは予期しない問題 (加えてエラーメッセージなしで) を引き起こ
-します。これは頻繁に見つけにくいバグを引き起こします。例: >
+	vim9script
+	echo [3, 2, 1]->typename()			 # list<number>
+	echo [3, 2, 1]->extend(['Zero'])->typename()	 # list<any>
+	echo {1: ['One']}->typename()			 # dict<list<string>>
+	echo {1: ['One']}->extend({2: [2]})->typename()	 # dict<list<any>>
+<
+
+より厳密な型チェック ~
+						*type-checking*
+旧来の Vim script では、数値が期待される文字列は自動的に数値に変換されていた。
+これは "123" のような実際の数値であれば便利だったが、文字列が数値で始まってい
+ない場合、予期せぬ問題が発生する (エラーメッセージも表示されない)。これは多く
+の場合、見つけにくいバグにつながる。例えば、旧来の Vim script では、これは "1"
+と表示される: >vim
+
 	echo 123 == '123'
-<	1 ~
-思いがけないスペースがあるとき: >
+<
+ただし、意図しないスペースが含まれている場合は、"0" が表示される: >vim
+
 	echo 123 == ' 123'
-<	0 ~
-							*E1206* *E1210* *E1212*
-Vim9 script ではこれは厳格にされています。使われている値が予期される型と一致す
-る場合は、ほとんどの場所で前と同じように動作します。時々エラーになり、それゆえ
-後方互換性が壊れています。例:
-- 真偽値が期待されるところで、値が 0 か 1 でない数値を使う。  *E1023*
-- 数値のオプションを設定するときに文字列を使う。   *E1024*
-- 文字列が期待されるところで数値を用いる。
-
-一つの影響として、型が宣言された場合は |map()| に渡されたリストか辞書の要素の
-型は変更されてはいけません。これは Vim9 script ではエラーになります: >
-	var mylist: list<number> = [1, 2, 3]
-	echo map(mylist, (i, v) => 'item ' .. i)
-<	E1012: Type mismatch; expected number but got string in map() ~
-	{訳注: 日本語メッセージの場合: "E1012: 型が不一致です。number が必要で
-	すが string でした (map() 内)"}
-
-代わりに、新しくリストを作成する |mapnew()| を使ってください: >
-	var mylist: list<number> = [1, 2, 3]
-	echo mapnew(mylist, (i, v) => 'item ' .. i)
-<	['item 0', 'item 1', 'item 2'] ~
-
-もし要素の型が宣言されていない、あるいは "any" と決定されているなら、型はより
-具体的なものに変更することができます。例えば、型の混ざったリストが文字列のリス
-トに変更される場合: >
-	var mylist = [1, 2.0, '3']
-	# typename(mylist) == "list<any>"
-	map(mylist, (i, v) => 'item ' .. i)
-	# typename(mylist) == "list<string>"、エラーなし
-
-リスト定数を直接使うのと、変数宣言を通して使うのには少しの差異があります。
-理由は型推論で、リスト定数を変数を初期化するのに使うとき、それは同時に宣言した
-型をつけます: >
-	var mylist = [1, 2, 3]
-	# typename(mylist) == "list<number>"
-	echo map(mylist, (i, v) => 'item ' .. i)  # エラー!
-
-リスト定数を直接使うときは、型は宣言されず、変更することが許可されます: >
-	echo map([1, 2, 3], (i, v) => 'item ' .. i)  # OK
-
-この背景となる理由は、型が宣言され、リストが渡されて変更された場合、宣言は常に
-保持されている必要があるためです。そのため、宣言された型と一致する型に依存して
-います。定数の場合、これは必要ありません。
-
-								*E1158*
-|extend()| も同様で、代わりに |extendnew()| を、|flatten()| は、代わりに
-|flattennew()| を使用します。|flatten()| は常に型を変更することを目的としてい
-るため、Vim9 script では使用できません。
-
-引数を指定して funcref に代入すると (|vim9-func-declaration| を参照)、引数の厳
-密な型チェックが行われます。可変数の引数の場合も、型と一致する必要があります:
->
-	var FuncRef: func(string, number, bool): number
-	FuncRef = (v1: string, v2: number, v3: bool) => 777	# OK
-	FuncRef = (v1: string, v2: number, v3: number) => 777	# エラー!
-	# 可変数の引数は同じ型でなければならない
-	var FuncVA: func(...list<string>): number
-	FuncVA = (...v: list<number>): number => v  # エラー!
-	FuncVA = (...v: list<any>): number => v	    # OK, `any` ランタイム確認
-	FuncVA = (v1: string, v: string2): number => 333     # エラー!
-	FuncVA = (v: list<string>): number => 3	    # エラー!
-
-宛先関数参照に引数が指定されていない場合、引数の型のチェックは行われません: >
-	var FuncUnknownArgs: func: number
-	FuncUnknownArgs = (v): number => v			# OK
-	FuncUnknownArgs = (v1: string, v2: string): number => 3	# OK
-	FuncUnknownArgs = (...v1: list<string>): number => 333	# OK
 <
-			 *E1211* *E1217* *E1218* *E1219* *E1220* *E1221*
-			 *E1222* *E1223* *E1224* *E1225* *E1226* *E1227*
-			 *E1228* *E1235* *E1238* *E1250* *E1251* *E1252*
-			 *E1253* *E1256* *E1297* *E1298* *E1301* *E1528*
-			 *E1529* *E1530* *E1531* *E1534*
-間違いを発見しやすくするために、ほとんどの組み込み関数で型がチェックされます。
+						*E1206*
+Vim9 script では、この制限がより厳格になった。ほとんどの箇所では、使用される値
+が期待される型と一致する場合、以前と同じように動作する。例えば、旧来の Vim
+script と Vim9 script の両方で、辞書以外の値が必要なときに、辞書以外の値を使用
+しようとすると、以下のようになる: >vim
 
-変数のカテゴリー、デフォルトおよび null の扱い ~
-				*variable-categories* *null-variables*
-変数には次のカテゴリがあります:
-	プリミティブ	number, float, boolean
-	コンテナ	string, blob, list, tuple, dict
-	特殊		function, job, channel, user-defined-object
-
-初期化子を使用せずに変数を宣言する場合は、明示的に型を指定する必要があります。
-各カテゴリには、異なるデフォルトの初期化セマンティクスがあります。カテゴリごと
-の例を次に示します: >
-	var num: number		# プリミティブのデフォルトは 0 相当
-	var cont: list<string>	# コンテナのデフォルトは空コンテナ
-	var spec: job		# 特殊変数のデフォルトは null
+	echo [8, 9]->keys()
+	vim9cmd echo [8, 9]->keys()	 # E1206: Dictionary required
 <
-Vim にはおなじみの null 値はありません。|null_string|、|null_list|、|null_job|
-など、さまざまな null_<type> があらかじめ定義されています。プリミティブは
-null_<type> を持ちません。null_<type> の典型的な使用例は以下の通りです:
-- 変数をクリアし、そのリソースを解放。
-- 関数定義内のパラメータのデフォルトとしては、|null-compare| を参照。
+						*E1023* *E1024* *E1029* *E1030*
+						*E1174* *E1175* *E1210* *E1212*
+しかし、Vim9 script ではエラーが発生し、後方互換性が損なわれることがある。以下
+の例は、この問題が発生する様々な場所を示している。まず、旧来の Vim script の動
+作 (エラーは発生しない) を示す。次に同じコマンドを Vim9 script で使用した場合
+に発生するエラーを示す。
 
-`job` などの特殊な変数の場合、リソースをクリアするために null_<type> が使用さ
-れます。コンテナ変数の場合、空コンテナを変数に割り当てることによってリソースを
-クリアすることもできます。例: >
-	var j: job = job_start(...)
-	# ... ジョブはその仕事を行う
-	j = null_job	# 変数をクリアしてジョブのリソースを解放する
+  - bool が期待される場所で数値 (0 または 1 以外) を使用する: >vim
 
-	var l: list<any>
-	# ... リストにたくさんのものを追加
-	l = []  # 変数をクリアしてコンテナリソースを解放する
-null_<type> ではなく空コンテナを使用してコンテナ変数をクリアすると、
-|null-anomalies| で説明されているように null の複雑な問題を回避できる可能性が
-あります。
+	echo v:version ? v:true : v:false
+	vim9cmd echo v:version ? true : false  # E1023: Using a Number as a...
+<
+  - 文字列が期待される場所で数値を使用する: >vim
 
-コンテナ変数と特殊な変数の初期化セマンティクスは異なります。初期化されていない
-コンテナはデフォルトで空コンテナになります: >
-	var l1: list<string>		    # 空コンテナ
-	var l2: list<string> = []	    # 空コンテナ
-	var l3: list<string> = null_list    # null コンテナ
-"l1" と "l2" は同等で区別できない初期化です。ただし、"l3" は null コンテナで
-す。null コンテナは空コンテナに似ていますが、異なります。|null-anomalies| を参
-照してください。
+	echo filter([1, 2], 0)
+	vim9cmd echo filter([1, 2], 0)  # E1024: Using a Number as a String
+<
+  - 数字が期待されるところで数字を使用していない: >vim
 
-特殊変数のデフォルトは null です。これらのジョブの初期化は同等であり、区別でき
-ません: >
+	" この例では、Vim script は v:false を 0 として扱う
+	function Not1029()
+	  let b:l = [42] | unlet b:l[v:false]
+	endfunction
+	call Not1029() | echo b:l
+< >vim9
+	vim9script
+	def E1029(): void
+	  b:l = [42] | unlet b:l[false]
+	enddef
+	E1029()  # E1029: Expected number but got bool
+<
+  - 文字列を数値として使用する: >vim
+
+	let b:l = [42] | unlet b:l['#'] | echo b:l
+	vim9cmd b:l = [42] | vim9cmd unlet b:l['#']  # E1030: Using a string...
+<
+  - 引数に文字列が必要な場合に文字列を使用しない: >vim9
+
+	echo substitute('Hallo', 'a', 'e', v:true)
+	vim9cmd echo substitute('Hallo', 'a', 'e', true)  # E1174: String...
+<
+  - 空でない文字列を必要とする引数で空の文字列を使用する: >vim9
+
+	echo exepath('')
+	vim9cmd echo exepath('') # E1175: Non-empty string required for arg...
+<
+  - 必要なときに数字を使用しない: >vim
+
+	echo gettabinfo('a')
+	vim9cmd echo gettabinfo('a')  # E1210: Number required for argument 1
+<
+  - 必要なときに真偽値を使用しない: >vim
+
+	echo char2nr('¡', 2)
+	vim9cmd echo char2nr('¡', 2)  # E1212: Bool required for argument 2
+<
+  - 数字が必要なときに数字を使用しない (|E521|): >vim
+
+	let &laststatus='2'
+	vim9cmd &laststatus = '2'
+<
+  - 文字列が必要なときに文字列を使用しない (|E928|): >vim
+
+	let &langmenu = 42
+	vim9cmd &langmenu = 42  # E928: String required
+<
+  - |Special| と 'is' の比較は、場合によっては失敗する (|E1037|, |E1072|): >vim
+
+	" 両方とも真なので 1 が表示される
+	echo v:null is v:null && v:none is v:none
+	" これらの式はすべて偽なので、0 が表示される
+	echo v:none is v:null || v:none is 8 || v:true is v:none
+	" All these are errors in Vim9 script
+	" これらはすべて Vim9 script のエラー
+	vim9cmd echo v:null is v:null # E1037: Cannot use 'is' with special
+	vim9cmd echo v:none is v:none # E1037: Cannot use 'is' with special
+	vim9cmd echo v:none is v:null # E1037: Cannot use 'is' with special
+	vim9cmd echo v:none is 8      # E1072: Cannot compare special with numb
+	vim9cmd echo v:true is v:none # E1072: Cannot compare bool with special
+<
+	  Note: 上記の最後の 2 つの Vim9 script の例では、`v:none` を使用する
+		とエラーが発生するが、`null` を使用すると `false` が返される
+		(これは `v:null` と同じである - |v:null| を参照): >vim9
+
+			vim9script
+			echo null is 8		# false
+			echo true is null	# false
+<
+  - 真偽値が必要な場所で文字列を使用する (|E1135|): >vim
+
+	echo '42' ? v:true : v:false
+	vim9cmd echo '42' ? true : false  # E1135: Using a String as a Bool
+<
+  - 真偽値を数値として使用する (|E1138|): >vim
+
+	let &laststatus=v:true
+	vim9cmd &laststatus = true
+<
+  - 引数に文字列が必要な場合に文字列を使用しない (|E1174|) >vim
+
+	echo substitute('Hallo', 'a', 'e', v:true)
+	vim9cmd echo substitute('Hallo', 'a', 'e', true)  # E1174: String...
+<
+結果として、|map()| に渡されるリストまたは辞書の項目の型は、その型が宣言または
+推論された場合でも変更してはいけない。例えば、これは Vim9 script ではエラーに
+なるが、旧来の Vim script では許可される: >vim
+
+	" 旧来の Vim script は s:mylist を ['item 0', 'item 1'] に変更する
+	let s:mylist = [0, 1]
+	call map(s:mylist, {i -> $"item {i}"})
+	echo s:mylist
+< >vim9
+	vim9script
+	var mylist = [0, 1]                # Vim は mylist が list<number> で
+					   # あると推測する
+	map(mylist, (i, _) => $"item {i}") # E1012: type mismatch...
+<
+このエラーは、`map()` がリスト要素を文字列に変更しようとし、宣言された型と衝突
+するために発生する。
+
+代わりに |mapnew()| を使用する。これは新しいリストを作成し、型が指定されていな
+い場合は Vim がその型を推測する。推測された型と宣言された型は以下の例のとおり
+である: >vim9
+
+	vim9script
+	var mylist = [0, 1]
+	var infer = mylist->mapnew((i, _) => $"item {i}")
+	echo [infer, infer->typename()]
+	var declare: list<string> = mylist->mapnew((i, _) => $"item {i}")
+	echo [declare, declare->typename()]
+<
+ここで重要な概念は、宣言型または推論型を持つ変数では、コンテナ内の要素の型は変
+更できないということである。ただし、以下のいずれかの場合は型の "変更" が許容さ
+れる:
+  - コンテナリテラル (変数に束縛されていない)、または
+  - メソッドチェーンで |copy()| または |deepcopy()| が使用されているコンテナ。
+この例では、どちらも示されている: >vim9
+
+	vim9script
+	# 文字列のリスト
+	echo [1, 2]->map((_, v) => $"#{v}")
+	echo [1, 2]->map((_, v) => $"#{v}")->typename()
+	# メソッドチェーン内の deepcopy()
+	var mylist = [1, 2]
+	echo mylist->deepcopy()->map((_, v) => $"#{v}")
+	echo mylist->deepcopy()->map((_, v) => $"#{v}")->typename()
+	echo mylist
+<
+この理由は、型が宣言または推論され、リストが渡されたり変更されたりする場合、宣
+言/推論は常に成立していなければならないためである。そうすることで、型が宣言/推
+論された型と一致することを保証できる。文字列のリストでも完全にコピーされたリス
+トでも、元のリストは変更されないため、型安全性は必要ない (上記の "echo mylist"
+が示すように)。
+
+項目の型が "<any>" と宣言または決定されていない場合、後ですべての項目が同じ型
+になったとしても、項目の型は変更されない。ただし、`mapnew()` を使用する場合、
+推論とは、新しいリストが既存の型を反映することを意味する。例えば、以下のように
+なる: >vim9
+
+	vim9script
+	# list<any>
+	var mylist = [1, '2']			# 混合型、つまり list<any>
+	echo (mylist, mylist->typename())	# ([1, '2'], 'list<any>')
+	mylist->map((_, v) => $"item {v}")	# では、すべての項目が文字列に
+	echo (mylist, mylist->typename())	# なる。両方とも文字列だが、
+						# list<any> である
+	# mapnew()
+	var newlist = mylist->mapnew((_, v) => v)
+	echo (newlist, newlist->typename())	# newlist は list<string>
+<
+|extend()| と |extendnew()| の使い方は似ている。つまり、文字列のリストでは前者
+を使用できるので、以下のようにして問題ない: >vim9
+
+	vim9cmd echo [1, 2]->extend(['3'])	# [1, 2, 3]
+<
+一方、これはそうではない: >vim9
+
+	vim9script
+	var mylist: list<number> = [1, 2]
+	echo mylist->extend(['3'])	   # E1013: Argument 2: type mismatch
+<
+既存の型付きリストを拡張するには、|extendnew()| を使用する必要がある。ただし、
+拡張がリストの型と一致する場合 (または "any" の場合) は除く。例えば、最初に同
+じ型の要素で拡張し、次に異なる型で拡張する場合である: >vim9
+
+	vim9script
+	var mylist: list<number> = [1, 2]
+	mylist->extend([3])
+	echo mylist->extendnew(['4'])	   # [1, 2, 3, '4']
+
+<								*E1158*
+Vim9 script では |flatten()| の使用は許可されていない。これは常に型を変更する
+ことを意図しているためである。これは文字列のリストにも適用される (|map()| や
+|extend()| とは異なる)。代わりに |flattennew()| を使用すること: >vim9
+
+	vim9cmd [1, [2, 3]]->flatten()		# E1158: Cannot use flatten
+	vim9cmd echo [1, [2, 3]]->flattennew()	# [1, 2, 3]
+<
+指定された引数 (|vim9-func-declaration| 参照) を持つ関数参照への代入は、引数の
+厳密な型チェックを伴う。例えば、以下のように記述する: >vim9
+
+	vim9script
+	var F_name_age: func(string, number): string
+	F_name_age = (n: string, a: number): string => $"Name: {n}, Age: {a}"
+	echo F_name_age('Bob', 42)
+<
+一方、これはエラー |E1012| (型の不一致) で失敗する: >vim9
+
+	vim9script
+	var F_name_age: func(string, number): string
+	F_name_age = (n: string, a: string): string => $"Name: {n}, Age: {a}"
+<
+引数の数が可変である場合、以下の例のように、引数は同じ型である必要がある: >vim9
+
+	vim9script
+	var Fproduct: func(...list<number>): number
+	Fproduct = (...v: list<number>): number => reduce(v, (a, b) => a * b)
+	echo Fproduct(3, 2, 4)  # 24 を表示
+<
+また、混合型に対応するために <any> を使用することもできる: >vim9
+
+	vim9script
+	var FlatSort: func(...list<any>): any
+	FlatSort = (...v: list<any>) => flattennew(v)->sort('n')
+	echo FlatSort(true, [[[5, 3], 2], 4])  # [true, 2, 3, 4, 5] を表示
+<
+	  Note: lambda 式で <any> を使用しても、funcref の型チェックは回避され
+		ない。宣言された funcref の型によって制約され、以下の例に示す
+		ように、型が一致しない場合は実行時エラーまたはコンパイルエラー
+		が発生する: >vim9
+
+		    vim9script
+		    var FuncSN: func(string): number
+		    FuncSN = (v: any): number => v->str2nr()
+		    echo FuncSN('162')->nr2char()  # ¢ を表示
+		    echo FuncSN(162)->nr2char())   # E1013 (runtime error)
+< >vim9
+		    vim9script
+		    var FuncSN: func(string): number
+		    FuncSN = (v: any): number => v->str2nr()
+		    def FuncSNfail(): void
+		        echo FuncSN('162')->nr2char()  # 表示されないのは...
+		        echo FuncSN(162)->nr2char()    # コンパイルエラーの為
+		    enddef
+		    FuncSNfail()
+<
+funcref に引数が指定されていない場合、型チェックは行われない。この例では、
+FlexArgs が最初に文字列引数を受け取り、次にリスト引数を受け取ることを示してい
+る: >vim9
+
+	vim9script
+	var FlexArgs: func: string
+	FlexArgs = (s: string): string => $"It's countdown time {s}..."
+	echo FlexArgs("everyone")
+	FlexArgs = (...values: list<string>): string => join(values, ', ')
+	echo FlexArgs('3', '2', '1', 'GO!')
+<
+				*E1211* *E1217* *E1218* *E1219* *E1220*
+				*E1221* *E1222* *E1223* *E1224* *E1225*
+				*E1226* *E1228* *E1235* *E1238* *E1251*
+				*E1253* *E1256* *E1297* *E1298* *E1301*
+				*E1528* *E1529* *E1530* *E1531* *E1534*
+ほとんどの組み込み関数では、型チェックが行われており、間違いを見つけやすくなっ
+ている。以下の |:vim9| という 1 行のコマンドは、組み込み関数を呼び出すもので、
+型チェックエラーの多くを示している: >vim9
+
+	vim9 9->list2blob()               # E1211: List required for argume...
+	vim9 9->ch_close()                # E1217: Channel or Job required ...
+	vim9 9->job_info()                # E1218: Job required for argumen...
+	vim9 [9]->cos()                   # E1219: Float or Number required...
+	vim9 {}->remove([])               # E1220: String or Number require...
+	vim9 null_channel->ch_evalraw(9)  # E1221: String or Blob required ...
+	vim9 9->col()                     # E1222: String or List required ...
+	vim9 9->complete_add()            # E1223: String or Dictionary req...
+	vim9 setbufline(9, 9, {})         # E1224: String, Number or List r...
+	vim9 9->count(9)                  # E1225: String, List, Tuple or D...
+	vim9 9->add(9)                    # E1226: List or Blob required fo...
+	vim9 9->remove(9)                 # E1228: List, Dictionary, or Blo...
+	vim9 getcharstr('9')              # E1235: Bool or number required ...
+	vim9 9->blob2list()               # E1238: Blob required for argume...
+	vim9 9->filter(9)                 # E1251: List, Tuple, Dictionary,...
+	vim9 9->reverse()                 # E1253: String, List, Tuple or B...
+	vim9 9->call(9)                   # E1256: String or Function requi...
+	vim9 null_dict->winrestview()     # E1297: Non-NULL Dictionary requ...
+	vim9 {}->prop_add_list(null_list) # E1298: Non-NULL List required f...
+	vim9 {}->repeat(9)                # E1301: String, Number, List, Tu...
+	vim9 9->index(9)                  # E1528: List or Tuple or Blob re...
+	vim9 9->join()                    # E1529: List or Tuple required f...
+	vim9 9->max()                     # E1530: List or Tuple or Diction...
+	vim9 9->get(9)                    # E1531: Argument of get() must b...
+	vim9 9->tuple2list()              # E1534: Tuple required for argum...
+<
+将来の使用のために予約済み:			*E1227* *E1250* *E1252*
+	E1227: List or Dictionary required for argument %d
+	E1250: Argument of %s must be a List, String, Dictionary or Blob
+	E1252: String, List or Blob required for argument %d
+
+
+変数、デフォルト、および null 処理のカテゴリ ~
+					*variable-categories* *null-variables*
+変数には 3 つのカテゴリがある:
+	プリミティブ型	数値、浮動小数点数、ブール値
+	コンテナ型	文字列、blob、リスト、tuple、辞書
+	特殊型		関数、ジョブ、チャネル、ユーザー定義オブジェクト
+
+初期化子なしで変数を宣言する場合は、明示的に型を指定する必要がある。各カテゴリ
+には異なるデフォルトの初期化セマンティクスがある。
+
+プリミティブ型は、デフォルトで型固有の値になります。すべてのプリミティブ型は空
+ですが、`null` と等しくはない: >vim9
+
+    vim9script
+    var n: number | echo [n, n->empty(), n == null]  # [0, 1, false]
+    var f: float  | echo [f, f->empty(), f == null]  # [0.0, 1, false]
+    var b: bool   | echo [b, b->empty(), b == null]  # [false, 1, false]
+<
+コンテナ型はデフォルトで空のコンテナになる。空の文字列のみが `null` と等しくな
+る: >vim9
+
+    vim9script
+    var s: string       | echo [s, s->empty(), s == null]  # ['', 1, true]
+    var z: blob         | echo [z, z->empty(), z == null]  # [0z, 1, false]
+    var l: list<string> | echo [l, l->empty(), l == null]  # [[], 1, false]
+    var t: tuple<any>   | echo [t, t->empty(), t == null]  # [(), 1, false]
+    var d: dict<number> | echo [d, d->empty(), d == null]  # [{}, 1, false]
+<
+特殊型はデフォルトで `null` になる: >vim9
+
+    vim9script
+    var F: func    | echo [F, F == null]  # [function(''), true]
+    var j: job     | echo [j, j == null]  # ['no process', true]
+    var c: channel | echo [c, c == null]  # ['channel fail', true]
+    class Class
+    endclass
+    var o: Class   | echo [o, o == null]  # [object of [unknown], true]
+    enum Enum
+    endenum
+    var e: Enum    | echo [e, e == null]  # [object of [unknown], true]
+<
+	  Note: 空のジョブ、空のチャネル、空のオブジェクト型の説明について
+		は、|empty()| を参照。
+
+Vim にはお馴染みの null 値はない。代わりに、|null_string|、|null_list|、
+|null_job| など、様々な null_<type> 型の定義済み値がある。プリミティブ型には
+null_<type> 型はない。null_<type> 型の典型的な使用例は以下のとおりである:
+    - 変数をクリアしてリソースを解放する。
+    - 関数定義のパラメータのデフォルトとして使用する (例については |null_blob|
+      を参照)。
+    - コンテナ型または特殊型に割り当てて、後の比較のために null に設定する (例
+      については |null-compare| を参照)。
+
+`job` のような特殊な変数の場合、リソースをクリアするために null_<type> が使用
+される。例: >vim9
+
+	vim9script
+	var mydate: list<string>
+	def Date(channel: channel, msg: string): void
+	    mydate->add(msg)
+	enddef
+	var myjob = job_start([&shell, &shellcmdflag, 'date'], {out_cb: Date})
+	echo [myjob, myjob->job_status()]
+	sleep 2
+	echo $"The date and time is {mydate->join('')}"
+	echo [myjob, myjob->job_status()]
+	myjob = null_job  # 変数をクリアし、ジョブのリソースを解放する。
+	echo myjob
+<
+コンテナ変数の場合、変数に空のコンテナを割り当てることによってリソースをクリア
+することもできる。例: >vim9
+
+	vim9script
+	var perfect: list<number> = [1, 4]
+	perfect->extend([9, 16, 25])
+	perfect = []
+	echo perfect
+
+null_<type> ではなく空のコンテナを使用してコンテナ変数をクリアすると、null の
+複雑さを回避できる場合がある - |null-anomalies| を参照。
+
+コンテナ変数と特殊変数の初期化セマンティクスは異なる。コンテナの場合:
+  - 初期化されていないコンテナはデフォルトで空になるが、`null` と等しくない
+    (初期化されていない文字列を除く)。
+  - []、()、{}、""、または 0z に初期化されたコンテナは空だが、`null` と等しく
+    ない。
+  - null_<type> として初期化されたコンテナはデフォルトで空になり、`null` と等
+    しくなる。
+
+以下の例では、初期化されていないリスト ("lu") と [] 初期化されたリスト ("li")
+は同等であり区別できないが、"ln" は null コンテナであり、空のコンテナに似てい
+るが同等ではない (|null-anomalies| を参照)。 >vim9
+
+	vim9script
+	# 初期化されていない: 空のコンテナ、null ではない
+	var lu: list<any>
+	echo ['lu', $"empty={lu->empty()}", $"null={lu == null}"]
+	# 初期化済み: 空のコンテナ、null ではない
+	var li: list<any> = []
+	echo ['li', $"empty={li->empty()}", $"null={li == null}"]
+	# 初期化済み: 空のコンテナ、null
+	var ln: list<any> = null_list
+	echo ['ln', $"empty={ln->empty()}", $"null={ln == null}"]
+<
+特殊変数はデフォルトで null になる。以下のジョブ初期化は同等であり、区別できな
+い: >vim9
+
+	vim9script
 	var j1: job
 	var j2: job = null_job
 	var j3 = null_job
+	echo (j1 == j2) == (j2 == j3)  # true (同等、区別不能)
+<
+リスト、tuple、または辞書を宣言する際に、項目の型が指定されていない場合は推論
+できない。したがって、項目の型はデフォルトで "any" になる: >vim9
 
-リストまたは辞書が宣言されている時に、項目の型が指定されておらず推論できない場
-合、型は "any" になります: >
-	var d1 = {}		# 型は "dict<any>"
-	var d2 = null_dict	# 型は "dict<any>"
-
-関数の宣言は特に独特です。|vim9-func-declaration| を参照。
+	vim9script
+	var [t1, t2] = [(), null_tuple]
+	echo $'t1 is {t1->typename()} and t2 is {t2->typename()} too'
+<
+Tuple と関数 (または部分関数) は様々な方法で宣言できる。|tuple-type|、
+|variadic-tuple|、および |vim9-func-declaration| を参照。
 
 						*null-compare*
-一般的な null 比較セマンティクスでは、null コンテナが空コンテナと等しくない場
-合、比較で null_<type> を使用しないでください: >
+空のコンテナと null コンテナが等しくないという、おなじみの null 比較セマンティ
+クスでは、比較に null_<type> を使用してはならない。これは、Vim9 script では
+null_<type> == `null` であっても、以下の比較が成立するからである:
+
+  - 空のコンテナを `null` にすると `false` だが、
+  - 空のコンテナを null_<type> にすると `true` になる。
+
+したがって、null_<type> ではなく `null` と比較すること。例: >vim9
+
 	vim9script
-	def F(arg: list<string> = null_list)
-	    if arg == null
-	       echo "null"
-	    else
-		echo printf("not null, %sempty", empty(arg) ? '' : 'not ')
-	    endif
+	var bonds: dict<list<string>> = {g: ['007', '008'], o: ['007', '009']}
+	def Search(query: string): list<string>
+	    return query == "\r" ? null_list : bonds->get(query, [])
 	enddef
-	F()		# 出力: "null"
-	F(null_list)	# 出力: "null"
-	F([])		# 出力: "not null, empty"
-	F([''])		# 出力: "not null, not empty"
-上記の関数は文字列のリストを取得し、それについてレポートします。
-さまざまな種類の引数を受け入れるように、上記の関数シグネチャを変更します: >
-	def F(arg: list<any> = null_list)   # あらゆるタイプのリスト
-	def F(arg: any = null)		    # あらゆるタイプ
+	echo "Goldfinger (g) or Octopussy (o)?: "
+	const C: string = getcharstr()
+	var result: list<string> = C->Search()
+	if result == null  # <<< DO NOT USE null_list HERE!
+	    echo "Error: Nothing was entered"
+	else
+	    echo result->empty() ? $"No matches for '{C}'" : $"{result}"
+	endif
 <
-上記の例では、null リストと空リストを区別することが目的であり、`null_list` で
-はなく `null` と比較することが正しい選択です。基本的な理由は、
-"null_list == null" および "[] != null" であるためです。
-"[] == null_list" であるため、`null_list` との比較は失敗します。次のセクション
-で比較結果の詳細が記載されています。
+	  NOTE: "result == null" の代わりに "result == null_list" を使用する
+		と、[] != null であるのに対し [] == null_list であるため、エ
+		ラー (何も入力されていない) と有効な結果 (何も一致していない)
+		を区別できなくなる。
+
+概念的には、null_<type> 構文は、汎用的な `null` と型付きの `empty` コンテナと
+の中間に位置するハイブリッド/ブリッジのようなものと考えるとよく、両者の性質を
+併せ持っている。比較結果の詳細については、以下の節で説明する。
 
 					*null-details* *null-anomalies*
-このセクションでは、null および null_<type> の使用に関する問題について説明しま
-す。以下に、null 比較の列挙結果を示します。場合によっては、vim9 の null セマン
-ティクスに精通している場合、プログラマは比較やその他の状況で null_<type> を使
-用することを選択することがあります。
+このセクションでは、null と null_<type> の使用に関する問題について説明する。以
+下に、null 比較の列挙結果を示す。場合によっては、vim9 の null のセマンティクス
+に精通しているプログラマは、比較やその他の状況で null_<type> を使用することを
+選択する場合がある。
 
-ドキュメントの他の場所には次のように書かれています:
-	 多くの場合、null 値は空の値と同じように処理されますが、常にそうとは限
-	 りません
-以下に例を示します: >
+ドキュメントの別の箇所では、"多くの場合、null 値は空の値と同じように扱われる
+が、常にそうとは限らない」と書かれている。例えば、null コンテナにデータを追加
+することはできない: >vim9
+
 	vim9script
-	var s1: list<string>
-	var s2: list<string> = null_list
-	echo s1		    # 出力: "[]"
-	echo s2		    # 出力: "[]"
-
-	echo s1 + ['a']     # 出力: "['a']"
-	echo s2 + ['a']     # 出力: "['a']"
-
-	echo s1->add('a')   # 出力: "['a']"
-	echo s2->add('a')   # E1130: Can not add to null list
+	var le: list<any> = []
+	le->add('Okay')		# le は ['Okay']
+	var ln = null_list
+	ln->add("E1130")	# E1130: Cannot add to null list
 <
-null_<type> に等しい 2 つの値は、必ずしも互いに等しいとは限りません: >
+|null-compare| で説明したように、`null`、null_<type> コンテナ、`empty` の間に
+は非推移的な関係がある。まとめると、例えば以下のようになる: >vim9
+
+	vim9cmd echo (null_dict == {}, null_dict == null, {} != null)
+<
+例外は未初期化の文字列である。これは `null` と等しく (`null_string` と同じイン
+スタンスである)。文字列が未初期化かどうかを判断するには、'is' 演算子
+(|expr-is|) を使用できる: >vim9
+
 	vim9script
-	echo {} == null_dict      # true
-	echo null_dict == null    # true
-	echo {} == null           # false
+	var s: string
+	echo s == null_string		# true
+	echo s is null_string		# true (同じインスタンス)
+	echo s == null			# true (意外かもしれない)
+	echo s is null			# false (同じインスタンスではない)
 <
-他のコンテナとは異なり、初期化されていない文字列は null と等しくなります。`is`
-演算子を使用して、null_string かどうかを判断できます: >
+ただし、他のコンテナについては同じことを行ってはならない。対応する null_<type>
+に対して 'is' で評価すると、`false` が返されるためである: >vim9
+
 	vim9script
-	var s1: string
-	var s2 = null_string
-	echo s1 == null		# true - これは想定外
-	echo s2 == null		# true
-	echo s2 is null_string	# true
-
-	var b1: blob
-	var b2 = null_blob
-	echo b1 == null		# false
-	echo b2 == null		# true
+	var d: dict<any>
+	echo d == null_dict		# true
+	echo d is null_dict		# false (同じインスタンスではない)
+	echo d == null			# false (期待通り)
+	echo d is null			# false (同じインスタンスではない)
 <
-null_<type> に初期化された変数はすべて、null_<type> と等しく、また null と等し
-くなります。例: >
+ここでの重要な違いは、初期化されていない文字列は `null_string` として実装され
+るのに対し、初期化されていないリスト、辞書、tuple、または blob は空のコンテナ
+(それぞれ []、{}、()、および 0z) として実装されることである。
+したがって、これらの初期化されていない型は、以下の例に示すように、対応する
+null_<type> と同等であるが、同じインスタンスではない: >vim9
+
 	vim9script
-	var x = null_blob
-	echo x == null_blob	# true
-	echo x == null		# true
+	var t: tuple<any>
+	echo t == null_tuple		# true
+	echo t is null_tuple		# false
+
+ただし、null_<type> に初期化された変数は、null_<type> と等しいだけでなく、null
+とも等しくなる。例: >vim9
+
+	vim9script
+	var t: tuple<any> = null_tuple
+	echo t == null_tuple		# true
+	echo t is null_tuple		# true
+	echo t == null			# true
 <
-初期化されていない変数は通常、null と等しくなります。それはそのタイプによって
-異なります:
-	var s: string		s == null
-	var b: blob		b != null   ***
-	var l: list<any>	l != null   ***
-	var t: tuple<any>	t != null   ***
-	var d: dict<any>	d != null   ***
-	var f: func		f == null
-	var j: job		j == null
-	var c: channel		c == null
-	var o: Class		o == null
+初期化されていないコンテナ変数は、上記の例で説明したように、初期化されていない
+文字列を除き、null と等しくない。したがって、以下の式はすべて `true` を表示す
+る: >vim9
 
-空に初期化された変数は null_<type> と同等です。null ではありません:
-	var s2: string = ""	  == null_string	!= null
-	var b2: blob = 0z	  == null_blob		!= null
-	var l2: list<any> = []	  == null_list		!= null
-	var t2: tuple<any> = ()	  == null_tuple		!= null
-	var d2: dict<any> = {}	  == null_dict		!= null
+	vim9script
+	var b: blob		| echo b != null
+	var d: dict<any>	| echo d != null
+	var l: list<any>	| echo l != null
+	var t: tuple<any>	| echo t != null
+	var s: string		| echo s == null
 
-NOTE: ジョブなどの特殊な変数はデフォルトで null 値になり、対応する空の値はあり
-ません。
+初期化されていない特殊変数は null に等しいため、これらはすべて `true` を表示す
+る: >vim9
+
+	vim9script
+	var c: channel		| echo c == null
+	var F: func		| echo F == null
+	var j: job		| echo j == null
+	class Class
+	endclass
+	var nc: Class		| echo nc == null
+	enum Enum
+	endenum
+	var ne: Enum		| echo ne == null
+<
+	  Note: job のような特殊な変数はデフォルトで null に設定され、対応する
+		空の値を持つ特殊な変数はない。
+
+空に初期化されたコンテナ変数は null_<type> に等しいため、これらはすべて `true`
+になる: >vim9
+
+	vim9script
+	var s: string = ""     | echo s == null_string
+	var b: blob = 0z       | echo b == null_blob
+	var l: list<any> = []  | echo l == null_list
+	var t: tuple<any> = () | echo t == null_tuple
+	var d: dict<any> = {}  | echo d == null_dict
+<
+ただし、空に初期化されたコンテナ変数は null と等しくないため、これらはすべて
+`true` になる: >vim9
+
+	vim9script
+	var s: string = ""     | echo s != null
+	var b: blob = 0z       | echo b != null
+	var l: list<any> = []  | echo l != null
+	var t: tuple<any> = () | echo t != null
+	var d: dict<any> = {}  | echo d != null
+<
 
 ==============================================================================
 
@@ -2389,13 +2855,13 @@ U、Aなど)。複数の文字で構成されている場合もあるが、名�
 
 	vim9script
 	My1558<number>()
-	# Vim(eval):E1558: Unknown generic function: My1558
+	# E1558: Unknown generic function: My1558
 < >vim9
 	vim9script
 	def My1560(): void
 	enddef
 	My1560<string>()
-	# Vim(echo):E1560: Not a generic function: My1560
+	# E1560: Not a generic function: My1560
 <
 						*E1561*
 型パラメータ名は他の識別子と競合してはならない: >vim9
@@ -2584,7 +3050,7 @@ Vim9 クラスのメソッドはジェネリック関数になることができ
 ==============================================================================
 
 6. 名前空間、Import と Export
-					*vim9script* *vim9-export* *vim9-import*
+				*vim9script* *vim9-export* *vim9-import*
 
 Vim9 script は、import されるように書くことができます。これは、いくつかの項目
 が意図的に export され、他のスクリプトで利用できるようになることを意味します。
