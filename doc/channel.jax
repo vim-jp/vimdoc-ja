@@ -1,4 +1,4 @@
-*channel.txt*	For Vim バージョン 9.2.  Last change: 2026 Feb 25
+*channel.txt*	For Vim バージョン 9.2.  Last change: 2026 Mar 13
 
 
 		  VIM リファレンスマニュアル	by Bram Moolenaar
@@ -112,6 +112,32 @@ send を呼ぶたびに毎回コールバックを指定する代わりに、チ
 にログファイルに行を書くよう指示することができます: >
 	call ch_logfile('channellog', 'w')
 |ch_logfile()| 参照.
+
+|ch_listen()| を使用すれば、Vim をサーバーとして動作させることもできる。この場
+合、外部のサーバープログラムは必要ない。
+
+							*channel-listen-demo*
+Vimを起動し、リスニングチャネルを作成する: >
+	func OnAccept(channel, clientaddr)
+	  " 接続をログする
+	  echomsg "Accepted connection from " .. a:clientaddr
+
+	  " 現在時刻を取得してクライアントに送信する
+	  let current_time = strftime("%Y-%m-%d %H:%M:%S")
+	  call ch_sendraw(a:channel, "Vim Server Time: " .. current_time .. "\n")
+
+	  " オプション: 時間だけを表示したい場合は、すぐに閉じる
+	  call ch_close(a:channel)
+	endfunc
+
+	" ポート 8765 でリッスンを開始する
+	let server = ch_listen('localhost:8765', {"callback": "OnAccept"})
+
+別の Vim インスタンス (または任意のプログラム) から接続できる: >
+	let channel = ch_open('localhost:8765')
+
+完了したら、サーバーチャネルを閉じる: >
+	call ch_close(server)
 
 ==============================================================================
 3. チャネルを開く					*channel-open*
@@ -637,6 +663,37 @@ ch_info({handle})						*ch_info()*
 <
 		戻り値の型: dict<any>
 
+ch_listen({address} [, {options}])		*E1573* *E1574* *ch_listen()*
+		着信チャネル接続を {address} で待機する。
+		これは、既存のサーバーに接続する |ch_open()| とは異なり、サー
+		バー側のチャネルを作成する。
+
+		チャネルを返す。|ch_status()| を使用して、失敗したかどうかを確
+		認すること。
+
+		{address} は文字列である。使用可能な形式については、
+		|channel-address|を参照。Note: IPv6 はまだサポートされていな
+		い。
+
+		{options} が指定されている場合は、|Dictionary| である必要があ
+		る。
+		|channel-open-options| を参照
+		{options} の "callback" は、新しい接続が受け入れられたときに呼
+		び出される。このコールバックは、新しいチャネルとクライアントア
+		ドレス (文字列形式、例: "127.0.0.1:12345") の 2 つの引数を受け
+		取る。
+
+		既存のサーバーに接続するには、代わりに |ch_open()| を使用する。
+
+		例については、|channel-listen-demo| を参照。
+
+		|method| としても使用できる: >
+			GetAddress()->ch_listen()
+<
+		{Vim が |+channel| 機能付きでコンパイルされたときのみ有効}
+
+		戻り値の型: channel
+
 ch_log({msg} [, {handle}])					*ch_log()*
 		|ch_logfile()| によってログファイルが開かれている場合はチャネ
 		ルのログファイルに文字列 {msg} を書き込む。
@@ -692,6 +749,9 @@ ch_open({address} [, {options}])				*ch_open()*
 
 		{options} が与えられる場合は辞書でなければならない。
 		|channel-open-options| を参照。
+
+		代わりに、入ってくる接続を待ち受けるには |ch_listen()| を使用
+		する。
 
 		|method| としても使用できる: >
 			GetAddress()->ch_open()
