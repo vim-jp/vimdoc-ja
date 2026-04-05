@@ -1,4 +1,4 @@
-*terminal.txt*	For Vim バージョン 9.2.  Last change: 2026 Mar 12
+*terminal.txt*	For Vim バージョン 9.2.  Last change: 2026 Apr 02
 
 
 		  VIM リファレンスマニュアル    by Bram Moolenaar
@@ -927,9 +927,25 @@ term_start({cmd} [, {options}])			*term_start()*
 		   "in_io", "in_top", "in_bot", "in_name", "in_buf"
 		   "out_io", "out_name", "out_buf", "out_modifiable", "out_msg"
 		   "err_io", "err_name", "err_buf", "err_modifiable", "err_msg"
-		しなかしながら、少なくとも stdin、stdout もしくは stderr のう
-		ち 1 つは端末に接続されていなければならない。I/O が端末に接続
-		されているとき、その部分のコールバック機能は使用されない。
+		Unix の場合:
+		端末との双方向通信が必要なため、stdin、stdout、stderrはデフォ
+		ルトで pty に接続される。"out_cb" を設定しても、stdout は pty
+		から pipe に切り替わらない。"err_cb" を設定した場合のみ、stderr
+		が pipe に切り替わる。
+		Note: pty は行バッファリングされ、pipe はブロックバッファリン
+		グされるため、stdout と stderr の出力順序は保持されない場合が
+		ある。"err_cb" を指定しない場合、stderr は stdout と同じ pty
+		を使用するため、出力順序は保持されるが、stdout と stderr を区
+		別することはできない。
+
+		MS-Windows で |ConPTY| を使用する場合:
+		stdin、stdout、stderr は、コールバックの設定に関係なく、常に
+		pipe を介して擬似コンソールに接続される。
+		stdout と stderr は同じパイプを共有しているため、"err_cb" で分
+		離することはできない。
+		これは、CreatePseudoConsole() API が入力ハンドルと出力ハンドル
+		をそれぞれ 1 つずつしか受け付けず、標準エラー出力用の個別のハ
+		ンドルがないためである。
 
 		追加のオプションは以下のとおり:
 		   "term_name"	     (コマンド名の代わりに使用される)バッファ
