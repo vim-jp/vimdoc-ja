@@ -15,3 +15,10 @@ if has("conceal")
 else
   syn region helpHeadline matchgroup=helpIgnore start="^☆\(\s\)\@!" end="\ze\(\s\+\*\|$\)" keepend
 endif
+
+" builtin.jax
+syn region helpReturnType
+      \ start="^\t\t戻り値の型: "
+      \ end="^$"
+      \ contains=@vimType,helpHyperTextJump,helpSpecial
+      \ transparent
