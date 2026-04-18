@@ -1,4 +1,4 @@
-*channel.txt*	For Vim バージョン 9.2.  Last change: 2026 Apr 06
+*channel.txt*	For Vim バージョン 9.2.  Last change: 2026 Apr 14
 
 
 		  VIM リファレンスマニュアル	by Bram Moolenaar
@@ -131,7 +131,7 @@ Vimを起動し、リスニングチャネルを作成する: >
 	endfunc
 
 	" ポート 8765 でリッスンを開始する
-	let server = ch_listen('localhost:8765', {"callback": "OnAccept"})
+	let server = ch_listen('8765', {"callback": "OnAccept"})
 
 別の Vim インスタンス (または任意のプログラム) から接続できる: >
 	let channel = ch_open('localhost:8765')
@@ -633,8 +633,7 @@ ch_info({handle})						*ch_info()*
 		   "status"	  ch_status() と同様に、"open", "buffered" ま
 				  たは "closed"
 		ch_open() で開いた場合:
-		   "hostname"	  アドレスのホスト名
-		   "port"	  アドレスのポート
+		   "port"	  ループバック上のポート
 		   "path"	  Unix ドメインソケットのパス
 		   "sock_status"  "open" または "closed"
 		   "sock_mode"	  "NL", "RAW", "JSON" または "JS"
@@ -664,21 +663,21 @@ ch_info({handle})						*ch_info()*
 		戻り値の型: dict<any>
 
 ch_listen({address} [, {options}])		*E1573* *E1574* *ch_listen()*
-		着信チャネル接続を {address} で待機する。
-		これは、既存のサーバーに接続する |ch_open()| とは異なり、サー
-		バー側のチャネルを作成する。
-
+		ループバックのポート、または UNIX ドメインソケットの {address}
+		で、チャネル接続の着信を待機する。これは、既存のサーバーに接続
+		する |ch_open()| とは異なり、サーバー側のチャネルを作成する。
 		チャネルを返す。|ch_status()| を使用して、失敗したかどうかを確
 		認すること。
 
 		{address} は文字列である。受け入れられる形式については
-		|channel-address| を参照。ただし、セキュリティ上の理由から、す
-		べてのインターフェイスにバインドすることはできません。
+		|channel-address| を参照。ただし、TCP ソケットの場合はポートの
+		みを設定でき、セキュリティ上の理由からループバックアドレスにバ
+		インドされる。
 		Note: IPv6 はまだサポートされていない。
 
 		{options} が指定されている場合は、|Dictionary| である必要があ
 		る。
-		|channel-open-options| を参照
+		|channel-open-options| を参照。
 		{options} の "callback" は、新しい接続が受け入れられたときに呼
 		び出される。このコールバックは、新しいチャネルとクライアントア
 		ドレス (文字列形式、例: "127.0.0.1:12345") の 2 つの引数を受け
