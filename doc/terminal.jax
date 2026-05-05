@@ -947,6 +947,20 @@ term_start({cmd} [, {options}])			*term_start()*
 		をそれぞれ 1 つずつしか受け付けず、標準エラー出力用の個別のハ
 		ンドルがないためである。
 
+		Note: term_start() は、コールバックに常に RAW モードを使用す
+		る。"out_cb" と "err_cb" は、OS から読み取った生のデータチャン
+		クを受け取る。1 つのコールバック呼び出しには、NL で区切られた
+		複数の行が含まれる場合があり (pty 経由の標準出力の場合)、各行
+		には行規律 (ONLCR) による末尾の CR が含まれる場合がある。行ご
+		との処理が必要な場合は、コールバックで "msg" を NL で分割し、
+		末尾の CR を削除する必要がある。
+		例: >
+			func Handle(ch, msg)
+			  for line in split(a:msg, "\n")
+			    echom substitute(line, '\r$', '', '')
+			  endfor
+			endfunc
+<
 		追加のオプションは以下のとおり:
 		   "term_name"	     (コマンド名の代わりに使用される)バッファ
 				     名に使用する名前。
