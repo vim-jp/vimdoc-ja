@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'cmdline'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="cmdline.html" name="cmdline.txt">cmdline.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 May 20<br>
+<a class="Constant" href="cmdline.html" name="cmdline.txt">cmdline.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Jul 18<br>
 <br>
 <br>
 <span class="Identifier">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIM リファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -1366,16 +1366,15 @@ Cmdwin イベントを使用してコマンドラインウィンドウ専用の�
 カーに変えることができる:<br>
 <br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set findfunc=Find<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let s:filescache = []<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func Find(arg, _)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if empty(s:filescache)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let s:filescache = globpath('.', '**', 1, 1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;autocmd CmdlineLeave : ++once let s:filescache = []<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let s:filescache = expand('**', 1, 1)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call filter(s:filescache, '!isdirectory(v:val)')<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call map(s:filescache, &quot;fnamemodify(v:val, ':.')&quot;)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return a:arg == '' ? s:filescache : matchfuzzy(s:filescache, a:arg)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let s:filescache = []<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;autocmd CmdlineEnter : let s:filescache = []</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return empty(a:arg) ? s:filescache : matchfuzzy(s:filescache, a:arg)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc</div>
 <br>
 <span class="Comment">:Grep</span>&nbsp;コマンドは、パターンにマッチする行を検索し、入力すると結果を動的に更新<br>
 する (2 文字後にトリガーされる。<span class="Todo">note</span>: 次のセクションの&nbsp;<a class="Comment" href="autocmd.html#CmdlineLeavePre">CmdlineLeavePre</a>&nbsp;自動<br>
