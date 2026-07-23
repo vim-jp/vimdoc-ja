@@ -1,4 +1,4 @@
-*cmdline.txt*	For Vim バージョン 9.2.  Last change: 2026 May 20
+*cmdline.txt*	For Vim バージョン 9.2.  Last change: 2026 Jul 18
 
 
 		  VIM リファレンスマニュアル    by Bram Moolenaar
@@ -1361,16 +1361,15 @@ Note: これは |file-pattern| なので、"/" および "?" をエスケープ�
 カーに変えることができる: >
 
 	set findfunc=Find
+	let s:filescache = []
 	func Find(arg, _)
 	  if empty(s:filescache)
-	    let s:filescache = globpath('.', '**', 1, 1)
+	    autocmd CmdlineLeave : ++once let s:filescache = []
+	    let s:filescache = expand('**', 1, 1)
 	    call filter(s:filescache, '!isdirectory(v:val)')
-	    call map(s:filescache, "fnamemodify(v:val, ':.')")
 	  endif
-	  return a:arg == '' ? s:filescache : matchfuzzy(s:filescache, a:arg)
+	  return empty(a:arg) ? s:filescache : matchfuzzy(s:filescache, a:arg)
 	endfunc
-	let s:filescache = []
-	autocmd CmdlineEnter : let s:filescache = []
 
 `:Grep` コマンドは、パターンにマッチする行を検索し、入力すると結果を動的に更新
 する (2 文字後にトリガーされる。note: 次のセクションの `CmdlineLeavePre` 自動
