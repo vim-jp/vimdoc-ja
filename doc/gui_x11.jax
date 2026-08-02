@@ -1,4 +1,4 @@
-*gui_x11.txt*	For Vim バージョン 9.2.  Last change: 2026 Jun 29
+*gui_x11.txt*	For Vim バージョン 9.2.  Last change: 2026 Jul 27
 
 
 		  VIM リファレンスマニュアル    by Bram Moolenaar
@@ -310,50 +310,67 @@ X11に組み込まれたポインタを使うことができる。
 ==============================================================================
 5. GTKバージョン				*gui-gtk* *GTK+* *GTK* *GTK3*
 
-GUIのGTKバージョンはほんの少し異なった動作をする。
+GUI の GTK バージョンはほんの少し異なった動作をする。
 
-GTKは従来のXのリソース設定を使＿わない＿。したがって、~/.Xdefaultsや
-app-defaultsは使われない。
-伝統的なXコマンドの引数はサポートされない。(例えば -bg, -fg, などの要素)。サ
+GTK は従来の X のリソース設定を使＿わない＿。したがって、~/.Xdefaults や
+app-defaults は使われない。
+伝統的な X コマンドの引数はサポートされない。(例えば -bg, -fg, などの要素)。サ
 ポートされているのは:
 
     コマンドライン引数	   リソース名		意味 ~
     -fn  or  -font	    .font		テキストのフォント名
-    -geom  or  -geometry    .geometry		gvimウィンドウのサイズ
+    -geom  or  -geometry    .geometry		gvim ウィンドウのサイズ
     -rv  or  -reverse	    *reverseVideo	黒い背景に白いテキスト
     -display					使用されるディスプレイ
     -fg -foreground {color}			前景色
     -bg -background {color}			背景色
 
-フォントを設定するには、'guifont' を参照。GTKについては、これをするメニューオ
+GTK4 GUI を使用する場合、以下のもののみがサポートされる:
+    -fn  or  -font
+    -geom  or  -geometry    (ウィンドウの配置はサポートされていない)
+    -fg -foreground {color}
+    -bg -background {color}
+
+GTK4 固有のコマンドライン引数:
+    コマンドライン引数	    意味 ~
+    --prg-name {name}	    g_set_prgname() に渡される引数である。指定されない
+			    場合は "gvim" が使用される。Wayland 上では、これに
+			    よりアプリケーション ID (X11 の WM_CLASS に相当す
+			    るもの) が設定される。
+
+フォントを設定するには、'guifont' を参照。GTK については、これをするメニューオ
 プションもある。
 
-さらに、GTKの内部で扱われるこれらのコマンドライン引数がある。それらがどのよう
-に用いられるかはGTKのドキュメントを見るとよい。
+さらに、GTK の内部で扱われるこれらのコマンドライン引数がある (GTK4 を除く、下
+記参照)。それらがどのように用いられるかは GTK のドキュメントを見るとよい。
 	--sync
 	--gdk-debug
 	--gdk-no-debug
-	--no-xshm	(GTK+ 2では使われない)
-	--xim-preedit	(GTK+ 2では使われない)
-	--xim-status	(GTK+ 2では使われない)
+	--no-xshm	(GTK+ 2 では使われない)
+	--xim-preedit	(GTK+ 2 では使われない)
+	--xim-status	(GTK+ 2 では使われない)
 	--gtk-debug
 	--gtk-no-debug
 	--g-fatal-warnings
 	--gtk-module
-	--display	(GTK+の-displayに対応; 同じように動作する。)
-	--screen	(スクリーン番号: GTK+ 2.2ではマルチスレッド対応)
+	--display	(GTK+ の -display に対応; 同じように動作する。)
+	--screen	(スクリーン番号: GTK+ 2.2 ではマルチスレッド対応)
 
-これらの引数は|+netbeans_intg|が有効なときは使われない。
+これらの引数は |+netbeans_intg| が有効なときは使われない。
 	-xrm
 	-mf
 
-色については、Vimの(構文強調表示についての)色の設定はまだ従来のVimの方法でなさ
-れている。より多くのヘルプについては|:highlight|を参照。
+GTK4 GUI を使用する場合、GTK 固有のコマンドライン引数はサポートされない。代わ
+りに、環境変数を使用して GTK を設定する。
+https://docs.gtk.org/gtk4/running.html
 
-残りのguiコンポーネント(例えば、メニューバー、スクロールバー、どんなものでも)
-の色を設定したければ、GTK特有の設定があり、何かgtkrcファイルの類にそれらを設定
-する必要がある。GTKドキュメントを参照しなければならないだろうが、この方法に関
-する情報はあまりない。詳細については、
+色については、Vim の (構文ハイライトについての) 色の設定はまだ従来の Vim の方
+法でなされている。より多くのヘルプについては |:highlight| を参照。
+
+残りの gui コンポーネント (例えば、メニューバー、スクロールバー、どんなもので
+も) の色を設定したければ、GTK 特有の設定があり、何か gtkrc ファイルの類にそれ
+らを設定する必要がある。GTK ドキュメントを参照しなければならないだろうが、この
+方法に関する情報はあまりない。詳細については、
 https://www.manpagez.com/html/gtk2/gtk2-2.24.24/gtk2-Resource-Files.php
 を参照。
 							*gtk3-slow*
@@ -375,14 +392,6 @@ $LIBGL_ALWAYS_SOFTWARE を "true" に設定すると、OpenGL レンダラーは
     $ GSK_RENDERER=cairo gvim
     $ LIBGL_ALWAYS_SOFTWARE=true gvim
 <
-							*gtk4-hwaccel*
-Vim を "--enable-gtk4-hwaccel" オプションを設定してコンパイルすると、GTK4 GUI
-は Cairo の代わりに GtkSnapshot を使用するようになり、ハードウェアアクセラレー
-ションによるレンダリングが可能になるため、はるかに高速になる。この設定オプショ
-ンを有効にすると、GTK4 GUI はポップアップウィンドウ画像のレンダリングに
-|+image_cairo| の代わりに |+image_gdk| を使用するようになる。Note この機能は現
-在実験段階であることに注意。
-
 ツールチップの色 ~
 							*gtk-tooltip-colors*
 ツールチップの色を明るい黄色の背景に黒のテキストに設定する例: >
