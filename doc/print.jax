@@ -1,4 +1,4 @@
-*print.txt*	For Vim バージョン 9.2.  Last change: 2026 Feb 14
+*print.txt*	For Vim バージョン 9.2.  Last change: 2026 Aug 02
 
 
 		  VIM リファレンスマニュアル	by Bram Moolenaar
@@ -13,7 +13,8 @@
 5. PostScript CJK 印刷			|postscript-cjk-printing|
 6. PostScript 印刷トラブルシューティング|postscript-print-trouble|
 7. PostScript ユーティリティ		|postscript-print-util|
-8. 改ページ文字				|printing-formfeed|
+8. Pango 印刷				|pango-printing|
+9. 改ページ文字				|printing-formfeed|
 
 {|+printer| 機能付きでコンパイルした場合のみ利用可能}
 
@@ -31,32 +32,36 @@ Note: |:hardcopy| による印刷が機能しない場合は、|:TOhtml| で HTM
 					*:ha* *:hardcopy* *E237* *E238* *E324*
 :[range]ha[rdcopy][!] [arguments]
 			範囲 [range] の行 (省略時はファイル全体) をプリンタへ
-			出力します。
+			出力する。
 
-			MS-Windows ではプリンタの選択やページサイズの設定など
-			をするためのダイアログが表示されます。ダイアログを省略
-			するには [!] を付けてください。その場合、'printdevice'
-			に設定したプリンタが使われます。未設定の場合はシステム
-			標準のプリンタが使われます。
+			MS-Windows または GTK4 GUI ではプリンタの選択やページ
+			サイズの設定などをするためのダイアログが表示される。ダ
+			イアログを省略するには [!] を付ける。その場合、
+			'printdevice' に設定したプリンタが使われる。未設定の場
+			合はシステム標準のプリンタが使われる。Note GTK4 GUI の
+			印刷ダイアログには、GTK 4.14 以上が必要であることに注
+			意。
 
-			MS-Windows 以外のシステムでは、PostScript が一時ファイ
-			ルに書き込まれ、それを実際に印刷するために 'printexpr'
-			が実行されます。そのとき、[arguments] は |v:cmdarg| と
-			して 'printexpr' の中で使うことができます。[arguments]
-			は無視することもできます。用紙サイズや両面印刷などの指
-			定を 'printoptions' に設定できます。
-			Note: PDFが必要な場合は、PostScriptをPDFに変換できる
-			"ps2pdf" 等のツールがあります。
+			MS-Windows または Pango 以外のシステムでは、PostScript
+			が一時ファイルに書き込まれ、それを実際に印刷するために
+			'printexpr'が実行される。そのとき、[arguments] は
+			|v:cmdarg| として 'printexpr' の中で使うことができる。
+			[arguments] は無視することもできる。用紙サイズや両面印
+			刷などの指定を 'printoptions' に設定できる。
+			Note: PDF が必要な場合は、PostScript を PDF に変換でき
+			る "ps2pdf" 等のツールがある。|+pango| 機能が有効な場
+			合、'printoptions' の "format" を "pdf" に設定すること
+			で PDF を出力する。
 
 :[range]ha[rdcopy][!] >{filename}
-			上記と同じですが、PostScript を {filename} に保存しま
-			す。
-			"%" のような文字は展開されます |cmdline-special|。
+			上記と同じですが、PostScript を {filename} に保存する。
+			"%" のような文字は展開される |cmdline-special|。
 			注意: すでにファイルが存在する場合は、警告なしに上書き
-			されます。
-			{|+postscript| が有効な場合のみ利用できます}
+			される。
+			{|+postscript| または |+pango| が有効な場合のみ利用で
+			きる}
 			MS-Windows では、プリンタドライバの "ファイルに保存"
-			の機能を使ってください。
+			の機能を使う。
 
 印刷している間、印刷中のページ番号や進行率などの印刷状況が表示されます。印刷を
 中止するには中断キーを押してください (CTRL-C、MS-Windows では CTRL-Break)。
@@ -126,33 +131,33 @@ Mac、VMS、HPUX、EBCDIC環境の標準エンコーディングのための、�
 							*pexpr-option*
 'printexpr' 'pexpr'	文字列	(既定は下記参照)
 			グローバル
-|:hardcopy| で PostScript を印刷するためのスクリプトを設定します。
-印刷する PostScript ファイルは |v:fname_in| に設定されます。
-":hardcopy" コマンドの引数は |v:cmdarg| に設定されます。
-印刷をした後で、スクリプトから PostScript ファイルを削除してください。
-エラーが起きたときは、スクリプトは 0 以外の値を返す必要があります。
-エラーがないときは、0 か 空文字列を返してください。
-MS-Windows と VMS 以外の環境の初期設定では、単純に "lpr" を使ってファイルを印
-刷します: >
+|:hardcopy| で PostScript または PDF を印刷するためのスクリプトを設定する。
+印刷する PostScript ファイルは |v:fname_in| に設定される。
+":hardcopy" コマンドの引数は |v:cmdarg| に設定される。
+式は印刷した後にファイルを削除するよう配慮しなければならない。
+エラーが起きたときは、スクリプトは 0 以外の値を返さなければならない。
+エラーがないときは、0 か 空文字列を返すこと。
+MS-Windows や VMS 以外のシステムでは、デフォルトで単に "lpr" を使用してファイ
+ルを印刷する。
 
     system('lpr' .. (&printdevice == '' ? '' : ' -P' .. &printdevice)
 	.. ' ' .. v:fname_in) .. delete(v:fname_in) + v:shell_error
 
-MS-Windows での初期設定は、現在指定されている印刷デバイスにファイルをコピーし
-ます: >
+MS-Windows での初期設定は、現在指定されている印刷デバイスにファイルをコピーす
+る: >
 
     system('copy' .. ' ' .. v:fname_in .. (&printdevice == ''
 		? ' LPT1:' : (' \"' .. &printdevice .. '\"')))
 		.. delete(v:fname_in)
 
 VMS での初期設定は、標準の印刷デバイスか、指定されている印刷デバイスにファイル
-を送ります: >
+を送る: >
 
     system('print' .. (&printdevice == '' ? '' : ' /queue=' ..
 		&printdevice) .. ' ' .. v:fname_in) .. delete(v:fname_in)
 
 このオプションを設定するときは、関数を使うと、スペースをエスケープしなくてもい
-いので簡単です。例: >
+いので簡単である。例: >
 
 	:set printexpr=PrintFile()
 	:function PrintFile()
@@ -161,41 +166,42 @@ VMS での初期設定は、標準の印刷デバイスか、指定されてい�
 	:  return v:shell_error
 	:endfunc
 
-オプションに関数呼び出しのみが設定されている場合は、より効率的です、
+オプションに関数呼び出しのみが設定されている場合は、より効率的である。
 |expr-option-function| を参照。
 
-ファイルを読み込む前に制御を返す印刷プログラムもあるので注意してください。ファ
-イルをすぐに削除してしまうと、印刷できないかもしれません。ほとんどの場合、その
-ようなプログラムには、印刷した後でファイルを削除するオプションが用意されていま
-す。
+ファイルを読み込む前に制御を返す印刷プログラムもあるので注意。ファイルをすぐに
+削除してしまうと、印刷できないかもしれない。ほとんどの場合、そのようなプログラ
+ムには、印刷した後でファイルを削除するオプションが用意されている。
 							*E365*
 スクリプトを実行できなかったり、スクリプトが 0 以外の値を返したときは、エラー
-メッセージが表示されます。その場合は、Vim が PostScript ファイルを削除します。
+メッセージが表示される。その場合は、Vim が PostScript ファイルを削除する。
 MS-Windows 以外のシステムの初期設定では、"v:shell_error" を足す、というトリッ
-クを使っています。"v:shell_error" には system() の呼び出しでエラーが起きたとき
-に 0 以外の値が入ります。
+クを使っている。"v:shell_error" には system() の呼び出しでエラーが起きたとき
+に 0 以外の値が入る。
 
 式が s: か |<SID>| で始まる場合は、スクリプトID(|local-function|) に置き換えら
-れます。例: >
+れる。例: >
 		set printexpr=s:MyPrintFile()
 		set printexpr=<SID>SomePrintFile()
 そうでない場合、式はオプションが設定されたスクリプトのコンテキストで評価され、
-その結果スクリプトローカルな要素を使用できます。
+その結果スクリプトローカルな要素を使用できる。
 
 セキュリティ上の理由から、このオプションを |modeline| または |sandbox| 内で設
-定することはできません。
+定することはできない。
 
 							*pfn-option* *E613*
 'printfont' 'pfn'	文字列	(既定では "courier")
 			グローバル
-|:hardcopy| コマンドの出力で使われるフォント名を設定します。このオプションは
-'guifont' と同じ書式で指定します。ただし、フォントは1つだけ指定可能です。
-"guifont=*" と同じ特別な指定方法は使えません。
+|:hardcopy| コマンドの出力で使われるフォント名を設定する。このオプションは
+'guifont' と同じ書式で指定する。ただし、フォントは 1 つだけ指定可能である。
+"guifont=*" と同じ特別な指定方法は使えない。
 
-Win32 GUI では、'guifont' と同じように、フォントの属性を追加指定できます。
+Win32 GUI では、'guifont' と同じように、フォントの属性を追加指定できる。
+|+pango| が有効な場合、書式は GTK GUI における 'guifont' と同じである (例:
+"Courier New 10")。
 
-他のシステムでは、"h11" という指定のみ受け付けます。"11" の所にはフォントのサ
-イズをポイントで指定します。省略時のフォントサイズは 10 です。
+他のシステムでは、"h11" という指定のみ受け付ける。"11" の所にはフォントのサ
+イズをポイントで指定する。省略時のフォントサイズは 10 である。
 
 							*pheader-option*
 'printheader' 'pheader'  文字列  (既定では "%<%f%h%m%=Page %N")
@@ -387,6 +393,13 @@ ASCII コード範囲の一部の文字は、従来の ASCII 文字とはコー�
   formfeed:n (標準設定)	改ページ文字 (0x0c) を普通の文字として処理します。
   formfeed:y		改ページ文字を処理し、現在の行を新しいページに印刷しま
 			す。
+  format:postscript (標準設定)
+			出力形式: Postscript
+  format:{name}		次の中の出力形式:
+			{|+pango| 機能付きでコンパイルした場合のみ利用可能}
+			{name}		意味 ~
+			postscript	Postscript を生成する
+			pdf		Adobe PDF を生成する
 
 設定を省略した場合は、それぞれの設定項目で (標準設定) となっているものが使われ
 ます。設定ダイアログでプリンタの選択やオプションを設定したときなど、指定した設
@@ -423,6 +436,9 @@ ASCII コード範囲の一部の文字は、従来の ASCII 文字とはコー�
   きは latin1 が使われます)。変換できない文字は未知の文字として印刷されます。
   マルチバイトから 8-bit エンコーディングへの変換を実行できないときは、印刷は
   失敗します。
+
+印刷に Pango バックエンドを使用する場合、これらの制限は解消される。詳細につい
+ては |pango-printing| を参照。
 
 ==============================================================================
 4. 独自 8-bit 印字エンコーディング		*postscript-print-encoding*
@@ -695,9 +711,26 @@ PSUtils の psselect を使って、両面印刷を安価に実現できます�
    トップ用インクジェットプリンタであれば、紙の通り道が見えないスモールオフィ
    ス用レーザープリンタとは違い、確認しやすいでしょう。
 
+==============================================================================
+8. Pango 印刷						*pango-printing*
+
+Vim が |+pango| 付きでコンパイルされている場合、Pango (テキスト処理ライブラリ)
+と Cairo (グラフィックスライブラリ) を使用してページの描画が行われる。これによ
+り、Unicode が完全にサポートされるという利点がある。PostScript ファイルの生成
+には、引き続き Cairo が使用される。さらに、PDF ファイルの出力も可能である。
+|popt-option| の "format" キーを参照。
+
+GTK GUI を使用する場合、|+pango| は常に有効化され、使用される。Vim の端末版ビ
+ルドでは、configure オプションに "--enable-hardcopy-pango" を指定する必要があ
+る。また、リンクされる Cairo ライブラリにおいて、PostScript および PDF のバッ
+クエンドが有効になっている必要がある。
+
+							*gtk4-print*
+GTK4 GUI を使用する場合、|:hardcopy| は MS-Windows と同様に、ネイティブなグラ
+フィカル印刷ダイアログを使用する。詳細については |:hardcopy| を参照。
 
 ==============================================================================
-8. 改ページ文字						*printing-formfeed*
+9. 改ページ文字						*printing-formfeed*
 
 標準設定では、Vim は formfeed 制御文字 (改ページ文字) の特別な処理を一切しませ
 ん。'printoptions' の formfeed を設定すると、Vim は改ページ文字を認識するよう
