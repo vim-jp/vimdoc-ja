@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'usr_52'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="usr_52.html" name="usr_52.txt">usr_52.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Feb 14<br>
+<a class="Constant" href="usr_52.html" name="usr_52.txt">usr_52.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Jul 27<br>
 <br>
 <br>
 <span class="Identifier">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; VIM ユーザーマニュアル&nbsp;&nbsp;&nbsp;&nbsp; by Bram Moolenaar</span><br>
@@ -119,10 +119,10 @@ Vim9 script は大きな Vim script を容易に書けるようにデザイン�
 <br>
 <span class="Statement">再読み込み</span><br>
 <br>
-1つ覚えておくべきこと: インポートされた &quot;lib/getmessage.vim&quot; スクリプトは1度だ<br>
-け読み込まれます。インポート済みで2度目に読み込む時はスキップされ、項目は最初<br>
-に作成された以降そのままです。これはインポートコマンドが他のスクリプト内にあ<br>
-るか、再読み込みされた同じスクリプト内にあるかは関係ありません。<br>
+1 つ覚えておくべきこと: インポートされた &quot;lib/getmessage.vim&quot; スクリプトは 1<br>
+度だけ読み込まれます。インポート済みで 2 度目に読み込む時はスキップされ、項目<br>
+は最初に作成された以降そのままです。これはインポートコマンドが他のスクリプト内<br>
+にあるか、再読み込みされた同じスクリプト内にあるかは関係ありません。<br>
 <br>
 これはプラグインを使用する場合は効率的ですが、プラグインを開発中の場合は、イン<br>
 ポート後に &quot;lib/getmessage.vim&quot; を変更しても効果がありません。Vim を終了し、再<br>
@@ -144,46 +144,84 @@ Vim9 script は大きな Vim script を容易に書けるようにデザイン�
 <span class="PreProc">==============================================================================</span><br>
 <a class="Constant" href="usr_52.html#52.2" name="52.2">52.2</a>&nbsp;&nbsp;オートロード<br>
 <br>
-大きなスクリプトを分割しても、スクリプトが使用された瞬間にすべての行がロードさ<br>
-れ、実行されます。<a class="Comment" href="vim9.html#:import">import</a>&nbsp;するたびに、インポートしたスクリプトをロードして、<br>
-そこで定義されている項目を探します。これはエラーを早期に発見するためには良いこ<br>
-とですが、同時に時間もかかります。そのため、その機能があまり使用されない場合<br>
-は、無駄な時間がかかってしまいます。<br>
+大きなスクリプトを分割した場合、インポートされるスクリプトは、それをインポート<br>
+するスクリプトが読み込まれるタイミングでロードされ、実行される。<span class="Comment">|:import|</span>&nbsp;で<br>
+ロードされるたびに、そこで定義された項目を見つけるために、対象のスクリプトが読<br>
+み込まれる。そのため、インポートされるスクリプトが大きいと起動時間が著しく遅く<br>
+なる可能性があるが、一方で、エラーがあればインポート時に検出されるという利点も<br>
+ある。<br>
 <br>
-<a class="Comment" href="vim9.html#:import">import</a>&nbsp;でスクリプトをすぐにロードするのではなく、必要になるまで延期すること<br>
-ができます。上記の例を使用すると、plugin/theplugin.vim スクリプトで行う必要が<br>
-ある変更は1箇所だけです:<br>
+起動時の待ち時間を短縮するため、インポートされたスクリプトのロードを、実際に必<br>
+要になるまで遅延させることができる。これには&nbsp;<a class="Comment" href="userfunc.html#autoload">autoload</a>&nbsp;キーワードを使用する。<br>
+先ほどの例で言えば、<span class="Comment">plugin/theplugin.vim</span>&nbsp;に必要な変更は 1 箇所だけである:<br>
+<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import autoload &quot;../lib/getmessage.vim&quot;</div>
 <br>
-スクリプトの残りの部分は何も変更する必要はありません。ただし、型はチェックされ<br>
-ません。GetMessage() 関数が使用されるまで、その存在すらチェックされません。ス<br>
-クリプトにとってどちらがより重要かを決定する必要があります: 高速な起動か早期に<br>
-エラーが分かるか。すべての動作を確認した後で、&quot;autoload&quot; 引数を追加することも<br>
-できます。<br>
+スクリプトの残りの部分を変更する必要はない。ただし、型チェックは行われず、イン<br>
+ポート時には &quot;../lib/getmessage.vim&quot; もロードされない。Vim はファイルが存在し、<br>
+読み取り可能かどうかを確認するだけである。GetMessage() 関数が実際に使用される<br>
+までは、その関数の存在さえも確認されない。その結果、&quot;getmessage.vim&quot; スクリプ<br>
+ト内のエラーは、実行時にのみ検出されることになる。<br>
 <br>
+スクリプトにとって何がより重要かを判断する必要がある: 起動の速さか、それともエ<br>
+ラーの早期検出か。<br>
+<br>
+現実的な戦略としては、開発やデバッグ中は&nbsp;<a class="Comment" href="userfunc.html#autoload">autoload</a>&nbsp;キーワードを省略してエラー<br>
+が即座に報告されるようにし、プラグインを配布する段階でそれを追加して起動パ<br>
+フォーマンスを向上させる、という方法がある。<br>
 <br>
 <span class="Statement">オートロードディレクトリ</span><br>
 <br>
-もう1つの形式は絶対パスでも相対パスでもないスクリプト名で autoload を使用する<br>
-ことです:<br>
+スクリプトを遅延読み込みする別の方法として、以下の例のように、相対パスや絶対パ<br>
+スを指定せずに&nbsp;<span class="Comment">import autoload</span>&nbsp;することである:<br>
+<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import autoload &quot;monthlib.vim&quot;</div>
 <br>
-これはスクリプト &quot;monthlib.vim&quot; を&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;のオートロードディレクトリの<br>
-中から検索します。Unix では、ディレクトリの1つが &quot;~/.vim/autoload&quot; であること<br>
-が多いです。これはまた&nbsp;<a class="Type" href="options.html#'packpath'">'packpath'</a>&nbsp;の、その下の &quot;start&quot; からも検索します。<br>
+Vim は、<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;に含まれるディレクトリ内の &quot;autoload&quot; ディレクトリからス<br>
+クリプトを探す。つまり、スクリプトは &quot;autoload&quot; フォルダ内に配置されている必要<br>
+がある。Unix 系システムでは、そのようなディレクトリとして&nbsp;<span class="Comment">~/.vim/autoload</span>&nbsp;が<br>
+よく使われる。また、<a class="Type" href="options.html#'packpath'">'packpath'</a>&nbsp;内の &quot;start&quot; ディレクトリ配下も検索対象となる。<br>
 <br>
-この方法の主要な利点として、このスクリプトを他のスクリプトと共有するのが容易で<br>
-あることです。Vim が&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;内の &quot;autoload&quot; ディレクトリから検索するた<br>
-め、スクリプト名は一意である必要があり、プラグインはいくつかのプラグインマネー<br>
-ジャーとともに利用される場合では、<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;にディレクトリを追加されること<br>
-があり、それぞれが &quot;autoload&quot; ディレクトリを持っているためです。<br>
+このようにしてスクリプトがインポートされると、そのスクリプトの公開シンボルは、<br>
+インポート元のスクリプト内にとどまるのではなく、グローバルなオートロードの名前<br>
+空間を通じて参照されるようになる。<br>
 <br>
-オートロードなしは:<br>
+Vim は&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;に含まれるすべての &quot;autoload&quot; ディレクトリを検索するため、<br>
+スクリプト名には重複しない一意な名前を選ぶこと。プラグインマネージャーは<br>
+<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;に複数のディレクトリを追加することが多く、それらの各ディレクトリ<br>
+に &quot;autoload&quot; ディレクトリが含まれている可能性があるからである。<br>
+<br>
+<span class="Comment">import autoload</span>&nbsp;の 2 つの形式は、以下のようにまとめられる:<br>
+<br>
+-&nbsp;<span class="Comment">import autoload &quot;foo.vim&quot;</span><br>
+&nbsp;&nbsp;Vim はスクリプトを探す際、<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;を検索する。こうしたスクリプトは<br>
+&nbsp;&nbsp;&quot;autoload&quot; ディレクトリの下に配置する必要があるため、エクスポートされたシン<br>
+&nbsp;&nbsp;ボルはグローバルなオートロードの名前空間を通じて使用可能になる。<br>
+<br>
+-&nbsp;<span class="Comment">import autoload &quot;/some/path/foo.vim&quot;</span><br>
+&nbsp;&nbsp;解決されたパスが &quot;autoload&quot; ディレクトリ配下にある場合、エクスポートされたシ<br>
+&nbsp;&nbsp;ンボルも同様にグローバルなオートロードの名前空間に配置される。そうでない場<br>
+&nbsp;&nbsp;合、それらのシンボルはインポート元のスクリプト内でのみ有効なローカルなものと<br>
+&nbsp;&nbsp;なる。<br>
+<br>
+グローバルなオートロードの名前空間を介してシンボルにアクセスする主な利点は、そ<br>
+のスクリプトを他のスクリプトから容易にインポートでき、シンボルを即座に使用でき<br>
+ることである。ただし、スクリプトを再読み込みする際にはいくつかの欠点がある。詳<br>
+細については&nbsp;<a class="Identifier" href="vim9.html#vim9-reload">vim9-reload</a>&nbsp;を参照。<br>
+<br>
+シンボルがスクリプトローカルなスコープにある場合、それらをスクリプト間で共有す<br>
+るには多少の手間がかかり、一律のルールも存在しない。適切なアプローチは、プラグ<br>
+インの構成によって異なる。<br>
+<br>
+最後に、以下の例のように&nbsp;<a class="Comment" href="userfunc.html#autoload">autoload</a>&nbsp;やパスを指定せずにスクリプトをインポートす<br>
+る場合:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import &quot;monthlib.vim&quot;</div>
 <br>
-Vim は&nbsp;<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;のインポートディレクトリ内からスクリプト &quot;monthlib.vim&quot;<br>
-を検索します。<span class="Todo">Note</span>&nbsp;この場合、&quot;autoload&quot; を追加または削除すると、スクリプトが見<br>
-つかる場所が変わります。相対パスまたは絶対パスでは、場所は変わりません。<br>
+Vim は、<a class="Type" href="options.html#'runtimepath'">'runtimepath'</a>&nbsp;のインポートディレクトリからスクリプト &quot;monthlib.vim&quot; を<br>
+検索する。<br>
+<br>
+この場合、<a class="Comment" href="userfunc.html#autoload">autoload</a>&nbsp;キーワードを追加または削除すると、Vim がスクリプトを検索<br>
+する場所が変わる。相対パスや絶対パスを使用する場合は、場所は変わらない。<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 <a class="Constant" href="usr_52.html#52.3" name="52.3">52.3</a>&nbsp;&nbsp;インポート/エクスポートなしのオートロード<br>
