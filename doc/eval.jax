@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 9.2.  Last change: 2026 May 31
+*eval.txt*	For Vim バージョン 9.2.  Last change: 2026 Aug 16
 
 
 		  VIM リファレンスマニュアル	by Bram Moolenaar
@@ -1144,7 +1144,7 @@ MY_VAR_6		viminfoファイル
 	expr10->name(expr1, ...) |method| 呼び出し
 
 
-|expr11|  number		数定数
+|expr11|  number		整数値
 	"string"		文字列定数。バックスラッシュは特別な意味を持つ
 	'string'		リテラル文字列定数。'を含めるには2重にする
 	[expr1, ...]		|List|
@@ -1657,37 +1657,72 @@ Note この最後の呼び出しでは "(getFuncRef())" 関数の解決で "args
 							*expr11*
 数
 --
-number			数定数				*expr-number*
+number			整数値				*expr-number*
 
-			*0x* *hex-number* *0o* *octal-number* *binary-number*
-10進数、16進数(0xか0Xで始まる)、2進数(0bか0Bで始まる)、もしくは8進数(0か0oか0O
-で始まる)の数定数。
+					*0x* *hex-number* *0o* *octal-number*
+					*0b* *binary-number*
+整数値は、複数の形式で記述できる:
+
+	{N}		10 進数
+	0x{N} or 0X{N}	16 進数
+	0o{N} or 0O{N}	8 進数
+	0{N}		8 進数 (|scriptversion-4| および |Vim9| では 10 進数)
+	0b{N} or 0B{N}	2 進数
+
+{N} は、10 進数字 (0-9)、16 進数字 (0-9、a-f、A-F)、8 進数字 (0-7)、または 2
+進数字 (0 か 1) の列である。
 
 64bitの数値が使用されている(|v:numbersize| を参照)と仮定するなら、符号なし整数
 は 0x7fffffffffffffff か 9223372036854775807 に丸められる。-1 を使用して
 0xffffffffffffffff を取得できる。
 
+|scriptversion-4| および |Vim9| script では、可読性を高めるために数字の間にシ
+ングルクォートを記述できる。これらは無視される。
+
+先頭の "+" や "-" は、整数リテラルの一部ではない。例えば、-123 は式であり、数
+値 123 に単項演算子 |expr-unary--| が適用されたものである。
+
+例:
+	0xDEAD
+	57005
+	0b1101111010101101
+	0o157255
+	0xBE'EF			|scriptversion-4| および |Vim9|
+	48'879			|scriptversion-4| および |Vim9|
+	0o137'357		|scriptversion-4| および |Vim9|
+	0b1011'1110'1110'1111	|scriptversion-4| および |Vim9|
+
 						*floating-point-format*
-浮動小数点数は次の2つの形式で書ける:
+浮動小数点数は次の 2 つの形式で書ける:
 
-	[-+]{N}.{M}
-	[-+]{N}.{M}[eE][-+]{exp}
+	{N}.{M}
+	{N}.{M}[eE][-+]{exp}
 
-ここで {N} と {M} は数値である。{N} と {M} の両方とも省略してはならず、数値の
-みを含めることができるが、|Vim9| script では {N} がシングルクォートで挟まれた
-数値である場合を除く。
-[-+] は、省略可能なプラスまたはマイナス記号である。
-{exp} は指数で、10 のベキ。
+{N} と {M} は 10 進数字の列である。|scriptversion-1| (デフォルト) では、{N} と
+{M} の両方が必要である。|scriptversion-2| 以降および |Vim9| script では、{N}は
+省略可能である。
+
+{exp} は指数で、10 の乗数である。
 現在のロケールが何であれ、小数点にはドットのみを使える。コンマは使えない。
+
+|scriptversion-4| および |Vim9| script では、可読性を高めるために {N} の数字の
+間にシングルクォートを記述できる。これらは無視される。
+
+先頭の "+" や "-" は、浮動小数点リテラルの一部ではない。例えば、-1.0e-3 は式で
+あり浮動小数点数 1.0e-3 に単項演算子 |expr-unary--| が適用されたものである。一
+方、指数部にある "-" はリテラルの一部である。
 
 例:
 	123.456
-	+0.0001
+	0.0001
 	55.0
-	-0.123
+	0.123
 	1.234e03
 	1.0E-6
-	-3.1416e+88
+	3.1416e+88
+
+	.123		|scriptversion-2| および |Vim9|
+	123'456.0	|scriptversion-4| および |Vim9|
 
 次のものは無効である:
 	3.		{M} が空
@@ -2943,9 +2978,9 @@ v:wayland_display
 		これが空の場合、Vim はどのディスプレイにも接続されていない。
 
 					*v:windowid* *windowid-variable*
-v:windowid	X11/Wayland ベースの GUI を使っているとき、もしくは端末の Vim
-		を使っていて X サーバーに接続しているとき (|-X|) は、ウィンド
-		ウ ID がセットされる。
+v:windowid	X11 ベースの GUI を使っているとき、もしくは端末の Vim を使って
+		いて X サーバーに接続しているとき (|-X|) は、ウィンドウ ID が
+		セットされる。
 		MS-Windows の GUI を使っているときはウィンドウハンドルがセット
 		される。
 		それ以外では値はゼロである。
