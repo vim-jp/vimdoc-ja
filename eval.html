@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'eval'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="eval.html" name="eval.txt">eval.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Aug 16<br>
+<a class="Constant" href="eval.html" name="eval.txt">eval.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Aug 18<br>
 <br>
 <br>
 <span class="Identifier">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIM リファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -972,8 +972,10 @@ Blob内のバイトは、Blobの後ろに角括弧でインデックスを入れ
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let longblob = myblob + 0z4455<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let longblob = 0z4455 + myblob</div>
 <br>
-Blob は&nbsp;<a class="Identifier" href="eval.html#:let+=">:let+=</a>&nbsp;を使うことで、他の Blob とその場で連結することができる:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let myblob += 0z6677</div>
+Blob は&nbsp;<a class="Identifier" href="eval.html#:let+=">:let+=</a>&nbsp;または&nbsp;<a class="Identifier" href="builtin.html#extend()">extend()</a>&nbsp;を使うことで、他の Blob とその場で連結する<br>
+ことができる:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let myblob += 0z6677<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:call extend(myblob, 0z6677)</div>
 <br>
 Blob をその場で変更する他の方法については、<a class="Identifier" href="eval.html#blob-modification">blob-modification</a>&nbsp;を参照。<br>
 <br>
@@ -1017,10 +1019,11 @@ Blobの一部を変更するには、変更する最初と最後のバイトを�
 イト数は同じでなければならない:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let blob[3:5] = 0z334455</div>
 <br>
-Blob に項目をその場で追加するには、<a class="Identifier" href="eval.html#:let+=">:let+=</a>&nbsp;(<a class="Identifier" href="eval.html#blob-concatenation">blob-concatenation</a>)を使うことが<br>
-できる:<br>
+Blob に項目をその場で追加するには、<a class="Identifier" href="eval.html#:let+=">:let+=</a>&nbsp;または&nbsp;<a class="Identifier" href="builtin.html#extend()">extend()</a><br>
+(<a class="Identifier" href="eval.html#blob-concatenation">blob-concatenation</a>) を使うことができる:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let blobA = 0z1122<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let blobA += 0z3344</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let blobA += 0z3344<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:call extend(blobA, 0z5566)</div>
 <br>
 2 つの Blob が同じ Blob を参照している時は、片方の Blob をその場で変更すると、<br>
 他方の Blob もその場で変更される:<br>
@@ -5287,5 +5290,20 @@ Vim のクリップボード機能にプロバイダを統合するには、す�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ }<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set clipmethod^=test<br>
 &lt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#clipboard-providers-wsl" name="clipboard-providers-wsl">clipboard-providers-wsl</a><br>
+Windows WSL の場合は、このスクリプトを試すこと: &gt;vim9<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var Copy = (_, _, lines: list<span class="Special">&lt;string&gt;</span>) =&gt; system('wl-copy', lines)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var Paste = (_) =&gt; ('', systemlist('wl-paste --no-newline')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt;map((_, v) =&gt; v-&gt;trim(&quot;\r&quot;, 2)))<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v:clipproviders[&quot;wslclip&quot;] = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;available: () =&gt; executable('wl-copy') &amp;&amp; executable('wl-paste'),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;copy: { &quot;*&quot;: Copy, &quot;+&quot;: Copy },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;paste: { &quot;*&quot;: Paste, &quot;+&quot;: Paste }<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set clipmethod^=wslclip<br>
+<br>
 &nbsp;vim:tw=78:ts=8:noet:ft=help:norl:<br>
 </div>
