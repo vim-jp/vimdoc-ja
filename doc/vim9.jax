@@ -6,8 +6,12 @@
 
 Vim9 script のコマンドと文法					*Vim9* *vim9*
 
-ほとんどの文法については |eval.txt| で解説されている。このファイルには Vim9
-script の新しい文法と機能について書かれている。
+文法に関するヘルプの大部分は |eval.txt| にある。このファイルは、150 以上の読み
+込み可能なスクリプトを含む、Vim9 script の新しい構文や機能について解説してい
+る。
+
+Vim9 script の概要については、他のリソース、例えば、
+https://learnxinyminutes.com/vim9script/ も役立つかもしれない。
 
 
 1.  Vim9 script とは			|Vim9-script|
@@ -22,28 +26,28 @@ script の新しい文法と機能について書かれている。
 
 ------------------------------------------------------------------------------
 
-  NOTE: この vim9.txt ヘルプファイルでは、`vim9script` (および `vim9cmd` で始
-	まる個々の行) で始まる Vim9 script のコードブロックは、Vim9 script の
-	構文がハイライトされている。また、これらはソースとして実行できるため、
-	実行して出力内容を確認できる。ソースとして実行するには、`:'<,'>source`
-	を使用する (|:source-range| を参照)。これは、|V| で行を視覚的に選択し、
-	`:so` と入力することで実行できる。例えば、以下の Vim9 script で試して
-	みてほしい: >vim9
-
-		vim9script
-		echowindow "Welcome to Vim9 script!"
+NOTE: この vim9.txt ヘルプファイルでは、`vim9script` (および `vim9cmd` で始ま
+る個々の行) で始まる Vim9 script のコードブロックは、Vim9 script の構文がハイ
+ライトされている。また、これらはソースとして実行できるため、実行して出力内容を
+確認できる。ソースとして実行するには、`:'<,'>source` を使用する
+(|:source-range| を参照)。これは、|V| で行を視覚的に選択し、`:so` と入力するこ
+とで実行できる。例えば、以下の Vim9 script で試してみてほしい:
+>vim9
+	vim9script
+	echowindow "Welcome to Vim9 script!"
 <
-	ソースコードとして提供すべきではないコード例もある。これらは、ソース
-	コードとして提供可能な例を必要としない概念を説明しているものである。こ
-	のようなコードブロックは、以下のように、汎用コード構文のハイライトで表
-	示される: >
-
-		def ThisFunction()          # スクリプトローカル
-		def g:ThatFunction()        # グローバル
-		export def Function()       # import および import の自動ロー
-					    # ド用
+ソースコードとして提供すべきではないコード例もある。これらは、ソースコードとし
+て提供可能な例を必要としない概念を説明しているものである。このようなコードブ
+ロックは、以下のように、汎用コード構文のハイライトで表示される:
+>
+	def ThisFunction()          # スクリプトローカル
+	def g:ThatFunction()        # グローバル
+	export def Function()       # import および import の自動ロー
+				    # ド用
+<
 
 ==============================================================================
+
 
 1. Vim9 script とは					*Vim9-script*
 
@@ -78,72 +82,71 @@ Vim9 script と旧来の Vim script を混在させることができる。古�
 直す必要はなく、以前と同じように動作する。高速化が必要なコードには、いくつかの
 `:def` 関数を使用するとよいだろう。
 
-:vim9[cmd] {cmd}				*:vim9* *:vim9cmd*
+:vim9[cmd] {cmd}					*:vim9* *:vim9cmd*
 		Vim9 script の構文、セマンティクス、および動作を使用して {cmd}
 		を評価し、実行する。`:function` や旧来の Vim script 内でコマン
 		ドを入力するときに便利である。
 
 		次の短い例は、旧来の Vim script コマンドと :vim9cmd (つまり
 		Vim9 script コンテキスト) が似ているように見えるものの、構文だ
-		けでなく意味や動作も異なる可能性があることを示している。 >vim
-
-		  call popup_notification('entrée'[5:]
-		    \ ->str2list()->string(), #{time: 7000})
-		  vim9cmd popup_notification('entrée'[5 :]
-		      ->str2list()->string(), {time: 7000})
+		けでなく意味や動作も異なる可能性があることを示している。
+>vim
+			call popup_notification('entrée'[5:]
+			  \ ->str2list()->string(), #{time: 7000})
+			vim9cmd popup_notification('entrée'[5 :]
+			    ->str2list()->string(), {time: 7000})
 <
-		 Notes: 1) 出力が異なる理由は、Vim9 script は文字インデックス
-			   を使用するのに対し、旧来の Vim script はバイトイン
-			   デックスを使用するためである。|vim9-string-index|
-			   を参照。
-			2) 構文も異なる。Vim9 script では:
-			  - "[5 :]" 内のスペースは必須である
-			    (|vim9-white-space| を参照)。
-			  - "\" による行継続は必須ではない。
-			  - "#" (辞書キーを引用符で囲むのを避けるため) は必須
-			    ではなく、許可もされない - |#{}| を参照。
+		Notes: 1. 出力が異なる理由は、Vim9 script は文字インデックスを
+		使用するのに対し、旧来の Vim script はバイトインデックスを使用
+		するためである。|vim9-string-index|を参照。
+		2. 構文も異なる。Vim9 script では:
+		- "[5 :]" 内のスペースは必須である (|vim9-white-space| を参
+		  照)。
+		- "\" による行継続は必須ではない。
+		- "#" (辞書キーを引用符で囲むのを避けるため) は必須ではなく、
+		  許可もされない - |#{}| を参照。
 
-						*E1164*
+							*E1164*
 		`:vim9cmd` は単独では実行できない。コマンドが後に続く必要があ
 		る。
 
-:leg[acy] {cmd}					*:leg* *:legacy*
+:leg[acy] {cmd}						*:leg* *:legacy*
 		{cmd} を旧来の Vim script の構文、意味、および動作を使用して
 		評価および実行する。これは、Vim9 script または `:def` 関数での
 		み適用できる。上記のスクリプトと同等のスクリプトを使用する場合
-		(出力が異なる理由については、スクリプトの注記を参照): >vim9
-
-		  vim9script
-		  # レガシーコンテキスト - つまり、これは [769, 101] のポップ
-		  # アップを作成する
-		  legacy call popup_notification('entrée'[5:]
-		    \ ->str2list()->string(), #{time: 7000})
-		  # Vim9 script コンテキスト - これは [101] のポップアップを作
-		  # 成する
-		  popup_notification('entrée'[5 :]
-		      ->str2list()->string(), {time: 7000})
+		(出力が異なる理由については、スクリプトの注記を参照):
+>vim9
+			vim9script
+			# 旧来の Vim script コンテキストでは、ポップアップは
+			# [769, 101]
+			legacy call popup_notification('entrée'[5:]
+			    \ ->str2list()->string(), #{time: 7000})
+			# Vim9 script コンテキストでは、ポップアップは [101]
+			popup_notification('entrée'[5 :]
+			    ->str2list()->string(), {time: 7000})
 <
 		Vim9 script のスクリプトローカル変数は、旧来の Vim script と同
 		様に、プリフィックスに "s:" を付けることで使用できる。この例
 		は、構文の違いを示している。Vim9 script ではスクリプトローカル
-		変数は "k" だが、旧来の Vim script では "s:k" である。 >vim9
-
-		  vim9script
-		  var k: string = "Okay"
-		  echo k
-		  legacy echo s:k
-<						*E1189*
+		変数は "k" だが、旧来の Vim script では "s:k" である。
+>vim9
+			vim9script
+			var k: string = "Okay"
+			echo k
+			legacy echo s:k
+<
+							*E1189*
 		`:legacy` はコンパイルされた Vim9 script の制御フローコンテキ
-		ストでは使用できない。例: >vim9
-
-		  vim9script
-		  def F_1189()
-		    if v:version == 900
-		    # E1189: Cannot use :legacy with this command: endif
-		    legacy endif
-		  enddef
-		  F_1189()
-<						*E1234*
+		ストでは使用できない。例:
+>vim9
+			vim9script
+			def F_1189()
+			  if v:version == 900
+			  # E1189: Cannot use :legacy with this command: endif
+			  legacy endif
+			enddef
+			F_1189()
+<							*E1234*
 		`:legacy` は単独では実行できない。コマンドが後に続く必要があ
 		る。
 
@@ -494,7 +497,7 @@ Vim9 script を 2 回目に読み込むと、既存のスクリプトローカ�
 ただし、:def 関数を使用する方がおそらくうまく動作する。
 
 				*E1022* *E1103* *E1130* *E1131* *E1133*
-				*E1134*
+				*E1134* *E1581*
 型を指定して変数を宣言し初期化子を指定しない場合、値は false (boolの場合)、空
 (文字列、リスト、辞書などの場合)、ゼロ (数値、any などの場合) に初期化される。
 これは特に "any" 型を使用する場合に重要で、値はデフォルトで数値のゼロになる。
@@ -904,10 +907,17 @@ Notes:
 <  これは動作しない: >
 	echo [1, 2]
 		[3, 4]
-- Vim では、コマンドのパースが困難な場合がある。特に、`:windo` のようにコマン
-  ドが別のコマンドの引数として使用されている場合には、その傾向が顕著である。そ
-  のような場合は、バックスラッシュによる行継続を使用する必要がある。
-
+- Vim がコマンドを解析するのが難しい場合がある。特に、`:windo`、`:command`、
+  `:autocmd` といった他のコマンドの引数としてコマンドを使用する場合などがそう
+  である。そのような場合には、バックスラッシュによる行継続を使う必要がある。例:
+>
+	command! Foo call Bar('x', {
+	      \ 'key': 'value',
+	      \ })
+	autocmd BufWritePre * call Bar('x', {
+	      \ 'key': 'value',
+	      \ })
+<
 
 空白 ~
 	*vim9-white-space* *E1004* *E1068* *E1069* *E1074* *E1127* *E1202*
@@ -1125,7 +1135,7 @@ For ループ ~
 			*false* *true* *null* *null_blob* *null_channel*
 			*null_class* *null_dict* *null_function* *null_job*
 			*null_list* *null_object* *null_partial* *null_string*
-			*E1034* *E1395*
+			*E1034*
 Vim9 script では以下の定義済みの値が使用できる: >
 	true
 	false
@@ -1314,12 +1324,12 @@ https://github.com/lacygoill/wiki/blob/master/vim/vim9.md
 			{name} という名前で新しい関数を定義する。関数本体は、
 			対応する `:enddef` まで、次の行に記述する。
 							*E1073*
-			{name} はスクリプトローカルレベルでは再利用できない: >vim9
-
+			{name} はスクリプトローカルレベルでは再利用できない:
+>vim9
 			  vim9script
 			  def F_1073()
 			  enddef
-			  def F_1073() # E1073: Name already defined: <SNR>...
+			  def F_1073()	# E1073: Name already defined: <SNR...
 			  enddef
 <							*E1011*
 			{name} の長さは 100 バイト未満である必要がある。
@@ -1331,70 +1341,69 @@ https://github.com/lacygoill/wiki/blob/master/vim/vim9.md
 				{name} = {value}
 				{name}: {type} = {value}
 			最初の形式は必須の引数である。そのため、宣言では型を指
-			定する必要がある。例: >vim9
-
+			定する必要がある。例:
+>vim9
 			  vim9script
 			  def F_1077(x): void
-			      # E1077: Missing argument type for x
+			    # E1077: Missing argument type for x
 			  enddef
 <
 			2 番目の形式の場合、宣言で型が指定されていないため、
 			Vim は型を推測する。2 番目と 3 番目の形式の両方におい
 			て、呼び出し側で {value} が省略された場合はデフォルト
-			の {value} が適用される。例: >vim9
-
+			の {value} が適用される。例:
+>vim9
 			  vim9script
 			  def SecondForm(arg = "Hi"): void
-			      echo $'2. arg is a "{arg->typename()}" type ' ..
-			           $'and the default value of arg is "{arg}"'
+			    echo $'2. arg is a "{arg->typename()}" type ' ..
+				 $'and the default value of arg is "{arg}"'
 			  enddef
 			  SecondForm()
 			  def ThirdForm(arg2: number = 9): void
-			      echo $'3. default value of arg2 is {arg2}'
+			    echo $'3. default value of arg2 is {arg2}'
 			  enddef
 			  ThirdForm()
 <							*E1123*
 			`:def` 関数で呼び出される組み込み関数の引数は、引数間
-			にコンマが必要である: >vim9
-
+			にコンマが必要である:
+>vim9
 			  vim9script
 			  def F_1123(a: number, b: number): void
-			      echo max(a b)
-			      # E1123: Missing comma before argument: b)
+			    echo max(a b)  # E1123: Missing comma before ar...
 			  enddef
 			  F_1123(1, 2)
 <							*E1003* *E1027* *E1096*
 			`:return` で使用される値の型は {return-type} と一致す
 			る必要がある。{return-type} が省略されているか "void"
-			の場合、関数は何も返せない。例: >vim9
-
+			の場合、関数は何も返せない。例:
+>vim9
 			  vim9script
 			  def F_1003(): bool
-			      return  # E1003: Missing return value
+			    return  # E1003: Missing return value
 			  enddef
 			  F_1003()
 < >vim9
 			  vim9script
 			  def F_1027(): bool
-			      echo false  # E1027: Missing return statement
+			    echo false  # E1027: Missing return statement
 			  enddef
 			  F_1027()
 < >vim9
 			  vim9script
 			  def F_1096(): void
-			      return false  # E1096: Returning a value ...
+			    return false  # E1096: Returning a value in a f...
 			  enddef
 			  F_1096()
 <							*E1056* *E1059*
 			": {return-type}" が指定されている場合、{return-type}
 			は省略できない (ぶら下がりコロンが残る)。また、": " の
-			前に空白文字を置くこともできない。例: >vim
-
+			前に空白文字を置くこともできない。例:
+>vim
 			  def F_1056():
-                              # E1056: Expected a type:
+			  # E1056: Expected a type:
 			  enddef
 			  def F_1059() : bool
-                              # E1059: No white space allowed before colon:...
+			  # E1059: No white space allowed before colon: ... 
 			  enddef
 <
 			関数は、呼び出されたとき、または `:defcompile` または
@@ -1413,21 +1422,21 @@ https://github.com/lacygoill/wiki/blob/master/vim/vim9.md
 			では、スクリプトローカルな関数は削除または再定義できな
 			いため、! は使用できない。ただし、スクリプトを再読み込
 			みすることで削除できる。また、ネストされた関数では、再
-			定義に ! は使用できない。例: >vim
-
+			定義に ! は使用できない。例:
+>vim
 			  " 旧来の Vim script の :def! の例
 			  def! LegacyFunc()
-			      echo "def! is allowed in a legacy Vim script"
+			    echo "def! is allowed in a legacy Vim script"
 			  enddef
 			  call LegacyFunc()
 < >vim9
 			  vim9script
-			  def Func()
-			      def! InnerFunc()
-			          # E1117: Cannot use ! with nested :def
-			      enddef
+			  def F1117
+			    def! InnerFunc()
+			      # E1117: Cannot use ! with nested :def
+			    enddef
 			  enddef
-			  Func()
+			  F1117()
 < >vim9
 			  vim9script
 			  def! F_477(): void  # E477: No ! allowed
@@ -1445,10 +1454,11 @@ https://github.com/lacygoill/wiki/blob/master/vim/vim9.md
 			能性があるため、https://github.com/vim/vim/issues に報
 			告してほしい。
 
-					*:enddef* *E1057* *E1152* *E1173*
+							*:enddef*
+							*E1057* *E1152* *E1173*
 :enddef			`:def` で定義された関数の終了。単独の行に記述する必要
-			がある。例: >vim9
-
+			がある。例:
+>vim9
 			  vim9script
 			  def MyFunc()
 			  echo 'Do Something' | enddef
@@ -1461,8 +1471,8 @@ https://github.com/lacygoill/wiki/blob/master/vim/vim9.md
 < >vim9
 			  vim9script
 			  def F_1152()
-			      function X()
-			      enddef  # E1152: Mismatched enddef
+			    function X()
+			    enddef  # E1152: Mismatched enddef
 			  enddef
 <
 こちらの Wiki も役に立つかもしれない。これは Vim9 sript のアーリーアダプターに
