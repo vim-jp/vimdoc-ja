@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.2.  Last change: 2026 Aug 11
+*builtin.txt*	For Vim バージョン 9.2.  Last change: 2026 Sep 01
 
 
 		  VIM リファレンスマニュアル	by Bram Moolenaar
@@ -203,12 +203,12 @@ expand({expr} [, {nosuf} [, {list}]])
 expandcmd({string} [, {options}])
 				文字列	`:edit` のように{string}を展開
 extend({expr1}, {expr2} [, {expr3}])
-				リスト/辞書
+				リスト/辞書/Blob
 					{expr1}に{expr2}を要素として挿入
 extendnew({expr1}, {expr2} [, {expr3}])
-				リスト/辞書
-					|extend()| と同じだが新しいリスト/辞書
-					を作る
+				リスト/辞書/Blob
+					|extend()| と同じだが新しいリスト、辞
+					書または Blob を作る
 feedkeys({string} [, {mode}])	なし	先行入力バッファにキーシーケンスを追加
 filecopy({from}, {to})		数値	ファイル {from} を {to} へコピーできた
 					場合は |TRUE|
@@ -231,13 +231,15 @@ floor({expr})			浮動小数点数	{expr} を切り捨てる
 fmod({expr1}, {expr2})		浮動小数点数	{expr1} / {expr2} の余り
 fnameescape({fname})		文字列	{fname} 内の特殊文字をエスケープする
 fnamemodify({fname}, {mods})	文字列	ファイル名を変更
-foldclosed({lnum})		数値	{lnum}の折り畳みの最初の行(閉じている
+foldclosed({lnum} [, {winid}])	数値	{lnum}の折り畳みの最初の行(閉じている
 					なら)
-foldclosedend({lnum})		数値	{lnum}の折り畳みの最後の行(閉じている
+foldclosedend({lnum} [, {winid}]))
+				数値	{lnum}の折り畳みの最後の行(閉じている
 					なら)
-foldlevel({lnum})		数値	{lnum}の折り畳みレベル
+foldlevel({lnum} [, {winid}]))	数値	{lnum}の折り畳みレベル
 foldtext()			文字列	閉じた折り畳みに表示されている行
-foldtextresult({lnum})		文字列	{lnum}で閉じている折り畳みのテキスト
+foldtextresult({lnum} [, {winid}]))
+				文字列	{lnum}で閉じている折り畳みのテキスト
 foreach({expr1}, {expr2})	リスト/Tuple/辞書/Blob/文字列
 					{expr1} の各項目に対して {expr2} を呼
 					び出す
@@ -410,7 +412,7 @@ lispindent({lnum})		数値	{lnum}行目のLispインデント量を取得
 list2blob({list})		Blob	数値のリスト {list} をBlobに変換する
 list2str({list} [, {utf8}])	文字列	数値のリスト {list} を文字列に変換する
 list2tuple({list})		Tuple	項目の {list} を tuple に変換する
-listener_add({callback} [, {buf} [, {unbuffered}]])
+listener_add({callback} [, {buf} [, {options}]])
 				数値	変更を監視するためのコールバックを追加
 listener_flush([{buf}])		なし	リスナーコールバックを呼び出す
 listener_remove(真偽値)		数値	リスナーコールバックを削除する
@@ -684,8 +686,8 @@ simplify({filename})		文字列	ファイル名を可能なかぎり簡略化す
 sin({expr})			浮動小数点数	{expr} の正弦(サイン)
 sinh({expr})			浮動小数点数	{expr}のハイパボリックサイン
 slice({expr}, {start} [, {end}])
-				文字列/リストs/、Blob
-					文字列、リスト、Blob のスライス
+				文字列/リスト/Blob/Tuple
+					文字列、リスト、Blob、Tuple のスライス
 sort({list} [, {how} [, {dict}]])
 				リスト	{list} を {how} で比較してソートする
 sound_clear()			なし	すべてのサウンドの再生を停止する
@@ -2085,10 +2087,20 @@ complete_info([{what}])					*complete_info()*
 		挿入モードの補完に関する情報を辞書 |Dictionary| で返す。
 		|ins-completion| を参照。
 		要素は以下の通り:
+		   auto		'autocomplete' のように Vim が自律的に補完を開
+				始した場合は |TRUE| となり、|i_CTRL-X_CTRL-O|
+				のようにキー操作によって補完が要求された場合は
+				|FALSE| となる。|complete-functions| で定義さ
+				れた関数は、この値を読み取ることで両者を区別で
+				きる。{what} で要求された場合にのみ返される。
 		   completed	現在選択されているインデックス項目のエントリを
 				含む辞書を返す。
-		   items 	全補完マッチのリスト。各要素は "word", "abbr",
-				"menu", "kind", "info", "user_data" を含む辞書。
+		   items	すべての補完候補のリスト。各要素は、
+				"word"、"abbr"、"menu"、"kind"、"info"、
+				"abbr_hlgroup"、"kind_hlgroup"、"user_data" と
+				いうエントリを含む辞書である。ハイライトグルー
+				プのエントリには、その項目が追加された際に指定
+				された名前、または空文字列が格納される。
 				|complete-items| を参照。
 		   matches	"items" と同じだが、現在のクエリにマッチするア
 				イテムのみを返す。"matches" と "items" の両方
@@ -2255,7 +2267,7 @@ cosh({expr})						*cosh()*
 			:echo cosh(0.5)
 <			1.127626 >
 			:echo cosh(-0.5)
-<			-1.127626
+<			1.127626
 
 		|method| としても使用できる: >
 			Compute()->cosh()
@@ -3120,24 +3132,26 @@ expandcmd({string} [, {options}])			*expandcmd()*
 
 
 extend({expr1}, {expr2} [, {expr3}])			*extend()*
-		{expr1}と{expr2}は両方ともリスト|List|であるか、両方とも辞書
-		|Dictionaries|でなければならない。
+		{expr1} と {expr2} は、いずれも |List|、|Dictionary| または
+		|Blob| である必要がある。
 
-		両方ともリストであるなら、{expr2}を{expr1}に付け加える。
-		{expr3}が指定された場合は、{expr1}の第{expr3}番目の要素の前に
-		{expr2}の要素を挿入する。{expr3}が0のときは最初の要素の前に挿
-		入する。{expr3}がlen({expr1})に等しいときは末尾に{expr2}が付け
-		加えられる。
+		両方とも |Lists| または |Blobs|である場合、{expr2} を {expr1}
+		に付け加える。{expr3} が指定された場合は、{expr1} の第 {expr3}
+		番目の要素の前に {expr2} の要素/バイトを挿入する。{expr3} が 0
+		のときは最初の要素の前に挿入する。{expr3} が len({expr1}) に等
+		しいときは末尾に {expr2} が付け加えられる。
 		例: >
 			:echo sort(extend(mylist, [7, 5]))
 			:call extend(mylist, [2, 3], 1)
-<		{expr1} が {expr2} と同じリストである場合、コピーされる要素の
-		数はリストの元の長さと同じである。
-		例として {expr3} が 1 のとき、最初の要素の N 個の新しいコピー
-		が挿入される(ここで N はリストの元の長さ)。
-		リストに1個の要素を加えるには|add()|を使う。2つのリストを連結
-		して新しいリストを作るには演算子+を使う: >
+<		{expr1} が {expr2} と同じリストまたは Blob である場合、コピー
+		される項目の数はリストまたは Blob の元の長さと同じである。
+		例として {expr3} が 1 のとき、最初の項目の N 個の新しいコピー
+		が挿入される (ここで N はリストの元の長さ)。
+		リストまたは Blob に 1 個の要素を加えるには |add()| を使う。2
+		つのリストまたは Blob を連結して新しいものを作るには演算子 +
+		を使う: >
 			:let newlist = [1, 2, 3] + [4, 5]
+			:let newblob = 0z1122 + 0z3344
 <
 		両方とも辞書である場合:
 		{expr2}の全要素を{expr1}に加える。
@@ -3150,7 +3164,7 @@ extend({expr1}, {expr2} [, {expr3}])			*extend()*
 
 		{expr2}が空でないならば{expr1}が変更される。必要ならば最初に
 		{expr1}のコピーを作るか、|extendnew()| を使用して新しいリスト/
-		辞書を返すこと。
+		辞書/Blob を返すこと。
 		{expr2}は変更されない。
 		{expr1} がロックされていて、かつ {expr2} が空でない場合は操作
 		は失敗する。
@@ -3159,17 +3173,17 @@ extend({expr1}, {expr2} [, {expr3}])			*extend()*
 		|method| としても使用できる: >
 			mylist->extend(otherlist)
 <
-		戻り値の型: list<{type}> または dict<{type}>。{expr1} および
-		{expr2} による。エラーの場合: |Number|
+		戻り値の型: list<{type}>、dict<{type}> または blob。{expr1} お
+		よび {expr2} による。エラーの場合: |Number|
 
 
 extendnew({expr1}, {expr2} [, {expr3}])			*extendnew()*
 		|extend()| と同様だが、{expr1} へ要素を追加する代わりに、新し
-		いリストまたは辞書が作成されて返される。{expr1} は変更されな
-		い。
+		いリスト、辞書または Blob が作成されて返される。{expr1} は変更
+		されない。
 
-		戻り値の型: list<{type}> または dict<{type}>。{expr1} および
-		{expr2} による。エラーの場合: |Number|
+		戻り値の型: list<{type}>、dict<{type}> または blob。{expr1} お
+		よび {expr2} による。エラーの場合: |Number|
 
 
 feedkeys({string} [, {mode}])				*feedkeys()*
@@ -3530,33 +3544,43 @@ fnamemodify({fname}, {mods})				*fnamemodify()*
 		戻り値の型: |String|
 
 
-foldclosed({lnum})					*foldclosed()*
+foldclosed({lnum} [, {winid}])				*foldclosed()*
 		結果は数値。{lnum}行目が閉じた折り畳みの中にあるなら、その折り
 		畳みを構成する最初の行の行番号を返す。{lnum}行目が閉じた折り畳
 		みに入っていないなら-1を返す。
 		{lnum} は |getline()| と同様に扱われる。例えば "." は現在の行、
 		"'m" は m でマークした行、など。
 
+		オプションの {winid} 引数を指定すると、カレントウィンドウでは
+		なく、そのウィンドウに関する値が取得される。{winid} が無効な場
+		合は -2 を返す。
+
 		|method| としても使用できる: >
 			GetLnum()->foldclosed()
+			GetLnum()->foldclosed(winid)
 <
 		戻り値の型: |Number|
 
 
-foldclosedend({lnum})					*foldclosedend()*
+foldclosedend({lnum} [, {winid}])			*foldclosedend()*
 		結果は数値。{lnum}行目が閉じた折り畳みの中にあるなら、その折り
 		畳みを構成する最後の行の行番号を返す。{lnum}行目が閉じた折り畳
 		みに入っていないなら-1を返す。
 		{lnum} は |getline()| と同様に扱われる。例えば "." は現在の行、
 		"'m" は m でマークした行、など。
 
+		オプションの {winid} 引数を指定すると、カレントウィンドウでは
+		なく、そのウィンドウに関する値が取得される。{winid} が無効な場
+		合は -2 を返す。
+
 		|method| としても使用できる: >
 			GetLnum()->foldclosedend()
+			GetLnum()->foldclosedend(winid)
 <
 		戻り値の型: |Number|
 
 
-foldlevel({lnum})					*foldlevel()*
+foldlevel({lnum} [, {winid}])				*foldlevel()*
 		カレントバッファの{lnum}行目の折り畳みレベルを表す数値を返す。
 		折り畳みがネストしているときは一番下のレベルを返す。{lnum}行目
 		に折り畳みがまったくないときは0を返す。折り畳みが開いているか
@@ -3567,8 +3591,13 @@ foldlevel({lnum})					*foldlevel()*
 		{lnum} は |getline()| と同様に扱われる。例えば "." は現在の行、
 		"'m" は m でマークした行、など。
 
+		オプションの {winid} 引数を指定すると、カレントウィンドウでは
+		なく、そのウィンドウに関する値が取得される。{winid} が無効な場
+		合は -2 を返す。
+
 		|method| としても使用できる: >
 			GetLnum()->foldlevel()
+			GetLnum()->foldlevel(winid)
 <
 		戻り値の型: |Number|
 
@@ -3593,7 +3622,7 @@ foldtext()						*foldtext()*
 		{|+folding|機能付きでコンパイルされたときのみ利用可能}
 
 
-foldtextresult({lnum})					*foldtextresult()*
+foldtextresult({lnum} [, {winid}])			*foldtextresult()*
 		{lnum}行目の閉じた折り畳みに表示される文字列を返す。'foldtext'
 		を適切なコンテキストの中で評価する。{lnum}行目に閉じた折り畳み
 		がないときは空文字列を返す。
@@ -3602,9 +3631,13 @@ foldtextresult({lnum})					*foldtextresult()*
 		折り畳まれたテキストをHTMLなどにエクスポートするときに有用。
 		{|+folding|機能付きでコンパイルされたときのみ利用可能}
 
+		オプションの {winid} 引数を指定すると、カレントウィンドウでは
+		なく、そのウィンドウについての値が取得される。{winid} が無効な
+		場合、空文字列が返される。
 
 		|method| としても使用できる: >
 			GetLnum()->foldtextresult()
+			GetLnum()->foldtextresult(winid)
 <
 		戻り値の型: |String|
 
@@ -6697,7 +6730,7 @@ list2tuple({list})					*list2tuple()*
 <
 		戻り値の型: tuple<{type}> (指定された |List| による)
 
-listener_add({callback} [, {buf} [, {unbuffered}]])	*listener_add()*
+listener_add({callback} [, {buf} [, {options}]])	*listener_add()*
 		バッファ {buf} に変更が加えられたときに呼び出されるコールバッ
 		ク関数を追加する。
 		{buf} はバッファ名またはバッファ番号を参照する。許容値について
@@ -6732,6 +6765,9 @@ listener_add({callback} [, {buf} [, {unbuffered}]])	*listener_add()*
 				合、または行全体が影響を受けた場合は 1。これは
 				バイトインデックスである。最初の文字の値は 1
 				である。
+		    text	少なくとも 1 つのリスナーに対して "text" オプ
+				ションが設定されている場合にのみ存在する (下記
+				参照)。
 		行が挿入されたとき (挿入モードで CR を入力するなどして行が分割
 		された場合は除く) の値は次のとおり:
 		    lnum	上に新しい行が追加される行番号
@@ -6749,28 +6785,72 @@ listener_add({callback} [, {buf} [, {unbuffered}]])	*listener_add()*
 		    added	0
 		    col		変更した最初の桁または 1
 
-		{unbuffered} が |FALSE| であるか指定されていない場合は、
-		{callback} が呼び出される:
+		{options} は、以下のオプションの項目を含む辞書である:
+		    unbuffered	変更のまとまりごとではなく、変更のたびに
+				{callback} を呼び出す
+		    text	生成されたテキストを、"changes" の各項目の文字
+				列の |List| として含める
+		後方互換性のため、{options} に |Boolean| を指定することも可能
+		である。その場合、その値は "unbuffered" の設定として使用され
+		る。
+
+		"unbuffered" が |FALSE|、または指定されていない場合、{callback}
+		が呼び出される:
 
 		1. 画面が更新される直前。
 		2. |listener_flush()| が呼び出された時。
 		3. 行数を変更する変更が行われ、その結果、変更リスト内の行番号
 		   が無効になる場合。
+		4. "text" が設定され、大量のテキストが記録されている場合。
 
 		エントリは変更が行われた順序で表示されるため、最新の変更は最後
 		に表示される。
 
+		理由 3 および 4 により、別のコマンドの実行中に {callback} が実
+		行され、その実行前に加えられた変更が引き継がれる。{callback}
+		が受け取る内容が、現在実行中のコマンドによって生じたものだと決
+		めつけないこと。
+
 		上記のコールバックをトリガーする 3 番目の理由により、コールバッ
 		クに渡される行番号の有効性は保証されない。特に、終了値は
 		line('$') + 1 よりも大きくなる可能性がある。これが問題となる場
-		合は、{unbuffered} を |TRUE| に設定すること。
+		合は、"unbuffered" を設定すること。
 
-		{unbuffered} が |TRUE| の場合、変更ごとに {callback} が呼び出
+		"unbuffered" が |TRUE| の場合、変更ごとに {callback} が呼び出
 		される。変更リストは単一の辞書のみを保持し、辞書内の "start"、
 		"end"、"added" の値は対応するコールバック引数と同じである。行
 		番号はコールバックが呼び出された時点では有効であるが、その後の
 		変更によって無効になる可能性がある。したがって、後で使用するた
 		めにコピーを保持してもうまく機能しない可能性がある。
+
+							*listener-text*
+		"text" が設定されると、"changes" 内の各項目に "text" エントリ
+		が追加される。これには、変更直後の時点で変更領域を占める行のリ
+		スト ("lnum" から "end" の直前までの行に "added" を加えたもの)
+		が格納される。変更が行の削除のみであった場合、このリストは空に
+		なる。"lnum"、"end"、"added" と合わせることで、その項目は変更
+		内容を完全に記述するものとなる。すなわち、「"lnum" から "end"
+		の直前までの行を "text" で置き換える」という内容である。
+
+		テキストは変更が記録された時点でコピーされるため、その後の変更
+		による影響を受けない。これがないと、バッファリングされる
+		{callback} は変更のテキストを確実に取得できない。例えば、同じ
+		行に対して 2 つの変更が加えられた場合、行数は変わらないためそ
+		れらはまとめて報告されるが、その時点では |getbufline()| は 2
+		回目の変更の結果しか返せないからである。"unbuffered" を設定す
+		ればこの問題は回避できるが、変更のたびに {callback} が呼び出さ
+		れることになり、多数の行を変更するコマンドでは処理コストが高く
+		なってしまう。
+
+		"text" を設定すると、変更のたびに変更された行のコピーが作成さ
+		れる。一連の変更によって消費されるメモリ量を一定の範囲に抑える
+		ため、大量のテキストが記録された際にも {callback} が呼び出され
+		る。
+
+		記録された変更はバッファごとに保持され、そのバッファのすべての
+		リスナー間で共有される。したがって、そのバッファのリスナーのう
+		ち少なくとも 1 つが "text" を設定すると、そのバッファのすべて
+		の {callback} が "text" エントリを受け取ることになる。
 
 		{callback} はテキストをロックした状態で呼び出される。
 		|textlock| を参照。バッファを変更する必要がある場合は、後でこ
@@ -8574,7 +8654,7 @@ readdir({directory} [, {expr} [, {dict}]])		*readdir()*
 		{expr}が評価されるたびに "v:val" がエントリ名に設定される。
 		{expr}が関数の場合、名前は引数として渡される。例えば、".txt"
 		で終わるファイルのリストを取得するには、次のようにする: >
-		  readdir(dirname, {n -> n =~ '.txt$'})
+		  readdir(dirname, {n -> n =~ '\.txt$'})
 <		隠しファイルとバックアップファイルをスキップするには: >
 		  readdir(dirname, {n -> n !~ '^\.\|\~$'})
 <								*E857*
@@ -9670,9 +9750,13 @@ server2client({clientid}, {string})			*server2client()*
 
 
 serverlist([{dict}])					*serverlist()*
-		利用可能なサーバー名のリストを返す。1行に1つの形式。
-		サーバーが1つもないとき、または情報を取得できないときは空文字
-		列を返す。
+		利用可能なサーバー名のリストを、1 行に 1 つずつ返す。
+		サーバーが存在しない場合や情報を取得できない場合は、空の文字列
+		が返される。ただし、後述の "list" オプションが使用されている場
+		合は、空の |List| が返される。
+
+		サーバーに接続できない場合、エラーは発生せず、結果は空の文字列
+		または |List| となる。
 		{|+clientserver|機能付きでコンパイルしたときのみ利用可能}
 
 		{dict} が指定された場合、それは以下のオプションをサポートする
@@ -9724,10 +9808,13 @@ setbufline({buf}, {lnum}, {text})			*setbufline()*
 setbufvar({buf}, {varname}, {val})			*setbufvar()*
 		バッファ{buf}のオプションまたはローカル変数{varname}に{val}を
 		代入する。
-		グローバル・ウィンドウローカルオプションに対しても動作するが、
-		グローバル・ウィンドウローカル変数に対しては動作しない。
-		ウィンドウローカルオプションの場合、グローバルな値は変更されな
-		い。
+		これはグローバルオプションやウィンドウローカルオプションに対し
+		ても機能するが、グローバル変数やウィンドウローカル変数には機能
+		しない。ウィンドウローカルオプションは、カレントタブページ内で
+		{buf} を表示しているウィンドウに対して設定され、グローバルな値
+		は変更されない。カレントタブページ内のどのウィンドウも {buf}
+		を表示していない場合、オプションは設定されず、エラーも発生しな
+		い。その場合は |setwinvar()| や |win_execute()| を使用する。
 		{buf}の解釈の仕方については|bufname()|を参照。
 		引数 {varname} は文字列。
 		Note 変数名には "b:" をつけてはならない。
@@ -10442,7 +10529,7 @@ slice({expr}, {start} [, {end}])			*slice()*
 		|method| としても使用できる: >
 			GetList()->slice(offset)
 <
-		戻り値の型: list<{type}> または tuple<{type}>
+		戻り値の型: |String|、list<{type}>、blob または tuple<{type}>
 
 
 sort({list} [, {how} [, {dict}]])			*sort()* *E702*
