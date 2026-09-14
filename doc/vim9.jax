@@ -1479,64 +1479,104 @@ https://github.com/lacygoill/wiki/blob/master/vim/vim9.md
 よって書かれたものである:
 https://github.com/lacygoill/wiki/blob/master/vim/vim9.md
 
-`:def` 関数が定義されているスクリプトが Vim9 script の場合、スクリプトローカル
-変数は "s:" プリフックスを使用せずにアクセスする必要がある。これらの変数は関数
-がコンパイルされる前に定義する必要があり、エラーを回避する方法はない (例えば、
-|exists()| を使用して未宣言の変数を条件付きでスキップするなど)。例: >vim9
+							*vim9-s:var*
+スクリプトローカル変数を参照する際、"s:" プリフィックスの使用が必須か、任意か、
+あるいは |E1268| エラーになるかは、コンテキストによって決まる。コンテキストを
+左右する要因は、スクリプトのバージョンが Vim9 script か旧来の Vim script か、
+そして参照箇所がスクリプトローカルなレベルか、`:def` 関数内か、それとも
+`:function` 内か、という点である。そのルールは以下の 3 つである。
 
+ 1. `:function` 内では、常に "s:" が必須となる。これはスクリプトの種類や関数の
+    親コンテキスト (別の関数内にネストされている場合など) にかかわらず同様であ
+    る。同様に、旧来の Vim script のスクリプトローカルスコープにおいても、"s:"
+    は必須である。
+ 2. Vim9 script では、`:def` 関数内で "s:" を使用すると、その関数の親コンテキ
+    ストにかかわらず、常に |E1268| エラーが発生する。同様に、Vim9 script のス
+    クリプトローカルスコープで使用した場合も、E1268 エラーとなる。
+ 3. 旧来の Vim script では、`:def` 関数内の "s:" は、その関数の親コンテキスト
+    にかかわらず省略可能である。
+
+以下の 3 つのスクリプトは、これらのルールを実証するものである:
+>vim
+	" 1. :function 内では、"s:" は常に必須である。また、旧来の Vim script
+	" のスクリプトローカルスコープにおいても必須となる
+	let s:MyVar = v:true
+	echo s:MyVar		| " v:true
+	" echo MyVar		  (Would give E121: Undefined variable: MyVar)
+	vim9cmd echo MyVar	  # true
+	function! MyFunc()
+	  echo s:MyVar		| " v:true
+	  " echo MyVar		  (Would give E121: Undefined variable: MyVar)
+	  vim9cmd echo MyVar	  # true
+	endfunction
+	call MyFunc()
+< >vim9
 	vim9script
-	def MyVim9def()
-	    echo unus       # 1 を表示する
-	    # echo s:unus   # これは E1268 (Cannot use s: in Vim9) になる
-	    if exists('duo')
-	        # echo duo  # これは E1001 (Variable not found: duo) になる
-	    endif
+	# 2. Vim9 script では、:def 関数内またはスクリプトローカルスコープで
+	# "s:" を使用すると、E1268 エラーが発生する
+	var MyVar: bool = true
+	echo MyVar		  # true
+	# echo s:MyVar		  (Would give E1268: Cannot use s: in Vim9...)
+	legacy echo s:MyVar	| # v:true
+	def MyFunc()
+	  echo MyVar		# true
+	  # echo s:MyVar	  (Would give E1268: Cannot use s: in Vim9...)
+	  legacy echo s:MyVar	| # v:true
 	enddef
-	var unus: number = 1
-	MyVim9def()         # MyVim9def がコンパイルされる ("duo" はまだ存在し
-			    # ていない)
-	var duo: number = 2
+	MyFunc()
+< >vim
+	" 3. 旧来の Vim script では、:def 関数内の "s:" は省略可能である
+	let s:MyVar = v:true
+	function! Outer()
+	  def! MyFunc()
+	    echo MyVar		# true
+	    echo s:MyVar	# true
+	  enddef
+	  call MyFunc()
+	endfunction
+	call Outer()
 <
-`:def` 関数が定義されているスクリプトが旧来の Vim script である場合、スクリプ
-トローカル変数は "s:" プリフィックスの有無にかかわらずアクセスできる。ただし、
-"s:" を使用すると変数の解決が実行時に遅延されるため、まだ存在しない可能性のあ
-る変数によるコンパイルエラーを回避できる。次の例で説明する: >vim
-
-	" 旧来の Vim script
-	def! MyLegacyDef(): void
-	    echo [unus, s:unus]   # [1, 1] を表示する
-	    # (コメントアウトされていない場合) 'echo s:duo' の最初のソースは
-	    # E121 となり、コンパイルエラーが発生する。後続のソースは 2 を表示
-	    # する
-	    # echo s:duo
-	    if exists("s:duo")
-	        # 最初のソース: 表示をスキップ; 後続のソース: 2 を表示
-	        echo s:duo
-	    endif
-	    if exists("duo")
-		# (コメントアウトされていない場合) 'echo duo' の最初のソースは
-		# E1001 で、コンパイルエラーが発生する。後続のソースは 2 を表
-		# 示する
-	        # echo duo
-	    endif
+実行時に評価される |exists()| は、未宣言の変数をスキップするような条件付きの使
+用には適していないが、コンパイル時に評価される |exists_compiled()| であれば使
+用可能である。例:
+>vim9
+	vim9script
+	def MyDef()
+	  if exists_compiled('MyVar')	# コンパイル時に評価される
+	    echo $"MyVar = {MyVar}"	# MyVar = 1
+	  endif
+	  if exists_compiled('MyVar2')	# コンパイル時に評価される
+	    echo $"MyVar2 = {MyVar2}"	# not reached
+	  else
+	    echo "MyVar2 does not exist at compile time"
+	  endif
+	  if exists('MyVar')		# 実行時に評価される
+	    echo $"MyVar = {MyVar}"	# MyVar = 1
+	  endif
+	  if exists('MyVar2')		# 実行時に評価される
+	    # 以下の場合、E1001: Variable not found: MyVar2 が発生する
+	     echo MyVar2
+	  else
+	    echo "MyVar2 does not exist at runtime"
+	  endif
 	enddef
-	let s:unus = 1
-	call MyLegacyDef()  " MyLegacyDef() を呼び出し、まだコンパイルされてい
-			    " ない場合はコンパイルする
-	let s:duo = 2
-<							*E1269*
+	var MyVar: number = 1	# MyDef() がコンパイルされる前に宣言される
+	MyDef()
+	var MyVar2: number = 2	# MyDef() がコンパイルされた後に宣言される
+<
+							*E1269*
 Vim9 script 内のスクリプトローカル変数は、スクリプトレベルで宣言する必要があ
 る。`:def` 関数内では作成できず、また "s:" プリフィックスを持つ旧来の関数内で
-も宣言できない。例: >vim9
-
+も宣言できない。例:
+>vim9
 	vim9script
 	function F_1269()
-	    let s:i_wish = v:true
+	  let s:i_wish = v:true
 	endfunction
 	F_1269()
 	# E1269: Cannot create a Vim9 script variable in a function: s:i_wish
 <
-						*:defc* *:defcompile*
+							*:defc* *:defcompile*
 :defc[ompile]		現在のスクリプトで定義されていてまだコンパイルされてい
 			ない関数とクラス (|class-compile|) をコンパイルする。
 			これにより、コンパイル中に見つかったエラーが報告され
@@ -1545,13 +1585,13 @@ Vim9 script 内のスクリプトローカル変数は、スクリプトレベ�
 			例: (`enddef` までの) 3 行がソースコードに読み込まれる
 			と、Vim9 の `:def` 関数がコンパイルされないためエラー
 			は発生しない。しかし、4 行すべてがソースコードに読み込
-			まれると、コンパイルは失敗する: >vim9
-
+			まれると、コンパイルは失敗する:
+>vim9
 			  vim9script
 			  def F_1027(): string
 			  enddef
 			  defcompile F_1027  # E1027: Missing return statement
-
+<
 :defc[ompile] MyClass	クラス内のすべてのメソッドをコンパイルする。(例につい
 			ては |:disassemble| を参照。)
 
@@ -1567,7 +1607,7 @@ Vim9 script 内のスクリプトローカル変数は、スクリプトレベ�
 			{func} を "ClassName" にすることで、クラス内のすべての
 			関数とメソッドをコンパイルすることもできる。
 
-						*:disa* *:disassemble*
+							*:disa* *:disassemble*
 :disa[ssemble] {func}	{func} に対して生成された命令を表示する。
 			これはデバッグとテスト用である。
 			{func} が見つからない場合、エラー *E1061* が発生する。
@@ -1576,22 +1616,22 @@ Vim9 script 内のスクリプトローカル変数は、スクリプトレベ�
 			次の例は、|class| で `:defcompile` を使用し、
 			"ClassName.functionName" で `:disassemble` を使用する
 			方法を示している (カーソルはビジュアルソースのスクリプ
-			トの最終行にある): >vim9
-
+			トの最終行にある):
+>vim9
 			  vim9script
 			  class Line
-			      var lnum: number
-			      def new(this.lnum)
-			      enddef
-			      def SetLnum()
-			          cursor(this.lnum, 52)
-			      enddef
+			    var lnum: number
+			    def new(this.lnum)
+			    enddef
+			    def SetLnum()
+			      cursor(this.lnum, 52)
+			    enddef
 			  endclass
 			  defcompile Line
 			  disassemble Line.SetLnum
 			  var vlast: Line = Line.new(line("'>"))
-			  vlast.SetLnum()  # カーソル位置はココにある-->_
-
+			  vlast.SetLnum()	# カーソル位置はココにある->_
+<
 :disa[ssemble] profile {func}
 			`:disassemble` と似ているが、プロファイリングに使用さ
 			れる命令が含まれている。
@@ -1600,105 +1640,104 @@ Vim9 script 内のスクリプトローカル変数は、スクリプトレベ�
 			`:disassemble` と似ているが、デバッグに使用される命令
 			が含まれている。
 
-  Note: {func} のコマンドライン補完では、スクリプトローカル関数が <SNR> ととも
-	に表示される。|wildmenumode()| などのオプションによっては、"s:"、"<S"、
-	または関数名を直接入力することで補完が機能する場合がある。(例えば
-	|-u| NONE で起動した Vim では、":disa s:" と |c_CTRL-E| はスクリプト
-	ローカル関数名を一覧表示する。)
+	Note: {func} のコマンドライン補完では、スクリプトローカル関数が <SNR>
+	とともに表示される。|wildmenumode()| などのオプションによっては、"s:"、
+	"<S"、または関数名を直接入力することで補完が機能する場合がある。(例え
+	ば |-u| NONE で起動した Vim では、":disa s:" と |c_CTRL-E| はスクリプ
+	トローカル関数名を一覧表示する。)
 
 
 制限事項 ~
 
 `:def` 関数のローカル変数は文字列評価では参照できない。
 以下の例は、スクリプトローカル定数 "SCRIPT_LOCAL" は参照できるが、関数ローカル
-定数 "DEF_LOCAL" は参照できないことを示している: >vim9
-
+定数 "DEF_LOCAL" は参照できないことを示している:
+>vim9
 	vim9script
 	const SCRIPT_LOCAL = ['A', 'script-local', 'list']
 	def MapList(scope: string): list<string>
-	    const DEF_LOCAL: list<string> = ['A', 'def-local', 'list']
-	    if scope == 'script local'
-	        return [1]->map('SCRIPT_LOCAL[v:val]')
-	    else
-	        return [1]->map('DEF_LOCAL[v:val]')
-	    endif
+	  const DEF_LOCAL: list<string> = ['A', 'def-local', 'list']
+	  if scope == 'script-local'
+	    return [1]->map('SCRIPT_LOCAL[v:val]')
+	  else
+	    return [1]->map('DEF_LOCAL[v:val]')
+	  endif
 	enddef
-	echo 'script local'->MapList()	# ['script-local'] を表示する
-	echo 'def local'->MapList()	# E121: Undefined variable: DEF_LOCAL
+	echo 'script-local'->MapList()	# ['script-local']
+	echo 'def-local'->MapList()	# E121: Undefined variable: DEF_LOCAL
 <
 map 引数は文字列式であり、関数スコープ外で評価される。Vim9 script では、代わり
-にラムダ式を使用する: >vim9
-
+にラムダ式を使用する:
+>vim9
 	vim9script
 	def MapList(): list<string>
-	    const DEF_LOCAL: list<string> = ['A', 'def-local', 'list']
-	    return [1]->map((_, v) => DEF_LOCAL[v])
+	  const DEF_LOCAL: list<string> = ['A', 'def-local', 'list']
+	  return [1]->map((_, v): string => DEF_LOCAL[v])
 	enddef
-	echo MapList()			# ['def-local'] を表示する
+	echo MapList()			# ['def-local']
 <
 `:edit` などのコンパイルされないコマンドの場合、|backtick-expansion| を使用で
-き、ローカルスコープを使用できる。例: >vim9
-
+き、ローカルスコープを使用できる。例:
+>vim9
 	vim9script
 	def EditNewBlah()
-	    var fname: string = 'blah.txt'
-	    split
-	    edit `=fname`
+	  var fname: string = 'blah.txt'
+	  split
+	  edit `=fname`
 	enddef
 	EditNewBlah()  # 新しい分割がバッファ 'blah.txt' として作成される
 <
+							*vim9-closure*
 ループ内で定義されたクロージャは、変数の宣言場所に応じて、変数を共有するか、そ
 れぞれ独自のコピーを持つかを選択できる。ループ外で変数を宣言した場合、すべての
 クロージャは同じ共有変数を参照する。
-以下の例は、"outloop" 変数が 1 つだけ存在する場合の結果を示している: >vim9
-
+以下の例は、"outloop" 変数が 1 つだけ存在する場合の結果を示している:
+>vim9
 	vim9script
 	var flist: list<func>
 	def ClosureEg(n: number): void
-	    var outloop: number = 0  # outloop がループの外で宣言されている!
-	    for i in range(n)
-	        outloop = i
-		flist[i] = (): number => outloop  # クロージャは同じ変数を参照
-						  # する
-	    endfor
-	    echo range(n)->map((i, _) => flist[i]())
+	  var outloop: number = 0  # outloop がループの外で宣言されている!
+	  for i in range(n)
+	    outloop = i
+	    flist[i] = (): number => outloop  # クロージャは同じ変数を参照する
+	  endfor
+	  echo range(n)->map((i, _): number => flist[i]())
 	enddef
-	ClosureEg(4)  # [3, 3, 3, 3] を表示する
+	ClosureEg(4)	# [3, 3, 3, 3]
 <
 リストに置かれたすべてのクロージャは同じインスタンスを参照し、最終的には 3 に
 なる。
 
 ただし、変数がループ内で宣言されると、以下の例に示すように各クロージャは独自の
-コピーを取得する: >vim9
-
+コピーを取得する:
+>vim9
 	vim9script
 	var flist: list<func>
 	def ClosureEg(n: number): void
-	    for i in range(n)
-	        var inloop: number = i  # inloopはループ内で宣言されている
-		flist[i] = (): number => inloop  # クロージャは各インループを
-						 # 参照する
-	    endfor
-	    echo range(n)->map((i, _) => flist[i]())
+	  for i in range(n)
+	    var inloop: number = i  # inloop はループ内で宣言されている
+	    flist[i] = (): number => inloop  # クロージャは各 inloop を参照する
+	  endfor
+	  echo range(n)->map((i, _): number => flist[i]())
 	enddef
-	ClosureEg(4)  # [0, 1, 2, 3] を表示する
-
+	ClosureEg(4)	# [0, 1, 2, 3]
+<
 各クロージャに個別のコンテキストを設定する別の方法は、関数を呼び出してそれを定
-義することである: >vim9
-
+義することである:
+>vim9
 	vim9script
 	def GetClosure(i: number): func
-	    var infunc: number = i
-	    return (): number => infunc
+	  var infunc: number = i
+	  return (): number => infunc
 	enddef
 	var flist: list<func>
 	def ClosureEg(n: number): void
-	    for i in range(n)
-	        flist[i] = GetClosure(i)
-	    endfor
-	    echo range(n)->map((i, _) => flist[i]())
+	  for i in range(n)
+	    flist[i] = GetClosure(i)
+	  endfor
+	  echo range(n)->map((i, _): number => flist[i]())
 	enddef
-	ClosureEg(4)  # [0, 1, 2, 3] を表示する
+	ClosureEg(4)	# [0, 1, 2, 3]
 <							*E1271*
 クロージャは、それが定義されているコンテキストでコンパイルされなければならな
 い。そうすることで、そのコンテキスト内の変数を参照できるようになる。これはほと
@@ -1709,42 +1748,41 @@ map 引数は文字列式であり、関数スコープ外で評価される。V
 ローカル変数をキャプチャする Vim9 のクロージャを文字列に変換して実行した場合な
 ど、状況によってはエラーが発生する。これは、文字列実行コンテキストが、クロー
 ジャが定義された元のコンテキストからローカル変数にアクセスできないために発生す
-る。例: >vim9
-
+る。例:
+>vim9
 	vim9script
 	def F_1248(): void
-	    var n: number
-	    var F: func = () => {
-	        n += 1
-	    }
-	    try
-	        execute printf("call %s()", F)
-	    catch
-	        echo v:exception
-	    endtry
+	  var n: number
+	  var F: func = () => {
+	    n += 1
+	  }
+	  try
+	    execute printf("call %s()", F)
+	  catch
+	    echo v:exception
+	  endtry
 	enddef
 	F_1248()  # Vim(call):E1248: Closure called from invalid context
-
+<
 Vim9 script では、ループ変数はループが終了した後は無効になる。
 例えば、このタイマーは 0 から 2 までを別々の行にエコーする。しかし、`:endfor`
-の後に変数 "n" を使用すると、|E121| エラーが発生する: >vim9
-
+の後に変数 "n" を使用すると、|E121| エラーが発生する:
+>vim9
 	vim9script
 	for n in range(3)
-	    var nr: number = n
-	    timer_start(1000 * n, (_) => {
-	        echowindow nr
-	    })
+	  var nr: number = n
+	  timer_start(1000 * n, (_) => {
+	    echowindow nr
+	  })
 	endfor
 	try
-	    echowindow n
+	  echowindow n
 	catch
-	    echo v:exception
+	  echo v:exception
 	endtry
 <
-	  Note: タイマーでは `:echowindow` を使用すると便利である。メッセージ
-		がポップアップに表示されるため、トリガー時にユーザーの操作を妨
-		げない。
+	Note: タイマーでは `:echowindow` を使用すると便利である。メッセージが
+	ポップアップに表示されるため、トリガー時にユーザーの操作を妨げない。
 
 
 :function を :def に変換する~
@@ -1766,6 +1804,8 @@ Vim9 script では、ループ変数はループが終了した後は無効に�
 - 不要な場所から行継続のバックスラッシュを削除する。
 - |g:|、|b:|、|w:|、|t:|、または |l:| 変数に値を代入するための `let` を削除す
   る。
+- グローバル (|g:|)、バッファ (|b:|)、ウィンドウ (|w:|)、タブ (|t:|)、および
+  ローカル (|l:|) 変数に値を代入する際は、`let` を削除する。
 - Vim9 script 構文の |lambda| 式を書き直す (|vim9-lambda| を参照)。
 - コメントを " ではなく # (先頭に空白文字) で始めるように変更する。
 - 必要に応じて式に空白文字を挿入する (|vim9-white-space| を参照)。
@@ -1773,40 +1813,40 @@ Vim9 script では、ループ変数はループが終了した後は無効に�
   |interpolated-string| を使用する。)
 
 以下の旧来の Vim script と Vim9 script の例は、これらの違いをすべて示している。
-まず、旧来の Vim script: >vim
-
+まず、旧来の Vim script:
+>vim
 	let s:lnum=0
 	function Leg8(arg) abort
-	    let l:pre=['Result',
-	      \': ']
-	    let b:arg=a:arg
-	    let s:lnum+=2
-	    let b:arg*=4
-	    let l:result={pre->join(pre,'')}(l:pre)
-	    return l:result.(b:arg+s:lnum)"コメントの前にスペースがない
+	  let l:pre=['Result',
+	    \': ']
+	  let b:arg=a:arg
+	  let s:lnum+=2
+	  let b:arg*=4
+	  let l:result={pre->join(pre,'')}(l:pre)
+	  return l:result.(b:arg+s:lnum)"no space before comment
 	endfunction
 	call Leg8(10)->popup_notification(#{time: 3000})" 'Result: 42' をポッ
 							" プアップする
-
-Vim9 scripti で同等のもの: >vim9
-
+<
+Vim9 script で同等のもの:
+>vim9
 	vim9script
 	var lnum: number
 	def Vim9(arg: number): string
-	    final pre = ['Result',
-	      ': ']
-	    b:arg = arg
-	    lnum += 2
-	    b:arg *= 4
-	    const RESULT: string = ((lpre) => join(lpre, ''))(pre)
-	    return RESULT .. (b:arg + lnum) # #コメントの前にスペースが必要
+	  final pre = ['Result',
+	    ': ']
+	  b:arg = arg
+	  lnum += 2
+	  b:arg *= 4
+	  const RESULT: string = ((lpre) => join(lpre, ''))(pre)
+	  return RESULT .. (b:arg + lnum)  # # コメントの前にスペースが必要
 	enddef
-	Vim9(10)->popup_notification({time: 3000}) # 'Result: 42' をポップアッ
-						   # プする
-
-<	Note: この例では、次のことも示しています (`:def` 関数の外側で):
-		- 旧来の |#{}| から "#" を削除する - |vim9-literal-dict| を参照
-		- `:call` の省略 (Vim9 script では不要だが許可されている)
+	Vim9(10)->popup_notification({time: 3000})  # 'Result: 42' をポップアッ
+						    # プする
+<
+	Note: この例では、(`:def` 関数の外側で) 以下のことも示している:
+	- 旧来の |#{}| から "#" を削除する - |vim9-literal-dict| を参照、および
+	- `:call` の省略 (Vim9 script では不要だが許可されている)
 
 
 expr オプションで :def 関数を呼び出す ~
@@ -1814,22 +1854,22 @@ expr オプションで :def 関数を呼び出す ~
 'foldexpr' などのいくつかのオプションの値は、値を得るために評価される式である。
 この評価にはかなりのオーバーヘッドがかかることがある。オーバーヘッドを最小限に
 抑え、オプションの値をシンプルに保つ 1 つの方法は、コンパイル済みの関数を定義
-し、それを引数なしで呼び出すオプションを設定することである。例: >vim9
-
+し、それを引数なしで呼び出すオプションを設定することである。例:
+>vim9
 	vim9script
 	def MyFoldFunc(): string
-	    # これは行頭 (^) に続いて数字、ピリオド、スペースまたはタブ、大文
-	    # 字が続き、次の行が空であるものにマッチする
-	    return getline(v:lnum) =~ '^[[:digit:]]\.[[:blank:]][[:upper:]]'
-	        && getline(v:lnum + 1)->empty() ? '>1' : '1'
+	  # これは行頭 (^) に続いて数字、ピリオド、スペースまたはタブ、大文字
+	  # が続き、次の行が空であるものにマッチする
+	  return getline(v:lnum) =~ '^[[:digit:]]\.[[:blank:]][[:upper:]]'
+	    && getline(v:lnum + 1)->empty() ? '>1' : '1'
 	enddef
 	set foldexpr=MyFoldFunc()
 	set foldmethod=expr
-	norm! zM
+	normal! zM
 <
-  Warning: このスクリプトは、この vim9.txt ヘルプバッファの "Heading 1" レベル
-	   に折り畳みを作成して適用する。(スクリプトを読み込んだ後、通常モード
-	   で |zR|を使用すると、すべての折り畳むを開くことができる。）
+Warning: このスクリプトは、この vim9.txt ヘルプバッファの "Heading 1" レベルに
+折り畳みを作成して適用する。(スクリプトを読み込んだ後、通常モードで |zR| を使
+用すると、すべての折り畳むを開くことができる。）
 
 
 ==============================================================================
