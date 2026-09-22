@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'channel'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="channel.html" name="channel.txt">channel.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Apr 29<br>
+<a class="Constant" href="channel.html" name="channel.txt">channel.txt</a>&nbsp;&nbsp; For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Sep 08<br>
 <br>
 <br>
 <span class="Identifier">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIM リファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -144,6 +144,24 @@ Vimを起動し、リスニングチャネルを作成する:<br>
 完了したら、サーバーチャネルを閉じる:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call ch_close(server)</div>
 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-stdio" name="channel-stdio">channel-stdio</a><br>
+Vim は、エディタによって起動される言語サーバーのように、自身の標準入力と標準出<br>
+力をチャネルの端点として利用することもできる。<a class="Identifier" href="starting.html#--stdio-channel">--stdio-channel</a>&nbsp;オプションと、<br>
+そのチャネルを開くスクリプトを指定して Vim を起動する:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim --stdio-channel -S server.vim</div>
+そして server.vim では:<br>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func OnMessage(ch, msg)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunc<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let ch = ch_open('stdio', #{mode: 'lsp', callback: 'OnMessage'})</div>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#E1582" name="E1582">E1582</a>&nbsp;<a class="Constant" href="channel.html#E1583" name="E1583">E1583</a><br>
+&quot;stdio&quot; というアドレスは、Vim が&nbsp;<a class="Identifier" href="starting.html#--stdio-channel">--stdio-channel</a>&nbsp;を指定して起動された場合に<br>
+のみ、かつ一度だけ使用できる。その際、Vim の標準入力と標準出力はヌルデバイスに<br>
+リダイレクトされるため、Vim や Vim が起動したコマンドからのメッセージがチャネ<br>
+ルに混入することはない。標準エラー出力はそのまま維持され、エラーメッセージの出<br>
+力に使用できる。<br>
+<br>
 <span class="PreProc">==============================================================================</span><br>
 3. チャネルを開く&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-open" name="channel-open">channel-open</a><br>
 <br>
@@ -155,12 +173,15 @@ Vimを起動し、リスニングチャネルを作成する:<br>
 <a class="Identifier" href="channel.html#ch_status()">ch_status()</a>&nbsp;を使用して、チャネルを開くことができたかどうかを確認します。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="channel.html#channel-address" name="channel-address">channel-address</a><br>
-<span class="Special">{address}</span>&nbsp;はドメイン名か IP アドレスで、それにポート番号を続ける、あるいは<br>
-&quot;unix:&quot; プリフィックスを付けて Unix ドメインソケットパス にできます。例<br>
+<span class="Special">{address}</span>&nbsp;には、ドメイン名または IP アドレスで、その後にポート番号を付加する、<br>
+または、&quot;unix:&quot; プリフィックスを付けて Unix ドメインソケットのパス、または<br>
+&quot;stdio&quot; を指定できる。例:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;www.example.com:80&nbsp;&nbsp; &quot; ドメイン + ポート<br>
 &nbsp;&nbsp;&nbsp;&nbsp;127.0.0.1:1234&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot; IPv4 + ポート<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[2001:db8::1]:8765&nbsp;&nbsp; &quot; IPv6 + ポート<br>
-&nbsp;&nbsp;&nbsp;&nbsp;unix:/tmp/my-socket&nbsp;&nbsp;&quot; Unix ドメインソケットパス</div>
+&nbsp;&nbsp;&nbsp;&nbsp;unix:/tmp/my-socket&nbsp;&nbsp;&quot; Unix ドメインソケットパス<br>
+&nbsp;&nbsp;&nbsp;&nbsp;stdio&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; Vim の標準入力と標準出力については、|channel-stdio|<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot; を参照</div>
 <br>
 ドメイン名が複数のアドレス (例えば、IPv6 と IPv4 の両方) に解決される場合、Vim<br>
 は各アドレスを順番に試す。接続が遅い場合や到達できない場合は、すぐに次のアドレ<br>
