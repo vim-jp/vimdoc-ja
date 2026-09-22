@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.2.  Last change: 2026 Sep 01
+*builtin.txt*	For Vim バージョン 9.2.  Last change: 2026 Sep 13
 
 
 		  VIM リファレンスマニュアル	by Bram Moolenaar
@@ -4951,7 +4951,9 @@ getqflist([{what}])					*getqflist()*
 			valid	|TRUE|: エラーメッセージが認識されている
 			user_data
 				項目に関連付けられたカスタムデータは、任意の型
-				にすることができる。
+				にすることができる。この項目にユーザーデータが
+				設定されている場合にのみ、このエントリが存在す
+				る。
 
 		エラーリストがまったくないか、空であるときは空リストを返す。
 		quickfixリストの項目が存在しないバッファ番号とともに返る場合は
@@ -4993,6 +4995,11 @@ getqflist([{what}])					*getqflist()*
 			qfbufnr quickfixウィンドウに表示されているバッファの番
 				号。quickfixバッファが存在しないなら 0 が返る。
 				|quickfix-buffer| を参照。
+			quickfixtextfunc
+				quickfix ウィンドウに表示するテキストを取得す
+				る関数。リストに対してこの関数が設定されていな
+				い場合は、空文字列を返す。
+				|quickfix-window-function| を参照。
 			size	quickfixリスト内のエントリの数
 			title	リストタイトルを取得 |quickfix-title|
 			winid	quickfixの|window-ID|を取得
@@ -5024,6 +5031,9 @@ getqflist([{what}])					*getqflist()*
 				れる。
 			qfbufnr quickfixウィンドウに表示されているバッファの番
 				号。存在しない場合、0 に設定される。
+			quickfixtextfunc
+				リストの 'quickfixtextfunc' 設定。設定されてい
+				ない場合は "" となる。
 			size	quickfixリスト内のエントリの数。存在しない場
 				合、0 に設定される。
 			title	quickfixリストのタイトルテキスト。存在しない場
@@ -6610,7 +6620,7 @@ libcallnr({libname}, {funcname}, {argument})		*libcallnr()*
 		|method| としても使用でき、ベースは第3引数として渡される: >
 			GetValue()->libcallnr("libc.so", "printf")
 <
-		戻り値の型: |String|
+		戻り値の型: |Number|
 
 
 line({expr} [, {winid}])				*line()*
@@ -8073,7 +8083,7 @@ pow({x}, {y})						*pow()*
 		|method| としても使用できる: >
 			Compute()->pow(3)
 <
-		戻り値の型: |Number|
+		戻り値の型: |Float|
 
 
 preinserted()						*preinserted()*
@@ -8495,7 +8505,7 @@ pum_getpos()						*pum_getpos()*
 
 		値は |CompleteChanged| 中の |v:event| と同じである。
 
-		戻り値の型: dict<any>
+		戻り値の型: dict<number>
 
 
 pumvisible()						*pumvisible()*
@@ -8592,6 +8602,9 @@ range({expr} [, {max} [, {stride}]])			*range()*
 		  {max}] ({max}を超えないように{expr}を{stride}ずつ増加させる)
 		最大値が開始位置より1だけ前のときは空リストを返す。最大値が開
 		始位置より1以上前のときはエラーになる。
+		リストの要素数は最大で 2147483647 個までであり、{stride} は 32
+		ビットの数値に収まる必要がある。そうでない場合、|E1510| が発生
+		する。
 		例: >
 			range(4)		" [0, 1, 2, 3]
 			range(2, 4)		" [2, 3, 4]
@@ -10176,7 +10189,9 @@ setqflist({list} [, {action} [, {what}]])		*setqflist()*
 				:call setqflist([], 'r')
 <
 		'u'	'r' と同様だが、quickfix リスト内の現在の選択を保持し
-			ようとする。
+			ようとする。直前に選択された項目に最も近い項目が、現在
+			の項目となる。近接性は、ファイル、行番号、列番号の順に
+			比較することで判定される。
 		'f'	quickfix スタック内のすべての quickfix リストが解放さ
 			れる。
 
@@ -11905,8 +11920,10 @@ terminalprops()						*terminalprops()*
 		   kitty		Kitty 端末が検出されたか
 		   decrqm		DECRQM シーケンスの送信が機能するかど
 					うか
+		   rgb			端末が true color に対応しているかどう
+					か  **
 
-		** 不明ならば値 'u'、はいで 'y'、いいえで 'n'
+		** 値は、不明ならば 'u'、はいで 'y'、いいえで 'n' となる
 
 		|+termresponse| 機能が無いならば、結果は空の辞書になる。
 
@@ -11925,6 +11942,9 @@ terminalprops()						*terminalprops()*
 
 		"decrqm" が 'y' の場合、Vim は 'termsync' と 'termresize'
 		("inband") オプションのサポートについて問い合わせる。
+
+		"xterm-direct" 端末エントリの場合のように、't_Co' が 16777216
+		のとき、"rgb" は 'y' となる。|xterm-true-color| を参照。
 
 		以下も参照:
 		- 'ambiwidth' - |t_u7| を使って検知する。
