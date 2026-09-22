@@ -1,4 +1,4 @@
-*channel.txt*	For Vim バージョン 9.2.  Last change: 2026 Apr 29
+*channel.txt*	For Vim バージョン 9.2.  Last change: 2026 Sep 08
 
 
 		  VIM リファレンスマニュアル	by Bram Moolenaar
@@ -138,6 +138,24 @@ Vimを起動し、リスニングチャネルを作成する: >
 
 完了したら、サーバーチャネルを閉じる: >
 	call ch_close(server)
+<
+							*channel-stdio*
+Vim は、エディタによって起動される言語サーバーのように、自身の標準入力と標準出
+力をチャネルの端点として利用することもできる。|--stdio-channel| オプションと、
+そのチャネルを開くスクリプトを指定して Vim を起動する: >
+	vim --stdio-channel -S server.vim
+そして server.vim では: >
+	func OnMessage(ch, msg)
+	  ...
+	endfunc
+	let ch = ch_open('stdio', #{mode: 'lsp', callback: 'OnMessage'})
+<
+							*E1582* *E1583*
+"stdio" というアドレスは、Vim が |--stdio-channel| を指定して起動された場合に
+のみ、かつ一度だけ使用できる。その際、Vim の標準入力と標準出力はヌルデバイスに
+リダイレクトされるため、Vim や Vim が起動したコマンドからのメッセージがチャネ
+ルに混入することはない。標準エラー出力はそのまま維持され、エラーメッセージの出
+力に使用できる。
 
 ==============================================================================
 3. チャネルを開く					*channel-open*
@@ -150,12 +168,15 @@ Vimを起動し、リスニングチャネルを作成する: >
 |ch_status()| を使用して、チャネルを開くことができたかどうかを確認します。
 
 					*channel-address*
-{address} はドメイン名か IP アドレスで、それにポート番号を続ける、あるいは
-"unix:" プリフィックスを付けて Unix ドメインソケットパス にできます。例 >
+{address} には、ドメイン名または IP アドレスで、その後にポート番号を付加する、
+または、"unix:" プリフィックスを付けて Unix ドメインソケットのパス、または
+"stdio" を指定できる。例: >
     www.example.com:80   " ドメイン + ポート
     127.0.0.1:1234       " IPv4 + ポート
     [2001:db8::1]:8765   " IPv6 + ポート
     unix:/tmp/my-socket  " Unix ドメインソケットパス
+    stdio                " Vim の標準入力と標準出力については、|channel-stdio|
+			 " を参照
 
 ドメイン名が複数のアドレス (例えば、IPv6 と IPv4 の両方) に解決される場合、Vim
 は各アドレスを順番に試す。接続が遅い場合や到達できない場合は、すぐに次のアドレ
