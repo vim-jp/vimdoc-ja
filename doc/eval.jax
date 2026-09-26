@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 9.2.  Last change: 2026 Aug 18
+*eval.txt*	For Vim バージョン 9.2.  Last change: 2026 Sep 14
 
 
 		  VIM リファレンスマニュアル	by Bram Moolenaar
@@ -5257,6 +5257,11 @@ Vim のクリップボード機能にプロバイダを統合するには、す�
 	2. |getregtype()| に準拠したレジスタタイプ
 	3. 使用する文字列のリスト。各文字列は行を表す。
 
+|system()| や |systemlist()| を使用するコールバックでは、|:silent| を先頭に付
+加すべきである。
+そうしなければ、コマンドの実行中にフォーカスイベントなどの端末出力が画面に表示
+されてしまう。
+
 以下は、クリップボードプロバイダ機能を使用するサンプルスクリプトである: >vim
 	func Available()
 	    return v:true
@@ -5289,9 +5294,13 @@ Vim のクリップボード機能にプロバイダを統合するには、す�
 Windows WSL の場合は、このスクリプトを試すこと: >vim9
 	vim9script
 
-	var Copy = (_, _, lines: list<string>) => system('wl-copy', lines)
-	var Paste = (_) => ('', systemlist('wl-paste --no-newline')
-	    ->map((_, v) => v->trim("\r", 2)))
+	def Copy(_: string, _: string, lines: list<string>)
+	    silent system('wl-copy', lines)
+	enddef
+	def Paste(_: string): tuple<string, list<string>>
+	    silent return ('', systemlist('wl-paste --no-newline')
+		->map((_, v) => v->trim("\r", 2)))
+	enddef
 
 	v:clipproviders["wslclip"] = {
 	    available: () => executable('wl-copy') && executable('wl-paste'),
