@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'eval'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="eval.html" name="eval.txt">eval.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Aug 18<br>
+<a class="Constant" href="eval.html" name="eval.txt">eval.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Sep 14<br>
 <br>
 <br>
 <span class="Identifier">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIM リファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -5262,6 +5262,11 @@ Vim のクリップボード機能にプロバイダを統合するには、す�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.&nbsp;<a class="Identifier" href="builtin.html#getregtype()">getregtype()</a>&nbsp;に準拠したレジスタタイプ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. 使用する文字列のリスト。各文字列は行を表す。<br>
 <br>
+<a class="Identifier" href="builtin.html#system()">system()</a>&nbsp;や&nbsp;<a class="Identifier" href="builtin.html#systemlist()">systemlist()</a>&nbsp;を使用するコールバックでは、<a class="Identifier" href="various.html#:silent">:silent</a>&nbsp;を先頭に付<br>
+加すべきである。<br>
+そうしなければ、コマンドの実行中にフォーカスイベントなどの端末出力が画面に表示<br>
+されてしまう。<br>
+<br>
 以下は、クリップボードプロバイダ機能を使用するサンプルスクリプトである: &gt;vim<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func Available()<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return v:true<br>
@@ -5294,9 +5299,13 @@ Vim のクリップボード機能にプロバイダを統合するには、す�
 Windows WSL の場合は、このスクリプトを試すこと: &gt;vim9<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var Copy = (_, _, lines: list<span class="Special">&lt;string&gt;</span>) =&gt; system('wl-copy', lines)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var Paste = (_) =&gt; ('', systemlist('wl-paste --no-newline')<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt;map((_, v) =&gt; v-&gt;trim(&quot;\r&quot;, 2)))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Copy(_: string, _: string, lines: list<span class="Special">&lt;string&gt;</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;silent system('wl-copy', lines)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Paste(_: string): tuple&lt;string, list<span class="Special">&lt;string&gt;</span>&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;silent return ('', systemlist('wl-paste --no-newline')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt;map((_, v) =&gt; v-&gt;trim(&quot;\r&quot;, 2)))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v:clipproviders[&quot;wslclip&quot;] = {<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;available: () =&gt; executable('wl-copy') &amp;&amp; executable('wl-paste'),<br>
