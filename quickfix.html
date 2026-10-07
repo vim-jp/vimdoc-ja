@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'quickfix'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="quickfix.html" name="quickfix.txt">quickfix.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 May 28<br>
+<a class="Constant" href="quickfix.html" name="quickfix.txt">quickfix.txt</a>&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Sep 25<br>
 <br>
 <br>
 <span class="Identifier">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIM リファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -46,23 +46,29 @@ quickfixコマンドはより一般的に、ファイル中の位置のリスト
 Vim の中でコマンドを実行し結果を得る方法の一つに<a class="Identifier" href="quickfix.html#:make">:make</a>コマンドがある (後述)。<br>
 <br>
 各コンパイラからのエラーメッセージを解釈させるためには、オプション<br>
-<a class="Type" href="options.html#'errorformat'">'errorformat'</a>&nbsp;をセットする (下の<a class="Identifier" href="quickfix.html#errorformat">errorformat</a>を参照)。<br>
+<a class="Type" href="options.html#'errorformat'">'errorformat'</a>&nbsp;をセットする (下の<a class="Identifier" href="quickfix.html#errorformat">errorformat</a>を参照)。Vim はこれを使用して、コ<br>
+ンパイラの出力の各行からファイル名、行番号、メッセージなどの情報を抽出する。パ<br>
+ターンに一致しない行は無効なエントリとして保持され、<a class="Identifier" href="quickfix.html#:cnext">:cnext</a>&nbsp;などのコマンドで<br>
+はスキップされる。それらも表示するには&nbsp;<a class="Identifier" href="quickfix.html#:clist">:clist</a>!&nbsp;&nbsp;を使用する。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#quickfix-stack" name="quickfix-stack">quickfix-stack</a>&nbsp;<a class="Constant" href="quickfix.html#quickfix-ID" name="quickfix-ID">quickfix-ID</a>&nbsp;<a class="Constant" href="quickfix.html#E1545" name="E1545">E1545</a><br>
 各 quickfix リストは quickfix ID と呼ばれる一意な識別子を持ち、この番号は Vim<br>
 セッションの中で変わらない。<a class="Identifier" href="builtin.html#getqflist()">getqflist()</a>&nbsp;関数はリストに割り当てられた識別子の<br>
-取得に使用できる。quickfix リスト番号もある。この番号は、<a class="Type" href="options.html#'chistory'">'chistory'</a>&nbsp;個以上のリ<br>
-ストが quickfix スタックに追加されるたびに変更される可能性がある。<br>
+取得に使用できる。quickfix リストには番号もあり、これは quickfix スタック内で<br>
+の位置を表す。この番号は、リストが追加・削除されたり、保持されるリストの数が<br>
+<a class="Type" href="options.html#'chistory'">'chistory'</a>&nbsp;の上限を超えたりした際に変化する可能性がある。スクリプトから確実に<br>
+同じリストを参照する必要がある場合は ID を使用し、スタック内での現在の位置を参<br>
+照する場合はリスト番号を使用する。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#location-list" name="location-list">location-list</a>&nbsp;<a class="Constant" href="quickfix.html#E776" name="E776">E776</a><br>
-locationリストはウィンドウローカルなquickfixリストである。<a class="Comment" href="quickfix.html#:vimgrep">:vimgrep</a>,&nbsp;<a class="Comment" href="quickfix.html#:grep">:grep</a>,<br>
-<a class="Comment" href="helphelp.html#:helpgrep">:helpgrep</a>,&nbsp;<a class="Comment" href="quickfix.html#:make">:make</a>&nbsp;などのコマンドはquickfixリストを作成するが、それらに対応<br>
-する&nbsp;<a class="Comment" href="quickfix.html#:lvimgrep">:lvimgrep</a>,&nbsp;<a class="Comment" href="quickfix.html#:lgrep">:lgrep</a>,&nbsp;<a class="Comment" href="helphelp.html#:lhelpgrep">:lhelpgrep</a>,&nbsp;<a class="Comment" href="quickfix.html#:lmake">:lmake</a>&nbsp;などのコマンドを使うことで<br>
-locationリストを得ることができる。<br>
+location リストは、特定のウィンドウに紐付けられた quickfix リストである。各ウィ<br>
+ンドウは個別の location リストを持つことができ、<a class="Comment" href="quickfix.html#:lvimgrep">:lvimgrep</a>、<a class="Comment" href="quickfix.html#:lgrep">:lgrep</a>、<br>
+<a class="Comment" href="helphelp.html#:lhelpgrep">:lhelpgrep</a>、<a class="Comment" href="quickfix.html#:lmake">:lmake</a>&nbsp;といったコマンドは、グローバルな quickfix リストの代わ<br>
+りにこれを使用する。一方、&quot;l&quot; のプリフィックスが付かない対応コマンドは、<br>
+quickfix リストを使用する。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#location-list-file-window" name="location-list-file-window">location-list-file-window</a><br>
-locationリストはウィンドウに関連付けられていて、各ウィンドウが別々のlocationリ<br>
-ストを持つことができる。locationリストは1個のウィンドウにだけ関連付けることが<br>
-できる。locationリストはquickfixリストとは独立している。<br>
+location リストは quickfix リストとは独立している。location リストは、1 つの<br>
+ウィンドウにのみ関連付けることができる。<br>
 <br>
 locationリストを持つウィンドウが分割されると、新しいウィンドウはlocationリスト<br>
 のコピーを得る。locationリストへの参照が全てなくなると、そのlocationリストは破<br>
@@ -103,18 +109,24 @@ locationリストが&nbsp;<a class="Identifier" href="autocmd.html#autocommand">
 :[nr]ll[!]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ウのlocationリストが使われる。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#:cn" name=":cn">:cn</a>&nbsp;<a class="Constant" href="quickfix.html#:cne" name=":cne">:cne</a>&nbsp;<a class="Constant" href="quickfix.html#:cnext" name=":cnext">:cnext</a>&nbsp;<a class="Constant" href="quickfix.html#E553" name="E553">E553</a><br>
-:<span class="Special">[count]</span>cn[ext][!]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ファイル名を含むエラーリストで<span class="Special">[count]</span>個後のエラーを表<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;示する。ファイル名が無かった場合<span class="Special">[count]</span>個後のエラーに<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;移動する。[!]と&nbsp;<a class="Type" href="options.html#'switchbuf'">'switchbuf'</a>&nbsp;については<a class="Identifier" href="quickfix.html#:cc">:cc</a>を参照。<br>
+:<span class="Special">[count]</span>cn[ext][!]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;リスト内で、ファイル名を含む次のエラーへ&nbsp;<span class="Special">[count]</span>&nbsp;回移<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;動して表示する。ファイル名が含まれない項目は、それらを<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;使ってファイルへジャンプすることができないため、スキッ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;プされる。ファイル名が 1 つも含まれない場合は、単に次<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;のエラーへ&nbsp;<span class="Special">[count]</span>&nbsp;回移動する。[!] および&nbsp;<a class="Type" href="options.html#'switchbuf'">'switchbuf'</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;については&nbsp;<a class="Identifier" href="quickfix.html#:cc">:cc</a>&nbsp;を参照。<br>
+<br>
+:<span class="Special">[count]</span>cN[ext][!]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#:cp" name=":cp">:cp</a>&nbsp;<a class="Constant" href="quickfix.html#:cprevious" name=":cprevious">:cprevious</a>&nbsp;&nbsp;<a class="Constant" href="quickfix.html#:cprev" name=":cprev">:cprev</a>&nbsp;<a class="Constant" href="quickfix.html#:cN" name=":cN">:cN</a>&nbsp;<a class="Constant" href="quickfix.html#:cNext" name=":cNext">:cNext</a><br>
+:<span class="Special">[count]</span>cp[revious][!]&nbsp;&nbsp;ファイル名を含むリスト内の、<span class="Special">[count]</span>&nbsp;個前のエラーを表示<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;する。ファイル名が含まれない項目は、Vim がそれらを使っ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;てファイルへジャンプすることができないため、スキップさ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;れる。ファイル名が 1 つも含まれない場合は、<span class="Special">[count]</span>&nbsp;個<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;前のエラーに移動する。[!] および&nbsp;<a class="Type" href="options.html#'switchbuf'">'switchbuf'</a>&nbsp;について<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;は&nbsp;<a class="Identifier" href="quickfix.html#:cc">:cc</a>&nbsp;を参照。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#:lne" name=":lne">:lne</a>&nbsp;<a class="Constant" href="quickfix.html#:lnext" name=":lnext">:lnext</a><br>
 :<span class="Special">[count]</span>lne[xt][!]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;:cnext&quot; と同様だが、quickfixリストでなくカレントウィ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ンドウのlocationリストが使われる。<br>
-<br>
-:<span class="Special">[count]</span>cN[ext][!]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#:cp" name=":cp">:cp</a>&nbsp;<a class="Constant" href="quickfix.html#:cprevious" name=":cprevious">:cprevious</a>&nbsp;&nbsp;<a class="Constant" href="quickfix.html#:cprev" name=":cprev">:cprev</a>&nbsp;<a class="Constant" href="quickfix.html#:cN" name=":cN">:cN</a>&nbsp;<a class="Constant" href="quickfix.html#:cNext" name=":cNext">:cNext</a><br>
-:<span class="Special">[count]</span>cp[revious][!]&nbsp;&nbsp;ファイル名を含むエラーリストで<span class="Special">[count]</span>個前のエラーを表<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;示する。ファイル名が無かった場合<span class="Special">[count]</span>個前のエラーに<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;移動する。[!]と&nbsp;<a class="Type" href="options.html#'switchbuf'">'switchbuf'</a>&nbsp;については<a class="Identifier" href="quickfix.html#:cc">:cc</a>を参照。<br>
 <br>
 :<span class="Special">[count]</span>lN[ext][!]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#:lp" name=":lp">:lp</a>&nbsp;<a class="Constant" href="quickfix.html#:lprevious" name=":lprevious">:lprevious</a>&nbsp;<a class="Constant" href="quickfix.html#:lprev" name=":lprev">:lprev</a>&nbsp;<a class="Constant" href="quickfix.html#:lN" name=":lN">:lN</a>&nbsp;<a class="Constant" href="quickfix.html#:lNext" name=":lNext">:lNext</a><br>
 :<span class="Special">[count]</span>lp[revious][!]&nbsp;&nbsp;&quot;:cNext&quot; と &quot;:cprevious&quot; と同様だが、quickfixリストで<br>
@@ -225,9 +237,10 @@ locationリストが&nbsp;<a class="Identifier" href="autocmd.html#autocommand">
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ンドを起動しない、など。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{N}</span>&nbsp;を 0 にすることもできる。その場合はVimは通常終了す<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">警告:</span>&nbsp;ファイルに対する変更はすべて失われる ([!] を指定<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;しなくても)! このコマンドは、システムへの戻り値が非零<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;であるということ以外 &quot;:qall!&quot;&nbsp;<a class="Identifier" href="editing.html#:qall">:qall</a>&nbsp;と同じである。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">警告:</span>&nbsp;<a class="Identifier" href="editing.html#:qall">:qall</a>! と同様に、すべてのファイルの変更を破棄<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;する。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[!] を付けてもこの動作は変わらない。<span class="Special">{N}</span>&nbsp;が 0 の場合<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を除き、Vim は 0 以外の終了コードを返す。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#:cf" name=":cf">:cf</a>&nbsp;<a class="Constant" href="quickfix.html#:cfi" name=":cfi">:cfi</a>&nbsp;<a class="Constant" href="quickfix.html#:cfile" name=":cfile">:cfile</a><br>
 :cf[ile][!]&nbsp;<span class="Special">[errorfile]</span>&nbsp;エラーファイルを読みこみ最初のエラーへ移動する。Vimが<br>
@@ -270,14 +283,20 @@ locationリストが&nbsp;<a class="Identifier" href="autocmd.html#autocommand">
 :laddf[ile]&nbsp;<span class="Special">[errorfile]</span>&nbsp;&quot;:caddfile&quot; と同様だが、quickfixリストでなく、カレント<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ウィンドウのlocationリストが使われる。<br>
 <br>
+以下のコマンドは、バッファからエラーメッセージを読み込む:<br>
+<a class="Comment" href="quickfix.html#:cbuffer">:cbuffer</a>&nbsp;はリストを作成して最初のエラーへジャンプし、<a class="Comment" href="quickfix.html#:cgetbuffer">:cgetbuffer</a>&nbsp;はジャン<br>
+プせずにリストを作成し、<a class="Comment" href="quickfix.html#:caddbuffer">:caddbuffer</a>&nbsp;はカーソル位置を変更せずに現在のリストに<br>
+エントリを追加する。先頭に &quot;l&quot; が付く対応するコマンドは、location リストを使用<br>
+する。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#:cb" name=":cb">:cb</a>&nbsp;<a class="Constant" href="quickfix.html#:cbuffer" name=":cbuffer">:cbuffer</a>&nbsp;<a class="Constant" href="quickfix.html#E681" name="E681">E681</a><br>
 :<span class="Special">[range]</span>cb[uffer][!]&nbsp;<span class="Special">[bufnr]</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;カレントバッファからエラーリストを読み込む。<span class="Special">[bufnr]</span>&nbsp;を<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;指定すると、カレントバッファの代わりにそのバッファが使<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;われる。bufnrには読み込まれているバッファ番号を指定し<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;なければならない。範囲を指定すると、読み込む行を指定す<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ることができる。範囲指定がないとバッファ全体が使われ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;なければならない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;使用する行の範囲を指定することができる。例:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Comment">:10,20cbuffer</span>。指定しない場合は、バッファ内のすべて<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;の行が使用される。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[!]については<a class="Identifier" href="quickfix.html#:cc">:cc</a>を参照。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#:lb" name=":lb">:lb</a>&nbsp;<a class="Constant" href="quickfix.html#:lbuffer" name=":lbuffer">:lbuffer</a><br>
@@ -306,6 +325,11 @@ locationリストが&nbsp;<a class="Identifier" href="autocmd.html#autocommand">
 :<span class="Special">[range]</span>laddb[uffer]&nbsp;<span class="Special">[bufnr]</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;:caddbuffer&quot; と同様だが、quickfixリストでなく、カレン<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;トウィンドウのlocationリストが使われる。<br>
+<br>
+以下のコマンドは、式から quickfix リストを作成または更新する:<br>
+<a class="Comment" href="quickfix.html#:cexpr">:cexpr</a>&nbsp;はリストを作成して最初のエラーへジャンプし、<a class="Comment" href="quickfix.html#:cgetexpr">:cgetexpr</a>&nbsp;はジャンプせ<br>
+ずにリストを作成し、<a class="Comment" href="quickfix.html#:caddexpr">:caddexpr</a>&nbsp;はカーソル位置を変更せずに現在のリストに項目を<br>
+追加する。先頭に&quot;l&quot; が付く対応するコマンドは、location リストを使用する。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#:cex" name=":cex">:cex</a>&nbsp;<a class="Constant" href="quickfix.html#:cexpr" name=":cexpr">:cexpr</a>&nbsp;<a class="Constant" href="quickfix.html#E777" name="E777">E777</a><br>
 :cex[pr][!]&nbsp;<span class="Special">{expr}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{expr}</span>&nbsp;の結果を使って quickfix リストを作成し、最初の<br>
@@ -355,6 +379,8 @@ locationリストが&nbsp;<a class="Identifier" href="autocmd.html#autocommand">
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;quickfixのエントリだけを表示するために使用できる。パ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ターンは、エントリのファイル名、モジュール名、パターン<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;およびテキストと照合される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;例えば、<span class="Comment">:filter /\.c:/clist</span>&nbsp;は、表示テキストに&nbsp;<span class="Comment">.c:</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;を含むエントリのみを一覧表示する。<a class="Identifier" href="various.html#:filter">:filter</a>&nbsp;を参照。<br>
 <br>
 :cl[ist] +<span class="Special">{count}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; カレントと次の&nbsp;<span class="Special">{count}</span>&nbsp;個の有効なエラーをリストする。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;これは &quot;:clist from from+count&quot; に似ており、&quot;from&quot; は<br>
@@ -401,7 +427,7 @@ quickfixコマンド (':make', ':grep' など) を実行する前後に2つの�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; call setqflist(qflist)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction</div>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;au QuickfixCmdPost make call QfMakeConv()</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;au QuickFixCmdPost make call QfMakeConv()</div>
 代わりに&nbsp;<a class="Type" href="options.html#'makeencoding'">'makeencoding'</a>&nbsp;オプションを使うこともできる。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#quickfix-title" name="quickfix-title">quickfix-title</a><br>
@@ -464,6 +490,20 @@ quickfixリストとlocationリストの中の項目の数をそれぞれ&nbsp;<
 使って行をパースする方法を示している。<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo getqflist({'efm' : '%f#%l#%m', 'lines' : ['F1#10#Line']})</div>
 <br>
+<br>
+リスト内のエントリやファイルに対してコマンドを実行するには、以下を使用する:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Quickfix list&nbsp;&nbsp;Location list<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;各エントリ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :cdo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:ldo<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;各ファイル&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :cfdo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :lfdo<br>
+<br>
+有効な各エントリに対してコマンドを実行する必要がある場合は&nbsp;<a class="Comment" href="quickfix.html#:cdo">:cdo</a>&nbsp;を使用する。<br>
+例えば、マッチする各行を変更する&nbsp;<span class="Comment">:cdo s/old/new/g</span>&nbsp;など。ファイルごとに 1 回<br>
+実行する必要がある場合は&nbsp;<a class="Comment" href="quickfix.html#:cfdo">:cfdo</a>&nbsp;を使用する。例えば、影響を受ける各ファイルを<br>
+1 回書き込む&nbsp;<span class="Comment">:cfdo update</span>&nbsp;など。代わりに location リストを使用するには、プリ<br>
+フィックス &quot;l&quot; を付ける。<br>
+<br>
+以下のコマンドは、これらの違いをより詳細に説明している。<br>
 <br>
 <span class="Statement">quickfix または location リスト中のバッファに対してコマンドを実行:</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#:cdo" name=":cdo">:cdo</a><br>
@@ -639,8 +679,10 @@ quickfixウィンドウには各行に1個ずつエラーが表示される。�
 まず、そのウィンドウが破棄してもよいバッファを含んでいることを確かめなければな<br>
 らない。<br>
 <br>
-quickfixウィンドウからファイルを選択する場合、ファイルを編集するウィンドウを見<br>
-付けるため次の手順が使用される:<br>
+Quickfix ウィンドウからファイルを選択すると、Vim はまず、そのファイルをすでに<br>
+表示しているウィンドウを再利用する。そうでない場合は、現在のタブページ内の適切<br>
+なウィンドウを使用するか、新しいウィンドウを開く。選択に関する詳細なルールは以<br>
+下の通りである:<br>
 <br>
 1. 選択されたファイルを表示するウィンドウがカレントタブページに存在する場合<br>
 &nbsp;&nbsp; (quickfixウィンドウの前のウィンドウから探し始める)、そのウィンドウが使用さ<br>
@@ -657,6 +699,16 @@ quickfixウィンドウからファイルを選択する場合、ファイルを
 &nbsp;&nbsp; 前にウィンドウがない場合は、quickfixウィンドウの後のウィンドウが使用される。<br>
 6. 上記の手順が失敗した場合、quickfixウィンドウの上に水平方向に分割された新し<br>
 &nbsp;&nbsp; いウィンドウが使用される。<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#quickfix-winfixbuf" name="quickfix-winfixbuf">quickfix-winfixbuf</a><br>
+エラーを表示する予定のウィンドウに&nbsp;<a class="Type" href="options.html#'winfixbuf'">'winfixbuf'</a>&nbsp;が設定されている場合、そのウィ<br>
+ンドウ内で別のバッファにあるエラーへジャンプすることはできません。quickfix リ<br>
+ストの場合、Vim は代わりに適切なウィンドウを探す。具体的には、直前に使用してい<br>
+たウィンドウに&nbsp;<a class="Type" href="options.html#'winfixbuf'">'winfixbuf'</a>&nbsp;が設定されていなければそれを使用し、設定されていれ<br>
+ば新しいウィンドウを分割して作成する。location リストの場合は&nbsp;<a class="Identifier" href="message.html#E1513">E1513</a>&nbsp;エラーと<br>
+なり失敗する。これは、location リストが特定のウィンドウに結び付けられており、<br>
+別のウィンドウへ移動したり、そこから新しいウィンドウを分割したりすることができ<br>
+ないためである。[!] を使用すると、これらのチェックはスキップされる。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#CTRL-W_<Enter>" name="CTRL-W_&lt;Enter&gt;">CTRL-W_&lt;Enter&gt;</a>&nbsp;<a class="Constant" href="quickfix.html#CTRL-W_<CR>" name="CTRL-W_&lt;CR&gt;">CTRL-W_&lt;CR&gt;</a><br>
 <span class="Special">CTRL-W</span>&nbsp;<span class="Special">&lt;Enter&gt;</span>を使うと、新しいウィンドウを開いてそこでエラーにジャンプできる。<br>
@@ -689,8 +741,10 @@ locationリストウィンドウはlocationリストの中身を表示する。l
 のlocationリストウィンドウを開ける点が異なる。このウィンドウ内でlocationリスト<br>
 コマンドを使うと、表示されているlocationリストが使われる。<br>
 <br>
-locationリストウィンドウからファイルを選択する場合、ファイルを編集するウィンド<br>
-ウを見付けるため次の手順が使用される:<br>
+location リストウィンドウからファイルを選択すると、Vim はまず、可能な限りその<br>
+location リストに関連付けられたウィンドウを使用する。それができない場合は、適<br>
+切なウィンドウを再利用するか、新しいウィンドウを開く。選択に関する詳細なルール<br>
+は以下の通り:<br>
 <br>
 1. locationリストに紐付いているquickfix以外のウィンドウがカレントタブページに<br>
 &nbsp;&nbsp; 存在する場合、そのウィンドウが使われる。<br>
@@ -918,6 +972,13 @@ quickfixやlocationリストのスタック数を取得するには、特別な�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;:make&quot; と同様だが、quickfixリストでなく、カレントウィ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ンドウのlocationリストが使われる。<br>
 <br>
+要するに、<a class="Comment" href="quickfix.html#:make">:make</a>&nbsp;は&nbsp;<a class="Type" href="options.html#'makeprg'">'makeprg'</a>&nbsp;を実行し、<a class="Type" href="options.html#'errorformat'">'errorformat'</a>&nbsp;を使ってその出力を読み<br>
+込み、必要に応じて最初に認識されたエラー箇所へジャンプした後、通常の&nbsp;<a class="Comment" href="quickfix.html#:make">:make</a><br>
+の処理手順で使用された一時的なエラーファイルを削除する。<a class="Type" href="options.html#'shellpipe'">'shellpipe'</a>&nbsp;が空である<br>
+場合や、プログラム自身が出力ファイルを管理している場合、そのプログラムのファイ<br>
+ルに対してはこの削除処理は行われない。生成されたリストを移動するには、<a class="Identifier" href="quickfix.html#:cnext">:cnext</a><br>
+などの関連コマンドを使用する。<br>
+<br>
 コマンド &quot;:make&quot; はオプション&nbsp;<a class="Type" href="options.html#'makeprg'">'makeprg'</a>&nbsp;で与えられるコマンドを実行する。これは<br>
 オプション&nbsp;<a class="Type" href="options.html#'shell'">'shell'</a>&nbsp;で与えられたシェルにコマンドを渡す事で実行されている。以下<br>
 をタイピングするのとほぼ同じである。<br>
@@ -967,7 +1028,7 @@ quickfixやlocationリストのスタック数を取得するには、特別な�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; call setqflist(qflist)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction</div>
 <br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;au QuickfixCmdPost make call QfMakeConv()</div>
+<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;au QuickFixCmdPost make call QfMakeConv()</div>
 <br>
 (Faque Cheng による例)<br>
 代わりに&nbsp;<a class="Type" href="options.html#'makeencoding'">'makeencoding'</a>&nbsp;オプションを使うこともできる。<br>
@@ -979,7 +1040,9 @@ Vimにはパターンを検索する方法が2つある: 内部grepと外部grep
 点は、全てのシステム上で動作し、Vimの強力な検索パターンを使えることである。内<br>
 部grepが目的に合わない場合は外部grepを使うことができる。<br>
 <br>
-内部grepはファイルをメモリに読み込むため、より遅い。利点は:<br>
+内部メソッドはファイルをメモリに読み込むため、処理が遅くなる。大規模なプロジェ<br>
+クトでは、外部の検索プログラムと組み合わせた&nbsp;<a class="Identifier" href="quickfix.html#:grep">:grep</a>&nbsp;の使用を検討すること。内<br>
+部メソッドの利点は以下の通りである:<br>
 - ファイルを開くときと同様に改行コードとエンコーディングが自動的に認識される。<br>
 - Vimの検索パターンを使う。複数行にわたるパターンが使える。<br>
 - プラグインが有効になっていれば、圧縮ファイル、リモートファイルを検索できる。<br>
@@ -1029,11 +1092,13 @@ Vimにはパターンを検索する方法が2つある: 内部grepと外部grep
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; れるだけである。[!] を付けるとカレントバッファに<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 対する変更は全て失われる。<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'f'&nbsp;&nbsp;フラグ 'f' を指定するとファジー文字列マッチで一致<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; する行が検索される。この場合&nbsp;<span class="Special">{pattern}</span>&nbsp;は正規表現<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ではなくリテラル文字列として扱われる。文字列への<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ファジーマッチについての詳細は&nbsp;<a class="Identifier" href="pattern.html#fuzzy-matching">fuzzy-matching</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; を参照。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'f'&nbsp;&nbsp;'f' フラグが指定された場合、マッチする行を見つけ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; るためにファジー文字列マッチが使用される。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{pattern}</span>&nbsp;に含まれる文字は、その順序通りに現れる<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 必要がありるが、必ずしも隣接している必要はない。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; この場合、<span class="Special">{pattern}</span>&nbsp;は正規表現ではなく、リテラル<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 文字列として扱われる。ファジー文字列マッチの詳細<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; については、<a class="Identifier" href="pattern.html#fuzzy-matching">fuzzy-matching</a>&nbsp;を参照。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="autocmd.html#QuickFixCmdPre">QuickFixCmdPre</a>&nbsp;と&nbsp;<a class="Identifier" href="autocmd.html#QuickFixCmdPost">QuickFixCmdPost</a>&nbsp;がトリガーされ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;る。<br>
@@ -1218,6 +1283,16 @@ msg()関数を変更しているときに、上位から引数を得なければ
 &quot;compiler&quot; ディレクトリ内にあるVimプラグインによって、選択されたコンパイラを使<br>
 うためのオプションが設定される。<a class="Comment" href="quickfix.html#:compiler">:compiler</a>&nbsp;はローカルオプションを設定し、<br>
 <span class="Comment">:compiler!</span>&nbsp;はグローバルオプションを設定する。<br>
+<br>
+通常の使用では、<span class="Comment">:compiler {name}</span>&nbsp;でコンパイラを選択し、続いて&nbsp;<a class="Identifier" href="quickfix.html#:make">:make</a>&nbsp;を実行<br>
+する。コンパイラプラグインは通常、Vim がコンパイラを実行してそのメッセージを読<br>
+み取れるように、<a class="Type" href="options.html#'makeprg'">'makeprg'</a>&nbsp;と&nbsp;<a class="Type" href="options.html#'errorformat'">'errorformat'</a>&nbsp;を設定する。以下の説明では、特定の<br>
+コンパイラプラグインのオプションについて解説する。<br>
+<br>
+コンパイラプラグインによって設定された値は、後から&nbsp;<a class="Identifier" href="options.html#:set">:set</a>&nbsp;や&nbsp;<a class="Identifier" href="options.html#:setlocal">:setlocal</a>&nbsp;で変<br>
+更できる。<span class="Comment">:compiler {name}</span>&nbsp;は現在のバッファに対してオプションを設定し、<br>
+<span class="Comment">:compiler! {name}</span>&nbsp;はグローバルなオプションを設定する。バッファローカルな値は<br>
+グローバルな値よりも優先される。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#current_compiler" name="current_compiler">current_compiler</a><br>
 Vimの古いバージョンをサポートするために、それらのプラグインは常に<br>
@@ -1742,14 +1817,21 @@ Vim には Typst ファイル用のコンパイラプラグインが含まれて
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#errorformat" name="errorformat">errorformat</a>&nbsp;<a class="Constant" href="quickfix.html#E372" name="E372">E372</a>&nbsp;<a class="Constant" href="quickfix.html#E373" name="E373">E373</a>&nbsp;<a class="Constant" href="quickfix.html#E374" name="E374">E374</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="quickfix.html#E375" name="E375">E375</a>&nbsp;<a class="Constant" href="quickfix.html#E376" name="E376">E376</a>&nbsp;<a class="Constant" href="quickfix.html#E377" name="E377">E377</a>&nbsp;<a class="Constant" href="quickfix.html#E378" name="E378">E378</a><br>
-<a class="Type" href="options.html#'errorformat'">'errorformat'</a>&nbsp;オプションは認識されるエラーフォーマットのリストを指定する。その<br>
-中からエラーメッセージにマッチした最初のフォーマットが使われる。複数のフォーマッ<br>
-トを指定して、数種類のメッセージに対応したり、複数のコンパイラに対応したりする<br>
-ことができる。<a class="Identifier" href="quickfix.html#efm-entries">efm-entries</a>を参照。<br>
+<a class="Type" href="options.html#'errorformat'">'errorformat'</a>&nbsp;オプションは、Vim がコンパイラの出力を読み取る際に使用するパター<br>
+ンを指定する。パターンを使用すると、各行からファイル名、行番号、列番号、および<br>
+メッセージを抽出できる。エラーメッセージにマッチする最初のフォーマットが使用さ<br>
+れる。コンパイラが出力するさまざまなメッセージに対応するフォーマットを複数追加<br>
+したり、複数のコンパイラ用の設定を追加したりすることも可能であ<br>
+る。<a class="Identifier" href="quickfix.html#efm-entries">efm-entries</a>&nbsp;を参照。<br>
 <br>
 <a class="Type" href="options.html#'errorformat'">'errorformat'</a>&nbsp;の各要素は、scanfに似たフォーマットを記述する文字列である。はじ<br>
 めに、scanfがどのように働くか知る必要がある。Cコンパイラのドキュメントを読むこ<br>
 と。以下はVimが理解する%の項目である。他は無効になる。<br>
+<br>
+クイックスタート: Vim には、一般的なコンパイラ向けのフォーマットがすでに多数組<br>
+み込まれている。独自のフォーマットを作成する前に、<a class="Identifier" href="quickfix.html#errorformats">errorformats</a>&nbsp;で例を確認す<br>
+ること。該当する例がない場合は、以下の基本的な項目から始め、必要に応じて既存の<br>
+例を適宜調整すること。<br>
 <br>
 <a class="Type" href="options.html#'errorformat'">'errorformat'</a>&nbsp;中の特別な文字はコンマとバックスラッシュである。それがどう扱われ<br>
 るかは<a class="Identifier" href="quickfix.html#efm-entries">efm-entries</a>を参照。<span class="Todo">Note</span>&nbsp;&quot;%%&quot; はリテラル &quot;%&quot; にマッチする。よってこれは<br>
@@ -1784,6 +1866,7 @@ Vimは任意の長さの行を読み取るが、最初の4095バイトのみが�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;w - 警告メッセージ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i - 情報メッセージ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n - ノートメッセージ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;大文字の E、W、I、<span class="Special">N</span>&nbsp;も認識され、同様の意味を持つ。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;エラー番号 (数字を検索)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%m&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;エラーメッセージ (文字列を検索)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%r&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;その行の残り全部 %O/%P/%Q<br>
@@ -2094,6 +2177,12 @@ GNU-Makeではディレクトリに入ったり出たりすると常に絶対パ
 &quot;-C dir&quot; (makefileの読みこみ前にディレクトリを変更) なのかには因らない。<br>
 GNU-Makeに強制的に処理の前後にワーキングディレクトリを表示されるためにスイッ<br>
 チ &quot;-w&quot; を使用するのは便利かもしれない。<br>
+<br>
+この点が問題となるのは、コンパイラの出力に複数のディレクトリにまたがる相対ファ<br>
+イル名が含まれている場合だけである。出力においてディレクトリの変更が明示的に示<br>
+されないと、Vim は推測に頼らざるを得ず、誤ったファイルを選択してしまう可能性が<br>
+ある。絶対ディレクトリ名を出力し、ディレクトリに入った際と抜けた際の両方のメッ<br>
+セージを表示することで、この問題を回避できる。<br>
 <br>
 GNU-makeを使用しない場合、正しいディレクトリを管理する事はもっと複雑になる。<br>
 例えばAIX-makeはワーキングディレクトリに関してなんの情報も表示しない。<br>
