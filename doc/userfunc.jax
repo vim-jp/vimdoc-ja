@@ -1,4 +1,4 @@
-*userfunc.txt*	For Vim バージョン 9.2.  Last change: 2026 May 31
+*userfunc.txt*	For Vim バージョン 9.2.  Last change: 2026 Sep 30
 
 
 		  VIM リファレンスマニュアル    by Bram Moolenaar
@@ -171,7 +171,7 @@
 			は、|:bar| の代わりに改行を使用する: >
 				:exe "func Foo()\necho 'foo'\nendfunc"
 <
-				*:delf* *:delfunction* *E131* *E933* *E1084*
+				*:delf* *:delfunction* *E131* *E933*
 :delf[unction][!] {name}
 			関数{name}を削除する。
 			{name}は辞書|Dictionary|の要素の|Funcref|であってもよ
@@ -181,6 +181,9 @@
 			の参照がなくなると、関数は削除される。
 			! が付いていると、関数が存在していなくてもエラーが発生
 			しない。
+			Vim9 script では、スクリプトローカルな関数を削除しよう
+			とすると、|E1084| が発生する。
+
 							*:retu* *:return* *E133*
 :retu[rn] [expr]	関数から戻る。[expr] が与えられた場合、それは評価され
 			関数の結果として返される。[expr] が与えられない場合、
@@ -189,8 +192,13 @@
 
 			|Vim9| script の場合:
 			- `:return` は短縮できない、そして
-			- `:return` の後に実行不可能なコードが続く場合は、
-			  *E1095* が与えられる。例:
+			- 条件なしの `:return` や `:throw` に続いてコマンドが
+			  記述された場合、 *E1095* が発生する。すべての分岐が
+			  `:return` または `:throw` で終了する場合、
+			  `:if`/`:elseif`/`:else` の一連の構造全体も終了したも
+			  のとみなされる。`:else` を伴わない `:if` や、通常の
+			  処理が継続し得る分岐が存在する場合、それに続くコマン
+			  ドが到達不能になることはない。例:
 >vim9
 			  vim9script
 			  var L: func = (): bool => {
@@ -198,6 +206,26 @@
 			    echo 'no'  # E1095: Unreachable code after :return
 			  }
 			  echo L()
+<
+			  `:try` についても同様のチェックが適用される。つまり、
+			  終了処理を行う `:finally` ブロックによって上書きされ
+			  ない限り、`:try` の本体およびすべての `:catch` ブロッ
+			  クは終了しなければならない。ループ内では、`:break`
+			  や `:continue` はループ本体内の後続のコマンドを到達
+			  不能にするが、ループより後のコマンドを到達不能にする
+			  わけではない。例えば、`:if`/`:else` のすべての分岐で
+			  `return` が行われる場合、`:endif` より後のコマンドは
+			  到達不能となる。
+>vim9
+			  vim9script
+			  def AllBranchesReturn(n: number): number
+			    if n > 0
+			      return 1
+			    else
+			      return 0
+			    endif
+			    echo 'no'  # E1095: Unreachable code after :return
+			  enddef
 <
 			旧来の Vim script では、到達不可能な行のチェックは行わ
 			れないため、コマンドが `:return` の後に続く場合でも警
