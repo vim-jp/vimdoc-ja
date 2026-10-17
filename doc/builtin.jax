@@ -1,4 +1,4 @@
-*builtin.txt*	For Vim バージョン 9.2.  Last change: 2026 Sep 14
+*builtin.txt*	For Vim バージョン 9.2.  Last change: 2026 Sep 30
 
 
 		  VIM リファレンスマニュアル	by Bram Moolenaar
@@ -147,7 +147,7 @@ charcol({expr} [, {winid}])	数値	カーソルかマークのカラム番号
 charidx({string}, {idx} [, {countcc} [, {utf16}]])
 				数値	{string} のバイト {idx} の文字のイン
 					デックス
-chdir({dir})			文字列	現在の作業ディレクトリを変更する
+chdir({dir} [, {scope}])	文字列	現在の作業ディレクトリを変更する
 cindent({lnum})			数値	{lnum}行目のCインデント量
 clearmatches([{win}])		なし	全マッチをクリアする
 cmdcomplete_info()		辞書	現在のコマンドライン補完の情報を取得
@@ -192,7 +192,7 @@ escape({string}, {chars})	文字列	{string}内の{chars}を '\' でエスケー
 eval({string})			任意	{string}を評価し、値を得る
 eventhandler()			数値	イベントハンドラの内側なら|TRUE|
 executable({expr})		数値	実行可能な{expr}が存在するなら1
-execute({command})		文字列	{command}を実行し、出力を得る
+execute({command} [, {silent}])	文字列	{command}を実行し、出力を得る
 exepath({expr})			文字列	コマンド {expr} のフルパス
 exists({expr})			数値	変数{expr}が存在したら|TRUE|
 exists_compiled({expr})		数値	変数 {var} がコンパイル時に存在したら
@@ -233,12 +233,12 @@ fnameescape({fname})		文字列	{fname} 内の特殊文字をエスケープす�
 fnamemodify({fname}, {mods})	文字列	ファイル名を変更
 foldclosed({lnum} [, {winid}])	数値	{lnum}の折り畳みの最初の行(閉じている
 					なら)
-foldclosedend({lnum} [, {winid}]))
+foldclosedend({lnum} [, {winid}])
 				数値	{lnum}の折り畳みの最後の行(閉じている
 					なら)
-foldlevel({lnum} [, {winid}]))	数値	{lnum}の折り畳みレベル
+foldlevel({lnum} [, {winid}])	数値	{lnum}の折り畳みレベル
 foldtext()			文字列	閉じた折り畳みに表示されている行
-foldtextresult({lnum} [, {winid}]))
+foldtextresult({lnum} [, {winid}])
 				文字列	{lnum}で閉じている折り畳みのテキスト
 foreach({expr1}, {expr2})	リスト/Tuple/辞書/Blob/文字列
 					{expr1} の各項目に対して {expr2} を呼
@@ -293,6 +293,8 @@ getfsize({fname})		数値	ファイル{fname}のバイト数を取得
 getftime({fname})		数値	ファイルの最終更新時間
 getftype({fname})		文字列	ファイル{fname}の種類の説明
 getimstatus()			数値	IME がアクティブの場合は |TRUE|
+getinfo({kind}, {name} [, {opts}])
+				辞書	{name} の定義
 getjumplist([{winnr} [, {tabnr}]])
 				リスト	ジャンプリスト要素のリスト
 getline({lnum})			文字列	現在のバッファから行の内容を取得
@@ -357,10 +359,13 @@ hlset({list})			数値	highlight group の属性を設定
 hostname()			文字列	vimが動作しているマシンの名前
 iconv({expr}, {from}, {to})	文字列	{expr}のエンコーディングを変換する
 id({item})			文字列	一意の ID 文字列を取得
+image_add({dict})		数値	画像を追加し、そのハンドルを返す
+image_discard({id})		なし	画像のハンドルを破棄する
+image_info([{id}])		リスト	画像に関する情報を取得する
 indent({lnum})			文字列	行{lnum}のインデントを取得
 index({object}, {expr} [, {start} [, {ic}]])
 				数値	{object}中に{expr}が現れる位置
-indexof({object}, {expr} [, {opts}]])
+indexof({object}, {expr} [, {opts}])
 				数値	{expr} が true となる {object} 内のイ
 					ンデックス
 input({prompt} [, {text} [, {completion}]])
@@ -374,7 +379,8 @@ inputsecret({prompt} [, {text}])
 				文字列	input()だがテキストを隠す
 insert({object}, {item} [, {idx}])
 				リスト	{object}に要素{item}を挿入 [{idx}の前]
-instanceof({object}, {class})	真偽値	{object} が {class} のインスタンスの場
+instanceof({object}, {class} ...)
+				真偽値	{object} が {class} のインスタンスの場
 					合は |TRUE|
 interrupt()			なし	スクリプトの実行を中断する
 invert({expr})			数値	ビット反転
@@ -434,6 +440,8 @@ mapnew({expr1}, {expr2})	リスト/辞書/Blob/文字列
 					作る
 mapset({mode}, {abbr}, {dict})	なし	|maparg()| の結果からマッピングを復元
 					する
+mapset({dict})			なし	|maparg()| の結果からマッピングを復元
+					する
 match({expr}, {pat} [, {start} [, {count}]])
 				数値	{expr}内で{pat}がマッチする位置
 matchadd({group}, {pattern} [, {priority} [, {id} [, {dict}]]])
@@ -441,7 +449,7 @@ matchadd({group}, {pattern} [, {priority} [, {id} [, {dict}]]])
 matchaddpos({group}, {pos} [, {priority} [, {id} [, {dict}]]])
 				数値	位置を {group} で強調表示する
 matcharg({nr})			リスト	`:match` の引数
-matchbufline({buf}, {pat}, {lnum}, {end}, [, {dict})
+matchbufline({buf}, {pat}, {lnum}, {end} [, {dict})
 				リスト	バッファ {buf} 内のすべての {pat} の
 					マッチ
 matchdelete({id} [, {win}])	数値	{id} で指定されるマッチを削除する
@@ -457,7 +465,7 @@ matchlist({expr}, {pat} [, {start} [, {count}]])
 				リスト	{expr}内の{pat}のマッチと部分マッチ
 matchstr({expr}, {pat} [, {start} [, {count}]])
 				文字列	{expr}内の{count}番目の{pat}のマッチ
-matchstrlist({list}, {pat} [, {dict})
+matchstrlist({list}, {pat} [, {dict}])
 				リスト	{list} 内のすべての {pat} にマッチ
 matchstrpos({expr}, {pat} [, {start} [, {count}]])
 				リスト	{expr}内の{count}番目の{pat}のマッチ
@@ -469,7 +477,7 @@ mkdir({name} [, {flags} [, {prot}]])
 mode([{expr}])			文字列	現在の編集モード
 mzeval({expr})			任意	|MzScheme| の式を評価する
 nextnonblank({lnum})		数値	{lnum}行目以降で空行でない行の行番号
-ngettext({single}, {plural}, {number}[, {domain}])
+ngettext({single}, {plural}, {number} [, {domain}])
 				文字列	{number} に基づいてテキストを翻訳する
 nr2char({expr} [, {utf8}])	文字列	ASCII/UTF-8コード{expr}で示される文字
 or({expr}, {expr})		数値    ビット論理和
@@ -480,7 +488,7 @@ popup_atcursor({what}, {options})
 					を作成する
 popup_beval({what}, {options})	数値	'balloon_eval' のポップアップウィンド
 					ウを作成する
-popup_clear()			なし	すべてのポップアップウィンドウを閉じる
+popup_clear([{force}])		なし	すべてのポップアップウィンドウを閉じる
 popup_close({id} [, {result}])	なし	{id} のポップアップウィンドウを閉じる
 popup_create({what}, {options})	数値	ポップアップウィンドウを作成する
 popup_dialog({what}, {options}) 数値	ダイアログとしてポップアップウィンドウ
@@ -523,7 +531,7 @@ pow({x}, {y})			浮動小数点数	{x} の {y} 乗
 preinserted()			数値	カーソルの後ろにテキストが挿入されたか
 					どうか
 prevnonblank({lnum})		数値	{lnum}行目以前の空行でない行の行番号
-printf({fmt}, {expr1}...)	文字列	文字列を組み立てる
+printf({fmt} [, {expr1} ...])	文字列	文字列を組み立てる
 prompt_getprompt({buf})		文字列	プロンプト文字列の取得
 prompt_setcallback({buf}, {expr})
 				なし	プロンプトコールバック関数を設定する
@@ -623,7 +631,7 @@ searchpos({pattern} [, {flags} [, {stopline} [, {timeout} [, {skip}]]]])
 				リスト	{pattern}を検索
 server2client({clientid}, {string})
 				数値	返信文字列を送信する
-serverlist()			文字列	利用可能なサーバーのリストを取得
+serverlist([{dict}])		文字列	利用可能なサーバーのリストを取得
 setbufline({buf}, {lnum}, {text})
 				数値	バッファ {buf} の {lnum} 行目に {text}
 					を設定する
@@ -634,6 +642,8 @@ setcharpos({expr}, {list})	数値	{list} の {expr} 位置に設定
 setcharsearch({dict})		なし	文字検索を{dict}に設定
 setcmdline({str} [, {pos}])	数値	コマンドラインを設定する
 setcmdpos({pos})		数値	コマンドライン内のカーソル位置を設定
+setcursorcharpos({lnum}, {col} [, {off}])
+				数値	{lnum}, {col}, {off} へカーソルを移動
 setcursorcharpos({list})	数値	{list} の位置へカーソルを移動
 setenv({name}, {val})		なし	環境変数を設定
 setfperm({fname}, {mode})	数値	ファイル {fname} のパーミッションを
@@ -697,7 +707,7 @@ sound_playfile({path} [, {callback}])
 				数値	サウンドファイル{path}を再生する
 sound_stop({id})		なし	サウンド{id}の再生を停止する
 soundfold({word})		文字列	{word}のsound-fold
-spellbadword()			リスト	カーソル位置のスペルミスした単語
+spellbadword([{sentence}])	リスト	カーソル位置のスペルミスした単語
 spellsuggest({word} [, {max} [, {capital}]])
 				リスト	スペリング補完
 split({expr} [, {pat} [, {keepempty}]])
@@ -785,7 +795,7 @@ term_getscrolled({buf})		数値	端末のスクロール数を取得する
 term_getsize({buf})		リスト	端末のサイズを取得する
 term_getstatus({buf})		文字列	端末の状態を取得する
 term_gettitle({buf})		文字列	端末のタイトルを取得する
-term_gettty({buf}, [{input}])	文字列	端末の tty 名を取得する
+term_gettty({buf} [, {input}])	文字列	端末の tty 名を取得する
 term_list()			リスト	端末バッファのリストを取得する
 term_scrape({buf}, {row})	リスト	端末スクリーンの行を取得する
 term_sendkeys({buf}, {keys})	なし	キー入力を端末に送信する
@@ -857,7 +867,7 @@ utf16idx({string}, {idx} [, {countcc} [, {charidx}]])
 				数値	{string} のバイト {idx} の UTF-16 イン
 					デックス
 values({dict})			リスト	{dict}の値のリスト
-virtcol({expr} [, {list} [, {winid}])
+virtcol({expr} [, {list} [, {winid}]])
 				数値/リスト
 					カーソルまたはマークのスクリーン桁
 virtcol2col({winid}, {lnum}, {col})
@@ -873,8 +883,10 @@ win_gettype([{nr}])		文字列	ウィンドウ {nr} の型
 win_gotoid({expr})		数値	ID {expr}のウィンドウに行く
 win_id2tabwin({expr})		リスト	ウィンドウIDからタブとウィンドウnr取得
 win_id2win({expr})		数値	ウィンドウIDからウィンドウnr取得
-win_move_separator({nr})	数値	ウィンドウの垂直セパレータの移動
-win_move_statusline({nr})	数値	ウィンドウのステータス行の移動
+win_move_separator({nr}, {offset})
+				数値	ウィンドウの垂直セパレータの移動
+win_move_statusline({nr}, {offset})
+				数値	ウィンドウのステータス行の移動
 win_screenpos({nr})		リスト	ウィンドウ {nr} のスクリーン位置を取得
 					する
 win_splitmove({nr}, {target} [, {options}])
@@ -4678,6 +4690,197 @@ getimstatus()						*getimstatus()*
 		戻り値の型: |Number|
 
 
+getinfo({kind}, {name} [, {opts}])			*getinfo()*
+		{name} の定義を含む辞書を返す。{kind} は {name} を何として検索
+		するかを指定するもので、"function"、"command"、"option"、また
+		は "vimvar" のいずれかである。それ以外の {kind} を指定するとエ
+		ラーになる。{name} が見つからない場合、結果は空の辞書となる。
+
+		すべての辞書には "available" という項目が含まれている。この項
+		目は、現在の Vim のビルドに含まれていない機能やオプション、あ
+		るいは実装されていない Ex コマンドに対しては |FALSE| となる。
+		その他の項目は {kind} によって決まり、オプションの辞書である
+		{opts} の項目も同様である。別の {kind} に対応する {opts} の項
+		目を指定するとエラーになる。
+
+		"function"	組み込み関数、あるいは同名の組み込み関数が存在
+				しない場合はユーザー定義関数。"s:Func" はその
+				スクリプト内のスクリプトローカル関数を指し、
+				"<SNR>12_Func" という名前はどこからでもその関
+				数を指す。
+
+			組み込み関数の場合:
+			name	関数名
+			kind	"builtin"
+			minargs	必要とされる引数の数
+			maxargs	引数の最大数。上限がない場合は -1
+			method	|method| 呼び出しにおいてベースとして渡される
+				引数の番号。関数がメソッドとして使用できない場
+				合は 0
+			args	各引数に対応する辞書を含むリスト:
+				name	ヘルプに記載されている引数名。ヘルプに
+					名前の記載がない場合はなし
+				types	引数が受け付ける型を示す文字列のリス
+					ト。|vim9-types| 参照。チェックされな
+					い引数や、他の引数に対してチェックが行
+					われる引数の場合は "any" となる
+				引数の最大数が決まっていない関数の場合、最後の
+				項目は残りのすべての引数を表す。
+			returns	戻り値の型を示す文字列。関数が何も返さない場合
+				は "void"、型が引数に依存し、かつ {opts} 内の
+				"argtypes" が指定されていない場合は "any" にな
+				る。
+
+			例: >
+				echo getinfo('function', 'strlen')
+<			{'name': 'strlen', 'kind': 'builtin',
+			'available': v:true, 'minargs': 1, 'maxargs': 1,
+			'method': 1,
+			'args': [{'name': 'string',
+				  'types': ['string', 'number']}],
+			'returns': 'number'}
+
+			{opts} に |vim9-types| のリストを持つ "argtypes" 項目
+			があるとき、"returns" はそれらの型の引数で呼んだときの
+			型になる。リストに無い必須の引数は "any" とみなす。
+			"maxargs" より多い型や不明な型を渡すとエラーになる。引
+			数が受け付けない型はチェックしない。例: >
+				let opts = {'argtypes': ['list<number>']}
+				echo getinfo('function', 'sort', opts).returns
+<			list<number>
+
+			ユーザー定義関数の場合:
+			name	関数名。スクリプトローカルな関数の場合は、
+				"<SNR>12_Func" のように、先頭にスクリプト ID
+				を付加する
+			kind	|:function| の場合は "function"、|:def| の場合
+				は "def"
+			args	各引数に対応する辞書を含むリスト:
+				name	引数名
+				type	型を示す文字列。|vim9-types| 参照。
+					|:function| で定義された関数の場合は
+					"any" となる
+				default	デフォルト値の式を示す文字列。デフォル
+					ト値が存在する場合にのみ存在する。
+			varargs	可変引数 |...| の辞書。可変引数を持つ場合のみ
+				存在する
+				name	引数名。"..." の場合は空の文字列
+				type	型を示す文字列。|:function| で定義され
+					た関数の場合は "list<any>"
+			returns	戻り値の型を示す文字列。関数が何も返さない場合
+				は "void"、|:function| で定義された関数の場合
+				は "any"
+			abort	関数がエラーで中断する場合は |TRUE|。
+				|:func-abort| 参照
+			range	関数が範囲指定を取る場合は |TRUE|。
+				|:func-range| 参照
+			dict	|Dictionary-function| の場合は |TRUE|
+			closure	クロージャの場合は |TRUE|。 |:func-closure| 参照
+			sid	その関数が定義されたスクリプト ID
+			lnum	スクリプトの行番号
+
+			例: >
+				def g:Twice(n: number): number
+				  return n * 2
+				enddef
+				echo getinfo('function', 'g:Twice')
+<			{'name': 'Twice', 'kind': 'def', 'available': v:true,
+			'args': [{'name': 'n', 'type': 'number'}],
+			'returns': 'number', 'abort': v:false,
+			'range': v:false, 'dict': v:false,
+			'closure': v:false, 'sid': 1, 'lnum': 1}
+
+		"command"	Ex コマンド。{name} は省略可能である。
+				|exists()| の場合と同様に、まずユーザー定義コ
+				マンドが検索される。曖昧な省略形の場合、辞書は
+				空になる。
+			name	コマンドの完全な名前
+			kind	組み込みコマンドは "builtin"、|:silent| のよう
+				なコマンド修飾子は "modifier"、ユーザー定義コ
+				マンドは"user"
+			nargs	|:command-nargs| に対応する引数の数を表す文字
+				列: "0", "1", "_", "*", "?", "+" のいずれか
+			range	範囲指定が許可されない場合は |FALSE|。それ以外
+				の場合はデフォルトの範囲。カーソル行なら "."、
+				バッファ全体なら "%"、あるいは
+				|:command-range| と同様の数値
+			count	|:command-count| のように回数指定が許可されて
+				いない場合は |FALSE|、それ以外の場合はデフォル
+				トの回数
+			bang	名前の後に "!" を付けることが許可されている場
+				合、|TRUE|
+			bar	"|" がコマンドを終了させる場合は、|TRUE|。
+				|:bar| を参照
+			register
+				レジスタ名が受け入れられた場合、|TRUE|
+			addr	範囲が何を参照するかを示す文字列:
+				|:command-addr| の値、または組み込みコマンドの
+				場合は"none"、"tabs_relative"、
+				"quickfix_valid"、"unsigned"のいずれか
+
+			"user" のみ:
+			buffer	バッファローカルなコマンドの場合は |TRUE|
+			complete
+				|:command-complete| に基づく補完を含む文字列、
+				または補完がない場合は空の文字列
+			definition
+				置換後のテキスト
+			sid	その関数が定義されたスクリプト ID
+			lnum	スクリプトの行番号
+
+			{opts} に |TRUE| である "vim9" という項目が含まれてい
+			る場合、コマンドは |Vim9| script と同様に検索される
+			(つまり、短縮形は受け入れられず、一部のコマンドは存在
+			しない)。|FALSE| の場合は、旧来の Vim script と同様に
+			検索される。この項目が指定されていない場合は、呼び出し
+			元のコンテキストが使用される。
+
+			例: >
+				echo getinfo('command', 's')
+<			{'name': 'substitute', 'kind': 'builtin',
+			'available': v:true, 'nargs': '*', 'range': '.',
+			'count': v:false, 'bang': v:false, 'bar': v:false,
+			'register': v:false, 'addr': 'lines'}
+
+		"option"	オプション。この Vim ではサポートされていない
+				オプションも存在する。|hidden-options| 参照。
+			name	オプションの正式名称
+			shortname
+				省略形。省略形がない場合は空の文字列
+			type	"bool"、"number" または "string"
+			scope	"global"、"window"、"buffer"、"global-window"、
+				"global-buffer"。|global-local| 参照
+			default	"type" に合わせ、Vim のデフォルト値を真偽値、
+				数値、または文字列として指定する。
+
+			例: >
+				echo getinfo('option', 'tw')
+<			{'name': 'textwidth', 'shortname': 'tw',
+			'available': v:true, 'type': 'number',
+			'scope': 'buffer', 'default': 0}
+
+		"vimvar"	定義済み Vim 変数。|v:var| 参照。
+				{name} は "v:count" のように "v:" で始まる必要
+				がある。
+			name	"v:" を含む変数名
+			type	型を示す文字列。|vim9-types| 参照
+			readonly
+				変数を設定できない場合 |TRUE|
+			compat	v:count における "count" のように、変数が "v:"
+				なしでも使用できる場合は |TRUE|
+
+			例: >
+				echo getinfo('vimvar', 'v:count')
+<			{'name': 'v:count', 'available': v:true,
+			'type': 'number', 'readonly': v:true,
+			'compat': v:true}
+
+		|method| としても使用できる: >
+			GetName()->getinfo('function')
+<
+		戻り値の型: dict<any>
+
+
 getjumplist([{winnr} [, {tabnr}]])			*getjumplist()*
 		指定されたウィンドウの |jumplist| を返す。
 
@@ -5171,7 +5374,7 @@ getregionpos({pos1}, {pos2} [, {opts}])			*getregionpos()*
 		|getregion()| と同じだが、{pos1} と {pos2} によって囲まれたバッ
 		ファのテキストセグメントを表す位置のリストを返す。
 		セグメントは、各行の位置のペアである: >
-			[[{start_pos}, {end_pos}], ...]
+			[[{startpos}, {endpos}], ...]
 <
 		位置は 4 つの数値の |List| である:
 		    [bufnum, lnum, col, off]
@@ -5197,9 +5400,9 @@ getregionpos({pos1}, {pos2} [, {opts}])			*getregionpos()*
 
 			bounds		|TRUE| の場合、領域の外側の境界のみを
 					単一のペアとして返す: >
-						[[{start_pos}, {end_pos}]]
-<					{start_pos} は領域の最初の行における開
-					始位置、{end_pos} は最後の行における終
+						[[{startpos}, {endpos}]]
+<					{startpos} は領域の最初の行における開
+					始位置、{endpos} は最後の行における終
 					了位置である。その間の行は処理の対象と
 					ならないため、大きな領域を扱う場合には
 					るかに高速に動作する。
@@ -5215,8 +5418,8 @@ getregionpos({pos1}, {pos2} [, {opts}])			*getregionpos()*
 		のではなく、その領域の対角線を表すことになる点に注意。ブロック
 		単位の領域の場合、これらはブロックの隅ではなく、最初の行の開始
 		位置と最後の行の終了位置となる。同様に、最初の行が空で "eol"
-		が |FALSE| の場合、{start_pos} の "col" は 0 になるが、
-		{end_pos} は必ずしもそうとは限らない。
+		が |FALSE| の場合、{startpos} の "col" は 0 になるが、{endpos}
+		は必ずしもそうとは限らない。
 
 		|method| としても使用できる: >
 			getpos('.')->getregionpos(getpos("'a"))
@@ -6115,6 +6318,80 @@ indexof({object}, {expr} [, {opts}])			*indexof()*
 		戻り値の型: |Number|
 
 
+image_add({dict})					*image_add()*
+		{dict} に含まれる情報を使用して画像を追加する。この操作では画
+		像は表示されず、単に画像データが読み込まれるだけである。これに
+		より、(例えば、ポップアップウィンドウなど) 他の場所でその画像
+		を複数回参照できるようになる。
+
+		{dict} 引数には、以下のフィールドが含まれている必要がある:
+		    "data"	RGB または RGBA データを含む blob。その形式は、
+				寸法と blob サイズを使用して自動的に検出される。
+		    "width"	ピクセル単位の画像の幅
+		    "height"	ピクセル単位の画像の高さ
+
+							*E1584*
+		画像の画素数は 2,147,483,647 ピクセルを超えてはならない。つま
+		り、"幅" x "高さ" が 32 ビット符号付き整数の範囲に収まる必要が
+		ある。
+
+		戻り値は、その画像を参照するために使用できる任意の ID である。
+
+		{|+image| 機能付きでコンパイルされたときのみ有効}
+
+		|method| としても使用できる: >
+			info->image_add()
+<
+		戻り値の型: |Number|
+
+
+image_discard({id})					*image_discard()*
+		ID {id} を持つ画像を破棄し、内部的にその参照カウントを減らす。
+		画像が実際に削除されるのは、その画像への参照がなくなった時点の
+		みである。Note この操作を行った後は、当該画像やその ID を参照
+		したり変更したりすることはできないことに注意。この関数は
+		|image_add()| で作成された画像に対してのみ機能する。ポップアッ
+		プウィンドウから直接作成された画像は、破棄したり他の場所から参
+		照したりすることはできない。
+
+		例えば、ポップアップウィンドウから参照されている画像を破棄した
+		場合でも、そのポップアップウィンドウには引き続き画像が表示され
+		る。
+
+		無効な画像 ID を指定するのはエラーである |E1587|。
+
+		{|+image| 機能付きでコンパイルされたときのみ有効}
+
+		|method| としても使用できる: >
+			id->image_discard()
+<
+		戻り値の型: void
+
+
+image_info([{id}])					*image_info()* *E1587*
+		読み込まれた画像に関する情報を含むリストを返す。
+		{id} が指定された場合、その画像に関する情報のみが返される。無
+		効な画像 ID を使用するとエラーになる。
+
+		{id} が省略された場合、すべての画像に関する情報が返される。
+
+		各画像について、情報は以下の項目を含む |Dictionary| に格納され
+		る:
+		    "id"	画像 ID
+		    "data"	画像データの新たにコピーされた blob
+		    "width"	ピクセル単位の画像の幅
+		    "height"	ピクセル単位の画像の高さ
+		    "alpha"	画像にアルファチャネル (RGBA) がある場合
+		    "format"	画像フォーマット。"rgb" または "rgba"
+
+		{|+image| 機能付きでコンパイルされたときのみ有効}
+
+		|method| としても使用できる: >
+			GetImage()->image_info()
+<
+		戻り値の型: list<dict<any>>
+
+
 input({prompt} [, {text} [, {completion}]])		*input()*
 		結果は文字列で、ユーザーがコマンドラインに入力したものが返され
 		る。引数 {prompt} にはプロンプト文字列か空文字列を指定する。空
@@ -6265,7 +6542,7 @@ insert({object}, {item} [, {idx}])			*insert()*
 		戻り値の型: |Number|
 
 
-instanceof({object}, {class})			*instanceof()* *E616* *E693*
+instanceof({object}, {class} ...)		*instanceof()* *E616* *E693*
 		結果は数値で、{object} 引数が {class} で指定された |Class|,
 		|Interface|, または、クラスの |:type| エイリアスの直接または間
 		接インスタンスである場合に |TRUE| となる。
@@ -7452,7 +7729,7 @@ matcharg({nr})						*matcharg()*
 		戻り値の型: list<string>
 
 
-matchbufline({buf}, {pat}, {lnum}, {end}, [, {dict}])	*matchbufline()*
+matchbufline({buf}, {pat}, {lnum}, {end} [, {dict}])	*matchbufline()*
 		バッファ {buf} 内の {lnum} から {end} までの行で、{pat} がマッ
 		チした行の |List| を返す。
 
@@ -7504,7 +7781,7 @@ matchbufline({buf}, {pat}, {lnum}, {end}, [, {dict}])	*matchbufline()*
 		戻り値の型: list<dict<any>> または list<any>
 
 
-matchdelete({id} [, {win})			*matchdelete()* *E802* *E803*
+matchdelete({id} [, {win}])			*matchdelete()* *E802* *E803*
 		|matchadd()| または |:match| で定義したマッチの中で ID が {id}
 		であるものを削除する。成功したときは 0、失敗したときは
 		-1 を返す。|matchadd()| の例を参照。すべてのマッチを削除するの
@@ -7996,7 +8273,7 @@ nextnonblank({lnum})					*nextnonblank()*
 <
 		戻り値の型: |Number|
 
-ngettext({single}, {plural}, {number}[, {domain})	*ngettext()*
+ngettext({single}, {plural}, {number} [, {domain}])	*ngettext()*
 		言語の複数形の規則に基づいて、メッセージの正しい値を含む文字列
 		を返す。例: >
 			ngettext("File", "Files", 2)  # "Files" を返す
@@ -8132,7 +8409,7 @@ prevnonblank({lnum})					*prevnonblank()*
 		戻り値の型: |Number|
 
 
-printf({fmt}, {expr1} ...)				*printf()*
+printf({fmt} [, {expr1} ...])				*printf()*
 		{fmt}にしたがって組み立てた文字列を返す。{fmt}中の "%" 変換指
 		示子は、対応する引数の値で置き換えられる。例: >
 			printf("%4d: E%d %.30s", lnum, errno, msg)
@@ -9066,7 +9343,7 @@ remote_peek({serverid} [, {retvar}])			*remote_peek()*
 		戻り値の型: |Number|
 
 
-remote_read({serverid}, [{timeout}])			*remote_read()*
+remote_read({serverid} [, {timeout}])			*remote_read()*
 		{serverid}からの返信の中で最も古いものを取り出して返す。取り出
 		した返信はキューから取り除かれる。キューに返信が入っていないと
 		きは、{timeout} (秒単位) が与えられていない限り返信を取り出せ
@@ -9355,6 +9632,9 @@ screenpos({winid}, {lnum}, {col})			*screenpos()*
 		|conceal| 機能はここでは無視され、列の数字は 'conceallevel' が
 		0のときと同じになる。カーソルを正しい位置に設定して
 		|screencol()| を使うことで |conceal| を考慮した値を取得できる。
+		行の上の |virtual-text| はそれ専用の画面行を占有し、行数として
+		カウントされる。そのため、その行の最初の文字は、その下の画面行
+		に配置されることになる。
 		位置が閉じた折り畳みの中である場合、最初の文字の画面上の位置が
 		返され、{col} は使用されない。
 		{winid} が無効な場合は空の辞書を返す。
@@ -9897,6 +10177,8 @@ setcellwidths({list})					*setcellwidths()*
 		内でカーソルを移動して、端末のセル幅が各絵文字について Vim が
 		認識している内容とマッチするかどうかを確認する。正しく見えない
 		場合は、{list} 引数を調整する必要がある。
+
+		後で上書き設定を取得するには、|getcellwidths()| を使用できる。
 
 		戻り値の型: void
 
@@ -12451,6 +12733,11 @@ virtcol({expr} [, {list} [, {winid}]])			*virtcol()*
 		われる。
 		現在のモードに対して仮想編集がオンのときは、行末を越えた位置が
 		返ってくることもある。'virtualedit' も参照。
+
+		行の上部に表示される |virtual-text| は、それ専用の画面行を占有
+		し、折り返された行と同様にカウントされる。つまり、ウィンドウの
+		幅が 80 桁の場合、その行の最初の文字は仮想的な 81 桁目に位置す
+		ることになる。
 
 		{list} が存在し、非ゼロの場合、virtcol() は、文字が占める最初
 		と最後のスクリーン位置を含むリストを返す。
