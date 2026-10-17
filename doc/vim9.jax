@@ -1874,65 +1874,66 @@ Warning: このスクリプトは、この vim9.txt ヘルプバッファの "He
 
 ==============================================================================
 
-4. 型					*vim9-types*
+4. 型							*vim9-types*
 
 対応する内部 |v:t_TYPE| 変数とともに表示される以下の型がサポートされている。
 
-	number					|v:t_number|
-	string					|v:t_string|
-	func					|v:t_func|
-	func: {type}				|v:t_func|
-	func({type}, ...)			|v:t_func|
-	func({type}, ...): {type}		|v:t_func|
-	list<{type}>				|v:t_list|
-	dict<{type}>				|v:t_dict|
-	float					|v:t_float|
-	bool					|v:t_bool|
-	none					|v:t_none|
-	job					|v:t_job|
-	channel					|v:t_channel|
-	blob					|v:t_blob|
-	class					|v:t_class|
-	object					|v:t_object|
-	typealias				|v:t_typealias|
-	enum					|v:t_enum|
-	enumvalue				|v:t_enumvalue|
-	tuple<{type}>				|v:t_tuple|
-	tuple<{type}, {type}, ...>		|v:t_tuple|
-	tuple<...list<{type}>>			|v:t_tuple|
-	tuple<{type}, ...list<{type}>>		|v:t_tuple|
+	number				|v:t_number|
+	string				|v:t_string|
+	func				|v:t_func|
+	func: {type}			|v:t_func|
+	func({type}, ...)		|v:t_func|
+	func({type}, ...): {type}	|v:t_func|
+	list<{type}>			|v:t_list|
+	dict<{type}>			|v:t_dict|
+	float				|v:t_float|
+	bool				|v:t_bool|
+	none				|v:t_none|
+	job				|v:t_job|
+	channel				|v:t_channel|
+	blob				|v:t_blob|
+	class				|v:t_class|
+	object				|v:t_object|
+	typealias			|v:t_typealias|
+	enum				|v:t_enum|
+	enumvalue			|v:t_enumvalue|
+	tuple<{type}>			|v:t_tuple|
+	tuple<{type}, {type}, ...>	|v:t_tuple|
+	tuple<...list<{type}>>		|v:t_tuple|
+	tuple<{type}, ...list<{type}>>	|v:t_tuple|
 	void
 
-						 *E1031* *E1186*
+							*E1031* *E1186*
 これらの型は宣言で使用できるが、単純な値は "void" 型を持つことはできない。void
-を値として使用しようとするとエラーが発生する。例: >vim9
-
+を値として使用しようとするとエラーが発生する。
+例:
+>vim9
 	vim9script
 	def NoReturnValue(): void
 	enddef
 	try
-	    const X: any = NoReturnValue()
+	  const X: any = NoReturnValue()
 	catch
-	    echo v:exception	  # E1031: Cannot use void value
-	    try
-	        echo NoReturnValue()
-	    catch
-	        echo v:exception  # E1186: Expression does not result in a ...
-	    endtry
+	  echo v:exception  # E1031: Cannot use void value
+	  try
+	    echo NoReturnValue()
+	  catch
+	    echo v:exception  # E1186: Expression does not result in a valu...
+	  endtry
 	endtry
 <						*E1008* *E1009* *E1010* *E1012*
 不正な宣言や型の不一致はエラーを引き起こす。以下は、E1008、E1009、E1010、E1012
-のエラーの例である: >vim9
-
-	vim9cmd var l: list
-	vim9cmd var l: list<number
-	vim9cmd var l: list<invalidtype>
-	vim9cmd var l: list<number> = ['42']
+のエラーの例である:
+>vim9
+	vim9cmd var l_1008: list
+	vim9cmd var l_1009: list<number
+	vim9cmd var l_1010: list<invalidtype>
+	vim9cmd var l_1012: list<number> = ['42']
 <
 配列型はない。代わりに、リストまたは tuple を使用する。これらの型はリテラル
 (定数) にもなり得る。次の例では、[5, 6] はリストのリテラル、(7, ) は tuple の
-リテラルである。エコーされたリストもリストのリテラルである: >vim9
-
+リテラルである。エコーされたリストもリストのリテラルである:
+>vim9
 	vim9script
 	var l: list<number> = [1, 2]
 	var t: tuple<...list<number>> = (3, 4)
@@ -1948,103 +1949,265 @@ tuple<...list<number>>		|Number| 型の 0 個以上の項目を持つ可変長 t
 tuple<number, ...list<string>>	|Number| 型の項目とそれに続く 0 個以上の
 				|String| 型の項目を含む tuple
 
-例: >
-    var myTuple: tuple<number> = (20,)
-    var myTuple: tuple<number, string> = (30, 'vim')
-    var myTuple: tuple<number, float, bool> = (40, 1.1, true)
-    var myTuple: tuple<...list<string>> = ('a', 'b', 'c')
-    var myTuple: tuple<number, ...list<string>> = (3, 'a', 'b', 'c')
+例:
+>vim9
+	vim9script
+	var t1: tuple<number> = (20,)
+	var t2: tuple<number, string> = (30, 'vim')
+	var t3: tuple<number, float, bool> = (40, 1.1, true)
+	var t4: tuple<...list<string>> = ('a', 'b', 'c')
+	var t5: tuple<number, ...list<string>> = (3, 'a', 'b', 'c', 'd')
 <
-						*variadic-tuple* *E1539*
-可変長 tuple には、同じ型の 0 個以上の項目が含まれる。可変長 tuple の型はリス
-ト型で終わる必要がある。例: >
-    var myTuple: tuple<...list<number>> = (1, 2, 3)
-    var myTuple: tuple<...list<string>> = ('a', 'b', 'c')
-    var myTuple: tuple<...list<bool>> = ()
+							*variadic-tuple* *E1539*
+可変長タプルは、同一の型の要素を 0 個以上持つ。可変長 tuple の型はリスト型で終
+わる必要があり、そうでない場合は E1539 エラーが発生する。例:
+>vim9
+	vim9script
+	var t6: tuple<...list<number>> = (1, 2, 3)
+	var t7: tuple<...list<string>> = ('a', 'b', 'c')
+	var t8: tuple<...list<bool>> = ()
+	var tE: tuple<...any> = () # E1539: Variadic tuple must end with li...
 <
-				    *vim9-func-declaration* *E1005* *E1007*
-				    *vim9-partial-declaration*
-				    *vim9-func-type*
-関数 (または部分関数) は次の方法で宣言できる:
-func				任意の種類の関数参照。引数や戻り値への型チェッ
-				クはない。
-func: void			任意の数および型の引数で、戻り値はない。
-func: {type}			任意の数および型の引数で、特定の型の戻り値があ
-				る。
+						*vim9-func-declaration*
+						*vim9-partial-declaration*
+						*vim9-func-type*
+関数 (または関数参照) は、以下を含むさまざまな方法で宣言できる:
+>
+	func
+	func: void
+	func: {type}
+	func()[: void]
+	func(): {type}
+	func({type})[: void]
+	func({type}): {type}
+	func(?{type})[: void]
+	func(?{type}): {type}
+	func(...list<{type}>)[: void]
+	func(...list<{type}>): {type}
+	func({type}, ...list<{type}>)[: void]
+	func({type}, ...list<{type}>): {type}
+<
+戻り値の型が "void" の場合、その関数は値を返さない。上述のすべての方法は、以下
+の例で解説および実演されており、いずれも '9' を出力する。
 
-func()				引数がなく、値を返さない関数。
-func(): void			同上
-func(): {type}			引数がなく、戻り値の型がある関数。
-
-func({type})			引数の型があり、値を返さない関数。
-func({type}): {type}		引数の型と戻り値の型がある関数。
-func(?{type})			任意の引数の型があり、値を返さない関数。
-func(...list<{type}>)		可変長引数のリストの型で、値を返さない関数。
-func({type}, ?{type}, ...list<{type}>): {type}
-				以下をもつ関数:
-				- 必須の引数の型
-				- 任意の引数の型
-				- 可変長引数のリストの型
-				- 戻り値の型
-
-戻り値の型が "void" の場合、関数は値を返さない。
-
+func
+		- 任意の種類の関数参照
+		- 任意の型の戻り値、または戻り値なし
+>vim9
+		vim9script
+		const I = (n) => n + 1
+		const F: func = I->function()
+		echo F(8)
+<
+func: void
+		- 任意の数および種類の引数
+		- 戻り値を返さない
+>vim9
+		vim9script
+		def I(n: number): void
+		  echo n + 1
+		enddef
+		const F: func: void = I->function()
+		F(8)
+<
+func: {type}
+		- 任意の数および種類の引数
+		- 型付きの戻り値を返す
+>vim9
+		vim9script
+		const I = (n): number => n + 1
+		const F: func: number = I->function()
+		echo F(8)
+<
+func()[: void]
+		- 引数なし
+		- 戻り値を返さない
+>vim9
+		vim9script
+		var n: number = 8
+		def I(): void
+		  echo n + 1
+		enddef
+		const F: func(): void = I->function()
+		F()
+<
+func(): {type}
+		- 引数なし
+		- 型付きの戻り値を返す
+>vim9
+		vim9script
+		var n: number = 8
+		def I(): number
+		  return n + 1
+		enddef
+		const F: func(): number = I->function()
+		echo F()
+<
+func({type})[: void]
+		- 型付きの引数
+		- 戻り値を返さない
+>vim9
+		vim9script
+		def I(n: number): void
+		  echo n + 1
+		enddef
+		const F: func(number): void = I->function()
+		F(8)
+<
+func({type}): {type}
+		- 型付きの引数
+		- 型付きの戻り値を返す
+>vim9
+		vim9script
+		const I = (n: number): number => n + 1
+		const F: func(number): number = I->function()
+		echo F(8)
+<
+func(?{type})[: void]
+		- 省略可能な型付きの引数
+		- 戻り値を返さない
+>vim9
+		vim9script
+		def I(n: number = 8): void
+		  echo n + 1
+		enddef
+		const F: func(?number): void = I->function()
+		F()
+<
+func(?{type}): {type}
+		- 省略可能な型付きの引数
+		- 型付きの戻り値を返す
+>vim9
+		vim9script
+		def I(n: number = 8): number
+		  return n + 1
+		enddef
+		const F: func(?number): number = I->function()
+		echo F()
+<
+func(...list<{type}>)[: void]
+		- 可変個引数に対する型付きリスト
+		- 戻り値を返さない
+>vim9
+		vim9script
+		def L(...l: list<number>): void
+		  echo l->reduce((x, y) => x + y)
+		enddef
+		const F: func(...list<number>): void = L->function()
+		F(8, 0, 0, 1)
+<
+func(...list<{type}>): {type}
+		- 可変個引数に対する型付きリスト
+		- 型付きの戻り値を返す
+>vim9
+		vim9script
+		def L(...l: list<number>): number
+		  return l->reduce((x, y) => x + y)
+		enddef
+		const F: func(...list<number>): number = L->function()
+		echo F(8, 0, 0, 1)
+<
+func({type}, ...list<{type}>)[: void]
+		- 型付きの必須引数
+		- 可変個引数に対する型付きリスト
+		- 戻り値を返さない
+>vim9
+		vim9script
+		def D(a: float, ...l: list<number>): void
+		  echo (a + l->reduce((x, y) => x + y))->float2nr()
+		enddef
+		const F: func(float, ...list<number>): void = D->function()
+		F(8.0, 0, 0, 1)
+<
+func({type}, ...list<{type}>): {type}
+		- 型付きの必須引数
+		- 可変個引数に対する型付きリスト
+		- 型付きの戻り値を返す
+>vim9
+		vim9script
+		def D(a: float, ...l: list<number>): number
+		  return (a + l->reduce((x, y) => x + y))->float2nr()
+		enddef
+		const F: func(float, ...list<number>): number = D->function()
+		echo F(8.0, 0, 0, 1)
+<
 参照は |Partial| にすることもできる。この場合、追加の引数や辞書が格納されるが、
 これらは呼び出し元からは参照できない。これらは同じ方法で呼び出されるため、宣言
 も同じである。この対話型の例では、円の半径を入力すると、partial を使用して面積
-を小数点以下 2 桁で返す: >vim9
-
+を返す:
+>vim9
 	vim9script
 	def CircleArea(pi: float, radius: float): float
-	    return pi * radius->pow(2)
+	  return pi * radius->pow(2)
 	enddef
 	const AREA: func(float): float = CircleArea->function([3.14])
 	const RADIUS: float = "Enter a radius value: "->input()->str2float()
 	echo $"\nThe area of a circle with a radius of {RADIUS} is " ..
-	     $"{AREA(RADIUS)} (π to two d.p.)"
+	  $"{AREA(RADIUS)} (π to two d.p.)"
+<
+							*E1005*
+Funcref で使用できる引数の型は最大 19 個までである (これは、`:def` やラムダを
+含む通常の関数で許容される数より 1 つ少ない数である。|E740| を参照)。以下の例
+のように、引数の型が 20 個以上になると、E1005 エラーが発生する:
+>vim9
+	vim9script
+	var X: func
+	X = (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t) => 0
+	var F: func(any, any, any, any, any, any, any, any, any, any, any,
+	  \ any, any, any, any, any, any, any, any, any): any = X->function()
+	# E1005: Too many argument types
+<
+							*E1007*
+Funcref において、必須引数はオプション引数の後に指定することはできない:
+>vim9
+	vim9script
+	def I(n: number, f: float): void
+	  echo n + f
+	enddef
+	const F: func(?number, float) = I->function()
+	# E1007: Mandatory argument after optional argument
 <
 						*vim9-typealias-type*
 カスタム型 (|typealias|) は `:type` で定義できる。ユーザー関数と同様に、大文字
 で始める必要がある (これにより、現在または将来の組み込み型との名前の衝突を回避
-できる)。以下の例は、完全平方のリストを作成し、|type()| (14、typealias)
-と|typename()| を報告する: >vim9
-
+できる)。この例は、完全平方のリストを作成し、|type()| (14、typealias)と
+|typename()| について報告する:
+>vim9
 	vim9script
 	type Ln = list<number>
 	final perfect_squares: Ln = [1, 4, 9, 16, 25]
 	echo "Typename (Ln): " ..
-	     $"type() is {Ln->type()} and typename() is {Ln->typename()}"
+	  $"type() is {Ln->type()} and typename() is {Ln->typename()}"
 <
-						*E1105*
-typealias 自体は文字列に変換できない: >vim9
-
+							*E1105*
+typealias 自体は文字列に変換できない:
+>vim9
 	vim9script
 	type Ln = list<number>
 	const FAILS: func = (): string => {
-	    echo $"{Ln}"  # E1105: Cannot convert typealias to string
-	    }
-<
-				    *vim9-class-type*  *vim9-interface-type*
+	  echo $"{Ln}"  # E1105: Cannot convert typealias to string
+	}
+<				    *vim9-class-type*  *vim9-interface-type*
 				    *vim9-object-type*
 |class|、|object|、|interface| はすべて型として使用できる。以下の対話型の例は、
 float 値の入力を促し、2 つの異なる図形の面積を返す。また、クラス、オブジェク
-ト、インターフェイスの |type()| と |typename()| も報告する: >vim9
-
+ト、インターフェイスの |type()| と |typename()| も報告する:
+>vim9
 	vim9script
 	interface Shape
-	    def InfoArea(): tuple<string, float>
+	  def InfoArea(): tuple<string, float>
 	endinterface
 	class Circle implements Shape
-	    var radius: float
-	    def InfoArea(): tuple<string, float>
-	        return ('Circle (π × r²)', 3.141593 * this.radius->pow(2))
-	    enddef
+	  var radius: float
+	  def InfoArea(): tuple<string, float>
+	    return ('Circle (π × r²)', 3.141593 * this.radius->pow(2))
+	  enddef
 	endclass
 	class Square implements Shape
-	    var side: float
-	    def InfoArea(): tuple<string, float>
-	        return ('Square (s²)', this.side->pow(2))
-	    enddef
+	  var side: float
+	  def InfoArea(): tuple<string, float>
+	    return ('Square (s²)', this.side->pow(2))
+	  enddef
 	endclass
 	const INPUT: float = "Enter a float value: "->input()->str2float()
 	echo "\nAreas of shapes:"
@@ -2052,8 +2215,8 @@ float 値の入力を促し、2 つの異なる図形の面積を返す。また
 	var mySquare: object<Square> = Square.new(INPUT)
 	final shapes: list<Shape> = [myCircle, mySquare]
 	for shape in shapes
-	    const [N: string, A: float] = shape.InfoArea()
-	    echo $"\t- {N} has area of {A}"
+	  const [N: string, A: float] = shape.InfoArea()
+	  echo $"\t- {N} has area of {A}"
 	endfor
 	echo "\n\t\ttype()\ttypename()\n\t\t------\t----------"
 	echo $"Circle\t\t{Circle->type()}\t{Circle->typename()}"
@@ -2067,18 +2230,18 @@ float 値の入力を促し、2 つの異なる図形の面積を返す。また
 |enum| は型 (|v:t_enum|) として使用できる。enum 値を保持する変数は、実行時に
 enumvalue 型 (|v:t_enumvalue|) を持つ。以下の対話型の例は、文字の入力を促し、
 正方形または菱形に関する情報を返す。また、enum と enumvalue の |type()| と
-|typename()| も報告する: >vim9
-
+|typename()| も報告する:
+>vim9
 	vim9script
 	enum Quad
-	    Square('four', 'only'),
-	    Rhombus('opposite', 'no')
-	    var eq: string
-	    var ra: string
-	    def string(): string
-	        return $"\nA {this.name} has " ..
-	               $"{this.eq} equal sides and {this.ra} right angles\n\n"
-	    enddef
+	  Square('four', 'only'),
+	  Rhombus('opposite', 'no')
+	  var eq: string
+	  var ra: string
+	  def string(): string
+	    return $"\nA {this.name} has " ..
+	      $"{this.eq} equal sides and {this.ra} right angles\n\n"
+	  enddef
 	endenum
 	echo "Rhombus (r) or Square (s)?"
 	var myQuad: Quad = getcharstr() =~ '\c^R' ? Quad.Rhombus : Quad.Square
@@ -2086,11 +2249,10 @@ enumvalue 型 (|v:t_enumvalue|) を持つ。以下の対話型の例は、文字
 	echo $"Quad  \t{Quad->type()}  \t{Quad->typename()}"
 	echo $"myQuad\t{myQuad->type()}\t{myQuad->typename()}"
 <
-	 Notes: このスクリプトは組み込みメソッド "string()" (|object-string()|)
-		を使用している。
-		Quad と myQuad の typename() は同じ ("enum<Quad>") ですが、
-		type() は区別される (myQuad は 16、enumvalue を返すが、Quad は
-		15、enum を返す)。
+	Notes: ここでは組み込みメソッド "string()" が使用されている。
+	|object-string()| を参照。Quad と myQuad の typename() は同じ
+	("enum<Quad>") だが、type() は区別される (myQuad は 16、つまり
+	EnumValue を返すが、Quad は 15、つまり Enum を返す)。
 
 変数の型と型キャスト	~
 							*variable-types*
