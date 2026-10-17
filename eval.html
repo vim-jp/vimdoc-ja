@@ -3,7 +3,7 @@ layout: vimdoc
 helpname: 'eval'
 ---
 <div id='vimCodeElement'>
-<a class="Constant" href="eval.html" name="eval.txt">eval.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Sep 14<br>
+<a class="Constant" href="eval.html" name="eval.txt">eval.txt</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;<span class="Identifier">Vim バージョン 9.2.</span>&nbsp;&nbsp;Last change: 2026 Sep 30<br>
 <br>
 <br>
 <span class="Identifier">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIM リファレンスマニュアル&nbsp;&nbsp;&nbsp;&nbsp;by Bram Moolenaar</span><br>
@@ -181,11 +181,28 @@ Number、<a class="Identifier" href="eval.html#v:true">v:true</a>&nbsp;または
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#E362" name="E362">E362</a>&nbsp;<a class="Constant" href="eval.html#E891" name="E891">E891</a>&nbsp;<a class="Constant" href="eval.html#E892" name="E892">E892</a>&nbsp;<a class="Constant" href="eval.html#E893" name="E893">E893</a>&nbsp;<a class="Constant" href="eval.html#E894" name="E894">E894</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#E907" name="E907">E907</a>&nbsp;<a class="Constant" href="eval.html#E911" name="E911">E911</a>&nbsp;<a class="Constant" href="eval.html#E914" name="E914">E914</a>&nbsp;<a class="Constant" href="eval.html#E1521" name="E1521">E1521</a><br>
-浮動小数点数が予期されているところでは数値も使用可能だが、それ以外は使用できな<br>
-い。<br>
+浮動小数点数と比較する場合や、組み込み関数が浮動小数点数を期待する場合には、代<br>
+わりに数値を使用できる。<a class="Comment" href="eval.html#v:null">v:null</a>&nbsp;以外を指定するとエラーになる。例:<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let f = 8.0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let Fr = function(&quot;abs&quot;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo f == 8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&quot; 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo f == v:null&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&quot; 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo f == v:false&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&quot; E362: Using a boolean value as a Float<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo sort([f, Fr], &quot;f&quot;) |&quot; E891: Using a funcref as a Float<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo f == &quot;8&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&quot; E892: Using a String as a Float<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo sort([f, []], &quot;f&quot;) |&quot; E893: Using a List as a Float<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo sort([f, {}], &quot;f&quot;) |&quot; E894: Using a Dictionary as a Float<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo f == v:none&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&quot; E907: Using a special value as a Float<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo f == (8, 0)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&quot; E1521: Can only compare Tuple with Tuple<br>
+&lt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">Note</span>:&nbsp;<a class="Comment" href="channel.html#job">job</a>&nbsp;を使用すると E911 が発生し、<a class="Comment" href="channel.html#channel">channel</a>&nbsp;を使用すると E914 が<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;発生する。Vim9 script では、<a class="Comment" href="change.html#==">==</a>&nbsp;比較に相当するすべての演算で&nbsp;<a class="Identifier" href="eval.html#E1072">E1072</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;が発生する。<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#no-type-checking" name="no-type-checking">no-type-checking</a><br>
-変数の型を変更しようとしてもエラーは発生しない。<br>
+旧来の Vim script では、変数の型を変更することが許可されている。一方、Vim9<br>
+script では、変数の型を変更しようとすると、型不一致エラー&nbsp;<a class="Identifier" href="vim9.html#E1012">E1012</a>&nbsp;が発生する。<br>
 <br>
 <br>
 <span class="PreProc">1.2 関数への参照</span><br>
@@ -520,7 +537,7 @@ Blob の場合、一度に 1 バイトが使われる。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let l = len(list)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; リストの項目数<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let big = max(list)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; リスト中の最大値<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let small = min(list)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; リスト中の最小値<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let xs = count(list, 'x')&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 'x' の出現回数を数える<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let xs = count(list, 'x')&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; リスト内で 'x' の出現回数を数える<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let i = index(list, 'x')&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &quot; 最初に 'x' が現れる位置のインデックス<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let lines = getline(1, 10)&nbsp;&nbsp;&nbsp;&nbsp; &quot; バッファから10行を取得<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:call append('$', lines)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; バッファに行を追加する<br>
@@ -1362,7 +1379,8 @@ script では結果を&nbsp;<a class="Identifier" href="vim9.html#true">true</a>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0</div>
 リストや Tuple や辞書の中ではこの変換は行われない。<br>
 <br>
-<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では型が一致しなくてはならない。<br>
+<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では、数値と浮動小数点数を比較する場合を除き、型が一致している必<br>
+要がある。<span class="MissingTag">vim9-comparators</span>&nbsp;を参照。<br>
 <br>
 文字列同士を比較した場合、strcmp()やstricmp()によって比較される。これは数値的<br>
 に(バイトの値で)比較されるのであって、必ずしも言語に基づく文字種の違いではな<br>
@@ -1514,19 +1532,18 @@ expr10 が数値か文字列ならば、この値は文字列 expr10 の第 expr
 に変換すれば良い。例えばカーソルの下のバイトを得るには:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let c = getline(&quot;.&quot;)[col(&quot;.&quot;) - 1]</div>
 <br>
-<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#E1147" name="E1147">E1147</a>&nbsp;<a class="Constant" href="eval.html#E1148" name="E1148">E1148</a><br>
-expr10 が文字列ならば、この値は文字列 expr10 の第 expr1 番目の文字 (合成文字が<br>
-ある場合はそれらを全て含む) に相当する文字列となる。バイトインデックスの場合は<br>
-<a class="Identifier" href="builtin.html#strpart()">strpart()</a>&nbsp;を使う。<br>
-<br>
-インデックスが0の場合最初のバイトもしくは文字になる。注意: テキストの列番号は0<br>
-始まりである!<br>
-<br>
-文字列の長さよりも大きなインデックスが指定された場合、結果は空文字列になる。負<br>
-数のインデックスを指定すると、結果は常に空文字列になる(後方互換性のため)。<br>
-最後のバイトもしくは文字を得るには[-1:]を使うこと。<br>
-Vim9 script では負数のインデックスはリストと同様に使用され、終端からのカウント<br>
-になる。<br>
+<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では:<br>
+- expr10 が文字列である場合、結果は expr10 の expr1 番目の単一文字 (合成文字を<br>
+&nbsp;&nbsp;含む) からなる文字列となる。バイト単位のインデックスを使用する場合は、<br>
+&nbsp;&nbsp;<a class="Identifier" href="builtin.html#strpart()">strpart()</a>&nbsp;を使用すること。<br>
+- インデックス 0 は (合成文字を含めた) 最初の文字を指す。注意: テキストの桁番<br>
+&nbsp;&nbsp;号は 1 から始まる!<br>
+- 文字列の長さがインデックスより小さい場合、結果は空の文字列になる。インデック<br>
+&nbsp;&nbsp;スが負の値である場合も、常に空の文字列が返される (理由: 後方互換性のため)。<br>
+&nbsp;&nbsp;最後の 1 文字 (合成文字を含む) を取得するには、[-1 :] を使用すること。<br>
+- リストと同様に、負のインデックスが使用される (末尾から数える)。<br>
+-&nbsp;<a class="Comment" href="vim9.html#:def">:def</a>&nbsp;関数内で、インデックスを使って文字列への代入や変更を行おうとすると、<br>
+&nbsp;&nbsp;<span class="MissingTag">E1148</span>&nbsp;が発生する。<br>
 <br>
 expr10 がリスト<a class="Identifier" href="eval.html#List">List</a>ならばインデックスexpr1の項目が返る。取りうるインデックス<br>
 の値については<a class="Identifier" href="eval.html#list-index">list-index</a>を参照。インデックスが範囲を超えている場合はエラーと<br>
@@ -1695,10 +1712,10 @@ number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;57005<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0b1101111010101101<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0o157255<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0xBE'EF&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#scriptversion-4">scriptversion-4</a>&nbsp;および&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;48'879&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#scriptversion-4">scriptversion-4</a>&nbsp;および&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0o137'357&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#scriptversion-4">scriptversion-4</a>&nbsp;および&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0b1011'1110'1110'1111&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#scriptversion-4">scriptversion-4</a>&nbsp;および&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0xBE'EF&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#scriptversion-4">scriptversion-4</a>&nbsp;および&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;48'879&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#scriptversion-4">scriptversion-4</a>&nbsp;および&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0o137'357&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#scriptversion-4">scriptversion-4</a>&nbsp;および&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0b1011'1110'1110'1111&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#scriptversion-4">scriptversion-4</a>&nbsp;および&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#floating-point-format" name="floating-point-format">floating-point-format</a><br>
 浮動小数点数は次の 2 つの形式で書ける:<br>
@@ -1729,8 +1746,8 @@ number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.0E-6<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1416e+88<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.123&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#scriptversion-2">scriptversion-2</a>&nbsp;および&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;123'456.0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#scriptversion-4">scriptversion-4</a>&nbsp;および&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.123&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#scriptversion-2">scriptversion-2</a>&nbsp;以上および&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;123'456.0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="eval.html#scriptversion-4">scriptversion-4</a>&nbsp;および&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script<br>
 <br>
 次のものは無効である:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Special">{M}</span>&nbsp;が空<br>
@@ -1955,15 +1972,17 @@ function(expr1, ...)&nbsp;&nbsp;&nbsp;&nbsp;関数呼出<br>
 <br>
 1. ラムダ式の本体は単一の式<a class="Identifier" href="eval.html#expr1">expr1</a>であり、<a class="Identifier" href="intro.html#Ex">Ex</a>コマンド列ではない。<br>
 2. 引数にプリフィックス &quot;a:&quot; を使用しない。例:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let F = {arg1, arg2 -&gt; arg1 - arg2}<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:echo F(5, 2)</div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3<br>
-<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let F = {arg1, arg2 -&gt; arg1 - arg2}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo F(5, 2)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 3<br>
+&lt;<br>
 引数は任意である。例:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let F = {-&gt; 'error function'}<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:echo F('ignored')</div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; error function<br>
-<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let F = {-&gt; 'error function'}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo F(<span class="MissingTag">'ignored'</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; error function<br>
+&lt;<br>
 <a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;lambda は、異なる文法を使用するだけでなく、型チェックを追加し、複数の行<br>
 に分割できる。<a class="Identifier" href="vim9.html#vim9-lambda">vim9-lambda</a>&nbsp;を参照。<br>
 <br>
@@ -1971,40 +1990,52 @@ function(expr1, ...)&nbsp;&nbsp;&nbsp;&nbsp;関数呼出<br>
 ラムダ式は外側のスコープの変数と引数にアクセスできる。これはよくクロージャと呼<br>
 ばれる。以下の例ではラムダの中で &quot;i&quot; と &quot;a:arg&quot; が使われているが、これらは関数<br>
 のスコープに既に存在する。これらは関数から抜けても有効であり続ける:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:function Foo(arg)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;let i = 3<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;return {x -&gt; x + i - a:arg}<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:endfunction<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let Bar = Foo(4)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:echo Bar(6)</div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5<br>
-<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function Foo(arg)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let i = 3<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return {x -&gt; x + i - a:arg}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let Bar = Foo(4)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo Bar(6)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; 5<br>
+&lt;<br>
 <span class="Todo">Note</span>: これが正しく機能するためには、ラムダが定義される前の外側のスコープ内にそ<br>
-れらの変数が存在していなければならない。<a class="Identifier" href="userfunc.html#:func-closure">:func-closure</a>も参照。<br>
+れらの変数が存在していなければならない。<a class="Identifier" href="userfunc.html#:func-closure">:func-closure</a>&nbsp;も参照。Vim9 script の<br>
+クロージャについては、<a class="Identifier" href="vim9.html#vim9-closure">vim9-closure</a>&nbsp;を参照。<br>
 <br>
 ラムダとクロージャのサポートは以下のように判定できる:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if has('lambda')</div>
 <br>
-<a class="Identifier" href="builtin.html#sort()">sort()</a>,&nbsp;<a class="Identifier" href="builtin.html#map()">map()</a>,&nbsp;<a class="Identifier" href="builtin.html#filter()">filter()</a>とともにラムダ式を使う例:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:echo map([1, 2, 3], {idx, val -&gt; val + 1})</div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [2, 3, 4]<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:echo sort([3,7,2,1,4], {a, b -&gt; a - b})</div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [1, 2, 3, 4, 7]<br>
+<a class="Identifier" href="builtin.html#sort()">sort()</a>、<a class="Identifier" href="builtin.html#map()">map()</a>、<a class="Identifier" href="builtin.html#filter()">filter()</a>&nbsp;でラムダ式を使用する例。旧来の Vim script および<br>
+Vim9 script を使用:<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo sort([3, 2, 1, 4], {a, b -&gt; a - b})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| &quot; [1, 2, 3, 4]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9cmd echo [3, 2, 1, 4]-&gt;sort((a, b) =&gt; a - b)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# [1, 2, 3, 4]<br>
 <br>
-ラムダ式は、チャネル、ジョブ、タイマーを使う際にも有用である:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let timer = timer_start(500,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ {-&gt; execute(&quot;echo 'Handler called'&quot;, &quot;&quot;)},<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ {'repeat': 3})</div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Handler called<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Handler called<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Handler called<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo map([1, 2, 3], {idx, val -&gt; val + 1})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| &quot; [2, 3, 4]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9cmd echo [1, 2, 3]-&gt;map((_, val) =&gt; val + 1)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# [2, 3, 4]<br>
 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo filter([1, 2, 3], {idx, val -&gt; val &gt; 1})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | &quot; [2, 3]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9cmd echo [1, 2, 3]-&gt;filter((_, val) =&gt; val &gt; 1)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # [2, 3]<br>
+<br>
+ラムダ式は、チャネル、ジョブ、およびタイマーにも役立つ:<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echowindow &quot;Handler calling...&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let b:count = 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let timer = timer_start(1000,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ {-&gt; execute(&quot;let b:count += 1 | &quot; ..<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ &quot;echowindow 'Handler called ' .. b:count&quot;, &quot;&quot;)},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\ {<span class="MissingTag">'repeat'</span>: 3})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; Handler called 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; Handler called 2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; Handler called 3<br>
+&lt;<br>
 <span class="Todo">Note</span>&nbsp;クロージャが自身の依存するコンテキストから参照されている場合、メモリが使<br>
 われたままになり解放されない可能性がある:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function Function()<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; let x = 0<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; let F = {-&gt; x}<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; endfunction</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let x = 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let F = {-&gt; x}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction</div>
 このクロージャが関数スコープの &quot;x&quot; を使用しており、そして同じスコープの &quot;F&quot; が<br>
 クロージャを参照している。この循環の結果解放されることのないメモリになる。<br>
 推奨: このようなことはしないこと。<br>
@@ -2515,6 +2546,15 @@ v:hlsearch&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;検索による強調表示がオ�
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let &amp;hlsearch = &amp;hlsearch</div>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 関数から戻ったときに値が復元されることに注意すること。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="userfunc.html#function-search-undo">function-search-undo</a><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#v:imagebackend" name="v:imagebackend">v:imagebackend</a><br>
+v:imagebackend&nbsp;&nbsp;現在使用されている画像バックエンドを示す。<a class="Type" href="options.html#'imageprotocol'">'imageprotocol'</a>&nbsp;を参<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;照。以下のいずれかの値をとる:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;none&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;画像バックエンドは使用されていない<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;gui&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GUI 固有の画像バックエンドが使用されている<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;kitty&quot;&nbsp;&nbsp;&nbsp;&nbsp; kitty グラフィックスプロトコルが使用されて<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;いる<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;sixel&quot;&nbsp;&nbsp;&nbsp;&nbsp; sixel グラフィックスが使用されている<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#v:insertmode" name="v:insertmode">v:insertmode</a>&nbsp;<a class="Constant" href="eval.html#insertmode-variable" name="insertmode-variable">insertmode-variable</a><br>
 v:insertmode&nbsp;&nbsp;&nbsp;&nbsp;自動コマンドイベント<a class="Identifier" href="autocmd.html#InsertEnter">InsertEnter</a>と<a class="Identifier" href="autocmd.html#InsertChange">InsertChange</a>用。<br>
@@ -3028,37 +3068,43 @@ Vimはこれを見つけると、まず波括弧の中の式を評価し、そ�
 いは、&quot;adjective&quot; に &quot;quiet&quot; が代入されていたとすれば &quot;my_quiet_variable&quot; とな<br>
 る。<br>
 <br>
-これの応用の1つは、オプション値によって支配される変数の集合を作ることである。<br>
-例えば次の文<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo my_{&amp;background}_message</div>
-<br>
-は現在の&nbsp;<a class="Type" href="options.html#'background'">'background'</a>&nbsp;の値に応じて &quot;my_dark_message&quot; か &quot;my_light_message&quot; の<br>
-中身を表示する。<br>
-<br>
+その用途の 1 つとして、オプションの値によって制御される一連の変数を定義するこ<br>
+とが挙げられる。<a class="Type" href="options.html#'background'">'background'</a>&nbsp;オプションを使用した例を以下に示す:<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let my_light_msg = 'Do you like your light background?'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let my_dark_msg = 'Do you like your dark background?'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo my_{&amp;background}_msg<br>
+&lt;<br>
 波括弧を複数使うこともできる:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo my_{adverb}_{adjective}_message</div>
-ネストさせることもできる:<br>
+...ネストさせることもできる:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo my_{ad{end_of_word}}_message</div>
 ここで &quot;end_of_word&quot; は &quot;verb&quot; か &quot;jective&quot; のどちらかである。<br>
 <br>
-しかし、波括弧の中の式を評価した結果が有効な変数名とならなければならない。<br>
-つまり、次は無効である:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let foo='a + b'<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:echo c{foo}d</div>
-というのは、展開の結果が &quot;ca + bd&quot; となるからで、これは有効な名前ではない。<br>
-<br>
+ただし、波括弧内の式は、有効な単一の変数名として評価される必要がある。したがっ<br>
+て、以下の例の展開は無効である。&quot;ca + bd&quot; は有効な単一の変数名ではないからであ<br>
+る。<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let foo='a + b'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo c<span class="Special">{foo}</span>d<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; E121: Undefined variable: ca + bd<br>
+&lt;<br>
+波括弧も&nbsp;<a class="Identifier" href="eval.html#register-variable">register-variable</a>&nbsp;と一緒に使用することはできない。例えば:<br>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let i = 'a'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let @<span class="Special">{i}</span>&nbsp;= false&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&quot; E15: invalid expression<br>
+&lt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#curly-braces-function-names" name="curly-braces-function-names">curly-braces-function-names</a><br>
-同様の方法で評価した名前により関数を定義したり呼び出したりできる。<br>
+変数と同様に、評価された名前を使って関数を呼び出したり定義したりすることができ<br>
+る。これは旧来の Vim script でのみ機能し、<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では機能しない。<br>
 例:<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let func_end='whizz'<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:call my_func_{func_end}(parameter)</div>
-<br>
-この例は関数 &quot;my_func_whizz(parameter)&quot; を呼びだす。<br>
-<br>
-これらは機能しない:<br>
-<div class="helpExample">&nbsp;&nbsp;:let i = 3<br>
-&nbsp;&nbsp;:let @{i} = ''&nbsp;&nbsp;&quot; error<br>
-&nbsp;&nbsp;:echo @{i}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot; error</div>
+&gt;vim<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let low_line = '_'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function F_curly()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return 'F{low_line}curly() is a working curly-braces-function-name'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfunction<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo F{low_line}curly()<br>
+&lt;<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 7. コマンド&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#expression-commands" name="expression-commands">expression-commands</a><br>
@@ -3385,8 +3431,8 @@ text...<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; は、以下と同義である:<br>
 <div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:let x = 1<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:lockvar! x</div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">NOTE</span>: Vim9 script では&nbsp;<a class="Comment" href="eval.html#:const">:const</a>&nbsp;とは異なった動きをする、<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9.html#vim9-const">vim9-const</a>&nbsp;を参照。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="Todo">NOTE</span>: Vim9 script では&nbsp;<a class="Comment" href="eval.html#:const">:const</a>&nbsp;とは異なった動きをする。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9.html#vim9-declaration">vim9-declaration</a>&nbsp;および&nbsp;<a class="Identifier" href="vim9.html#vim9-const">vim9-const</a>&nbsp;を参照。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;これは、変数が変更されないことを確実にしたいときに便利<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;である。<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;この値がリストか辞書のリテラルならその項目もまた変更で<br>
@@ -3601,6 +3647,7 @@ text...<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Identifier" href="vim9.html#Vim9">Vim9</a>&nbsp;script では、スクリプトの可読性を向上させるた<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;め、<a class="Comment" href="eval.html#:continue">:continue</a>&nbsp;を短縮することはできない。<br>
+<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#:break" name=":break">:break</a>&nbsp;<a class="Constant" href="eval.html#:brea" name=":brea">:brea</a>&nbsp;<a class="Constant" href="eval.html#E587" name="E587">E587</a><br>
 :brea[k]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Comment" href="eval.html#:while">:while</a>&nbsp;または&nbsp;<a class="Comment" href="eval.html#:for">:for</a>&nbsp;ループの内側で使われたときは、<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;対応する&nbsp;<a class="Comment" href="eval.html#:endwhile">:endwhile</a>&nbsp;または&nbsp;<a class="Comment" href="eval.html#:endfor">:endfor</a>&nbsp;の後のコマンドま<br>
@@ -4132,15 +4179,26 @@ thrown&quot; を表示する。例外は、順番に &quot;:catch&quot; コマ�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Caught &quot;oops&quot; in function Foo, line 10<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Nothing caught</div>
 <br>
-実用的な例:&nbsp;&nbsp;次のコマンド &quot;:LineNumber&quot; は、それが呼び出されたスクリプトや関数<br>
-中の行番号を表示する:<br>
-<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:function! LineNumber()<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;return substitute(v:throwpoint, '.*\D\(\d\+\).*', '\1', &quot;&quot;)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:endfunction<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:command! LineNumber try | throw &quot;&quot; | catch | echo LineNumber() | endtry</div>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#try-nested" name="try-nested">try-nested</a><br>
+Vim9 script の実用的な例: 以下の &quot;LineNumber&quot; コマンドは、そのコマンドが使用さ<br>
+れたスクリプトや関数内での行番号を表示する:<br>
+&gt;vim9<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Thrower(): void<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo &quot;In Thrower()&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw 'This line is the throwpoint.'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const TLN: func = (): string =&gt;&nbsp;&nbsp;# TLN is 'Thrown Line Number'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;substitute(v:throwpoint, '.*\D\(\d\+\).*', '\1', &quot;&quot;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;command! LineNumber {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Thrower()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo $&quot;Error on line {TLN()}&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endtry<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Echoes &quot;In Thrower()&quot; then &quot;Error on line 2&quot;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LineNumber<br>
+&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#try-nested" name="try-nested">try-nested</a><br>
 try条件文によって捕捉されない例外はそれを囲むtry条件文によって捕捉することがで<br>
 きる:<br>
 <br>
@@ -4915,24 +4973,29 @@ matchstr()やsubstitute()を使えば実現できる。以下の例は、&quot;f
 はMichael Geddesによる)。<br>
 <br>
 <br>
-<span class="PreProc">辞書からscriptnamesを取り出す</span><br>
+<span class="PreProc">辞書から scriptnames を取り出す</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#scriptnames-dictionary" name="scriptnames-dictionary">scriptnames-dictionary</a><br>
 <a class="Comment" href="repeat.html#:scriptnames">:scriptnames</a>&nbsp;コマンドを使用すると、読み込まれたすべてのスクリプトファイルの<br>
-リストを取得できる。&nbsp;<a class="Comment" href="builtin.html#getscriptinfo()">getscriptinfo()</a>&nbsp;関数もあるが、返される情報はまったく同<br>
-じではない。リストを操作する必要がある場合は、このコードをベースとして使用でき<br>
-る:<br>
-<br>
-<div class="helpExample">&nbsp;&nbsp;&nbsp;&nbsp;# SNR によってインデックス付けされたスクリプト辞書を作成または更新し、それ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;# を返す。<br>
-&nbsp;&nbsp;&nbsp;&nbsp;def Scripts(scripts: dict&lt;string&gt; = {}): dict&lt;string&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for info in getscriptinfo()<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if scripts-&gt;has_key(info.sid)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continue<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scripts[info.sid] = info.name<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfor<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return scripts<br>
-&nbsp;&nbsp;&nbsp;&nbsp;enddef</div>
+リストを取得できる。<a class="Comment" href="builtin.html#getscriptinfo()">getscriptinfo()</a>&nbsp;関数もあるが、返される情報は完全に同じで<br>
+はない。リストを使用する必要がある場合は、この Vim9 script をベースとして使用<br>
+できる。これは、各スクリプトの&nbsp;<a class="Comment" href="map.html#<SNR>">&lt;SNR&gt;</a>&nbsp;とファイルパスを含む辞書を作成するもの<br>
+である:<br>
+&gt;vim9<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# SNR をキーとするスクリプトの辞書を構築し、それを返す。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Scripts(scripts: dict<span class="Special">&lt;string&gt;</span>&nbsp;= {}): dict<span class="Special">&lt;string&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for info in getscriptinfo()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if scripts-&gt;has_key(info.sid)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continue<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endif<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scripts[info.sid] = info.name<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endfor<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return scripts<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enddef<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 使用例: 読み込まれた vimrc および gvimrc (存在する場合) の SNR を表<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 示する<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo Scripts()-&gt;filter((_, v) =&gt; v =~ '\v[._]g?vimrc')<br>
+&lt;<br>
 <br>
 <span class="PreProc">==============================================================================</span><br>
 10. Vim scriptバージョン&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#vimscript-version" name="vimscript-version">vimscript-version</a>&nbsp;<a class="Constant" href="eval.html#vimscript-versions" name="vimscript-versions">vimscript-versions</a><br>
@@ -5296,7 +5359,8 @@ Vim のクリップボード機能にプロバイダを統合するには、す�
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set clipmethod^=test<br>
 &lt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="Constant" href="eval.html#clipboard-providers-wsl" name="clipboard-providers-wsl">clipboard-providers-wsl</a><br>
-Windows WSL の場合は、このスクリプトを試すこと: &gt;vim9<br>
+Windows WSL の場合は、このスクリプトを試すこと:<br>
+&gt;vim9<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vim9script<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def Copy(_: string, _: string, lines: list<span class="Special">&lt;string&gt;</span>)<br>
@@ -5313,6 +5377,6 @@ Windows WSL の場合は、このスクリプトを試すこと: &gt;vim9<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;paste: { &quot;*&quot;: Paste, &quot;+&quot;: Paste }<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set clipmethod^=wslclip<br>
-<br>
+&lt;<br>
 &nbsp;vim:tw=78:ts=8:noet:ft=help:norl:<br>
 </div>
