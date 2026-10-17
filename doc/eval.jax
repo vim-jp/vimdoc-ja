@@ -1,4 +1,4 @@
-*eval.txt*	For Vim バージョン 9.2.  Last change: 2026 Sep 14
+*eval.txt*	For Vim バージョン 9.2.  Last change: 2026 Sep 30
 
 
 		  VIM リファレンスマニュアル	by Bram Moolenaar
@@ -176,11 +176,28 @@ Note: " " と "0" も空文字列ではないので、TRUE と見なされる。
 
 					*E362* *E891* *E892* *E893* *E894*
 					*E907* *E911* *E914* *E1521*
-浮動小数点数が予期されているところでは数値も使用可能だが、それ以外は使用できな
-い。
+浮動小数点数と比較する場合や、組み込み関数が浮動小数点数を期待する場合には、代
+わりに数値を使用できる。`v:null` 以外を指定するとエラーになる。例:
+>vim
+	let f = 8.0
+	let Fr = function("abs")
+	echo f == 8		|" 1
+	echo f == v:null	|" 0
+	echo f == v:false	|" E362: Using a boolean value as a Float
+	echo sort([f, Fr], "f")	|" E891: Using a funcref as a Float
+	echo f == "8"		|" E892: Using a String as a Float
+	echo sort([f, []], "f")	|" E893: Using a List as a Float
+	echo sort([f, {}], "f")	|" E894: Using a Dictionary as a Float
+	echo f == v:none	|" E907: Using a special value as a Float
+	echo f == (8, 0)	|" E1521: Can only compare Tuple with Tuple
+<
+	Note: `job` を使用すると E911 が発生し、`channel` を使用すると E914 が
+	発生する。Vim9 script では、`==` 比較に相当するすべての演算で |E1072|
+	が発生する。
 
 						*no-type-checking*
-変数の型を変更しようとしてもエラーは発生しない。
+旧来の Vim script では、変数の型を変更することが許可されている。一方、Vim9
+script では、変数の型を変更しようとすると、型不一致エラー |E1012| が発生する。
 
 
 1.2 関数への参照 ~
@@ -515,7 +532,7 @@ Blob の場合、一度に 1 バイトが使われる。
 	:let l = len(list)		" リストの項目数
 	:let big = max(list)		" リスト中の最大値
 	:let small = min(list)		" リスト中の最小値
-	:let xs = count(list, 'x')	" 'x' の出現回数を数える
+	:let xs = count(list, 'x')	" リスト内で 'x' の出現回数を数える
 	:let i = index(list, 'x')	" 最初に 'x' が現れる位置のインデックス
 	:let lines = getline(1, 10)	" バッファから10行を取得
 	:call append('$', lines)	" バッファに行を追加する
@@ -1357,7 +1374,8 @@ NOTE: |Vim9| script では 'ignorecase' を使用しない。
 	0
 リストや Tuple や辞書の中ではこの変換は行われない。
 
-|Vim9| script では型が一致しなくてはならない。
+|Vim9| script では、数値と浮動小数点数を比較する場合を除き、型が一致している必
+要がある。|vim9-comparators| を参照。
 
 文字列同士を比較した場合、strcmp()やstricmp()によって比較される。これは数値的
 に(バイトの値で)比較されるのであって、必ずしも言語に基づく文字種の違いではな
@@ -1509,19 +1527,18 @@ expr10 が数値か文字列ならば、この値は文字列 expr10 の第 expr
 に変換すれば良い。例えばカーソルの下のバイトを得るには: >
 	:let c = getline(".")[col(".") - 1]
 
-|Vim9| script では:					*E1147* *E1148*
-expr10 が文字列ならば、この値は文字列 expr10 の第 expr1 番目の文字 (合成文字が
-ある場合はそれらを全て含む) に相当する文字列となる。バイトインデックスの場合は
-|strpart()| を使う。
-
-インデックスが0の場合最初のバイトもしくは文字になる。注意: テキストの列番号は0
-始まりである!
-
-文字列の長さよりも大きなインデックスが指定された場合、結果は空文字列になる。負
-数のインデックスを指定すると、結果は常に空文字列になる(後方互換性のため)。
-最後のバイトもしくは文字を得るには[-1:]を使うこと。
-Vim9 script では負数のインデックスはリストと同様に使用され、終端からのカウント
-になる。
+|Vim9| script では:
+- expr10 が文字列である場合、結果は expr10 の expr1 番目の単一文字 (合成文字を
+  含む) からなる文字列となる。バイト単位のインデックスを使用する場合は、
+  |strpart()| を使用すること。
+- インデックス 0 は (合成文字を含めた) 最初の文字を指す。注意: テキストの桁番
+  号は 1 から始まる!
+- 文字列の長さがインデックスより小さい場合、結果は空の文字列になる。インデック
+  スが負の値である場合も、常に空の文字列が返される (理由: 後方互換性のため)。
+  最後の 1 文字 (合成文字を含む) を取得するには、[-1 :] を使用すること。
+- リストと同様に、負のインデックスが使用される (末尾から数える)。
+- `:def` 関数内で、インデックスを使って文字列への代入や変更を行おうとすると、
+  |E1148| が発生する。
 
 expr10 がリスト|List|ならばインデックスexpr1の項目が返る。取りうるインデックス
 の値については|list-index|を参照。インデックスが範囲を超えている場合はエラーと
@@ -1690,10 +1707,10 @@ number			整数値				*expr-number*
 	57005
 	0b1101111010101101
 	0o157255
-	0xBE'EF			|scriptversion-4| および |Vim9|
-	48'879			|scriptversion-4| および |Vim9|
-	0o137'357		|scriptversion-4| および |Vim9|
-	0b1011'1110'1110'1111	|scriptversion-4| および |Vim9|
+	0xBE'EF			|scriptversion-4| および |Vim9| script
+	48'879			|scriptversion-4| および |Vim9| script
+	0o137'357		|scriptversion-4| および |Vim9| script
+	0b1011'1110'1110'1111	|scriptversion-4| および |Vim9| script
 
 						*floating-point-format*
 浮動小数点数は次の 2 つの形式で書ける:
@@ -1724,8 +1741,8 @@ number			整数値				*expr-number*
 	1.0E-6
 	3.1416e+88
 
-	.123		|scriptversion-2| および |Vim9|
-	123'456.0	|scriptversion-4| および |Vim9|
+	.123		|scriptversion-2| 以上および |Vim9| script
+	123'456.0	|scriptversion-4| および |Vim9| script
 
 次のものは無効である:
 	3.		{M} が空
@@ -1949,57 +1966,71 @@ function(expr1, ...)	関数呼出
 下の点がユーザー定義関数|user-functions|と異なる:
 
 1. ラムダ式の本体は単一の式|expr1|であり、|Ex|コマンド列ではない。
-2. 引数にプリフィックス "a:" を使用しない。例: >
-	:let F = {arg1, arg2 -> arg1 - arg2}
-	:echo F(5, 2)
-<	3
-
-引数は任意である。例: >
-	:let F = {-> 'error function'}
-	:echo F('ignored')
-<	error function
-
+2. 引数にプリフィックス "a:" を使用しない。例:
+>vim
+	let F = {arg1, arg2 -> arg1 - arg2}
+	echo F(5, 2)
+	" 3
+<
+引数は任意である。例:
+>vim
+	let F = {-> 'error function'}
+	echo F('ignored')
+	" error function
+<
 |Vim9| lambda は、異なる文法を使用するだけでなく、型チェックを追加し、複数の行
 に分割できる。|vim9-lambda| を参照。
 
 							*closure*
 ラムダ式は外側のスコープの変数と引数にアクセスできる。これはよくクロージャと呼
 ばれる。以下の例ではラムダの中で "i" と "a:arg" が使われているが、これらは関数
-のスコープに既に存在する。これらは関数から抜けても有効であり続ける: >
-	:function Foo(arg)
-	:  let i = 3
-	:  return {x -> x + i - a:arg}
-	:endfunction
-	:let Bar = Foo(4)
-	:echo Bar(6)
-<	5
-
+のスコープに既に存在する。これらは関数から抜けても有効であり続ける:
+>vim
+	function Foo(arg)
+	  let i = 3
+	  return {x -> x + i - a:arg}
+	endfunction
+	let Bar = Foo(4)
+	echo Bar(6)
+	" 5
+<
 Note: これが正しく機能するためには、ラムダが定義される前の外側のスコープ内にそ
-れらの変数が存在していなければならない。|:func-closure|も参照。
+れらの変数が存在していなければならない。|:func-closure| も参照。Vim9 script の
+クロージャについては、|vim9-closure| を参照。
 
 ラムダとクロージャのサポートは以下のように判定できる: >
 	if has('lambda')
 
-|sort()|, |map()|, |filter()|とともにラムダ式を使う例: >
-	:echo map([1, 2, 3], {idx, val -> val + 1})
-<	[2, 3, 4] >
-	:echo sort([3,7,2,1,4], {a, b -> a - b})
-<	[1, 2, 3, 4, 7]
+|sort()|、|map()|、|filter()| でラムダ式を使用する例。旧来の Vim script および
+Vim9 script を使用:
+>vim
+	echo sort([3, 2, 1, 4], {a, b -> a - b})		| " [1, 2, 3, 4]
+	vim9cmd echo [3, 2, 1, 4]->sort((a, b) => a - b)	  # [1, 2, 3, 4]
 
-ラムダ式は、チャネル、ジョブ、タイマーを使う際にも有用である: >
-	:let timer = timer_start(500,
-			\ {-> execute("echo 'Handler called'", "")},
-			\ {'repeat': 3})
-<	Handler called
-	Handler called
-	Handler called
+	echo map([1, 2, 3], {idx, val -> val + 1})		| " [2, 3, 4]
+	vim9cmd echo [1, 2, 3]->map((_, val) => val + 1)	  # [2, 3, 4]
 
+	echo filter([1, 2, 3], {idx, val -> val > 1})		| " [2, 3]
+	vim9cmd echo [1, 2, 3]->filter((_, val) => val > 1)	  # [2, 3]
+
+ラムダ式は、チャネル、ジョブ、およびタイマーにも役立つ:
+>vim
+	echowindow "Handler calling..."
+	let b:count = 0
+	let timer = timer_start(1000,
+		\ {-> execute("let b:count += 1 | " ..
+		\ "echowindow 'Handler called ' .. b:count", "")},
+		\ {'repeat': 3})
+	" Handler called 1
+	" Handler called 2
+	" Handler called 3
+<
 Note クロージャが自身の依存するコンテキストから参照されている場合、メモリが使
 われたままになり解放されない可能性がある: >
 	function Function()
-	   let x = 0
-	   let F = {-> x}
-	 endfunction
+	  let x = 0
+	  let F = {-> x}
+	endfunction
 このクロージャが関数スコープの "x" を使用しており、そして同じスコープの "F" が
 クロージャを参照している。この循環の結果解放されることのないメモリになる。
 推奨: このようなことはしないこと。
@@ -2510,6 +2541,15 @@ v:hlsearch	検索による強調表示がオンになっているかどうかを
 			let &hlsearch = &hlsearch
 <		関数から戻ったときに値が復元されることに注意すること。
 		|function-search-undo|
+
+					*v:imagebackend*
+v:imagebackend	現在使用されている画像バックエンドを示す。'imageprotocol' を参
+		照。以下のいずれかの値をとる:
+			"none"	    画像バックエンドは使用されていない
+			"gui"	    GUI 固有の画像バックエンドが使用されている
+			"kitty"	    kitty グラフィックスプロトコルが使用されて
+				    いる
+			"sixel"	    sixel グラフィックスが使用されている
 
 					*v:insertmode* *insertmode-variable*
 v:insertmode	自動コマンドイベント|InsertEnter|と|InsertChange|用。
@@ -3023,37 +3063,43 @@ Vimはこれを見つけると、まず波括弧の中の式を評価し、そ�
 いは、"adjective" に "quiet" が代入されていたとすれば "my_quiet_variable" とな
 る。
 
-これの応用の1つは、オプション値によって支配される変数の集合を作ることである。
-例えば次の文 >
-	echo my_{&background}_message
-
-は現在の 'background' の値に応じて "my_dark_message" か "my_light_message" の
-中身を表示する。
-
+その用途の 1 つとして、オプションの値によって制御される一連の変数を定義するこ
+とが挙げられる。'background' オプションを使用した例を以下に示す:
+>vim
+	let my_light_msg = 'Do you like your light background?'
+	let my_dark_msg = 'Do you like your dark background?'
+	echo my_{&background}_msg
+<
 波括弧を複数使うこともできる: >
 	echo my_{adverb}_{adjective}_message
-ネストさせることもできる: >
+...ネストさせることもできる: >
 	echo my_{ad{end_of_word}}_message
 ここで "end_of_word" は "verb" か "jective" のどちらかである。
 
-しかし、波括弧の中の式を評価した結果が有効な変数名とならなければならない。
-つまり、次は無効である: >
-	:let foo='a + b'
-	:echo c{foo}d
-というのは、展開の結果が "ca + bd" となるからで、これは有効な名前ではない。
-
+ただし、波括弧内の式は、有効な単一の変数名として評価される必要がある。したがっ
+て、以下の例の展開は無効である。"ca + bd" は有効な単一の変数名ではないからであ
+る。
+>vim
+	let foo='a + b'
+	echo c{foo}d
+	" E121: Undefined variable: ca + bd
+<
+波括弧も |register-variable| と一緒に使用することはできない。例えば:
+>vim
+	let i = 'a'
+	let @{i} = false	|" E15: invalid expression
+<
 						*curly-braces-function-names*
-同様の方法で評価した名前により関数を定義したり呼び出したりできる。
-例: >
-	:let func_end='whizz'
-	:call my_func_{func_end}(parameter)
-
-この例は関数 "my_func_whizz(parameter)" を呼びだす。
-
-これらは機能しない: >
-  :let i = 3
-  :let @{i} = ''  " error
-  :echo @{i}      " error
+変数と同様に、評価された名前を使って関数を呼び出したり定義したりすることができ
+る。これは旧来の Vim script でのみ機能し、|Vim9| script では機能しない。
+例:
+>vim
+	let low_line = '_'
+	function F_curly()
+	  return 'F{low_line}curly() is a working curly-braces-function-name'
+	endfunction
+	echo F{low_line}curly()
+<
 
 ==============================================================================
 7. コマンド						*expression-commands*
@@ -3380,8 +3426,8 @@ text...
 <			は、以下と同義である: >
 				:let x = 1
 				:lockvar! x
-<			NOTE: Vim9 script では `:const` とは異なった動きをする、
-			|vim9-const| を参照。
+<			NOTE: Vim9 script では `:const` とは異なった動きをする。
+			|vim9-declaration| および |vim9-const| を参照。
 			これは、変数が変更されないことを確実にしたいときに便利
 			である。
 			この値がリストか辞書のリテラルならその項目もまた変更で
@@ -3596,6 +3642,7 @@ text...
 
 			|Vim9| script では、スクリプトの可読性を向上させるた
 			め、`:continue` を短縮することはできない。
+
 						*:break* *:brea* *E587*
 :brea[k]		`:while` または `:for` ループの内側で使われたときは、
 			対応する `:endwhile` または `:endfor` の後のコマンドま
@@ -4127,15 +4174,26 @@ Note "v:exception"、"v:stacktrace" および "v:throwpoint" は最も直近に�
 	Caught "oops" in function Foo, line 10
 	Nothing caught
 
-実用的な例:  次のコマンド ":LineNumber" は、それが呼び出されたスクリプトや関数
-中の行番号を表示する: >
-
-	:function! LineNumber()
-	:    return substitute(v:throwpoint, '.*\D\(\d\+\).*', '\1', "")
-	:endfunction
-	:command! LineNumber try | throw "" | catch | echo LineNumber() | endtry
-<
-							*try-nested*
+Vim9 script の実用的な例: 以下の "LineNumber" コマンドは、そのコマンドが使用さ
+れたスクリプトや関数内での行番号を表示する:
+>vim9
+	vim9script
+	def Thrower(): void
+	  echo "In Thrower()"
+	  throw 'This line is the throwpoint.'
+	enddef
+	const TLN: func = (): string =>  # TLN is 'Thrown Line Number'
+	  substitute(v:throwpoint, '.*\D\(\d\+\).*', '\1', "")
+	command! LineNumber {
+	  try
+	    Thrower()
+	  catch
+	    echo $"Error on line {TLN()}"
+	  endtry
+	}
+	# Echoes "In Thrower()" then "Error on line 2":
+	LineNumber
+<							*try-nested*
 try条件文によって捕捉されない例外はそれを囲むtry条件文によって捕捉することがで
 きる: >
 
@@ -4910,24 +4968,29 @@ matchstr()やsubstitute()を使えば実現できる。以下の例は、"foobar
 はMichael Geddesによる)。
 
 
-辞書からscriptnamesを取り出す ~
+辞書から scriptnames を取り出す ~
 						*scriptnames-dictionary*
 `:scriptnames` コマンドを使用すると、読み込まれたすべてのスクリプトファイルの
-リストを取得できる。 `getscriptinfo()` 関数もあるが、返される情報はまったく同
-じではない。リストを操作する必要がある場合は、このコードをベースとして使用でき
-る: >
-
-    # SNR によってインデックス付けされたスクリプト辞書を作成または更新し、それ
-    # を返す。
-    def Scripts(scripts: dict<string> = {}): dict<string>
-      for info in getscriptinfo()
-        if scripts->has_key(info.sid)
-          continue
-        endif
-        scripts[info.sid] = info.name
-      endfor
-      return scripts
-    enddef
+リストを取得できる。`getscriptinfo()` 関数もあるが、返される情報は完全に同じで
+はない。リストを使用する必要がある場合は、この Vim9 script をベースとして使用
+できる。これは、各スクリプトの `<SNR>` とファイルパスを含む辞書を作成するもの
+である:
+>vim9
+	vim9script
+	# SNR をキーとするスクリプトの辞書を構築し、それを返す。
+	def Scripts(scripts: dict<string> = {}): dict<string>
+	  for info in getscriptinfo()
+	    if scripts->has_key(info.sid)
+	      continue
+	    endif
+	    scripts[info.sid] = info.name
+	  endfor
+	  return scripts
+	enddef
+	# 使用例: 読み込まれた vimrc および gvimrc (存在する場合) の SNR を表
+	# 示する
+	echo Scripts()->filter((_, v) => v =~ '\v[._]g?vimrc')
+<
 
 ==============================================================================
 10. Vim scriptバージョン	*vimscript-version* *vimscript-versions*
@@ -5291,7 +5354,8 @@ Vim のクリップボード機能にプロバイダを統合するには、す�
 	set clipmethod^=test
 <
 						*clipboard-providers-wsl*
-Windows WSL の場合は、このスクリプトを試すこと: >vim9
+Windows WSL の場合は、このスクリプトを試すこと:
+>vim9
 	vim9script
 
 	def Copy(_: string, _: string, lines: list<string>)
@@ -5308,5 +5372,5 @@ Windows WSL の場合は、このスクリプトを試すこと: >vim9
 	    paste: { "*": Paste, "+": Paste }
 	}
 	set clipmethod^=wslclip
-
+<
  vim:tw=78:ts=8:noet:ft=help:norl:
